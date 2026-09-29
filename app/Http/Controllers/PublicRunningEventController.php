@@ -207,7 +207,20 @@ class PublicRunningEventController extends Controller
 
         $events = $query->paginate(10);
 
-        return view('events.landing', compact('events', 'cities', 'raceTypes', 'raceDistances', 'featuredEvents', 'mapEvents'));
+        // Trust statistics (DATA ASLI DB query count, TIDAK hardcoded) - sesuai antislop R-17 / C-5
+        $statsTotalEvents = (clone $query)->reorder()->count();
+        $statsTotalEventsAll = Event::whereIn('event_kind', ['directory', 'managed'])->published()->count();
+        $statsTotalCities = Event::whereIn('event_kind', ['directory', 'managed'])
+            ->published()
+            ->whereNotNull('city_id')
+            ->distinct('city_id')
+            ->count('city_id');
+        $statsTotalEventSubmissions = \App\Models\EventSubmission::count();
+
+        return view('events.landing', compact(
+            'events', 'cities', 'raceTypes', 'raceDistances', 'featuredEvents', 'mapEvents',
+            'statsTotalEvents', 'statsTotalEventsAll', 'statsTotalCities', 'statsTotalEventSubmissions'
+        ));
     }
 
     public function show($slug)

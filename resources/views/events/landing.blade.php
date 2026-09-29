@@ -8,14 +8,8 @@
         $canonicalUrl .= '?page=' . request('page');
     }
 
-    $heroBgPath = public_path('images/hero/marathon-hero-cinematic.jpg');
-    $sourceArtifactImg = 'C:/Users/LENOVO/.gemini/antigravity-ide/brain/ad786e94-2a56-4d78-962d-8aea9a7effaf/marathon_hero_bg_1788863966283.jpg';
-    if (!file_exists($heroBgPath) && file_exists($sourceArtifactImg)) {
-        @copy($sourceArtifactImg, $heroBgPath);
-    }
-    $heroBgUrl = file_exists($heroBgPath) 
-        ? asset('images/hero/marathon-hero-cinematic.jpg') 
-        : asset('images/hero/runner-hero.jpg');
+    // Fallback image untuk event card hero placeholder jika event tidak punya cover
+    $heroFallbackImg = asset('images/hero/jadwal-lari.webp');
 @endphp
 
 @extends('layouts.pacerhub')
@@ -1047,108 +1041,109 @@
             : ((isset($events) && $events->isNotEmpty()) ? $events->take(3) : collect());
     @endphp
 
-    <!-- PREMIUM FULL-WIDTH HERO SECTION (720px Desktop) -->
-    <section class="hero-v2-container">
-        <!-- Dark Cinematic Marathon Background with Solid Contrast Overlay -->
-        <div class="hero-cinematic-bg select-none">
-            <img src="{{ $heroBgUrl }}"
-                 alt="Indonesia Running Calendar 2026 - Marathon Race"
-                 loading="eager">
-            <!-- Multi-stop directional gradient overlays ensuring 100% dark solid canvas under left text -->
-            <div class="hero-cinematic-overlay"></div>
-            <!-- Ambient lime subtle accent glow -->
-            <div class="absolute -bottom-32 -left-32 w-96 h-96 rounded-full blur-3xl pointer-events-none" style="background: rgba(183, 255, 0, 0.08);"></div>
+    <!-- Hero Section: Solid slate + Start-Finish Stripe Motif (no background photo) -->
+    <section class="relative overflow-hidden bg-slate-950 border-b border-slate-800">
+        <!-- Identity Motif: Running Track Start/Finish 6 stripes above bottom border -->
+        <div class="absolute bottom-0 left-0 right-0 h-1.5 grid grid-cols-6 gap-[3px] z-[1] pointer-events-none">
+            <span class="bg-slate-800"></span><span class="bg-lime-500/60"></span>
+            <span class="bg-slate-800"></span><span class="bg-lime-500/60"></span>
+            <span class="bg-slate-800"></span><span class="bg-lime-500/60"></span>
         </div>
+        <!-- Subtle top edge rule -->
+        <div class="absolute top-0 left-0 right-0 h-px bg-slate-900/80 pointer-events-none"></div>
 
-        <!-- Left Aligned Content Container (Max-width: 7xl, Horizontal padding: 64px on desktop) -->
-        <div class="relative z-10 w-full max-w-7xl mx-auto px-6 sm:px-10 lg:px-16 py-12 lg:py-0">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-                
-                <!-- Left Column: Core Hero Content (Max-width 560px) -->
-                <div class="lg:col-span-7 max-w-[560px]">
-                    
-                    <!-- Badge -->
-                    
+        <div class="relative max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-16 lg:py-24">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start lg:items-center">
 
-                    <!-- Headline (64px, Line-height 1.05) -->
-                    <h1 class="hero-headline">
-                        JADWAL LARI INDONESIA
+                <!-- Left Column: Hero Copy -->
+                <div class="lg:col-span-7 max-w-2xl">
+                    <!-- Kicker Badge -->
+                    <span class="inline-flex items-center gap-2 rounded bg-slate-900 border border-slate-800 px-2.5 py-1 text-xs font-semibold text-lime-400">
+                        <span class="inline-block w-1.5 h-1.5 rounded-full bg-lime-400"></span>
+                        Update Terbaru 2026
+                    </span>
+
+                    <!-- Headline (pakem Inter Tight 800, title case, tracking tight) -->
+                    <h1 class="mt-6 text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-[1.05] tracking-tight">
+                        Jadwal Lari Indonesia
+                        <span class="block text-lime-400 mt-2">Terlengkap & Terpercaya</span>
                     </h1>
 
-                    <!-- Subheadline -->
-                    <p class="text-slate-200 text-sm sm:text-base leading-relaxed mt-5 max-w-[520px]" style="color: #cbd5e1;">
-                        Jelajahi event 5K, 10K, Half Marathon hingga Ultra Marathon dari seluruh Indonesia dalam satu kalender.
+                    <!-- Subheadline: benefit spesifik, nyaman dibaca -->
+                    <p class="mt-6 text-sm sm:text-base text-slate-300 leading-relaxed max-w-xl">
+                        Jelajahi event fun run, 5K, 10K, setengah marathon, marathon, hingga trail dari seluruh Indonesia. Semua informasi tanggal, lokasi, kategori jarak, dan link pendaftaran resmi disajikan rapi dalam satu halaman.
                     </p>
 
-                    <!-- Action Buttons -->
-                    <div class="flex flex-wrap items-center gap-3.5 mt-8">
+                    <!-- Primary Actions: CTA 1 scroll filter, CTA 2 submit event -->
+                    <div class="mt-9 flex flex-col sm:flex-row flex-wrap gap-3">
                         <a href="#filter-form"
                            onclick="document.getElementById('filter-form')?.scrollIntoView({behavior: 'smooth', block: 'start'})"
-                           class="btn-hero-primary"
-                           style="background-color: #ffffffff !important; color: #08111F !important; border: 1px solid #ffffffff !important;">
-                            
-                            <span style="color: #08111F !important; font-weight: 900;">Cari Event Lari</span>
+                           class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-md bg-lime-500 hover:bg-lime-400 text-slate-950 font-semibold px-5 py-3 text-sm transition duration-150 focus:outline-none focus:ring-2 focus:ring-lime-400 focus:ring-offset-2 focus:ring-offset-slate-950">
+                            Cari Event Sekarang
                         </a>
 
                         <button type="button"
                                 id="btn-open-submit-event"
-                                class="btn-hero-secondary"
-                                style="background-color: #0E1626 !important; color: #ffffff !important; border: 1px solid #2B384E !important;">
-                            <i class="fas fa-plus text-xs" style="color: #B7FF00 !important;"></i>
-                            <span style="color: #ffffff !important; font-weight: 700;">Submit Event Gratis</span>
+                                class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-md bg-slate-900 border border-slate-700 hover:bg-slate-800 hover:border-slate-600 text-white font-medium px-5 py-3 text-sm transition duration-150 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 focus:ring-offset-slate-950">
+                            <span class="text-lime-400 font-bold leading-none">+</span>
+                            Submit Event Gratis
                         </button>
                     </div>
 
-                    <!-- Trust Statistics (500+ Event, 34 Provinsi, 10K+ Runner) -->
-                    <div class="pt-8 mt-8 border-t border-slate-800/90 grid grid-cols-3 gap-4 max-w-[480px]">
+                    <!-- Trusted Statistics: DATA ASLI query count -->
+                    <div class="mt-14 pt-8 border-t border-slate-800 grid grid-cols-3 gap-4 sm:gap-6 max-w-lg">
                         <div>
-                            <div class="text-2xl sm:text-3xl font-black tracking-tight" style="color: #ffffff;">500<span style="color: #B7FF00;">+</span></div>
-                            <div class="text-[11px] sm:text-xs font-bold uppercase tracking-wider mt-0.5" style="color: #94a3b8;">Event</div>
+                            <div class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white font-mono tabular-nums">
+                                {{ (int) $statsTotalEventsAll }}<span class="text-lime-400">+</span>
+                            </div>
+                            <div class="mt-1.5 text-xs text-slate-400 font-medium">Event Terdaftar</div>
                         </div>
-                        <div class="border-l border-slate-800/90 pl-4 sm:pl-6">
-                            <div class="text-2xl sm:text-3xl font-black tracking-tight" style="color: #ffffff;">34</div>
-                            <div class="text-[11px] sm:text-xs font-bold uppercase tracking-wider mt-0.5" style="color: #94a3b8;">Provinsi</div>
+                        <div class="border-l border-slate-800 pl-4 sm:pl-6">
+                            <div class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white font-mono tabular-nums">
+                                {{ (int) $statsTotalCities }}
+                            </div>
+                            <div class="mt-1.5 text-xs text-slate-400 font-medium">Kota</div>
                         </div>
-                        <div class="border-l border-slate-800/90 pl-4 sm:pl-6">
-                            <div class="text-2xl sm:text-3xl font-black tracking-tight" style="color: #ffffff;">10K<span style="color: #B7FF00;">+</span></div>
-                            <div class="text-[11px] sm:text-xs font-bold uppercase tracking-wider mt-0.5" style="color: #94a3b8;">Runner</div>
+                        <div class="border-l border-slate-800 pl-4 sm:pl-6">
+                            <div class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white font-mono tabular-nums">
+                                {{ (int) $statsTotalEventSubmissions }}<span class="text-lime-400">+</span>
+                            </div>
+                            <div class="mt-1.5 text-xs text-slate-400 font-medium">Event Disubmit</div>
                         </div>
                     </div>
-
                 </div>
 
-                <!-- Right Column: Floating Upcoming Race Card -->
+                <!-- Right Column: Upcoming Race Card (SOLID surface - NO glassmorphism / blur glow) -->
                 <div class="lg:col-span-5 flex justify-center lg:justify-end">
                     @if($upcomingRaceList->isNotEmpty())
-                        <div class="w-full max-w-[420px] lg:max-w-[440px]"
+                        <div class="w-full max-w-[440px] lg:max-w-[460px]"
                              x-data="{
                                  currentIndex: 0,
                                  total: {{ $upcomingRaceList->count() }},
                                  next() { this.currentIndex = (this.currentIndex + 1) % this.total; },
                                  prev() { this.currentIndex = (this.currentIndex - 1 + this.total) % this.total; }
                              }">
-                            
-                            <!-- Glassmorphism Upcoming Race Card -->
-                            <div class="floating-race-card group">
-                                
-                                <!-- Ambient glow effect -->
-                                <div class="absolute -top-16 -right-16 w-36 h-36 rounded-full blur-2xl pointer-events-none" style="background: rgba(183, 255, 0, 0.12);"></div>
 
-                                <!-- Card Header: Badge & Controls -->
-                                <div class="flex items-center justify-between gap-2 pb-3.5 border-b border-slate-800/90 relative z-10">
-                                    <div class="flex items-center gap-2">                                        
-                                        <span class="text-[11px] font-bold uppercase tracking-wider" style="color: #ffffffff;">UPCOMING RACE</span>
+                            <div class="relative bg-slate-900 border border-slate-800 rounded-lg p-5 shadow-xl">
+                                <!-- Card Header: Label + Carousel Controls -->
+                                <div class="flex items-center justify-between gap-2 pb-4 border-b border-slate-800">
+                                    <div class="flex items-center gap-2">
+                                        <span class="inline-block w-1.5 h-1.5 rounded-full bg-lime-400"></span>
+                                        <span class="text-xs font-semibold text-slate-300 uppercase tracking-wider">
+                                            Race Mendatang
+                                        </span>
                                     </div>
 
                                     @if($upcomingRaceList->count() > 1)
                                         <div class="flex items-center gap-1">
-                                            <button type="button" @click="prev()" aria-label="Previous race" 
-                                                    class="w-7 h-7 rounded-md bg-slate-900 border border-slate-700/80 hover:border-slate-500 text-slate-300 hover:text-white flex items-center justify-center text-[10px] transition cursor-pointer">
+                                            <button type="button" @click="prev()" aria-label="Race sebelumnya"
+                                                    class="w-8 h-8 rounded-md bg-slate-950 border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white flex items-center justify-center text-xs transition cursor-pointer">
                                                 <i class="fas fa-chevron-left"></i>
                                             </button>
-                                            <span class="text-[10px] font-bold text-slate-400 px-1.5" x-text="(currentIndex + 1) + '/' + total"></span>
-                                            <button type="button" @click="next()" aria-label="Next race" 
-                                                    class="w-7 h-7 rounded-md bg-slate-900 border border-slate-700/80 hover:border-slate-500 text-slate-300 hover:text-white flex items-center justify-center text-[10px] transition cursor-pointer">
+                                            <span class="text-xs font-bold text-slate-400 px-2 font-mono tabular-nums"
+                                                  x-text="(currentIndex + 1) + '/' + total"></span>
+                                            <button type="button" @click="next()" aria-label="Race selanjutnya"
+                                                    class="w-8 h-8 rounded-md bg-slate-950 border border-slate-700 hover:border-slate-500 text-slate-300 hover:text-white flex items-center justify-center text-xs transition cursor-pointer">
                                                 <i class="fas fa-chevron-right"></i>
                                             </button>
                                         </div>
@@ -1156,45 +1151,47 @@
                                 </div>
 
                                 <!-- Slide Items -->
-                                <div class="relative overflow-hidden mt-3.5">
+                                <div class="relative overflow-hidden mt-4">
                                     @foreach($upcomingRaceList as $idx => $race)
-                                        <div x-show="currentIndex === {{ $idx }}" 
+                                        @php
+                                            $raceCover = $race->getHeroImageUrl() ?: $heroFallbackImg;
+                                            $daysUntil = $race->start_at ? now()->diffInDays($race->start_at, false) : null;
+                                        @endphp
+                                        <div x-show="currentIndex === {{ $idx }}"
                                              x-transition:enter="transition ease-out duration-300"
                                              x-transition:enter-start="opacity-0 translate-x-3"
                                              x-transition:enter-end="opacity-100 translate-x-0"
-                                             class="space-y-3.5">
+                                             class="space-y-4">
 
-                                            <!-- Race Cover Image with Category Chips -->
-                                            <a href="{{ $race->public_url }}" class="block relative aspect-[16/9] w-full rounded-md overflow-hidden bg-slate-950 border border-slate-800 group/img">
-                                                <img src="{{ $race->getHeroImageUrl() ?: $heroBgUrl }}" 
-                                                     alt="{{ $race->name }}" 
-                                                     class="w-full h-full object-cover transition duration-500 group-hover/img:scale-105">
-                                                
-                                                <div class="absolute inset-0 bg-gradient-to-t from-[#08111F]/95 via-transparent to-black/30"></div>
+                                            <!-- Race Cover Image -->
+                                            <a href="{{ $race->public_url }}"
+                                               class="block relative aspect-[16/9] w-full rounded-md overflow-hidden bg-slate-950 border border-slate-800 group/cover">
+                                                <img src="{{ $raceCover }}"
+                                                     alt="{{ $race->name }}"
+                                                     loading="lazy"
+                                                     class="w-full h-full object-cover transition duration-500 group-hover/cover:scale-[1.03]">
+                                                <div class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/10 to-black/35"></div>
 
+                                                <!-- Distance chips -->
                                                 @if($race->distances && $race->distances->isNotEmpty())
                                                     <div class="absolute bottom-2.5 left-2.5 flex flex-wrap gap-1.5 z-10">
                                                         @foreach($race->distances->take(4) as $d)
-                                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold shadow"
-                                                                  style="background: rgba(8, 17, 31, 0.95); border: 1px solid rgba(71, 85, 105, 0.7); color: #ffffff;">
+                                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-950/95 border border-slate-700 text-white">
                                                                 {{ $d->name }}
                                                             </span>
                                                         @endforeach
                                                     </div>
                                                 @endif
 
-                                                @if($race->start_at)
-                                                    @php
-                                                        $daysUntil = now()->diffInDays($race->start_at, false);
-                                                    @endphp
+                                                <!-- Countdown badge -->
+                                                @if($daysUntil !== null)
                                                     <div class="absolute top-2.5 right-2.5 z-10">
                                                         @if($daysUntil > 0)
-                                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold shadow"
-                                                                  style="background: rgba(8, 17, 31, 0.95); border: 1px solid rgba(183, 255, 0, 0.5); color: #B7FF00;">
+                                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-950/95 border border-lime-500/60 text-lime-400">
                                                                 {{ (int)$daysUntil }} HARI LAGI
                                                             </span>
                                                         @elseif($daysUntil === 0)
-                                                            <span class="px-2 py-0.5 rounded bg-rose-950/90 border border-rose-700 text-rose-300 text-[10px] font-bold shadow">
+                                                            <span class="px-2 py-0.5 rounded bg-rose-950/90 border border-rose-700 text-rose-300 text-[10px] font-bold">
                                                                 HARI INI
                                                             </span>
                                                         @endif
@@ -1202,89 +1199,85 @@
                                                 @endif
                                             </a>
 
-                                            <!-- Race Title & Meta -->
+                                            <!-- Title & Meta (typography label only, NO FA icons) -->
                                             <div>
-                                                <a href="{{ $race->public_url }}" class="block text-base font-bold text-white hover:text-[#B7FF00] transition line-clamp-1">
+                                                <a href="{{ $race->public_url }}"
+                                                   class="block text-base font-bold text-white hover:text-lime-400 transition line-clamp-1">
                                                     {{ $race->name }}
                                                 </a>
 
-                                                <div class="mt-2 space-y-1.5 text-xs text-slate-300">
-                                                    <div class="flex items-center gap-2">
-                                                        <i class="fas fa-calendar-day text-xs w-4" style="color: #B7FF00;"></i>
-                                                        <span>{{ $race->start_at ? $race->start_at->translatedFormat('l, d F Y') : 'Jadwal Segera Diumumkan' }}</span>
+                                                <div class="mt-3 space-y-1.5 text-sm">
+                                                    <div class="flex gap-3">
+                                                        <span class="w-16 text-slate-500 font-medium shrink-0">Tanggal</span>
+                                                        <span class="text-slate-200">
+                                                            {{ $race->start_at ? $race->start_at->translatedFormat('l, d F Y') : 'Jadwal segera diumumkan' }}
+                                                        </span>
                                                     </div>
-                                                    <div class="flex items-center gap-2">
-                                                        <i class="fas fa-location-dot text-xs w-4" style="color: #B7FF00;"></i>
-                                                        <span class="line-clamp-1">{{ $race->city ? $race->city->name : $race->location_name }}</span>
+                                                    <div class="flex gap-3">
+                                                        <span class="w-16 text-slate-500 font-medium shrink-0">Lokasi</span>
+                                                        <span class="text-slate-200 line-clamp-1">
+                                                            {{ $race->city?->name ?: ($race->location_name ?: 'Indonesia') }}
+                                                        </span>
                                                     </div>
                                                 </div>
                                             </div>
 
-                                            <!-- Action Button -->
-                                            <div class="pt-1.5">
-                                                <a href="{{ $race->public_url }}" 
-                                                   class="btn-card-action"
-                                                   style="background-color: #B7FF00 !important; color: #08111F !important; border: 1px solid #B7FF00 !important;">
-                                                    <span style="color: #08111F !important; font-weight: 900;">Lihat Detail Race</span>
-                                                    <i class="fas fa-arrow-right text-[10px]" style="color: #08111F !important;"></i>
+                                            <!-- CTA -->
+                                            <div class="pt-1">
+                                                <a href="{{ $race->public_url }}"
+                                                   class="w-full inline-flex items-center justify-center rounded-md bg-lime-500 hover:bg-lime-400 text-slate-950 font-semibold px-4 py-2.5 text-sm transition duration-150">
+                                                    Lihat Detail Race
                                                 </a>
                                             </div>
 
                                         </div>
                                     @endforeach
                                 </div>
-
                             </div>
                         </div>
                     @else
-                        <!-- Fallback Flagship Card if no upcoming race in DB -->
-                        <div class="w-full max-w-[420px] lg:max-w-[440px]">
-                            <div class="floating-race-card group">
-                                <div class="flex items-center justify-between gap-2 pb-3.5 border-b border-slate-800/90">
+                        <!-- Fallback when no upcoming race available -->
+                        <div class="w-full max-w-[440px] lg:max-w-[460px]">
+                            <div class="bg-slate-900 border border-slate-800 rounded-lg p-5 shadow-xl">
+                                <div class="flex items-center justify-between gap-2 pb-4 border-b border-slate-800">
                                     <div class="flex items-center gap-2">
-                                        <span class="inline-block w-2 h-2 rounded-full" style="background-color: #B7FF00; box-shadow: 0 0 6px #B7FF00;"></span>
-                                        <span class="text-[11px] font-bold uppercase tracking-wider" style="color: #B7FF00;">UPCOMING RACE</span>
+                                        <span class="inline-block w-1.5 h-1.5 rounded-full bg-lime-400"></span>
+                                        <span class="text-xs font-semibold text-lime-400 uppercase tracking-wider">
+                                            Race Mendatang
+                                        </span>
                                     </div>
-                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold"
-                                          style="background: rgba(8, 17, 31, 0.95); border: 1px solid rgba(183, 255, 0, 0.5); color: #B7FF00;">
-                                        OPEN REGISTRATION
+                                    <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-950/95 border border-lime-500/50 text-lime-400">
+                                        Pendaftaran Dibuka
                                     </span>
                                 </div>
 
-                                <div class="mt-3.5 space-y-3.5">
+                                <div class="mt-4 space-y-4">
                                     <div class="block relative aspect-[16/9] w-full rounded-md overflow-hidden bg-slate-950 border border-slate-800">
-                                        <img src="{{ $heroBgUrl }}" alt="Borobudur Marathon 2026" class="w-full h-full object-cover">
-                                        <div class="absolute inset-0 bg-gradient-to-t from-[#08111F]/95 via-transparent to-black/30"></div>
+                                        <img src="{{ $heroFallbackImg }}" alt="Jadwal Lari Indonesia 2026"
+                                             class="w-full h-full object-cover">
+                                        <div class="absolute inset-0 bg-gradient-to-t from-slate-950/95 via-slate-950/10 to-black/35"></div>
                                         <div class="absolute bottom-2.5 left-2.5 flex flex-wrap gap-1.5 z-10">
-                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold"
-                                                  style="background: rgba(8, 17, 31, 0.95); border: 1px solid rgba(71, 85, 105, 0.7); color: #ffffff;">42K FM</span>
-                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold"
-                                                  style="background: rgba(8, 17, 31, 0.95); border: 1px solid rgba(71, 85, 105, 0.7); color: #ffffff;">21K HM</span>
-                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold"
-                                                  style="background: rgba(8, 17, 31, 0.95); border: 1px solid rgba(71, 85, 105, 0.7); color: #ffffff;">10K</span>
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-950/95 border border-slate-700 text-white">Marathon 42K</span>
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-950/95 border border-slate-700 text-white">Half 21K</span>
+                                            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-950/95 border border-slate-700 text-white">10K</span>
                                         </div>
                                     </div>
 
                                     <div>
-                                        <div class="text-base font-bold text-white">Borobudur Marathon 2026</div>
-                                        <div class="mt-2 space-y-1.5 text-xs text-slate-300">
-                                            <div class="flex items-center gap-2">
-                                                <i class="fas fa-calendar-day text-xs w-4" style="color: #B7FF00;"></i>
-                                                <span>Minggu, 15 November 2026</span>
-                                            </div>
-                                            <div class="flex items-center gap-2">
-                                                <i class="fas fa-location-dot text-xs w-4" style="color: #B7FF00;"></i>
-                                                <span>Taman Lumbini, Candi Borobudur, Jawa Tengah</span>
+                                        <div class="text-base font-bold text-white">Jelajahi Event Race Terdekat</div>
+                                        <div class="mt-3 space-y-1.5 text-sm">
+                                            <div class="flex gap-3">
+                                                <span class="w-16 text-slate-500 font-medium shrink-0">Tip</span>
+                                                <span class="text-slate-200">Gunakan filter untuk menemukan race di kota Anda.</span>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <div class="pt-1.5">
-                                        <a href="#filter-form" onclick="document.getElementById('filter-form')?.scrollIntoView({behavior: 'smooth', block: 'start'})"
-                                           class="btn-card-action"
-                                           style="background-color: #B7FF00 !important; color: #08111F !important; border: 1px solid #B7FF00 !important;">
-                                            <span style="color: #08111F !important; font-weight: 900;">Jelajahi Semua Race</span>
-                                            <i class="fas fa-arrow-right text-[10px]" style="color: #08111F !important;"></i>
+                                    <div class="pt-1">
+                                        <a href="#filter-form"
+                                           onclick="document.getElementById('filter-form')?.scrollIntoView({behavior: 'smooth', block: 'start'})"
+                                           class="w-full inline-flex items-center justify-center rounded-md bg-lime-500 hover:bg-lime-400 text-slate-950 font-semibold px-4 py-2.5 text-sm transition duration-150">
+                                            Cari Event di Sekitar
                                         </a>
                                     </div>
                                 </div>
