@@ -223,7 +223,11 @@ class AthleteController extends Controller
             'easy_run' => '#10B981', // Emerald 500
             'long_run' => '#6366F1', // Indigo 500
             'tempo' => '#F97316',    // Orange 500
+            'tempo_run' => '#F97316', // Orange 500
             'interval' => '#EF4444', // Red 500
+            'repetition' => '#D946EF', // Fuchsia 500
+            'hill' => '#D946EF',       // Fuchsia 500
+            'hill_repeats' => '#D946EF', // Fuchsia 500
             'strength' => '#64748B', // Slate 500
             'race' => '#EAB308',     // Yellow 500
             'rest' => '#94A3B8',     // Slate 400

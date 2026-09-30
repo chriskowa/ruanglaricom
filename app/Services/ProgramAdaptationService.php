@@ -208,6 +208,8 @@ class ProgramAdaptationService
         $updatedSessions = [];
         $weekRemainingCounters = [];
 
+        $volumeGoal = $options['volume_goal'] ?? null;
+
         foreach ($sessions as $s) {
             $day = (int) ($s['day'] ?? 0);
             $isPast = ($day <= $daysPassed || in_array($day, $completedDays, true));
@@ -222,14 +224,24 @@ class ProgramAdaptationService
             $type = (string) ($s['type'] ?? 'rest');
             $phase = (string) ($s['phase'] ?? 'Build');
 
+            $isFatigued = ($volumeGoal === 'decrease' || in_array($options['feeling'] ?? '', ['tired', 'sore', 'injured', 'weak'], true));
+
             // Calculate progressive week scale factor (10% ramp cap towards optimal)
             $weekOffset = max(0, $week - 1);
-            $volumeRamp = $adaptVolume
-                ? min(1.35, 1.0 + ($weekOffset * 0.08))
-                : 1.0;
+            if ($isFatigued) {
+                $volumeRamp = 0.80; // Recovery week: pangkas 20% volume
+            } elseif ($volumeGoal === 'maintain') {
+                $volumeRamp = 1.0;  // Pertahankan volume stabil
+            } elseif ($volumeGoal === 'increase') {
+                $volumeRamp = min(1.15, 1.05 + ($weekOffset * 0.03)); // Kenaikan bertahap aman
+            } else {
+                $volumeRamp = $adaptVolume
+                    ? min(1.35, 1.0 + ($weekOffset * 0.08))
+                    : 1.0;
 
-            if ($optimalMileage < $currentWeeklyMileage) {
-                $volumeRamp = max(0.80, 1.0 - ($weekOffset * 0.05));
+                if ($optimalMileage < $currentWeeklyMileage) {
+                    $volumeRamp = max(0.80, 1.0 - ($weekOffset * 0.05));
+                }
             }
 
             // Adapt based on workout type
@@ -288,8 +300,12 @@ class ProgramAdaptationService
                 $s['target_pace'] = $this->formatMinSec($paceMin) . '/km';
                 $s['duration'] = $this->builder->calculateDuration($newDist, $paceMin);
 
-                // Update workout details
-                $s['description'] = "Sesi Kualitas: {$workoutName} (VDOT {$newVdot}) — Target pace: " . $this->formatMinSec($paceMin) . "/km. Pemanasan 1.5 km E, main set berkualitas, dan pendinginan 1.5 km E.";
+                // Update workout details with recovery advisory if fatigued
+                if ($isFatigued) {
+                    $s['description'] = "Sesi Kualitas Disesuaikan (Mode Pemulihan): {$workoutName} (VDOT {$newVdot}) — Target pace: " . $this->formatMinSec($paceMin) . "/km. Kurangi repetisi atau ganti Easy Run jika otot masih lelah/pegal.";
+                } else {
+                    $s['description'] = "Sesi Kualitas: {$workoutName} (VDOT {$newVdot}) — Target pace: " . $this->formatMinSec($paceMin) . "/km. Pemanasan 1.5 km E, main set berkualitas, dan pendinginan 1.5 km E.";
+                }
                 $adaptedCount++;
 
             } elseif ($type === 'strength') {
@@ -307,16 +323,26 @@ class ProgramAdaptationService
         $program->program_json = $programJson;
         $program->vdot_score = $newVdot;
 
+        $shiftAction = $options['shift_action'] ?? 'none';
+        $shiftResult = null;
+        if ($shiftAction === 'shift_tomorrow') {
+            $shiftResult = $this->shiftTomorrowToLusa($enrollment);
+        }
+
         // Record history log
         $rescheduleHistory = $enrollment->reschedule_history ?? [];
         $rescheduleHistory[] = [
-            'type' => 'performance_checkin_adaptation',
+            'type' => 'checkin_adaptation',
             'timestamp' => now()->toIso8601String(),
             'old_vdot' => $oldVdot,
             'new_vdot' => $newVdot,
             'adapted_sessions_count' => $adaptedCount,
             'adapt_volume' => $adaptVolume,
+            'volume_goal' => $volumeGoal,
+            'completion' => $options['completion'] ?? null,
             'feeling' => $options['feeling'] ?? 'good',
+            'shift_action' => $shiftAction,
+            'shift_result' => $shiftResult,
             'notes' => $options['notes'] ?? null,
         ];
 
@@ -326,11 +352,177 @@ class ProgramAdaptationService
         $program->save();
         $enrollment->save();
 
+        $customMessage = match ($volumeGoal) {
+            'decrease' => "Jadwal berhasil disesuaikan! Volume sesi masa depan dikurangi sekitar 20% untuk fase pemulihan (recovery week).",
+            'increase' => "Jadwal berhasil disesuaikan! Target volume bertahap ditingkatkan (+5-10%) sesuai kesiapan Anda.",
+            'maintain' => "Jadwal latihan berhasil diperbarui! Volume dan target kecepatan dipertahankan stabil.",
+            default => "Program aktif berhasil diadaptasi! {$adaptedCount} sesi masa depan telah diperbarui dengan target volume, speed, dan pacing terkini.",
+        };
+
+        if ($shiftResult && !empty($shiftResult['message'])) {
+            $customMessage .= ' ' . $shiftResult['message'];
+        }
+
         return [
             'success' => true,
             'adapted_count' => $adaptedCount,
             'new_vdot' => $newVdot,
-            'message' => "Program aktif berhasil diadaptasi! {$adaptedCount} sesi masa depan telah diperbarui dengan target volume, speed, dan pacing terkini.",
+            'shift_result' => $shiftResult,
+            'message' => $customMessage,
+        ];
+    }
+
+    /**
+     * Shift tomorrow's session to the day after tomorrow (lusa)
+     * while strictly protecting the Long Run.
+     */
+    public function shiftTomorrowToLusa(ProgramEnrollment $enrollment): array
+    {
+        $program = $enrollment->program;
+        if (!$program || empty($program->program_json['sessions'])) {
+            return [
+                'shifted' => false,
+                'message' => 'Program latihan tidak memiliki data sesi.',
+            ];
+        }
+
+        $sessions = $program->program_json['sessions'];
+        $startDate = $enrollment->start_date ? Carbon::parse($enrollment->start_date)->startOfDay() : Carbon::today();
+        $today = Carbon::today();
+        $tomorrow = $today->copy()->addDay();
+        $lusa = $today->copy()->addDays(2);
+
+        $tomorrowStr = $tomorrow->format('Y-m-d');
+        $lusaStr = $lusa->format('Y-m-d');
+
+        $trackings = ProgramSessionTracking::where('enrollment_id', $enrollment->id)->get();
+
+        // Map every session to its current effective date
+        $sessionsByDate = [];
+        foreach ($sessions as $s) {
+            $day = (int) ($s['day'] ?? 0);
+            $tracking = $trackings->firstWhere('session_day', $day);
+            $dateStr = $tracking && $tracking->rescheduled_date
+                ? Carbon::parse($tracking->rescheduled_date)->format('Y-m-d')
+                : $startDate->copy()->addDays($day - 1)->format('Y-m-d');
+
+            $sessionsByDate[$dateStr][] = [
+                'session' => $s,
+                'day' => $day,
+                'tracking' => $tracking,
+                'type' => strtolower((string)($s['type'] ?? 'easy_run')),
+            ];
+        }
+
+        // Find workout on tomorrow
+        $tomorrowList = $sessionsByDate[$tomorrowStr] ?? [];
+        $tomorrowWorkout = null;
+        foreach ($tomorrowList as $item) {
+            if (!in_array($item['type'], ['rest', 'rest_day'], true)) {
+                $tomorrowWorkout = $item;
+                break;
+            }
+        }
+
+        if (!$tomorrowWorkout) {
+            return [
+                'shifted' => false,
+                'message' => 'Jadwal besok sudah berupa hari istirahat (Rest Day).',
+            ];
+        }
+
+        // Find workout on lusa
+        $lusaList = $sessionsByDate[$lusaStr] ?? [];
+        $lusaWorkout = null;
+        foreach ($lusaList as $item) {
+            if (!in_array($item['type'], ['rest', 'rest_day'], true)) {
+                $lusaWorkout = $item;
+                break;
+            }
+        }
+
+        // CASE 1: Tomorrow IS the Long Run
+        // Long run cannot be skipped! It moves to lusa.
+        if ($tomorrowWorkout['type'] === 'long_run') {
+            ProgramSessionTracking::updateOrCreate(
+                ['enrollment_id' => $enrollment->id, 'session_day' => $tomorrowWorkout['day']],
+                ['rescheduled_date' => $lusaStr]
+            );
+            if ($lusaWorkout) {
+                ProgramSessionTracking::updateOrCreate(
+                    ['enrollment_id' => $enrollment->id, 'session_day' => $lusaWorkout['day']],
+                    ['rescheduled_date' => $tomorrowStr]
+                );
+            }
+            return [
+                'shifted' => true,
+                'message' => 'Long Run besok berhasil dipindahkan ke lusa agar Anda dapat beristirahat.',
+            ];
+        }
+
+        // CASE 2: Tomorrow is NOT Long Run, but Lusa IS the Long Run
+        // Long Run on lusa MUST NOT BE SKIPPED or overwritten!
+        // Tomorrow's session is moved to after the Long Run (lusa + 1)
+        if ($lusaWorkout && $lusaWorkout['type'] === 'long_run') {
+            $afterLusaStr = $lusa->copy()->addDay()->format('Y-m-d');
+            ProgramSessionTracking::updateOrCreate(
+                ['enrollment_id' => $enrollment->id, 'session_day' => $tomorrowWorkout['day']],
+                ['rescheduled_date' => $afterLusaStr]
+            );
+            return [
+                'shifted' => true,
+                'message' => 'Sesi besok dialihkan ke setelah Long Run. Long Run di hari lusa tetap diproteksi dan terkunci di posisinya.',
+            ];
+        }
+
+        // CASE 3: Lusa is a Rest Day (clean swap)
+        if (!$lusaWorkout) {
+            ProgramSessionTracking::updateOrCreate(
+                ['enrollment_id' => $enrollment->id, 'session_day' => $tomorrowWorkout['day']],
+                ['rescheduled_date' => $lusaStr]
+            );
+            return [
+                'shifted' => true,
+                'message' => 'Sesi besok berhasil digeser ke hari lusa (menukar hari istirahat). Long Run akhir pekan tetap aman.',
+            ];
+        }
+
+        // CASE 4: Lusa already has another workout (neither is Long Run)
+        // Tomorrow moves to lusa
+        ProgramSessionTracking::updateOrCreate(
+            ['enrollment_id' => $enrollment->id, 'session_day' => $tomorrowWorkout['day']],
+            ['rescheduled_date' => $lusaStr]
+        );
+
+        // Lusa's workout moves forward to Day 3
+        $day3 = $lusa->copy()->addDay();
+        $day3Str = $day3->format('Y-m-d');
+        $day3List = $sessionsByDate[$day3Str] ?? [];
+        $isDay3LongRun = false;
+        foreach ($day3List as $item) {
+            if ($item['type'] === 'long_run') {
+                $isDay3LongRun = true;
+                break;
+            }
+        }
+
+        if (!$isDay3LongRun) {
+            ProgramSessionTracking::updateOrCreate(
+                ['enrollment_id' => $enrollment->id, 'session_day' => $lusaWorkout['day']],
+                ['rescheduled_date' => $day3Str]
+            );
+        } else {
+            // Day 3 is Long Run! Move lusa's session to day after Long Run so Long Run is protected
+            $afterLongRunStr = $day3->copy()->addDay()->format('Y-m-d');
+            ProgramSessionTracking::updateOrCreate(
+                ['enrollment_id' => $enrollment->id, 'session_day' => $lusaWorkout['day']],
+                ['rescheduled_date' => $afterLongRunStr]
+            );
+        }
+
+        return [
+            'shifted' => true,
+            'message' => 'Sesi besok berhasil digeser ke lusa. Jadwal Long Run akhir pekan tetap terlindungi di posisinya.',
         ];
     }
 

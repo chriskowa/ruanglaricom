@@ -148,7 +148,19 @@ class CalendarController extends Controller
                     'backgroundColor' => $isLocked ? '#334155' : $colors['background'],
                     'borderColor' => $isLocked ? '#475569' : $colors['border'],
                     'textColor' => $isLocked ? '#FFFFFF' : $colors['text'],
-                    'classNames' => $isLocked ? ['locked-session'] : ['workout-'.strtolower(str_replace(' ', '_', $sessionType))],
+                    'classNames' => $isLocked ? ['locked-session'] : (function () use ($sessionType) {
+                        $clean = strtolower(str_replace([' ', '-'], '_', $sessionType));
+                        $classes = ['workout-'.$clean];
+                        if (in_array($clean, ['tempo', 'tempo_run'])) {
+                            $classes[] = 'workout-tempo';
+                            $classes[] = 'workout-tempo_run';
+                        }
+                        if (in_array($clean, ['hill', 'hill_repeats', 'hill_repeat'])) {
+                            $classes[] = 'workout-repetition';
+                            $classes[] = 'workout-interval';
+                        }
+                        return array_values(array_unique($classes));
+                    })(),
                     'extendedProps' => [
                         'type' => 'program_session',
                         'program_id' => $program->id,
@@ -198,7 +210,19 @@ class CalendarController extends Controller
                 'backgroundColor' => $colors['background'],
                 'borderColor' => $colors['border'],
                 'textColor' => $colors['text'],
-                'classNames' => ['workout-'.strtolower(str_replace(' ', '_', $workout->type ?? 'run'))],
+                'classNames' => (function () use ($workout) {
+                    $clean = strtolower(str_replace([' ', '-'], '_', $workout->type ?? 'run'));
+                    $classes = ['workout-'.$clean];
+                    if (in_array($clean, ['tempo', 'tempo_run'])) {
+                        $classes[] = 'workout-tempo';
+                        $classes[] = 'workout-tempo_run';
+                    }
+                    if (in_array($clean, ['hill', 'hill_repeats', 'hill_repeat'])) {
+                        $classes[] = 'workout-repetition';
+                        $classes[] = 'workout-interval';
+                    }
+                    return array_values(array_unique($classes));
+                })(),
                 'extendedProps' => [
                     'type' => 'custom_workout',
                     'workout_id' => $workout->id,
@@ -338,7 +362,7 @@ class CalendarController extends Controller
             $key = 'T';
         } elseif (str_contains($typeLower, 'interval') || str_contains($typeLower, 'vo2max')) {
             $key = 'I';
-        } elseif (str_contains($typeLower, 'repetition') || str_contains($typeLower, 'speed')) {
+        } elseif (str_contains($typeLower, 'repetition') || str_contains($typeLower, 'speed') || str_contains($typeLower, 'hill')) {
             $key = 'R';
         } elseif (str_contains($typeLower, 'marathon')) {
             $key = 'M';
@@ -1624,7 +1648,10 @@ class CalendarController extends Controller
             'enrollment_id' => 'required|integer|exists:program_enrollments,id',
             'new_vdot' => 'nullable|numeric|min:10|max:85',
             'adapt_volume' => 'nullable',
+            'volume_goal' => 'nullable|string|in:increase,maintain,decrease',
+            'completion' => 'nullable|string|in:all,partial,none',
             'feeling' => 'nullable|string|in:strong,good,average,tired,sore,injured,weak,terrible',
+            'shift_action' => 'nullable|string|in:none,shift_tomorrow',
             'notes' => 'nullable|string|max:1000',
         ]);
 
@@ -1644,8 +1671,11 @@ class CalendarController extends Controller
                 (float) $vdotRaw,
                 [
                     'adapt_volume' => $adaptVolume,
-                    'feeling' => $validated['feeling'] ?? null,
-                    'notes' => $validated['notes'] ?? null,
+                    'volume_goal'  => $validated['volume_goal'] ?? null,
+                    'completion'   => $validated['completion'] ?? null,
+                    'feeling'      => $validated['feeling'] ?? null,
+                    'shift_action' => $validated['shift_action'] ?? 'none',
+                    'notes'        => $validated['notes'] ?? null,
                 ]
             );
 

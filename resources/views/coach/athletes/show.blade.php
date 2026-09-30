@@ -44,7 +44,8 @@
 .fc-event.workout-easy_run, .fc-list-event.workout-easy_run { border-left: 3px solid #22c55e !important; }
 .fc-event.workout-long_run, .fc-list-event.workout-long_run { border-left: 3px solid #3b82f6 !important; }
 .fc-event.workout-interval, .fc-list-event.workout-interval { border-left: 3px solid #ef4444 !important; }
-.fc-event.workout-tempo, .fc-list-event.workout-tempo { border-left: 3px solid #eab308 !important; }
+.fc-event.workout-repetition, .fc-event.workout-hill, .fc-event.workout-hill_repeats, .fc-list-event.workout-repetition, .fc-list-event.workout-hill, .fc-list-event.workout-hill_repeats { border-left: 3px solid #d946ef !important; }
+.fc-event.workout-tempo, .fc-event.workout-tempo_run, .fc-list-event.workout-tempo, .fc-list-event.workout-tempo_run { border-left: 3px solid #eab308 !important; }
 .fc-event.workout-strength, .fc-list-event.workout-strength { border-left: 3px solid #a855f7 !important; }
 .fc-event.workout-rest, .fc-list-event.workout-rest { border-left: 3px solid #64748b !important; }
 .fc-event.workout-race, .fc-list-event.workout-race { border-left: 3px solid #eab308 !important; }
@@ -1194,8 +1195,8 @@
                                                 :class="{
                                                     'bg-emerald-500/20 text-emerald-300': sess.type === 'easy_run' || sess.type === 'recovery',
                                                     'bg-sky-500/20 text-sky-300': sess.type === 'long_run',
-                                                    'bg-yellow-500/20 text-yellow-300': sess.type === 'tempo' || sess.type === 'threshold',
-                                                    'bg-red-500/20 text-red-300': sess.type === 'interval' || sess.type === 'speed',
+                                                    'bg-yellow-500/20 text-yellow-300': sess.type === 'tempo' || sess.type === 'tempo_run' || sess.type === 'threshold',
+                                                    'bg-red-500/20 text-red-300': sess.type === 'interval' || sess.type === 'speed' || sess.type === 'repetition' || sess.type === 'hill' || sess.type === 'hill_repeats',
                                                     'bg-purple-500/20 text-purple-300': sess.type === 'strength',
                                                     'bg-slate-800 text-slate-400': sess.type === 'rest'
                                                 }">
@@ -3118,7 +3119,7 @@ createApp({
             let tLower = String(type || '').toLowerCase();
             if (['rest', 'strength', 'yoga', 'cycling'].includes(tLower)) return null;
 
-            const map = { easy_run: 'E', recovery: 'E', run: 'E', long_run: 'M', tempo: 'T', threshold: 'T', interval: 'I', repetition: 'R' };
+            const map = { easy_run: 'E', recovery: 'E', run: 'E', long_run: 'M', tempo: 'T', tempo_run: 'T', threshold: 'T', interval: 'I', repetition: 'R', speed: 'R', hill: 'R', hill_repeats: 'R' };
             const typeKey = map[tLower];
             if (!typeKey) return null;
 

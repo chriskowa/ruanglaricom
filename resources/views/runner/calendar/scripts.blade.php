@@ -20,6 +20,8 @@ const runnerCalendarApp = createApp({
 
         console.log('[RunnerCalendar] Setup Init', { runnerUrl, chatUrl, hasCsrf: !!csrf });
 
+        let calendar = null;
+
         const filter = ref('unfinished');
         const plans = ref([]);
         const pageSize = 10;
@@ -120,11 +122,30 @@ const runnerCalendarApp = createApp({
         const promoError = ref('');
         const checkingPromo = ref(false);
 
-        // ---------- ADAPTIVE RUN INTELLIGENCE (POPUP + BADGE) ----------
+        // ---------- ADAPTIVE RUN INTELLIGENCE & EVALUATION CHECK-IN ----------
         const showAdaptivePopup = ref(false);
-        const adaptiveHasBeenShown = ref(typeof window !== 'undefined' && sessionStorage.getItem('adaptive_popup_shown') === 'true'); // prevent auto-reopen after user close / page refresh
+        const adaptiveHasBeenShown = ref(typeof window !== 'undefined' && sessionStorage.getItem('adaptive_popup_shown') === 'true');
         const adaptiveLoading = ref(false);
         const adaptiveApplying = ref(false);
+        const checkinForm = reactive({
+            completion: 'all',       // 'all', 'partial', 'none'
+            feeling: 'good',         // 'strong', 'good', 'tired'
+            volume_goal: 'maintain', // 'increase', 'maintain', 'decrease'
+            shift_action: 'none',    // 'none', 'shift_tomorrow'
+            notes: '',
+            show_technical: false    // accordion toggle for raw diagnostic cards
+        });
+
+        const selectFeeling = (val) => {
+            checkinForm.feeling = val;
+            if (val === 'tired') {
+                checkinForm.volume_goal = 'decrease';
+            } else if (val === 'strong') {
+                checkinForm.volume_goal = 'increase';
+            } else if (val === 'good' && checkinForm.volume_goal === 'decrease') {
+                checkinForm.volume_goal = 'maintain';
+            }
+        };
         const adaptiveStatus = reactive({
             // empty defaults — filled by fetchTrainingStatus()
             has_active_program: false,
@@ -161,13 +182,8 @@ const runnerCalendarApp = createApp({
                 });
                 adaptiveStatus._raw = data;
 
-                // Auto-open popup HANYA jika: (a) punya program aktif, (b) BELUM PERNAH ditampilkan di session ini
-                // (tersimpan di sessionStorage => tidak reopen saat refresh, tapi badge tetap persistent)
-                if (adaptiveStatus.has_active_program && !adaptiveHasBeenShown.value) {
-                    showAdaptivePopup.value = true;
-                    adaptiveHasBeenShown.value = true;
-                    try { sessionStorage.setItem('adaptive_popup_shown', 'true'); } catch (_) {}
-                }
+                // Opsi 3: Auto-popup dimatikan agar pelari pasif tidak terganggu saat membuka kalender.
+                // Modal dibuka secara sadar oleh pelari via tombol "Evaluasi Latihan" di header kalender.
                 return data;
             } catch (e) {
                 console.error('[AdaptiveRunIntelligence] fetch failed', e);
@@ -180,6 +196,21 @@ const runnerCalendarApp = createApp({
 
         const openAdaptivePopup = async (refetch = false) => {
             if (refetch || !adaptiveStatus._raw) await fetchTrainingStatus();
+
+            checkinForm.shift_action = 'none';
+
+            // Set default pilihan kuesioner cerdas berdasarkan diagnosis sistem jika relevan
+            if (adaptiveStatus.recovery_alert?.is_alert) {
+                checkinForm.feeling = 'tired';
+                checkinForm.volume_goal = 'decrease';
+            } else if (adaptiveStatus.readiness_3tier?.level === 'ready') {
+                checkinForm.feeling = 'strong';
+                checkinForm.volume_goal = 'increase';
+            } else {
+                checkinForm.feeling = 'good';
+                checkinForm.volume_goal = 'maintain';
+            }
+
             showAdaptivePopup.value = true;
             adaptiveHasBeenShown.value = true;
             try { sessionStorage.setItem('adaptive_popup_shown', 'true'); } catch (_) {}
@@ -193,15 +224,9 @@ const runnerCalendarApp = createApp({
 
         const applyAdaptiveProgram = async () => {
             if (adaptiveApplying.value) return;
-            if (!adaptiveStatus.active_enrollment_id && !adaptiveStatus.enrollment_id) {
-                showNotification('Belum ada program aktif. Silakan enrolling program terlebih dahulu.', 'error');
-                return;
-            }
-            if (!adaptiveStatus.can_adapt_program) {
-                const ok = window.confirm('Rekomendasi adaptasi untuk saat ini belum bisa diterapkan secara otomatis. Ingin refresh data & coba lagi?');
-                if (ok) {
-                    await fetchTrainingStatus();
-                }
+            const enrollmentId = adaptiveStatus.active_enrollment_id ?? adaptiveStatus.enrollment_id;
+            if (!enrollmentId) {
+                showNotification('Belum ada program aktif. Silakan daftar program terlebih dahulu.', 'error');
                 return;
             }
             adaptiveApplying.value = true;
@@ -209,7 +234,6 @@ const runnerCalendarApp = createApp({
                 const applyAdaptUrl = {{ \Illuminate\Support\Facades\Route::has('calendar.apply-program-adaptation') ? Js::from(route('calendar.apply-program-adaptation')) : 'null' }}
                                    ?? {{ \Illuminate\Support\Facades\Route::has('runner.calendar.apply-program-adaptation') ? Js::from(route('runner.calendar.apply-program-adaptation')) : 'null' }}
                                    ?? '/runner/calendar/apply-program-adaptation';
-                const enrollmentId = adaptiveStatus.active_enrollment_id ?? adaptiveStatus.enrollment_id;
                 const vdotCandidate = adaptiveStatus.new_vdot ?? adaptiveStatus.active_vdot ?? adaptiveStatus.current_vdot;
                 let vdotValue = Number(vdotCandidate);
                 if (!Number.isFinite(vdotValue) || vdotValue < 10 || vdotValue > 85) {
@@ -218,7 +242,12 @@ const runnerCalendarApp = createApp({
                 const payload = {
                     enrollment_id: enrollmentId,
                     new_vdot: String(vdotValue),
-                    adapt_volume: true
+                    adapt_volume: checkinForm.volume_goal !== 'maintain',
+                    volume_goal: checkinForm.volume_goal,
+                    completion: checkinForm.completion,
+                    feeling: checkinForm.feeling,
+                    shift_action: checkinForm.shift_action,
+                    notes: checkinForm.notes || ''
                 };
                 const res = await fetch(applyAdaptUrl, {
                     method: 'POST',
@@ -233,21 +262,26 @@ const runnerCalendarApp = createApp({
                 let data = {};
                 try { data = text ? JSON.parse(text) : {}; } catch (e) { /* ignore parse error */ }
                 if (data.success || res.ok) {
-                    showNotification('Rekomendasi adaptasi berhasil diterapkan ke jadwal!', 'success');
+                    showNotification(data.message || 'Jadwal latihan berhasil disesuaikan dengan kondisi Anda!', 'success');
                     closeAdaptivePopup();
-                    // FullCalendar refetch — cari instance di window atau rerender melalui reload custom list
+                    // Refetch kalender secara realtime tanpa perlu reload halaman
                     try {
-                        if (window.runnerCalendarRefetchEvents) {
-                            window.runnerCalendarRefetchEvents();
-                        } else if (window.calendar) {
-                            window.calendar.refetchEvents && window.calendar.refetchEvents();
-                        } else {
-                            // Fallback: reload workout list
-                            await Promise.all([loadPlans(), fetchTrainingStatus()]);
+                        if (calendar) {
+                            calendar.refetchEvents();
                         }
+                        if (window.calendar && window.calendar.refetchEvents) {
+                            window.calendar.refetchEvents();
+                        }
+                    } catch (err) {
+                        console.error('[AdaptiveRunIntelligence] refetchEvents failed:', err);
+                    }
+                    try {
+                        await Promise.all([
+                            loadPlans(),
+                            loadWeeklyVolume(),
+                            fetchTrainingStatus()
+                        ]);
                     } catch (_) { /* ignore */ }
-                    try { await loadPlans(); } catch (_) {}
-                    try { await fetchTrainingStatus(); } catch (_) {}
                 } else {
                     let msg = data.message || 'Gagal menerapkan adaptasi';
                     if (data.errors && Array.isArray(Object.values(data.errors))) {
@@ -264,7 +298,7 @@ const runnerCalendarApp = createApp({
                 adaptiveApplying.value = false;
             }
         };
-        // ---------- END ADAPTIVE RUN INTELLIGENCE ----------
+        // ---------- END ADAPTIVE RUN INTELLIGENCE & EVALUATION CHECK-IN ----------
 
         const applyPromo = async () => {
             if (!promoCode.value) return;
@@ -715,8 +749,6 @@ const runnerCalendarApp = createApp({
             console.log('[RunnerCalendar] Redirect ke Generator Program V2 /buat-program-lari');
             window.location.href = '/buat-program-lari';
         };
-
-        let calendar = null;
 
         watch(activeMobileTab, (newTab) => {
             if (newTab === 'calendar') {
@@ -1996,8 +2028,17 @@ const runnerCalendarApp = createApp({
                     const props = arg.event.extendedProps || {};
                     if (props.difficulty) cls.push('difficulty-' + props.difficulty);
                     if (props.phase) cls.push('phase-' + props.phase);
-                    const t = (props.session && props.session.type) || (props.workout && props.workout.type) || props.activity_type || props.type;
-                    if (t) cls.push('workout-' + t);
+                    const rawType = (props.session && props.session.type) || (props.workout && props.workout.type) || props.activity_type || props.type;
+                    if (rawType) {
+                        const clean = String(rawType).toLowerCase().trim().replace(/[\s-]+/g, '_');
+                        cls.push('workout-' + clean);
+                        if (clean === 'tempo_run') cls.push('workout-tempo');
+                        if (clean === 'tempo') cls.push('workout-tempo_run');
+                        if (clean === 'hill' || clean === 'hill_repeats' || clean === 'hill_repeat') {
+                            cls.push('workout-repetition');
+                            cls.push('workout-interval');
+                        }
+                    }
                     return cls;
                 },
                 eventContent: (arg) => {
@@ -2050,6 +2091,10 @@ const runnerCalendarApp = createApp({
                 listDaySideFormat: false // Hide the side text
             });
             calendar.render();
+            window.calendar = calendar;
+            window.runnerCalendarRefetchEvents = () => {
+                if (calendar) calendar.refetchEvents();
+            };
         };
 
         const openForm = (dateStr) => {
@@ -2183,9 +2228,10 @@ const runnerCalendarApp = createApp({
             const map = { 
                 easy_run: 'E', recovery: 'E', run: 'E', 
                 long_run: 'M', 
-                tempo: 'T', threshold: 'T', 
+                tempo: 'T', tempo_run: 'T', threshold: 'T', 
                 interval: 'I', vo2max: 'I',
                 repetition: 'R', speed: 'R',
+                hill: 'R', hill_repeats: 'R', hill_repeat: 'R',
                 strength: null, rest: null, yoga: null, cycling: null
             };
             
@@ -2311,7 +2357,8 @@ const runnerCalendarApp = createApp({
                 run: 'bg-blue-500/10 border-blue-500/30 text-blue-300',
                 interval: 'bg-orange-500/10 border-orange-500/30 text-orange-300',
                 repetition: 'bg-pink-500/10 border-pink-500/30 text-pink-300',
-                hill: 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300',
+                hill: 'bg-pink-500/10 border-pink-500/30 text-pink-300',
+                hill_repeats: 'bg-pink-500/10 border-pink-500/30 text-pink-300',
                 recovery: 'bg-yellow-500/10 border-yellow-500/30 text-yellow-300',
                 cool_down: 'bg-purple-500/10 border-purple-500/30 text-purple-300',
             };
@@ -2325,11 +2372,10 @@ const runnerCalendarApp = createApp({
             const t = String(stepType || '').toLowerCase();
             if (t === 'warmup' || t === 'recovery' || t === 'cool_down') return 'easy_run';
             if (t === 'interval') return 'interval';
-            if (t === 'repetition') return 'repetition';
-            if (t === 'hill') return 'hill';
+            if (t === 'repetition' || t === 'hill' || t === 'hill_repeats' || t === 'hill_repeat') return 'repetition';
             if (t === 'run') {
-                if (['tempo', 'threshold'].includes(String(detail.type || '').toLowerCase())) return 'tempo';
-                if (['interval', 'repetition', 'hill'].includes(String(detail.type || '').toLowerCase())) return String(detail.type || 'run').toLowerCase();
+                if (['tempo', 'tempo_run', 'threshold'].includes(String(detail.type || '').toLowerCase())) return 'tempo';
+                if (['interval', 'repetition', 'hill', 'hill_repeats', 'hill_repeat'].includes(String(detail.type || '').toLowerCase())) return 'repetition';
                 if (String(detail.type || '').toLowerCase() === 'long_run') return 'long_run';
                 return 'run';
             }
@@ -2539,9 +2585,11 @@ const runnerCalendarApp = createApp({
                 recovery: 'Fokusnya recovery. Jaga effort super easy supaya badan pulih.',
                 long_run: 'Fokusnya endurance. Jaga ritme stabil dari awal sampai akhir.',
                 tempo: 'Fokusnya threshold/tempo. Cari effort “comfortably hard”, bukan all-out.',
+                tempo_run: 'Fokusnya threshold/tempo. Cari effort “comfortably hard”, bukan all-out.',
                 interval: 'Fokusnya speed/VO2. Kualitas penting, tapi tetap kontrol.',
                 repetition: 'Fokusnya speed + teknik. Cepat tapi rapi, recovery cukup.',
-                hill: 'Fokus kekuatan otot tungkai, postur tegak, dan knee drive saat menanjak.',
+                hill: 'Fokus kekuatan otot tungkai, postur tegak, dan knee drive saat menanjak (Repetition / Interval effort).',
+                hill_repeats: 'Fokus kekuatan otot tungkai, postur tegak, dan knee drive saat menanjak (Repetition / Interval effort).',
                 run: 'Fokusnya konsistensi. Ikuti panduan pace dan rasakan effort yang pas.',
                 program_session: 'Fokusnya eksekusi rapi sesuai program.',
                 rest: 'Ini hari rest. Recovery juga bagian dari progres.',
@@ -2580,6 +2628,11 @@ const runnerCalendarApp = createApp({
                     'Fokus napas ritmis dan postur tegak.',
                     'Kalau mulai “meledak”, tambah recovery singkat dan lanjutkan.',
                 ],
+                tempo_run: [
+                    'Effort harus stabil; kalau makin cepat tiap km, turunkan sedikit pace.',
+                    'Fokus napas ritmis dan postur tegak.',
+                    'Kalau mulai “meledak”, tambah recovery singkat dan lanjutkan.',
+                ],
                 interval: [
                     'Rep 1–2 terkontrol, kualitas dijaga sampai rep terakhir.',
                     'Recovery itu bagian workout—jog pelan saja.',
@@ -2593,7 +2646,12 @@ const runnerCalendarApp = createApp({
                 hill: [
                     'Fokus pada postur tegak, dorongan lutut (knee drive), dan ayunan tangan aktif.',
                     'Jaga kemiringan bukit ideal (4-8%) dan jangan memaksa sprint hingga form berantakan.',
-                    'Manfaatkan jalan/jog santai turun bukit untuk recovery penuh.',
+                    'Manfaatkan jalan/jog santai turun bukit untuk recovery penuh sebelum repetisi berikutnya.',
+                ],
+                hill_repeats: [
+                    'Fokus pada postur tegak, dorongan lutut (knee drive), dan ayunan tangan aktif.',
+                    'Jaga kemiringan bukit ideal (4-8%) dan jangan memaksa sprint hingga form berantakan.',
+                    'Manfaatkan jalan/jog santai turun bukit untuk recovery penuh sebelum repetisi berikutnya.',
                 ],
                 strength: [
                     'Utamakan range of motion dan form.',
@@ -2621,11 +2679,13 @@ const runnerCalendarApp = createApp({
                 run: 'Memelihara kebugaran aerobik umum dan memperkuat konsistensi volume mingguan.',
                 long_run: 'Meningkatkan daya tahan kardiovaskular dan muskular (endurance), serta melatih tubuh agar lebih efisien menggunakan lemak sebagai bahan bakar.',
                 tempo: 'Meningkatkan ambang batas laktat (lactate threshold) agar Anda dapat berlari lebih cepat dengan akumulasi asam laktat yang lebih minim.',
+                tempo_run: 'Meningkatkan ambang batas laktat (lactate threshold) agar Anda dapat berlari lebih cepat dengan akumulasi asam laktat yang lebih minim.',
                 threshold: 'Meningkatkan ambang batas laktat (lactate threshold) agar Anda dapat berlari lebih cepat dengan akumulasi asam laktat yang lebih minim.',
                 interval: 'Meningkatkan kapasitas VO2Max (penyerapan oksigen maksimum), toleransi asam laktat tinggi, dan daya dorong jantung.',
                 repetition: 'Meningkatkan kecepatan murni, koordinasi saraf-otot (neuromuscular), dan efisiensi biomekanika langkah lari (running economy).',
                 speed: 'Meningkatkan kecepatan murni, koordinasi saraf-otot (neuromuscular), dan efisiensi biomekanika langkah lari (running economy).',
-                hill: 'Meningkatkan kekuatan dorongan otot tungkai, koordinasi neuromuskular, efisiensi biomekanika lari, dan kekakuan tendon (tendon stiffness) dengan risiko benturan rendah.',
+                hill: 'Meningkatkan kekuatan dorongan otot tungkai, koordinasi neuromuskular, efisiensi biomekanika lari, dan kekakuan tendon (Repetition / Interval work).',
+                hill_repeats: 'Meningkatkan kekuatan dorongan otot tungkai, koordinasi neuromuskular, efisiensi biomekanika lari, dan kekakuan tendon (Repetition / Interval work).',
                 strength: 'Memperkuat otot-otot pendukung (core, glutes, hamstrings) untuk meningkatkan stabilitas lari dan mengurangi risiko cedera.',
                 rest: 'Memberikan waktu istirahat total bagi serat otot untuk memperbaiki diri dan memulihkan cadangan glikogen tubuh.',
                 yoga: 'Meningkatkan fleksibilitas otot, mobilitas sendi, serta melatih kesadaran napas dan ketenangan pikiran.',
@@ -2643,11 +2703,13 @@ const runnerCalendarApp = createApp({
                 run: 'Menjaga keaktifan kapiler darah dan metabolisme aerobik tanpa membebani sistem saraf pusat.',
                 long_run: 'Meningkatkan kapasitas penyimpanan glikogen di otot, memperkuat tendon, ligamen, serta otot kaki menghadapi kelelahan jangka panjang.',
                 tempo: 'Meningkatkan kemampuan sel otot untuk mendaur ulang asam laktat kembali menjadi energi, menunda sensasi "kaki terbakar" saat pace cepat.',
+                tempo_run: 'Meningkatkan kemampuan sel otot untuk mendaur ulang asam laktat kembali menjadi energi, menunda sensasi "kaki terbakar" saat pace cepat.',
                 threshold: 'Meningkatkan kemampuan sel otot untuk mendaur ulang asam laktat kembali menjadi energi, menunda sensasi "kaki terbakar" saat pace cepat.',
                 interval: 'Memperbesar volume sekuncup jantung (stroke volume), mempercepat pemulihan denyut jantung (HR recovery), dan merangsang serat otot cepat.',
                 repetition: 'Langkah lari terasa lebih ringan dan rileks pada kecepatan tinggi karena refleks otot-saraf menjadi lebih terlatih dan hemat energi.',
                 speed: 'Langkah lari terasa lebih ringan dan rileks pada kecepatan tinggi karena refleks otot-saraf menjadi lebih terlatih dan hemat energi.',
-                hill: 'Otot tungkai (glutes, quads, calves) lebih kuat dan efisien mentransfer tenaga ke permukaan tanah tanpa stres asam laktat yang terlalu merusak.',
+                hill: 'Otot tungkai (glutes, quads, calves) lebih kuat dan efisien mentransfer tenaga ke permukaan tanah dengan adaptasi neuromuskular tinggi.',
+                hill_repeats: 'Otot tungkai (glutes, quads, calves) lebih kuat dan efisien mentransfer tenaga ke permukaan tanah dengan adaptasi neuromuskular tinggi.',
                 strength: 'Meningkatkan kekuatan rekrutmen serat otot, memperbaiki postur berlari agar tegak di kilometer akhir, dan memperkokoh persendian.',
                 rest: 'Terjadinya proses superkompensasi di mana otot pulih lebih kuat dibanding kondisi sebelum dirusak oleh latihan berat.',
                 yoga: 'Meregangkan otot yang kaku, meredakan ketegangan sistem saraf (simpatik), dan membantu detoksifikasi tubuh.',
@@ -3003,8 +3065,12 @@ const runnerCalendarApp = createApp({
                 easy_run: 'Easy Run', 
                 interval: 'Interval',
                 tempo: 'Tempo',
+                tempo_run: 'Tempo Run',
                 long_run: 'Long Run',
                 recovery: 'Recovery',
+                repetition: 'Repetition',
+                hill: 'Repetition / Hill Repeats',
+                hill_repeats: 'Repetition / Hill Repeats',
                 yoga: 'Yoga',
                 cycling: 'Cycling',
                 rest: 'Rest',
@@ -3525,8 +3591,8 @@ const runnerCalendarApp = createApp({
             stravaStatus, stravaStatusLoading, connectStravaFirst, syncStravaFirst,
             openStravaAnalysisModal, runStravaAnalysis, applyAnalysisToGenerator, parseMarkdown,
             ttsSupported, speakDetailDescription, truncatePlanDesc,
-            // Adaptive Run Intelligence
-            showAdaptivePopup, adaptiveHasBeenShown, adaptiveLoading, adaptiveApplying, adaptiveStatus,
+            // Adaptive Run Intelligence & Check-in
+            showAdaptivePopup, adaptiveHasBeenShown, adaptiveLoading, adaptiveApplying, adaptiveStatus, checkinForm, selectFeeling,
             fetchTrainingStatus, openAdaptivePopup, closeAdaptivePopup, applyAdaptiveProgram
         };
     }

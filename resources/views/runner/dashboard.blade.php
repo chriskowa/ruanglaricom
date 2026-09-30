@@ -2874,7 +2874,8 @@
                     'threshold': 'bg-amber-950/40 border-amber-600/30 text-amber-300',
                     'interval': 'bg-orange-950/40 border-orange-600/30 text-orange-300',
                     'repetition': 'bg-rose-950/40 border-rose-600/30 text-rose-300',
-                    'hill': 'bg-sky-950/40 border-sky-600/30 text-sky-300',
+                    'hill': 'bg-rose-950/40 border-rose-600/30 text-rose-300',
+                    'hill_repeats': 'bg-rose-950/40 border-rose-600/30 text-rose-300',
                     'marathon': 'bg-cyan-950/40 border-cyan-600/30 text-cyan-300',
                     'tempo': 'bg-amber-950/40 border-amber-600/30 text-amber-300'
                 };
@@ -2889,7 +2890,8 @@
                     'threshold': 'TEMPO',
                     'interval': 'INTERVAL',
                     'repetition': 'REP',
-                    'hill': 'HILL',
+                    'hill': 'REP',
+                    'hill_repeats': 'REP',
                     'marathon': 'RACE',
                     'tempo': 'TEMPO'
                 };
