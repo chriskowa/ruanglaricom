@@ -21,6 +21,7 @@
                         @elseif($notification->type === 'comment') bg-blue-500/20 text-blue-400 border border-blue-500/30
                         @elseif($notification->type === 'follow') bg-green-500/20 text-green-400 border border-green-500/30
                         @elseif(in_array($notification->type, ['gpx_submission', 'gpx_published', 'gpx_approved']) || $notification->reference_type === 'MasterGpx') bg-neon/15 text-neon border border-neon/30
+                        @elseif(in_array($notification->type, ['coach_invoice', 'coach_invoice_paid', 'coach_invoice_cancelled']) || in_array($notification->reference_type, ['CoachInvoice', 'App\Models\CoachInvoice'])) bg-amber-500/20 text-amber-400 border border-amber-500/30
                         @else bg-slate-700 text-slate-300 border border-slate-600
                         @endif">
                         @if($notification->type === 'like')
@@ -31,6 +32,8 @@
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M16 11c1.66 0 3-1.34 3-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zm-8 0c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V20h14v-3.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.89 1.97 3.45V20h6v-3.5c0-2.33-4.67-3.5-7-3.5z"/></svg>
                         @elseif(in_array($notification->type, ['gpx_submission', 'gpx_published', 'gpx_approved']) || $notification->reference_type === 'MasterGpx')
                             <i class="fa-solid fa-map-location-dot text-base text-neon"></i>
+                        @elseif(in_array($notification->type, ['coach_invoice', 'coach_invoice_paid', 'coach_invoice_cancelled']) || in_array($notification->reference_type, ['CoachInvoice', 'App\Models\CoachInvoice']))
+                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"/></svg>
                         @else
                             <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 22a2 2 0 002-2H10a2 2 0 002 2zm6.32-6a1 1 0 00.68-.94V11a6.002 6.002 0 00-5-5.91V4a1 1 0 10-2 0v1.09A6.002 6.002 0 006 11v4.06a1 1 0 00.68.94L8 17v1h8v-1l2.32-1z"/></svg>
                         @endif
@@ -48,6 +51,8 @@
                                     <a href="{{ auth()->user()?->role === 'admin' ? route('admin.marketplace.orders.show', $notification->reference_id) : route('marketplace.orders.show', $notification->reference_id) }}" class="notification-link text-white font-bold hover:text-neon transition" data-notification-id="{{ $notification->id }}">{{ $notification->title }}</a>
                                 @elseif(($notification->reference_type === 'App\Models\RunningAnalysis\Trial' || $notification->reference_type === 'running_analysis') && $notification->reference_id)
                                     <a href="{{ route('runner.running-analysis.trials.review', $notification->reference_id) }}" class="notification-link text-white font-bold hover:text-neon transition" data-notification-id="{{ $notification->id }}">{{ $notification->title }}</a>
+                                @elseif((in_array($notification->type, ['coach_invoice', 'coach_invoice_paid', 'coach_invoice_cancelled']) || in_array($notification->reference_type, ['CoachInvoice', 'App\Models\CoachInvoice'])) && $notification->reference_id)
+                                    <a href="{{ route('runner.invoices.show', $notification->reference_id) }}" class="notification-link text-white font-bold hover:text-neon transition" data-notification-id="{{ $notification->id }}">{{ $notification->title }}</a>
                                 @else
                                     <a href="javascript:void(0)" class="notification-link text-white font-bold hover:text-neon transition" data-notification-id="{{ $notification->id }}">{{ $notification->title }}</a>
                                 @endif
@@ -61,6 +66,8 @@
                                     <a href="{{ auth()->user()?->role === 'admin' ? route('admin.marketplace.orders.show', $notification->reference_id) : route('marketplace.orders.show', $notification->reference_id) }}" class="notification-link block text-slate-300 text-sm hover:text-white transition" data-notification-id="{{ $notification->id }}">{{ $notification->message }}</a>
                                 @elseif(($notification->reference_type === 'App\Models\RunningAnalysis\Trial' || $notification->reference_type === 'running_analysis') && $notification->reference_id)
                                     <a href="{{ route('runner.running-analysis.trials.review', $notification->reference_id) }}" class="notification-link block text-slate-300 text-sm hover:text-white transition" data-notification-id="{{ $notification->id }}">{{ $notification->message }}</a>
+                                @elseif((in_array($notification->type, ['coach_invoice', 'coach_invoice_paid', 'coach_invoice_cancelled']) || in_array($notification->reference_type, ['CoachInvoice', 'App\Models\CoachInvoice'])) && $notification->reference_id)
+                                    <a href="{{ route('runner.invoices.show', $notification->reference_id) }}" class="notification-link block text-slate-300 text-sm hover:text-white transition" data-notification-id="{{ $notification->id }}">{{ $notification->message }}</a>
                                 @else
                                     <a href="javascript:void(0)" class="notification-link block text-slate-300 text-sm hover:text-white transition" data-notification-id="{{ $notification->id }}">{{ $notification->message }}</a>
                                 @endif

@@ -882,9 +882,31 @@
                     class="runner-calendar-link"
                 >
                     Calendar
-                </button>
-            </div>
         </section>
+
+        @php
+            $unpaidCoachInvoicesCount = \App\Models\CoachInvoice::where('runner_id', auth()->id())
+                ->whereIn('payment_status', ['unpaid', 'overdue'])
+                ->count();
+        @endphp
+        @if($unpaidCoachInvoicesCount > 0)
+            <div class="mt-4 p-4 rounded-lg bg-amber-950/60 border border-amber-800 text-amber-200 text-xs flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 shadow-md">
+                <div class="flex items-center gap-2.5">
+                    <span class="w-8 h-8 rounded-md bg-amber-900/80 border border-amber-700 flex items-center justify-center text-amber-300 shrink-0">
+                        <i class="fas fa-file-invoice-dollar text-sm"></i>
+                    </span>
+                    <div>
+                        <div class="font-bold text-white text-xs">Pemberitahuan Tagihan Pelatih</div>
+                        <div class="text-[11px] text-amber-200/90 mt-0.5">
+                            Anda memiliki <strong>{{ $unpaidCoachInvoicesCount }} invoice tagihan</strong> latihan yang menunggu penyelesaian.
+                        </div>
+                    </div>
+                </div>
+                <a href="{{ route('runner.invoices.index') }}" class="px-3.5 py-1.5 rounded-md bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold transition text-xs whitespace-nowrap self-start sm:self-auto">
+                    Lihat Tagihan &rarr;
+                </a>
+            </div>
+        @endif
 
         <!-- Tab Content Overview -->
         <div id="tab-content-overview" class="tab-content mt-6">

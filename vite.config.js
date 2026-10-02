@@ -9,7 +9,9 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.js',
-                'resources/js/Pages/RunConnect.vue'
+                'resources/js/Pages/RunConnect.vue',
+                'resources/js/kalender-pelari-editor.js',
+                'resources/css/kalender-pelari.css',
             ],
             refresh: true,
         }),

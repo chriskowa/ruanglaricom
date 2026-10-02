@@ -2,7 +2,9 @@
 
 namespace App\Providers;
 
+use App\Models\KalenderPelari\CalendarProject;
 use App\Models\Program;
+use App\Policies\CalendarProjectPolicy;
 use App\Policies\ProgramPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\URL;
@@ -10,29 +12,19 @@ use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
 {
-    /**
-     * The policy mappings for the application.
-     *
-     * @var array<class-string, class-string>
-     */
     protected $policies = [
         Program::class => ProgramPolicy::class,
+        CalendarProject::class => CalendarProjectPolicy::class,
     ];
 
-    /**
-     * Register any application services.
-     */
     public function register(): void
     {
-        //
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
         Gate::policy(Program::class, ProgramPolicy::class);
+        Gate::policy(CalendarProject::class, CalendarProjectPolicy::class);
 
         $this->enforceCanonicalUrl();
 

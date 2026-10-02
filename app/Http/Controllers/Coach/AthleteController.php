@@ -3323,4 +3323,84 @@ class AthleteController extends Controller
             ], 500);
         }
     }
+
+    /**
+     * Toggle enrollment status between active and inactive
+     */
+    public function toggleStatus(Request $request, ProgramEnrollment $enrollment)
+    {
+        // Verify coach authorization
+        if ((int) $enrollment->program->coach_id !== (int) auth()->id()) {
+            abort(403, 'Unauthorized access.');
+        }
+
+        $coach = auth()->user();
+        $runner = $enrollment->runner;
+        $isCurrentlyActive = ($enrollment->status === 'active');
+        $newStatus = $isCurrentlyActive ? 'inactive' : 'active';
+
+        $enrollment->status = $newStatus;
+        if ($newStatus === 'inactive') {
+            $enrollment->status_reason = 'Dinonaktifkan oleh Coach ' . $coach->name;
+        } else {
+            $enrollment->status_reason = null;
+            if (! $enrollment->start_date) {
+                $enrollment->start_date = now()->toDateString();
+            }
+        }
+        $enrollment->save();
+
+        // Send In-App Notification to Runner
+        if ($runner) {
+            $programTitle = $enrollment->program->title;
+            $notifTitle = $newStatus === 'active'
+                ? 'Program Latihan Diaktifkan'
+                : 'Program Latihan Dinonaktifkan';
+            $notifMsg = $newStatus === 'active'
+                ? "Program latihan \"{$programTitle}\" telah diaktifkan kembali oleh Coach {$coach->name}. Anda dapat melihat jadwal latihan di kalender Anda."
+                : "Program latihan \"{$programTitle}\" telah dinonaktifkan sementara oleh Coach {$coach->name}. Sesi latihan tidak akan ditampilkan di kalender Anda.";
+
+            try {
+                \App\Models\Notification::create([
+                    'user_id' => $runner->id,
+                    'type' => 'program_status_changed',
+                    'title' => $notifTitle,
+                    'message' => $notifMsg,
+                    'reference_type' => 'App\Models\ProgramEnrollment',
+                    'reference_id' => $enrollment->id,
+                    'is_read' => false,
+                ]);
+            } catch (\Throwable $e) {
+                \Illuminate\Support\Facades\Log::warning('Failed creating program status notification: ' . $e->getMessage());
+            }
+
+            // WhatsApp Notification if enabled
+            if (! empty($runner->phone) && ($runner->is_receive_wa ?? true)) {
+                $waMessage = "Halo {$runner->name},\n\n"
+                    . ($newStatus === 'active'
+                        ? "Kabar baik! Program latihan \"{$programTitle}\" telah DIAKTIFKAN kembali oleh Coach {$coach->name}.\nJadwal latihan sudah dapat Anda akses di kalender RuangLari:\n" . route('runner.dashboard')
+                        : "Pemberitahuan: Program latihan \"{$programTitle}\" telah DINONAKTIFKAN sementara oleh Coach {$coach->name}.\nSesi latihan tidak akan ditampilkan sementara di kalender latihan Anda.");
+                try {
+                    \App\Helpers\WhatsApp::send($runner->phone, $waMessage, 'transactional');
+                } catch (\Throwable $e) {
+                    \Illuminate\Support\Facades\Log::warning('Failed sending program status WA: ' . $e->getMessage());
+                }
+            }
+        }
+
+        $statusLabel = $newStatus === 'active' ? 'Aktif' : 'Non-aktif';
+        $message = "Program latihan {$enrollment->program->title} untuk atlet {$runner->name} berhasil diubah menjadi {$statusLabel}.";
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'status' => $newStatus,
+                'is_active' => ($newStatus === 'active'),
+                'status_label' => $statusLabel,
+                'message' => $message,
+            ]);
+        }
+
+        return back()->with('success', $message);
+    }
 }

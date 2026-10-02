@@ -470,7 +470,7 @@ Route::post('/pacer-bookings/webhook', [App\Http\Controllers\PacerBookingWebhook
 
 // Runner Profile (Public) - avoid conflicts with runner dashboard/calendar routes
 Route::get('/runner/{username}', [App\Http\Controllers\RunnerProfileController::class, 'show'])
-    ->where('username', '^(?!(dashboard|calendar|programs|analysis-requests|running-analysis|profile|strava|gpx)$)[A-Za-z0-9._-]+$')
+    ->where('username', '^(?!(dashboard|calendar|programs|analysis-requests|running-analysis|profile|strava|gpx|invoices)$)[A-Za-z0-9._-]+$')
     ->name('runner.profile.show');
 
 // Coach Registration Routes
@@ -1245,6 +1245,15 @@ Route::middleware('auth')->group(function () {
         // Strava AI Analysis (Strava MCP)
         Route::get('/strava/analysis-status', [App\Http\Controllers\Runner\StravaAnalysisController::class, 'status'])->name('strava.analysis.status');
         Route::post('/strava/analyze', [App\Http\Controllers\Runner\StravaAnalysisController::class, 'analyze'])->name('strava.analyze');
+
+        // Athlete Invoices (Tagihan Coach)
+        Route::prefix('invoices')->name('invoices.')->group(function () {
+            Route::get('/', [App\Http\Controllers\Runner\InvoiceController::class, 'index'])->name('index');
+            Route::get('/{invoice}', [App\Http\Controllers\Runner\InvoiceController::class, 'show'])->name('show');
+            Route::get('/{invoice}/print', [App\Http\Controllers\Runner\InvoiceController::class, 'printInvoice'])->name('print');
+            Route::post('/{invoice}/confirm-payment', [App\Http\Controllers\Runner\InvoiceController::class, 'confirmPayment'])->name('confirm-payment');
+            Route::post('/{invoice}/pay-wallet', [App\Http\Controllers\Runner\InvoiceController::class, 'payWithWallet'])->name('pay-wallet');
+        });
     });
 
     // Marketplace routes (accessible by all authenticated users)
@@ -1367,6 +1376,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/athletes/import-template', [App\Http\Controllers\Coach\AthleteController::class, 'downloadImportTemplate'])->name('athletes.import-template');
         Route::get('/athletes/{enrollment}', [App\Http\Controllers\Coach\AthleteController::class, 'show'])->name('athletes.show');
         Route::delete('/athletes/{enrollment}', [App\Http\Controllers\Coach\AthleteController::class, 'destroy'])->name('athletes.destroy');
+        Route::post('/athletes/{enrollment}/toggle-status', [App\Http\Controllers\Coach\AthleteController::class, 'toggleStatus'])->name('athletes.toggle-status');
         Route::get('/athletes/{enrollment}/events', [App\Http\Controllers\Coach\AthleteController::class, 'calendarEvents'])->name('athletes.events');
         Route::get('/athletes/{enrollment}/strava/activities/{stravaActivityId}/details', [App\Http\Controllers\Coach\AthleteController::class, 'stravaActivityDetails'])->name('athletes.strava.activities.details');
         Route::get('/athletes/{enrollment}/strava/activities/{stravaActivityId}/streams', [App\Http\Controllers\Coach\AthleteController::class, 'stravaActivityStreams'])->name('athletes.strava.activities.streams');
@@ -1606,6 +1616,8 @@ Route::get('/api/strength-exercises', function () {
         'all' => $exercises
     ]);
 })->name('api.strength-exercises');
+
+require_once __DIR__.'/kalender-pelari.php';
 
 // Dynamic pages with template support (must be at the end)
 Route::get('/{slug}', [App\Http\Controllers\PageController::class, 'show'])->name('page.show');

@@ -34,7 +34,7 @@ class AuthController extends Controller
     public function login(Request $request)
     {
         $recaptchaSecret = config('services.recaptcha.secret_key') ?: (env('RECAPTCHA_SECRET_KEY_v3') ?: env('RECAPTCHA_SECRET_KEY'));
-        $requireRecaptcha = (bool) $recaptchaSecret;
+        $requireRecaptcha = (bool) $recaptchaSecret && ! app()->environment('local', 'testing');
 
         $request->validate([
             'email' => 'required|string',
@@ -266,6 +266,7 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         $recaptchaSecret = env('RECAPTCHA_SECRET_KEY_v3') ?: env('RECAPTCHA_SECRET_KEY');
+        $requireRecaptcha = (bool) $recaptchaSecret && ! app()->environment('local', 'testing');
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
@@ -274,8 +275,8 @@ class AuthController extends Controller
             'password' => 'required|string|min:8|confirmed',
             'role' => 'required|in:coach,runner,eo', // Admin tidak bisa didaftar via form
             'package_tier' => 'nullable|string',
-            'g-recaptcha-response' => [$recaptchaSecret ? 'required' : 'nullable', function ($attribute, $value, $fail) use ($recaptchaSecret) {
-                if (! $recaptchaSecret) {
+            'g-recaptcha-response' => [$requireRecaptcha ? 'required' : 'nullable', function ($attribute, $value, $fail) use ($requireRecaptcha, $recaptchaSecret) {
+                if (! $requireRecaptcha) {
                     return;
                 }
 

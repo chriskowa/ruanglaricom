@@ -4,12 +4,15 @@ namespace App\Http\Controllers\Coach;
 
 use App\Http\Controllers\Controller;
 use App\Models\CoachInvoice;
+use App\Models\Notification;
 use App\Models\Program;
 use App\Models\ProgramEnrollment;
 use App\Models\User;
+use App\Helpers\WhatsApp;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class InvoiceController extends Controller
 {
@@ -152,6 +155,51 @@ class InvoiceController extends Controller
             'notes' => $validated['notes'] ?? null,
         ]);
 
+        // Send notifications to Runner
+        $coach = auth()->user();
+        $runner = User::find($validated['runner_id']);
+        if ($runner) {
+            $pricingLabel = CoachInvoice::pricingTypeLabels()[$validated['pricing_type']] ?? $validated['pricing_type'];
+            $formattedAmount = 'Rp ' . number_format($amount, 0, ',', '.');
+            $dueDateFormatted = $invoice->due_date ? Carbon::parse($invoice->due_date)->translatedFormat('d M Y') : '-';
+            $programTitle = $invoice->program ? $invoice->program->title : 'Sesi Pelatihan Coach';
+
+            // 1. In-app notification
+            try {
+                Notification::create([
+                    'user_id' => $runner->id,
+                    'type' => 'coach_invoice',
+                    'title' => 'Tagihan Baru dari Coach',
+                    'message' => "Coach {$coach->name} telah menerbitkan tagihan {$invoice->invoice_number} sebesar {$formattedAmount} ({$pricingLabel}). Batas pembayaran: {$dueDateFormatted}.",
+                    'reference_type' => CoachInvoice::class,
+                    'reference_id' => $invoice->id,
+                    'is_read' => false,
+                ]);
+            } catch (\Throwable $e) {
+                Log::warning('Failed creating invoice notification: ' . $e->getMessage());
+            }
+
+            // 2. WhatsApp notification
+            if (!empty($runner->phone) && ($runner->is_receive_wa ?? true)) {
+                $invoiceUrl = route('runner.invoices.show', $invoice->id);
+                $waMessage = "Halo {$runner->name},\n\n"
+                    . "Coach {$coach->name} telah menerbitkan tagihan latihan untuk Anda:\n"
+                    . "• No. Invoice: {$invoice->invoice_number}\n"
+                    . "• Layanan: {$programTitle}\n"
+                    . "• Tipe: {$pricingLabel}\n"
+                    . "• Total: {$formattedAmount}\n"
+                    . "• Batas Bayar: {$dueDateFormatted}\n\n"
+                    . "Silakan cek rincian dan konfirmasi pembayaran Anda di RuangLari:\n"
+                    . "{$invoiceUrl}";
+
+                try {
+                    WhatsApp::send($runner->phone, $waMessage, 'transactional');
+                } catch (\Throwable $e) {
+                    Log::warning('Failed sending invoice WA notification: ' . $e->getMessage());
+                }
+            }
+        }
+
         return redirect()->route('coach.invoices.index')
             ->with('success', "Invoice {$invoice->invoice_number} berhasil dibuat.");
     }
@@ -177,7 +225,7 @@ class InvoiceController extends Controller
                 'payment_method' => $validated['payment_method'],
                 'paid_at' => now(),
                 'verified_by_coach' => true,
-                'notes' => $validated['notes'] ? ($invoice->notes ? $invoice->notes . "\n" . $validated['notes'] : $validated['notes']) : $invoice->notes,
+                'notes' => !empty($validated['notes']) ? ($invoice->notes ? $invoice->notes . "\n" . $validated['notes'] : $validated['notes']) : $invoice->notes,
             ]);
 
             // If attached to an enrollment, update enrollment subscription and session quotas
@@ -216,6 +264,42 @@ class InvoiceController extends Controller
             }
 
             DB::commit();
+
+            // Send notification to Runner regarding payment confirmation
+            $coach = auth()->user();
+            $runner = $invoice->runner;
+            if ($runner) {
+                $formattedAmount = 'Rp ' . number_format($invoice->amount, 0, ',', '.');
+                try {
+                    Notification::create([
+                        'user_id' => $runner->id,
+                        'type' => 'coach_invoice_paid',
+                        'title' => 'Pembayaran Tagihan Dikonfirmasi',
+                        'message' => "Pembayaran untuk invoice {$invoice->invoice_number} ({$formattedAmount}) telah diverifikasi lunas oleh Coach {$coach->name}.",
+                        'reference_type' => CoachInvoice::class,
+                        'reference_id' => $invoice->id,
+                        'is_read' => false,
+                    ]);
+                } catch (\Throwable $e) {
+                    Log::warning('Failed creating invoice paid notification: ' . $e->getMessage());
+                }
+
+                if (!empty($runner->phone) && ($runner->is_receive_wa ?? true)) {
+                    $invoiceUrl = route('runner.invoices.show', $invoice->id);
+                    $waMessage = "Halo {$runner->name},\n\n"
+                        . "Pembayaran untuk tagihan latihan Anda telah diverifikasi LUNAS oleh Coach {$coach->name}:\n"
+                        . "• No. Invoice: {$invoice->invoice_number}\n"
+                        . "• Total: {$formattedAmount}\n"
+                        . "• Metode: " . ucfirst(str_replace('_', ' ', $invoice->payment_method ?? 'Transfer')) . "\n\n"
+                        . "Kuitansi dan status tagihan dapat dilihat di:\n"
+                        . "{$invoiceUrl}";
+                    try {
+                        WhatsApp::send($runner->phone, $waMessage, 'transactional');
+                    } catch (\Throwable $e) {
+                        Log::warning('Failed sending invoice paid WA notification: ' . $e->getMessage());
+                    }
+                }
+            }
 
             return back()->with('success', "Invoice {$invoice->invoice_number} berhasil ditandai LUNAS.");
         } catch (\Exception $e) {
@@ -264,6 +348,25 @@ class InvoiceController extends Controller
         }
 
         $invoice->update(['payment_status' => 'cancelled']);
+
+        // Send cancellation notification to Runner
+        $coach = auth()->user();
+        $runner = $invoice->runner;
+        if ($runner) {
+            try {
+                Notification::create([
+                    'user_id' => $runner->id,
+                    'type' => 'coach_invoice_cancelled',
+                    'title' => 'Tagihan Dibatalkan',
+                    'message' => "Tagihan latihan {$invoice->invoice_number} telah dibatalkan oleh Coach {$coach->name}.",
+                    'reference_type' => CoachInvoice::class,
+                    'reference_id' => $invoice->id,
+                    'is_read' => false,
+                ]);
+            } catch (\Throwable $e) {
+                Log::warning('Failed creating invoice cancelled notification: ' . $e->getMessage());
+            }
+        }
 
         return back()->with('success', "Invoice {$invoice->invoice_number} berhasil dibatalkan.");
     }

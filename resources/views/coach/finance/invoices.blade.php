@@ -167,6 +167,7 @@
                                 </td>
 
                                 <!-- Status -->
+                                <!-- Status -->
                                 <td class="py-3 px-4 text-center">
                                     @if($inv->payment_status === 'paid')
                                         <span class="text-[11px] font-medium px-2 py-0.5 rounded bg-emerald-900 text-emerald-300 border border-emerald-800">
@@ -180,20 +181,32 @@
                                         <span class="text-[11px] font-medium px-2 py-0.5 rounded bg-slate-800 text-slate-400 border border-slate-700">
                                             Dibatalkan
                                         </span>
+                                    @elseif($inv->payment_proof)
+                                        <span class="text-[11px] font-medium px-2 py-0.5 rounded bg-sky-900 text-sky-300 border border-sky-800" title="Bukti transfer telah diunggah atlet">
+                                            Bukti Masuk
+                                        </span>
                                     @else
                                         <span class="text-[11px] font-medium px-2 py-0.5 rounded bg-amber-900 text-amber-300 border border-amber-800">
                                             Pending
                                         </span>
                                     @endif
+
+                                    @if($inv->payment_proof)
+                                        <div class="mt-1">
+                                            <a href="{{ $inv->payment_proof_url }}" target="_blank" class="inline-flex items-center gap-1 text-[10px] text-sky-400 hover:underline">
+                                                <i class="fas fa-paperclip"></i> Bukti Transfer
+                                            </a>
+                                        </div>
+                                    @endif
                                 </td>
 
                                 <!-- Aksi -->
                                 <td class="py-3 px-4 text-right">
-                                    <div class="flex items-center justify-end gap-1.5">
+                                    <div class="flex items-center justify-end gap-1.5 flex-wrap">
                                         @if($inv->payment_status !== 'paid' && $inv->payment_status !== 'cancelled')
                                             <!-- Mark Paid Button -->
                                             <button type="button" 
-                                                onclick="openMarkPaidModal('{{ $inv->id }}', '{{ $inv->invoice_number }}', '{{ $inv->runner->name ?? 'Atlet' }}', '{{ number_format($inv->amount, 0, ',', '.') }}')"
+                                                onclick="openMarkPaidModal('{{ $inv->id }}', '{{ $inv->invoice_number }}', '{{ $inv->runner->name ?? 'Atlet' }}', '{{ number_format($inv->amount, 0, ',', '.') }}', '{{ $inv->payment_proof_url ?? '' }}')"
                                                 class="px-2.5 py-1 rounded-md bg-emerald-900 hover:bg-emerald-800 text-emerald-200 border border-emerald-800 text-[11px] font-medium transition">
                                                 Tandai Lunas
                                             </button>
@@ -208,6 +221,11 @@
                                         @else
                                             <span class="text-[11px] font-mono text-slate-400">{{ $inv->payment_method ?? 'Verified' }}</span>
                                         @endif
+
+                                        <!-- Print Button -->
+                                        <a href="{{ route('runner.invoices.print', $inv->id) }}" target="_blank" class="px-2 py-1 rounded-md bg-slate-950 hover:bg-slate-800 text-slate-400 hover:text-white border border-slate-800 text-[11px] font-medium transition" title="Cetak Invoice">
+                                            Cetak
+                                        </a>
                                     </div>
                                 </td>
                             </tr>
@@ -353,6 +371,13 @@
                 <textarea name="notes" rows="2" placeholder="Contoh: Diterima transfer via BCA tgl 31/08" class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-xs text-white focus:border-slate-600 outline-none"></textarea>
             </div>
 
+            <div id="modal_proof_container" class="hidden p-3 bg-slate-950 rounded-md border border-slate-800">
+                <span class="text-[11px] text-slate-400 font-semibold block mb-1">Bukti Transfer dari Atlet:</span>
+                <a id="modal_proof_link" href="#" target="_blank" class="text-xs text-sky-400 hover:underline font-mono">
+                    Buka Berkas Bukti Transfer &rarr;
+                </a>
+            </div>
+
             <div class="pt-3 border-t border-slate-800 flex items-center justify-end gap-2">
                 <button type="button" onclick="closeMarkPaidModal()" class="px-3.5 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold transition">
                     Batal
@@ -372,9 +397,19 @@ function openCreateInvoiceModal() {
 function closeCreateInvoiceModal() {
     document.getElementById('modal-create-invoice').classList.add('hidden');
 }
-function openMarkPaidModal(invoiceId, invoiceNumber, athleteName, amount) {
+function openMarkPaidModal(invoiceId, invoiceNumber, athleteName, amount, proofUrl = '') {
     document.getElementById('paid_modal_subtitle').innerText = `${invoiceNumber} - ${athleteName} (Rp ${amount})`;
     document.getElementById('mark-paid-form').action = `/coach/invoices/${invoiceId}/mark-paid`;
+    
+    const proofBox = document.getElementById('modal_proof_container');
+    const proofLink = document.getElementById('modal_proof_link');
+    if (proofUrl && proofUrl.length > 5) {
+        proofLink.href = proofUrl;
+        proofBox.classList.remove('hidden');
+    } else {
+        proofBox.classList.add('hidden');
+    }
+
     document.getElementById('modal-mark-paid').classList.remove('hidden');
 }
 function closeMarkPaidModal() {

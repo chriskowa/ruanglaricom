@@ -489,7 +489,13 @@
 
                 <!-- SECTION: FINANCE -->
                 @php
-                    $isFinanceActive = request()->routeIs('wallet.*');
+                    $isFinanceActive = request()->routeIs('wallet.*', 'runner.invoices.*');
+                    $pendingInvoicesCount = 0;
+                    if (auth()->check()) {
+                        $pendingInvoicesCount = \App\Models\CoachInvoice::where('runner_id', auth()->id())
+                            ->whereIn('payment_status', ['unpaid', 'overdue'])
+                            ->count();
+                    }
                 @endphp
                 <li class="space-y-1 pt-1" x-data="{ open: {{ $isFinanceActive ? 'true' : 'false' }} }">
                     <button type="button" @click="open = !open" class="w-full flex items-center justify-between px-3 py-2 text-[11px] font-bold text-white uppercase tracking-wider hover:bg-slate-900 rounded-lg transition-colors group">
@@ -497,7 +503,12 @@
                             <i class="fas fa-wallet text-xs text-white"></i>
                             <span>Keuangan</span>
                         </span>
-                        <i class="fas fa-chevron-down text-[10px] text-slate-400 group-hover:text-white transition-transform duration-200" :class="open ? 'rotate-180' : ''"></i>
+                        <div class="flex items-center gap-1.5">
+                            @if($pendingInvoicesCount > 0)
+                                <span class="text-[9px] font-bold bg-amber-400 text-slate-950 px-1.5 py-0.5 rounded">{{ $pendingInvoicesCount }}</span>
+                            @endif
+                            <i class="fas fa-chevron-down text-[10px] text-slate-400 group-hover:text-white transition-transform duration-200" :class="open ? 'rotate-180' : ''"></i>
+                        </div>
                     </button>
                     <ul x-show="open" x-transition.opacity.duration.150ms class="space-y-1 pl-2 border-l border-slate-800 ml-3.5 my-1">
                         <li>
@@ -510,6 +521,17 @@
                             <a href="{{ route('wallet.index', ['action' => 'withdraw']) }}#withdraw-form" class="{{ $linkBaseClass }} {{ request()->routeIs('wallet.*') && request('action') === 'withdraw' ? $activeClass : $inactiveClass }}">
                                 <span class="w-5 text-center text-xs text-white"><i class="fas fa-arrow-up"></i></span>
                                 <span class="text-white">Withdraw</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="{{ route('runner.invoices.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('runner.invoices.*') ? $activeClass : $inactiveClass }}">
+                                <span class="w-5 text-center text-xs text-white"><i class="fas fa-file-invoice-dollar"></i></span>
+                                <span class="flex items-center justify-between w-full">
+                                    <span class="text-white">Tagihan Coach</span>
+                                    @if($pendingInvoicesCount > 0)
+                                        <span class="text-[9px] font-bold bg-amber-400 text-slate-950 px-1.5 py-0.5 rounded">{{ $pendingInvoicesCount }}</span>
+                                    @endif
+                                </span>
                             </a>
                         </li>
                     </ul>

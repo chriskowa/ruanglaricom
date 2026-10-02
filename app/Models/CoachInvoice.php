@@ -76,17 +76,25 @@ class CoachInvoice extends Model
     }
 
     /**
-     * Get label for pricing model
+     * Map of pricing types and their display labels
      */
-    public function getPricingLabelAttribute(): string
+    public static function pricingTypeLabels(): array
     {
-        return match ($this->pricing_type) {
+        return [
             'hourly' => 'Per Jam / Sesi',
             'daily' => 'Harian (Daily Pass)',
             'weekly' => 'Mingguan (Weekly)',
             'monthly' => 'Bulanan (Monthly Retainer)',
-            default => 'Paket Sekali Bayar',
-        };
+            'package' => 'Paket Sekali Bayar',
+        ];
+    }
+
+    /**
+     * Get label for pricing model
+     */
+    public function getPricingLabelAttribute(): string
+    {
+        return static::pricingTypeLabels()[$this->pricing_type] ?? 'Paket Sekali Bayar';
     }
 
     /**
@@ -99,5 +107,33 @@ class CoachInvoice extends Model
         }
 
         return $this->due_date && Carbon::parse($this->due_date)->endOfDay()->isPast();
+    }
+
+    /**
+     * Get URL for payment proof if uploaded
+     */
+    public function getPaymentProofUrlAttribute(): ?string
+    {
+        return $this->payment_proof ? asset('storage/' . $this->payment_proof) : null;
+    }
+
+    /**
+     * Get badge label for payment status
+     */
+    public function getStatusLabelAttribute(): string
+    {
+        if ($this->payment_status === 'paid') {
+            return 'Lunas';
+        }
+        if ($this->is_overdue) {
+            return 'Jatuh Tempo';
+        }
+        if ($this->payment_status === 'cancelled') {
+            return 'Dibatalkan';
+        }
+        if ($this->payment_proof) {
+            return 'Menunggu Verifikasi';
+        }
+        return 'Menunggu Pembayaran';
     }
 }

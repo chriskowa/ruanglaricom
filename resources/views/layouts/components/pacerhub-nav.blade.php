@@ -380,6 +380,12 @@ document.addEventListener('DOMContentLoaded', function() {
                 return @json(route('runner.analysis-requests.index'));
             }
         }
+        if (notif.reference_type === 'CoachInvoice' || notif.reference_type === 'App\\Models\\CoachInvoice' || notif.type === 'coach_invoice' || notif.type === 'coach_invoice_paid' || notif.type === 'coach_invoice_cancelled') {
+            if (notif.reference_id) {
+                return @json(route('runner.invoices.show', ':id')).replace(':id', notif.reference_id);
+            }
+            return @json(route('runner.invoices.index'));
+        }
         return @json(route('notifications.index'));
     }
 

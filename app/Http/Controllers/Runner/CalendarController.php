@@ -731,9 +731,10 @@ class CalendarController extends Controller
 
         // 2. Check if Program Session
         if (! empty($validated['enrollment_id']) && isset($validated['session_day'])) {
-            // Verify enrollment belongs to user
+            // Verify enrollment belongs to user and is currently active
             $enrollment = ProgramEnrollment::where('id', $validated['enrollment_id'])
                 ->where('runner_id', $user->id)
+                ->where('status', 'active')
                 ->firstOrFail();
 
             // Create or update tracking

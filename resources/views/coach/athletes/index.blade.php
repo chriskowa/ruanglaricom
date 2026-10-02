@@ -1219,6 +1219,116 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('Terjadi kesalahan koneksi.');
         });
     };
+
+    // ── Athlete Program Toggle Switch ────────────────────────────────
+    window.showAthleteToast = function(message, type = 'success') {
+        let container = document.getElementById('coach-athletes-toast-container');
+        if (!container) {
+            container = document.createElement('div');
+            container.id = 'coach-athletes-toast-container';
+            container.className = 'fixed top-20 right-4 z-50 flex flex-col gap-2 max-w-sm w-full pointer-events-none';
+            document.body.appendChild(container);
+        }
+
+        const toast = document.createElement('div');
+        toast.className = 'p-3.5 rounded-md text-xs font-medium border shadow-lg pointer-events-auto transition-all duration-300 transform translate-y-2 opacity-0 ' +
+            (type === 'success' 
+                ? 'bg-emerald-950 text-emerald-300 border-emerald-800' 
+                : 'bg-rose-950 text-rose-300 border-rose-800');
+        toast.textContent = message;
+
+        container.appendChild(toast);
+
+        requestAnimationFrame(() => {
+            toast.classList.remove('translate-y-2', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+        });
+
+        setTimeout(() => {
+            toast.classList.remove('translate-y-0', 'opacity-100');
+            toast.classList.add('translate-y-2', 'opacity-0');
+            setTimeout(() => toast.remove(), 300);
+        }, 3500);
+    };
+
+    window.handleProgramToggle = async function(inputEl) {
+        const enrollmentId = inputEl.dataset.enrollmentId;
+        const url = inputEl.dataset.url;
+        const isChecked = inputEl.checked;
+
+        // Disable input while request is running
+        const allInputs = document.querySelectorAll(`input.program-toggle-input[data-enrollment-id="${enrollmentId}"]`);
+        allInputs.forEach(i => i.disabled = true);
+
+        try {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '{{ csrf_token() }}';
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': csrfToken,
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                const newIsActive = data.is_active;
+
+                // Sync all toggles & visual track for this enrollment
+                allInputs.forEach(i => {
+                    i.checked = newIsActive;
+                    i.disabled = false;
+                    const label = i.closest('label');
+                    if (label) {
+                        label.title = newIsActive ? 'Klik untuk menonaktifkan program' : 'Klik untuk mengaktifkan program';
+                        const track = label.querySelector('.toggle-track');
+                        const thumb = label.querySelector('.toggle-thumb');
+                        if (track && thumb) {
+                            if (newIsActive) {
+                                track.classList.add('bg-emerald-600', 'border-emerald-500');
+                                track.classList.remove('bg-slate-800', 'border-slate-700');
+                                thumb.classList.add('translate-x-4');
+                                thumb.classList.remove('translate-x-0');
+                            } else {
+                                track.classList.remove('bg-emerald-600', 'border-emerald-500');
+                                track.classList.add('bg-slate-800', 'border-slate-700');
+                                thumb.classList.remove('translate-x-4');
+                                thumb.classList.add('translate-x-0');
+                            }
+                        }
+                    }
+                });
+
+                // Sync all badges for this enrollment
+                const allBadges = document.querySelectorAll(`.status-badge-${enrollmentId}`);
+                allBadges.forEach(badge => {
+                    badge.textContent = data.status_label;
+                    badge.className = `status-badge status-badge-${enrollmentId} px-1.5 py-0.5 rounded text-[11px] font-medium border ` +
+                        (newIsActive 
+                            ? 'bg-emerald-950 text-emerald-300 border-emerald-800' 
+                            : 'bg-rose-950 text-rose-300 border-rose-800');
+                });
+
+                showAthleteToast(data.message, 'success');
+            } else {
+                // Revert
+                allInputs.forEach(i => {
+                    i.checked = !isChecked;
+                    i.disabled = false;
+                });
+                showAthleteToast(data.message || 'Gagal mengubah status program.', 'error');
+            }
+        } catch (err) {
+            console.error(err);
+            allInputs.forEach(i => {
+                i.checked = !isChecked;
+                i.disabled = false;
+            });
+            showAthleteToast('Terjadi kesalahan koneksi saat memperbarui status program.', 'error');
+        }
+    };
 });
 </script>
 @endpush

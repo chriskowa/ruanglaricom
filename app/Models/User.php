@@ -549,4 +549,20 @@ class User extends Authenticatable
     {
         return $this->hasMany(Program::class, 'coach_id');
     }
+
+    /**
+     * Invoices received as an athlete/runner
+     */
+    public function athleteInvoices()
+    {
+        return $this->hasMany(CoachInvoice::class, 'runner_id');
+    }
+
+    /**
+     * Invoices issued as a coach
+     */
+    public function issuedCoachInvoices()
+    {
+        return $this->hasMany(CoachInvoice::class, 'coach_id');
+    }
 }

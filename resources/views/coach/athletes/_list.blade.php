@@ -64,16 +64,31 @@
                                 </div>
 
                                 <div class="text-xs">
-                                    <div class="text-xs text-slate-400 mb-0.5">Program Aktif:</div>
+                                    <div class="text-xs text-slate-400 mb-0.5">Program:</div>
                                     <div class="font-medium text-slate-200 truncate flex items-center justify-between gap-2">
                                         <span class="truncate">{{ $enrollment->program->title }}</span>
-                                        <span class="px-2 py-0.5 rounded text-xs font-medium border shrink-0
-                                            @if($enrollment->status === 'active') bg-emerald-950 text-emerald-300 border-emerald-800
-                                            @elseif($enrollment->status === 'inactive') bg-rose-950 text-rose-300 border-rose-800
-                                            @elseif($enrollment->status === 'completed') bg-sky-950 text-sky-300 border-sky-800
-                                            @else bg-amber-950 text-amber-300 border-amber-800 @endif">
-                                            {{ $enrollment->status === 'inactive' ? 'Expired' : ($enrollment->status === 'purchased' ? 'Belum Aktif' : $enrollment->status) }}
-                                        </span>
+                                        <label class="inline-flex items-center gap-1.5 cursor-pointer select-none shrink-0" title="{{ $enrollment->status === 'active' ? 'Klik untuk menonaktifkan program' : 'Klik untuk mengaktifkan program' }}">
+                                            <input type="checkbox"
+                                                   class="sr-only program-toggle-input"
+                                                   data-enrollment-id="{{ $enrollment->id }}"
+                                                   data-url="{{ route('coach.athletes.toggle-status', $enrollment->id) }}"
+                                                   {{ $enrollment->status === 'active' ? 'checked' : '' }}
+                                                   onchange="handleProgramToggle(this)">
+                                            <span class="toggle-track w-8 h-4 bg-slate-800 border border-slate-700 rounded-md relative inline-block transition-colors duration-200 ease-in-out {{ $enrollment->status === 'active' ? 'bg-emerald-600 border-emerald-500' : '' }}">
+                                                <span class="toggle-thumb w-3 h-3 bg-white rounded-sm absolute top-0.5 left-0.5 transition-transform duration-200 ease-in-out {{ $enrollment->status === 'active' ? 'translate-x-4' : 'translate-x-0' }}"></span>
+                                            </span>
+                                            <span class="status-badge status-badge-{{ $enrollment->id }} px-1.5 py-0.5 rounded text-[11px] font-medium border
+                                                @if($enrollment->status === 'active') bg-emerald-950 text-emerald-300 border-emerald-800
+                                                @elseif($enrollment->status === 'inactive') bg-rose-950 text-rose-300 border-rose-800
+                                                @elseif($enrollment->status === 'completed') bg-sky-950 text-sky-300 border-sky-800
+                                                @else bg-amber-950 text-amber-300 border-amber-800 @endif">
+                                                @if($enrollment->status === 'active') Aktif
+                                                @elseif($enrollment->status === 'inactive') Non-aktif
+                                                @elseif($enrollment->status === 'completed') Selesai
+                                                @else Belum Aktif
+                                                @endif
+                                            </span>
+                                        </label>
                                     </div>
                                 </div>
 
@@ -161,8 +176,32 @@
                                     <span class="text-xs font-mono text-slate-400">VDOT: -</span>
                                 </div>
                                 <div class="text-xs">
-                                    <div class="text-xs text-slate-400 mb-0.5">Program Aktif:</div>
-                                    <div class="font-medium text-slate-300 truncate">{{ $enrollment->program->title }}</div>
+                                    <div class="text-xs text-slate-400 mb-0.5">Program:</div>
+                                    <div class="font-medium text-slate-300 truncate flex items-center justify-between gap-2">
+                                        <span class="truncate">{{ $enrollment->program->title }}</span>
+                                        <label class="inline-flex items-center gap-1.5 cursor-pointer select-none shrink-0" title="{{ $enrollment->status === 'active' ? 'Klik untuk menonaktifkan program' : 'Klik untuk mengaktifkan program' }}">
+                                            <input type="checkbox"
+                                                   class="sr-only program-toggle-input"
+                                                   data-enrollment-id="{{ $enrollment->id }}"
+                                                   data-url="{{ route('coach.athletes.toggle-status', $enrollment->id) }}"
+                                                   {{ $enrollment->status === 'active' ? 'checked' : '' }}
+                                                   onchange="handleProgramToggle(this)">
+                                            <span class="toggle-track w-8 h-4 bg-slate-800 border border-slate-700 rounded-md relative inline-block transition-colors duration-200 ease-in-out {{ $enrollment->status === 'active' ? 'bg-emerald-600 border-emerald-500' : '' }}">
+                                                <span class="toggle-thumb w-3 h-3 bg-white rounded-sm absolute top-0.5 left-0.5 transition-transform duration-200 ease-in-out {{ $enrollment->status === 'active' ? 'translate-x-4' : 'translate-x-0' }}"></span>
+                                            </span>
+                                            <span class="status-badge status-badge-{{ $enrollment->id }} px-1.5 py-0.5 rounded text-[11px] font-medium border
+                                                @if($enrollment->status === 'active') bg-emerald-950 text-emerald-300 border-emerald-800
+                                                @elseif($enrollment->status === 'inactive') bg-rose-950 text-rose-300 border-rose-800
+                                                @elseif($enrollment->status === 'completed') bg-sky-950 text-sky-300 border-sky-800
+                                                @else bg-amber-950 text-amber-300 border-amber-800 @endif">
+                                                @if($enrollment->status === 'active') Aktif
+                                                @elseif($enrollment->status === 'inactive') Non-aktif
+                                                @elseif($enrollment->status === 'completed') Selesai
+                                                @else Belum Aktif
+                                                @endif
+                                            </span>
+                                        </label>
+                                    </div>
                                 </div>
                                 <div class="pt-2.5 border-t border-slate-800 flex flex-wrap items-center justify-end gap-1.5 text-xs">
                                     <a href="{{ route('coach.athletes.show', $enrollment->id) }}" class="px-2.5 py-1 rounded-md bg-neon text-dark font-semibold hover:bg-white transition">
@@ -224,17 +263,32 @@
                         </td>
                         <td class="py-3 px-3">
                             <div class="font-medium text-white">{{ $enrollment->program->title }}</div>
-                            <div class="flex items-center gap-1.5 mt-0.5">
-                                <span class="px-1.5 py-0.2 rounded text-[11px] font-medium bg-slate-800 border border-slate-700 text-slate-300">
+                            <div class="flex items-center gap-2 mt-1">
+                                <span class="px-1.5 py-0.5 rounded text-[11px] font-medium bg-slate-800 border border-slate-700 text-slate-300">
                                     {{ $enrollment->program->difficulty }}
                                 </span>
-                                <span class="px-1.5 py-0.2 rounded text-[11px] font-medium border
-                                    @if($enrollment->status === 'active') bg-emerald-950 text-emerald-300 border-emerald-800
-                                    @elseif($enrollment->status === 'inactive') bg-rose-950 text-rose-300 border-rose-800
-                                    @elseif($enrollment->status === 'completed') bg-sky-950 text-sky-300 border-sky-800
-                                    @else bg-amber-950 text-amber-300 border-amber-800 @endif">
-                                    {{ $enrollment->status === 'inactive' ? 'Expired' : ($enrollment->status === 'purchased' ? 'Belum Aktif' : $enrollment->status) }}
-                                </span>
+                                <label class="inline-flex items-center gap-1.5 cursor-pointer select-none" title="{{ $enrollment->status === 'active' ? 'Klik untuk menonaktifkan program' : 'Klik untuk mengaktifkan program' }}">
+                                    <input type="checkbox"
+                                           class="sr-only program-toggle-input"
+                                           data-enrollment-id="{{ $enrollment->id }}"
+                                           data-url="{{ route('coach.athletes.toggle-status', $enrollment->id) }}"
+                                           {{ $enrollment->status === 'active' ? 'checked' : '' }}
+                                           onchange="handleProgramToggle(this)">
+                                    <span class="toggle-track w-8 h-4 bg-slate-800 border border-slate-700 rounded-md relative inline-block transition-colors duration-200 ease-in-out {{ $enrollment->status === 'active' ? 'bg-emerald-600 border-emerald-500' : '' }}">
+                                        <span class="toggle-thumb w-3 h-3 bg-white rounded-sm absolute top-0.5 left-0.5 transition-transform duration-200 ease-in-out {{ $enrollment->status === 'active' ? 'translate-x-4' : 'translate-x-0' }}"></span>
+                                    </span>
+                                    <span class="status-badge status-badge-{{ $enrollment->id }} px-1.5 py-0.5 rounded text-[11px] font-medium border
+                                        @if($enrollment->status === 'active') bg-emerald-950 text-emerald-300 border-emerald-800
+                                        @elseif($enrollment->status === 'inactive') bg-rose-950 text-rose-300 border-rose-800
+                                        @elseif($enrollment->status === 'completed') bg-sky-950 text-sky-300 border-sky-800
+                                        @else bg-amber-950 text-amber-300 border-amber-800 @endif">
+                                        @if($enrollment->status === 'active') Aktif
+                                        @elseif($enrollment->status === 'inactive') Non-aktif
+                                        @elseif($enrollment->status === 'completed') Selesai
+                                        @else Belum Aktif
+                                        @endif
+                                    </span>
+                                </label>
                             </div>
                         </td>
                         <td class="py-3 px-3 font-mono text-xs">
@@ -311,18 +365,33 @@
                     </div>
 
                     <div class="space-y-2 pt-2 border-t border-slate-800 text-xs">
-                        <div class="flex justify-between items-center">
+                        <div class="flex justify-between items-center gap-2">
                             <div class="min-w-0 pr-2">
                                 <div class="text-xs text-slate-400">Program:</div>
                                 <div class="font-medium text-white truncate">{{ $enrollment->program->title }}</div>
                             </div>
-                            <span class="px-2 py-0.5 rounded text-xs font-medium border shrink-0
-                                @if($enrollment->status === 'active') bg-emerald-950 text-emerald-300 border-emerald-800
-                                @elseif($enrollment->status === 'inactive') bg-rose-950 text-rose-300 border-rose-800
-                                @elseif($enrollment->status === 'completed') bg-sky-950 text-sky-300 border-sky-800
-                                @else bg-amber-950 text-amber-300 border-amber-800 @endif">
-                                {{ $enrollment->status === 'inactive' ? 'Expired' : ($enrollment->status === 'purchased' ? 'Belum Aktif' : $enrollment->status) }}
-                            </span>
+                            <label class="inline-flex items-center gap-1.5 cursor-pointer select-none shrink-0" title="{{ $enrollment->status === 'active' ? 'Klik untuk menonaktifkan program' : 'Klik untuk mengaktifkan program' }}">
+                                <input type="checkbox"
+                                       class="sr-only program-toggle-input"
+                                       data-enrollment-id="{{ $enrollment->id }}"
+                                       data-url="{{ route('coach.athletes.toggle-status', $enrollment->id) }}"
+                                       {{ $enrollment->status === 'active' ? 'checked' : '' }}
+                                       onchange="handleProgramToggle(this)">
+                                <span class="toggle-track w-8 h-4 bg-slate-800 border border-slate-700 rounded-md relative inline-block transition-colors duration-200 ease-in-out {{ $enrollment->status === 'active' ? 'bg-emerald-600 border-emerald-500' : '' }}">
+                                    <span class="toggle-thumb w-3 h-3 bg-white rounded-sm absolute top-0.5 left-0.5 transition-transform duration-200 ease-in-out {{ $enrollment->status === 'active' ? 'translate-x-4' : 'translate-x-0' }}"></span>
+                                </span>
+                                <span class="status-badge status-badge-{{ $enrollment->id }} px-1.5 py-0.5 rounded text-[11px] font-medium border
+                                    @if($enrollment->status === 'active') bg-emerald-950 text-emerald-300 border-emerald-800
+                                    @elseif($enrollment->status === 'inactive') bg-rose-950 text-rose-300 border-rose-800
+                                    @elseif($enrollment->status === 'completed') bg-sky-950 text-sky-300 border-sky-800
+                                    @else bg-amber-950 text-amber-300 border-amber-800 @endif">
+                                    @if($enrollment->status === 'active') Aktif
+                                    @elseif($enrollment->status === 'inactive') Non-aktif
+                                    @elseif($enrollment->status === 'completed') Selesai
+                                    @else Belum Aktif
+                                    @endif
+                                </span>
+                            </label>
                         </div>
 
                         <div>

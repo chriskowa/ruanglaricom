@@ -5,6 +5,8 @@ use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Request;
 use Illuminate\Session\TokenMismatchException;
+use Illuminate\Cache\RateLimiting\Limit;
+use Illuminate\Support\Facades\RateLimiter;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -12,6 +14,23 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
+        then: function () {
+            RateLimiter::for('kp-anon-trial', function (Request $r) {
+                return Limit::perMinute(60)->by($r->ip());
+            });
+            RateLimiter::for('kp-asset-upload', function (Request $r) {
+                $key = $r->user()?->id() ?: $r->ip();
+                return Limit::perMinute(30)->by((string) $key);
+            });
+            RateLimiter::for('kp-pdf-heavy', function (Request $r) {
+                $key = $r->user()?->id() ?: $r->ip();
+                return Limit::perHour(5)->by((string) $key);
+            });
+            RateLimiter::for('kp-payment', function (Request $r) {
+                $key = $r->user()?->id() ?: $r->ip();
+                return Limit::perMinute(10)->by((string) $key);
+            });
+        },
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->validateCsrfTokens(except: [
@@ -33,12 +52,14 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             \App\Http\Middleware\SetLocaleFromSession::class,
             \App\Http\Middleware\HandleInertiaRequests::class,
+            \App\Http\Middleware\AfterLoginTrialRestore::class,
         ]);
         $middleware->alias([
             'role' => \App\Http\Middleware\CheckRole::class,
             'api.auth' => \App\Http\Middleware\AuthenticateApiToken::class,
             'auth:sanctum' => \App\Http\Middleware\AuthenticateApiToken::class,
             'sanctum' => \App\Http\Middleware\AuthenticateApiToken::class,
+            'kp.trial.restore' => \App\Http\Middleware\AfterLoginTrialRestore::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
