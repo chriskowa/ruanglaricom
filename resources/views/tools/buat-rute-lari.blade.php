@@ -3322,8 +3322,26 @@
                 var power = (els.stravaPower && els.stravaPower.value ? els.stravaPower.value : '').trim();
                 var isPrivate = !!(els.stravaPrivate && els.stravaPrivate.checked);
 
-                var gpxSource = (els.followRoad && els.followRoad.checked && routePoints.length >= 2) ? routePoints : points;
-                var json = JSON.stringify(gpxSource);
+                var rawSource = (els.followRoad && els.followRoad.checked && routePoints.length >= 2) ? routePoints : points;
+                var cleanPoints = [];
+                for (var i = 0; i < rawSource.length; i++) {
+                    var pt = rawSource[i];
+                    if (pt) {
+                        var lat = typeof pt.lat === 'function' ? pt.lat() : pt.lat;
+                        var lng = typeof pt.lng === 'function' ? pt.lng() : pt.lng;
+                        if (typeof lat === 'number' && typeof lng === 'number' && !isNaN(lat) && !isNaN(lng)) {
+                            cleanPoints.push({
+                                lat: Number(lat.toFixed(6)),
+                                lng: Number(lng.toFixed(6))
+                            });
+                        }
+                    }
+                }
+                if (cleanPoints.length < 2) {
+                    showInfoModal('Belum ada rute', 'Tambahkan minimal 2 titik valid di peta sebelum export ke Strava.');
+                    return false;
+                }
+                var json = JSON.stringify(cleanPoints);
                 if (kind === 'direct') {
                     if (els.stravaPointsJsonDirect) els.stravaPointsJsonDirect.value = json;
                     if (els.stravaNameDirect) els.stravaNameDirect.value = name;
