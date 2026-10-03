@@ -124,8 +124,9 @@ class CalendarController extends Controller
             $returnTo = route('calendar.public').'#strava';
         }
 
-        // If user is already authenticated and has a valid Strava token, don't force re-authorization
-        if (auth()->check()) {
+        // If user is already authenticated and has a valid Strava token, don't force re-authorization unless force is requested
+        $force = $request->boolean('force');
+        if (! $force && auth()->check()) {
             $validToken = app(StravaApiService::class)->getValidAccessToken(auth()->user());
             if ($validToken) {
                 return redirect($returnTo)->with('success', 'Akun Strava Anda sudah terhubung.');
@@ -140,8 +141,8 @@ class CalendarController extends Controller
             'client_id' => $clientId,
             'redirect_uri' => route('calendar.strava.callback'),
             'response_type' => 'code',
-            'scope' => 'activity:read_all,profile:read_all,activity:write',
-            'approval_prompt' => 'auto',
+            'scope' => 'read,activity:read_all,profile:read_all,activity:write',
+            'approval_prompt' => 'force',
         ]);
 
         return redirect('https://www.strava.com/oauth/authorize?'.$query);
@@ -171,14 +172,15 @@ class CalendarController extends Controller
                 $tokenData = $response->json();
 
                 // Save to Authenticated User (if logged in)
-                if (auth()->check()) {
-                    $user = auth()->user();
+                $user = auth()->user() ?? $request->user();
+                if ($user) {
                     $user->update([
                         'strava_id' => $tokenData['athlete']['id'] ?? null,
                         'strava_access_token' => $tokenData['access_token'],
                         'strava_refresh_token' => $tokenData['refresh_token'],
                         'strava_expires_at' => now()->addSeconds($tokenData['expires_in']),
                     ]);
+                    $user->refresh();
                 }
 
                 Cache::forget('strava_club_leaderboard');
@@ -186,9 +188,9 @@ class CalendarController extends Controller
                 $pendingKey = session()->pull('strava_pending_upload_key');
                 if ($pendingKey) {
                     $payload = Cache::pull($pendingKey);
-                    if (is_array($payload)) {
+                    if (is_array($payload) && $user) {
                         try {
-                            $uploadResult = $this->uploadPointsToStrava($request->user(), $payload, $payload['start_at'] ?? null);
+                            $uploadResult = $this->uploadPointsToStrava($user, $payload, $payload['start_at'] ?? null);
                             if (data_get($uploadResult, 'ok')) {
                                 session()->flash('success', data_get($uploadResult, 'message', 'Aktivitas berhasil dikirim ke Strava.'));
                             } else {
@@ -225,11 +227,41 @@ class CalendarController extends Controller
 
     public function uploadRouteToStrava(Request $request, StravaApiService $strava)
     {
+        $user = $request->user() ?? auth()->user();
+        if (! $user) {
+            if ($request->wantsJson()) {
+                return response()->json(['ok' => false, 'message' => 'Silakan login terlebih dahulu.'], 401);
+            }
+            return redirect()->route('login');
+        }
+
         $payload = $this->parseRoutePostPayload($request);
         $startAt = $payload['start_at'] ?? null;
         unset($payload['start_at']);
 
-        $result = $this->uploadPointsToStrava($request->user(), $payload, $startAt);
+        $validToken = $strava->getValidAccessToken($user);
+        if (! $validToken) {
+            if ($request->wantsJson()) {
+                return response()->json([
+                    'ok' => false,
+                    'need_reconnect' => true,
+                    'message' => 'Koneksi Strava tidak valid atau telah kedaluwarsa. Silakan hubungkan ulang akun Strava.',
+                    'connect_url' => route('calendar.strava.connect', ['force' => 1, 'return_to' => '/tools/buat-rute-lari#strava-form-panel']),
+                ], 401);
+            }
+
+            $key = 'rl_strava_pending_upload_'.bin2hex(random_bytes(16));
+            $payload['start_at'] = $startAt;
+            Cache::put($key, $payload, now()->addMinutes(15));
+            session(['strava_pending_upload_key' => $key]);
+
+            return redirect()->route('calendar.strava.connect', [
+                'force' => 1,
+                'return_to' => '/tools/buat-rute-lari#strava-form-panel',
+            ]);
+        }
+
+        $result = $this->uploadPointsToStrava($user, $payload, $startAt);
 
         if ($request->wantsJson()) {
             return response()->json($result, ($result['ok'] ?? false) ? 200 : 422);
@@ -244,13 +276,17 @@ class CalendarController extends Controller
 
     public function authorizeAndPostRouteToStrava(Request $request, StravaApiService $strava)
     {
+        $user = $request->user() ?? auth()->user();
+        if (! $user) {
+            return redirect()->route('login');
+        }
+
         $payload = $this->parseRoutePostPayload($request);
         $startAt = $payload['start_at'] ?? null;
         unset($payload['start_at']);
 
-        $user = $request->user();
-        $hasToken = (bool) $strava->getValidAccessToken($user) || !empty($user->strava_access_token) || !empty($user->strava_id);
-        if ($hasToken) {
+        $validToken = $strava->getValidAccessToken($user);
+        if ($validToken) {
             $result = $this->uploadPointsToStrava($user, $payload, $startAt);
             if ($result['ok'] ?? false) {
                 return redirect()->route('tools.buat-rute-lari')->with('success', $result['message'] ?? 'Upload dikirim ke Strava.');
@@ -265,6 +301,7 @@ class CalendarController extends Controller
         session(['strava_pending_upload_key' => $key]);
 
         return redirect()->route('calendar.strava.connect', [
+            'force' => 1,
             'return_to' => '/tools/buat-rute-lari#strava-form-panel',
         ]);
     }
@@ -279,9 +316,9 @@ class CalendarController extends Controller
         }
 
         $paceSec = $request->input('pace_sec_per_km');
-        if (! is_numeric($paceSec)) {
+        if (! is_numeric($paceSec) || (int) $paceSec <= 0) {
             $paceText = trim((string) $request->input('pace_text', ''));
-            $paceSec = $this->parsePaceTextToSec($paceText);
+            $paceSec = $this->parsePaceTextToSec($paceText) ?: 360;
         } else {
             $paceSec = (int) $paceSec;
         }
@@ -319,7 +356,11 @@ class CalendarController extends Controller
 
         $startAt = null;
         if (! empty($validated['start_at'])) {
-            $startAt = Carbon::parse($validated['start_at'], config('app.timezone'))->utc();
+            try {
+                $startAt = Carbon::parse($validated['start_at'], config('app.timezone'))->utc();
+            } catch (\Throwable $e) {
+                $startAt = null;
+            }
         }
 
         $description = trim((string) ($validated['description'] ?? ''));
@@ -348,7 +389,7 @@ class CalendarController extends Controller
             'description' => $description,
             'activity_type' => $validated['activity_type'] ?? null,
             'private' => (bool) ($validated['private'] ?? false),
-            'pace_sec_per_km' => $validated['pace_sec_per_km'] ?? null,
+            'pace_sec_per_km' => $validated['pace_sec_per_km'] ?? 360,
             'points' => $validated['points'],
             'start_at' => $startAt,
         ];
@@ -361,7 +402,7 @@ class CalendarController extends Controller
         if (! $accessToken) {
             return [
                 'ok' => false,
-                'message' => 'Strava belum tersambung. Silakan connect dulu.',
+                'message' => 'Strava belum tersambung atau izin kedaluwarsa. Silakan hubungkan ulang akun Strava.',
             ];
         }
 
@@ -371,7 +412,7 @@ class CalendarController extends Controller
         }
 
         $activityType = strtolower((string) ($data['activity_type'] ?? 'run'));
-        $paceSecPerKm = isset($data['pace_sec_per_km']) ? (int) $data['pace_sec_per_km'] : null;
+        $paceSecPerKm = isset($data['pace_sec_per_km']) && (int) $data['pace_sec_per_km'] > 0 ? (int) $data['pace_sec_per_km'] : 360;
 
         $points = array_values(array_map(function ($p) {
             return [
@@ -379,6 +420,13 @@ class CalendarController extends Controller
                 'lng' => (float) $p['lng'],
             ];
         }, $data['points'] ?? []));
+
+        if (count($points) < 2) {
+            return [
+                'ok' => false,
+                'message' => 'Titik rute minimal harus ada 2 titik.',
+            ];
+        }
 
         $gpx = $this->buildGpxFromPoints($name, $points, $paceSecPerKm, $startAt);
 
@@ -418,13 +466,12 @@ class CalendarController extends Controller
                     'strava_refresh_token' => null,
                     'strava_expires_at' => null,
                 ]);
-                $message = 'Token Strava tidak valid / belum punya izin write. Token telah di-reset, silakan connect ulang Strava.';
+                $message = 'Izin upload Strava tidak valid atau belum diberikan (scope activity:write). Silakan hubungkan ulang akun Strava.';
             } elseif ($status === 409) {
                 $message = 'Aktivitas duplikat. Rute ini sudah pernah diupload ke Strava sebelumnya.';
             } elseif ($status === 429) {
-                $message = 'Terlalu banyak request ke Strava. Coba lagi beberapa menit.';
+                $message = 'Terlalu banyak request ke Strava (rate limit). Silakan coba lagi beberapa menit.';
             } else {
-                // Include upstream error detail for debugging
                 $upstreamMsg = is_array($upstreamBody) ? ($upstreamBody['message'] ?? json_encode($upstreamBody)) : (string) $upstreamBody;
                 $message .= ' Detail: ' . mb_substr($upstreamMsg, 0, 200);
             }
@@ -439,14 +486,37 @@ class CalendarController extends Controller
 
         return [
             'ok' => true,
-            'message' => 'Upload dikirim ke Strava. Prosesnya bisa butuh beberapa saat.',
+            'message' => 'Upload berhasil dikirim ke Strava! Aktivitas sedang diproses oleh Strava.',
             'upload' => $res->json(),
         ];
     }
 
     private function buildGpxFromPoints(string $name, array $points, ?int $paceSecPerKm, ?Carbon $startAt): string
     {
+        $effectivePace = ($paceSecPerKm && $paceSecPerKm > 0) ? $paceSecPerKm : 360;
+
+        // Calculate total distance & duration first
+        $totalDistKm = 0.0;
+        for ($i = 1; $i < count($points); $i++) {
+            $totalDistKm += $this->haversineKm(
+                (float) $points[$i - 1]['lat'],
+                (float) $points[$i - 1]['lng'],
+                (float) $points[$i]['lat'],
+                (float) $points[$i]['lng']
+            );
+        }
+        $totalDurationSec = $totalDistKm * $effectivePace;
+
         $startedAt = $startAt ? $startAt->copy() : now()->utc();
+
+        // Enforce activity finish time is in the past (Strava strictly rejects future timestamps)
+        $nowUtc = now()->utc();
+        $expectedEndAt = $startedAt->copy()->addSeconds((int) ceil($totalDurationSec));
+        if ($expectedEndAt->gt($nowUtc)) {
+            // End time is in the future; adjust startedAt so that it ended 2 minutes ago
+            $startedAt = $nowUtc->copy()->subSeconds((int) ceil($totalDurationSec) + 120);
+        }
+
         $accumulatedSeconds = 0.0;
         $trkpts = '';
         $lastLat = null;
@@ -456,20 +526,20 @@ class CalendarController extends Controller
             $lat = (float) $p['lat'];
             $lng = (float) $p['lng'];
 
-            if ($idx > 0 && $paceSecPerKm) {
+            if ($idx > 0) {
                 $dist = $this->haversineKm($lastLat, $lastLng, $lat, $lng);
-                $accumulatedSeconds += ($dist * $paceSecPerKm);
+                $accumulatedSeconds += ($dist * $effectivePace);
             }
 
             $t = $startedAt->copy()->addMilliseconds((int) ($accumulatedSeconds * 1000));
-            $trkpts .= '<trkpt lat="'.$this->fmtCoord($lat).'" lon="'.$this->fmtCoord($lng).'"><time>'.$t->toAtomString().'</time></trkpt>';
-            
+            $trkpts .= '<trkpt lat="'.$this->fmtCoord($lat).'" lon="'.$this->fmtCoord($lng).'"><time>'.$t->format('Y-m-d\TH:i:s\Z').'</time></trkpt>';
+
             $lastLat = $lat;
             $lastLng = $lng;
         }
 
         $safeName = $this->escapeXml($name);
-        $time = $startedAt->toAtomString();
+        $time = $startedAt->format('Y-m-d\TH:i:s\Z');
 
         return '<?xml version="1.0" encoding="UTF-8"?>'
             .'<gpx version="1.1" creator="RuangLari" xmlns="http://www.topografix.com/GPX/1/1">'
@@ -535,6 +605,11 @@ class CalendarController extends Controller
                 'strava_expires_at' => null,
             ]);
         }
-        return response()->json(['success' => true]);
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json(['success' => true, 'message' => 'Koneksi Strava berhasil diputuskan.']);
+        }
+
+        return back()->with('success', 'Koneksi Strava berhasil diputuskan.');
     }
 }

@@ -924,8 +924,7 @@
                                 @php
                                     $hasStrava = auth()->check() && auth()->user() && (
                                         !empty(auth()->user()->strava_access_token) || 
-                                        !empty(auth()->user()->strava_refresh_token) || 
-                                        !empty(auth()->user()->strava_id)
+                                        !empty(auth()->user()->strava_refresh_token)
                                     );
                                 @endphp
                                 <div class="flex items-center justify-between gap-3">
@@ -1005,7 +1004,7 @@
                                                 <i class="fas fa-exclamation-circle text-amber-400 shrink-0 text-sm"></i>
                                                 <span>{{ session('error') }}</span>
                                             </div>
-                                            <a href="{{ route('calendar.strava.connect', ['return_to' => '/tools/buat-rute-lari#strava-form-panel']) }}" 
+                                            <a href="{{ route('calendar.strava.connect', ['force' => 1, 'return_to' => '/tools/buat-rute-lari#strava-form-panel']) }}" 
                                                class="px-3 py-1.5 rounded-lg bg-[#FC4C02] text-white font-bold text-[11px] hover:bg-[#FC4C02]/90 transition whitespace-nowrap shrink-0 flex items-center gap-1.5 shadow-md">
                                                 <svg class="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
                                                 <span>Re-sync Strava Now</span>
@@ -1014,14 +1013,23 @@
                                     @endif
 
                                     @if($hasStrava)
-                                        <div class="flex items-center justify-between text-[11px] text-slate-400 px-1 py-0.5">
+                                        <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400 px-1 py-0.5">
                                             <span class="flex items-center gap-1.5 text-emerald-400 font-semibold">
                                                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Strava Terhubung
                                             </span>
-                                            <a href="{{ route('calendar.strava.connect', ['return_to' => '/tools/buat-rute-lari#strava-form-panel']) }}" 
-                                               class="text-amber-400 hover:text-amber-300 font-semibold transition flex items-center gap-1 text-[11px]">
-                                                <i class="fas fa-arrows-rotate text-[10px]"></i> Re-sync / Hubungkan Ulang Strava
-                                            </a>
+                                            <div class="flex items-center gap-2.5">
+                                                <a href="{{ route('calendar.strava.connect', ['force' => 1, 'return_to' => '/tools/buat-rute-lari#strava-form-panel']) }}" 
+                                                   class="text-amber-400 hover:text-amber-300 font-semibold transition flex items-center gap-1 text-[11px]">
+                                                    <i class="fas fa-arrows-rotate text-[10px]"></i> Re-sync
+                                                </a>
+                                                <span class="text-slate-600">|</span>
+                                                <form method="POST" action="{{ route('calendar.strava.disconnect') }}" class="inline" onsubmit="return confirm('Putuskan koneksi akun Strava?');">
+                                                    @csrf
+                                                    <button type="submit" class="text-rose-400 hover:text-rose-300 font-semibold transition text-[11px] cursor-pointer">
+                                                        Putuskan
+                                                    </button>
+                                                </form>
+                                            </div>
                                         </div>
                                         <form id="rl-strava-direct-form" method="POST" action="{{ route('tools.buat-rute-lari.strava-upload') }}">
                                             @csrf
@@ -2301,23 +2309,27 @@
                         var msg = '';
                         if (isStartInFuture) {
                             msg = 'Waktu start tidak boleh melebihi waktu sekarang!';
-                        } else if (isFinishInFuture) {
-                            msg = 'Waktu finish (' + formatDateTimeDisplay(finishDt) + ') tidak boleh melebihi waktu sekarang!';
-                        }
-
-                        if (msg) {
                             if (els.startTimeError) {
                                 els.startTimeError.textContent = msg;
                                 els.startTimeError.classList.remove('hidden');
                             }
                             els.startTime.classList.add('border-red-500', 'text-red-400');
-                            els.startTime.classList.remove('border-slate-700');
+                            els.startTime.classList.remove('border-slate-700', 'border-amber-500/80', 'text-amber-300');
                             timeIsValid = false;
+                        } else if (isFinishInFuture) {
+                            msg = 'Waktu finish melebihi waktu sekarang. Waktu aktivitas akan otomatis disesuaikan ke masa lampau saat export Strava.';
+                            if (els.startTimeError) {
+                                els.startTimeError.textContent = msg;
+                                els.startTimeError.classList.remove('hidden');
+                            }
+                            els.startTime.classList.remove('border-red-500', 'text-red-400');
+                            els.startTime.classList.add('border-amber-500/80', 'text-amber-300');
+                            timeIsValid = true;
                         } else {
                             if (els.startTimeError) {
                                 els.startTimeError.classList.add('hidden');
                             }
-                            els.startTime.classList.remove('border-red-500', 'text-red-400');
+                            els.startTime.classList.remove('border-red-500', 'text-red-400', 'border-amber-500/80', 'text-amber-300');
                             els.startTime.classList.add('border-slate-700');
                             timeIsValid = true;
                         }
@@ -3263,22 +3275,35 @@
                     var baseName = (els.name.value || '').trim();
                     els.stravaName.value = baseName !== '' ? baseName : 'Easy Run';
                 }
+                var now = new Date();
+                var estSec = (typeof calculateEstSeconds === 'function') ? calculateEstSeconds() : 1800;
+                var safeStartTime = new Date(now.getTime() - (estSec + 120) * 1000);
+
                 if (els.startTime && els.startTime.value) {
-                    els.stravaStart.value = els.startTime.value;
+                    var currentStart = new Date(els.startTime.value);
+                    if (currentStart.getTime() + (estSec * 1000) > now.getTime()) {
+                        els.stravaStart.value = toDatetimeLocalValue(safeStartTime);
+                    } else {
+                        els.stravaStart.value = els.startTime.value;
+                    }
                 } else if ((els.stravaStart.value || '').trim() === '') {
-                    els.stravaStart.value = toDatetimeLocalValue(new Date());
+                    els.stravaStart.value = toDatetimeLocalValue(safeStartTime);
                 }
                 if ((els.stravaPace.value || '').trim() === '') {
                     var paceM = clamp(parseInt(els.paceMin.value || '0', 10), 0, 59);
                     var paceS = clamp(parseInt(els.paceSec.value || '0', 10), 0, 59);
+                    if (paceM === 0 && paceS === 0) {
+                        paceM = 6;
+                        paceS = 0;
+                    }
                     els.stravaPace.value = paceM + ':' + String(paceS).padStart(2, '0');
                 }
             }
 
             function fillHiddenStravaFields(kind) {
                 if (!timeIsValid) {
-                    setStatus('Error: Waktu tidak valid');
-                    showInfoModal('Waktu Tidak Valid', 'Waktu start atau finish aktivitas melebihi waktu sekarang. Harap sesuaikan.');
+                    setStatus('Error: Waktu start tidak valid');
+                    showInfoModal('Waktu Start Tidak Valid', 'Waktu start aktivitas melebihi waktu sekarang. Harap sesuaikan.');
                     return false;
                 }
                 if (points.length < 2) {
@@ -4294,8 +4319,64 @@
 
             if (els.stravaDirectForm) {
                 els.stravaDirectForm.addEventListener('submit', function (e) {
+                    e.preventDefault();
                     var ok = fillHiddenStravaFields('direct');
-                    if (!ok) e.preventDefault();
+                    if (!ok) return;
+
+                    var submitBtn = document.getElementById('rl-strava-submit-direct');
+                    var origText = submitBtn ? submitBtn.innerHTML : 'Export ke Strava';
+
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1.5"></i> Mengirim ke Strava...';
+                    }
+
+                    var formData = new FormData(els.stravaDirectForm);
+
+                    fetch(els.stravaDirectForm.action, {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        }
+                    })
+                    .then(function (res) {
+                        return res.json().then(function (data) {
+                            return { status: res.status, data: data };
+                        }).catch(function () {
+                            return { status: res.status, data: { ok: false, message: 'Respon server tidak valid (' + res.status + ').' } };
+                        });
+                    })
+                    .then(function (resObj) {
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = origText;
+                        }
+
+                        if (resObj.status === 200 && resObj.data.ok) {
+                            showInfoModal('Berhasil Ekspor ke Strava', resObj.data.message || 'Aktivitas berhasil dikirim ke Strava dan sedang diproses.');
+                            setStatus('Berhasil export ke Strava');
+                        } else if (resObj.status === 401 && resObj.data.need_reconnect) {
+                            showInfoModal('Koneksi Strava Kedaluwarsa', (resObj.data.message || 'Token Strava tidak valid.') + ' Hubungkan ulang akun Strava Anda.');
+                            setTimeout(function () {
+                                if (confirm('Koneksi Strava perlu diperbarui. Buka halaman otorisasi Strava sekarang?')) {
+                                    window.location.href = resObj.data.connect_url || '{{ route("calendar.strava.connect", ["force" => 1, "return_to" => "/tools/buat-rute-lari#strava-form-panel"]) }}';
+                                }
+                            }, 500);
+                        } else {
+                            var errMsg = (resObj.data && resObj.data.message) ? resObj.data.message : 'Gagal mengirim rute ke Strava.';
+                            showInfoModal('Gagal Ekspor Strava', errMsg);
+                            setStatus('Gagal export Strava');
+                        }
+                    })
+                    .catch(function (err) {
+                        if (submitBtn) {
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = origText;
+                        }
+                        showInfoModal('Error Koneksi', 'Terjadi kesalahan jaringan: ' + err.message);
+                    });
                 });
             }
             if (els.stravaAuthorizeForm) {

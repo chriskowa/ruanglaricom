@@ -50,6 +50,16 @@ class StravaApiService
                 'status' => $refresh->status(),
                 'body' => $refresh->json() ?? $refresh->body(),
             ]);
+
+            // When the refresh token is invalid or rejected, reset dead tokens so user isn't stuck
+            if (in_array($refresh->status(), [400, 401])) {
+                $user->update([
+                    'strava_access_token' => null,
+                    'strava_refresh_token' => null,
+                    'strava_expires_at' => null,
+                ]);
+            }
+
             return null;
         }
 
