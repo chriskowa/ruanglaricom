@@ -5,6 +5,7 @@ namespace App\Http\Controllers\EO;
 use App\Actions\EO\StoreManualParticipantAction;
 use App\Http\Controllers\Controller;
 use App\Mail\EventRegistrationSuccess;
+use App\Mail\EventParticipantRejectedMail;
 use App\Models\Event;
 use App\Models\RaceCategory;
 use App\Models\Transaction;
@@ -2226,9 +2227,21 @@ class EventController extends Controller
             } catch (\Throwable $e) {}
         }
 
+        $emailSent = false;
+        try {
+            if (! empty($participant->email)) {
+                Mail::to($participant->email)->send(
+                    new EventParticipantRejectedMail($event, $participant, $reason)
+                );
+                $emailSent = true;
+            }
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Participant Rejection Email Error: ' . $e->getMessage());
+        }
+
         return response()->json([
             'success' => true,
-            'message' => 'Peserta ' . $participant->name . ' telah ditolak (Rejected).',
+            'message' => 'Peserta ' . $participant->name . ' telah ditolak (Rejected)' . ($emailSent ? ' dan email pemberitahuan penolakan telah dikirim.' : '.'),
         ]);
     }
 
@@ -2373,6 +2386,9 @@ class EventController extends Controller
             ], 400);
         }
 
+        $rejectedCount = 0;
+        $emailSentCount = 0;
+
         foreach ($participants as $participant) {
             $participant->update([
                 'isApproved' => 0,
@@ -2385,11 +2401,31 @@ class EventController extends Controller
                     app(\App\Services\EventCacheService::class)->invalidateCategoryCache($participant->category);
                 } catch (\Throwable $e) {}
             }
+
+            try {
+                if (! empty($participant->email)) {
+                    Mail::to($participant->email)->send(
+                        new EventParticipantRejectedMail($event, $participant, $reason)
+                    );
+                    $emailSentCount++;
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Bulk Participant Rejection Email Error: ' . $e->getMessage());
+            }
+
+            $rejectedCount++;
+        }
+
+        $msg = "Berhasil menolak {$rejectedCount} peserta terpilih";
+        if ($emailSentCount > 0) {
+            $msg .= " dan {$emailSentCount} email penolakan telah dikirim.";
+        } else {
+            $msg .= '.';
         }
 
         return response()->json([
             'success' => true,
-            'message' => 'Berhasil menolak ' . $participants->count() . ' peserta terpilih.',
+            'message' => $msg,
         ]);
     }
 
