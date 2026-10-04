@@ -15,6 +15,22 @@ class DashboardController extends Controller
     public function index(Request $request)
     {
         $user = auth()->user();
+
+        // Fail-safe: Auto-save any pending program from /buat-program-lari generator session
+        if ($user && session()->has('pending_program_data')) {
+            try {
+                $savedEnrollment = app(\App\Http\Controllers\SelfGeneratedProgramController::class)->processAutoSaveDirect($user);
+                if ($savedEnrollment) {
+                    session()->flash('success', 'Program latihan Anda telah berhasil disimpan ke kalender!');
+                    if (!$request->has('tab')) {
+                        $request->merge(['tab' => 'calendar']);
+                    }
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Dashboard auto-save failed: ' . $e->getMessage());
+            }
+        }
+
         $user->load('wallet');
 
         // Fetch active enrollments once with eager loaded relationships

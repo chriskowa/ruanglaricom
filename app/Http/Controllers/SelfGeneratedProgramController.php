@@ -17,6 +17,7 @@ use Illuminate\Support\Str;
 use Midtrans\Snap;
 
 use App\Models\Participant;
+use App\Models\User;
 use App\Models\UsedPromoCode; // Assuming we will create this or use a simple check
 
 class SelfGeneratedProgramController extends Controller
@@ -62,17 +63,42 @@ class SelfGeneratedProgramController extends Controller
     }
 
     /**
-     * Internal: Process auto-save after login
+     * Public helper: Process auto-save directly from session for authenticated user
      */
-    protected function processAutoSave()
+    public function processAutoSaveDirect(?User $user = null): ?ProgramEnrollment
     {
+        if (!session()->has('pending_program_data')) {
+            return null;
+        }
+
         $data = session()->pull('pending_program_data');
-        $user = auth()->user();
+        $user = $user ?: auth()->user();
+        if (!$user) {
+            return null;
+        }
+
+        return $this->saveProgramFromData($user, $data, 'replace');
+    }
+
+    /**
+     * Core helper: Save program and enrollment from structured form + result data
+     */
+    public function saveProgramFromData(User $user, array $data, ?string $action = 'replace'): ?ProgramEnrollment
+    {
         $form = $data['form'] ?? [];
         $result = $data['result'] ?? [];
+        if (empty($form) || empty($result)) {
+            return null;
+        }
 
         DB::beginTransaction();
         try {
+            if ($action === 'replace') {
+                ProgramEnrollment::where('runner_id', $user->id)
+                    ->where('status', 'active')
+                    ->update(['status' => 'cancelled']);
+            }
+
             $targetDateStr = $form['target_date'] ?? null;
             $targetDate = !empty($targetDateStr) ? Carbon::parse($targetDateStr) : now()->addWeeks(12);
             $sessions = $result['sessions'] ?? [];
@@ -141,12 +167,27 @@ class SelfGeneratedProgramController extends Controller
 
             DB::commit();
 
-            return redirect()->route('runner.calendar')->with('success', 'Program latihan Anda telah berhasil disimpan ke kalender!');
+            return $enrollment;
         } catch (\Exception $e) {
             DB::rollBack();
-            Log::error('Auto-save program failed: ' . $e->getMessage());
-            return redirect()->route('programs.realistic')->with('error', 'Gagal menyimpan program secara otomatis.');
+            Log::error('saveProgramFromData failed: ' . $e->getMessage());
+            return null;
         }
+    }
+
+    /**
+     * Internal: Process auto-save after login
+     */
+    protected function processAutoSave()
+    {
+        $user = auth()->user();
+        $enrollment = $this->processAutoSaveDirect($user);
+
+        if ($enrollment) {
+            return redirect()->route('runner.calendar')->with('success', 'Program latihan Anda telah berhasil disimpan ke kalender!');
+        }
+
+        return redirect()->route('programs.realistic')->with('error', 'Gagal menyimpan program secara otomatis.');
     }
 
     /**
@@ -669,86 +710,17 @@ class SelfGeneratedProgramController extends Controller
             ]);
         }
 
-        DB::beginTransaction();
-        try {
-            if ($activeEnrollment && $action === 'replace') {
-                ProgramEnrollment::where('runner_id', $user->id)
-                    ->where('status', 'active')
-                    ->update(['status' => 'cancelled']);
-            }
+        $enrollment = $this->saveProgramFromData($user, ['form' => $form, 'result' => $result], $action ?: 'add');
 
-            $targetDateStr = $form['target_date'] ?? null;
-            $targetDate = !empty($targetDateStr) ? Carbon::parse($targetDateStr) : now()->addWeeks(12);
-            $sessions = $result['sessions'] ?? [];
-            $totalDays = count($sessions);
-            $durationWeeks = (int) max(1, ceil($totalDays / 7));
-            
-            $startDateStr = $form['start_date'] ?? null;
-            if (!empty($startDateStr)) {
-                $startDate = Carbon::parse($startDateStr);
-            } else {
-                $startDate = $targetDate->copy()->subDays(max(0, $totalDays - 1))->startOfWeek();
-            }
-
-            $targetDistance = $form['target_distance'] ?? '10k';
-            $vdot = $result['vdot'] ?? 30;
-
-            // Create a virtual program record
-            $title = "AI " . strtoupper($targetDistance) . " Plan (" . $vdot . ")";
-            $program = Program::create([
-                'coach_id' => $user->id,
-                'title' => $title,
-                'slug' => $this->generateUniqueSlug($title),
-                'description' => "AI Generated Program for " . strtoupper($targetDistance),
-                'distance_target' => $targetDistance,
-                'duration_weeks' => $durationWeeks,
-                'program_json' => [
-                    'sessions' => $sessions,
-                    'summary' => $result['summary'] ?? []
-                ],
-                'is_self_generated' => true,
-                'is_active' => true,
-                'is_published' => false,
-                'price' => 0, 
-                'generated_vdot' => $vdot,
-                'daniels_params' => [
-                    'training_paces' => $result['paces'] ?? [],
-                    'runner_level' => $form['runner_level'] ?? null,
-                    'long_run_day' => $form['long_run_day'] ?? null,
-                    'height_cm' => $form['height_cm'] ?? null,
-                    'weight_kg' => $form['weight_kg'] ?? null,
-                    'injury_history' => $form['injury_history'] ?? 'none',
-                    'include_strength' => $form['include_strength'] ?? true,
-                    'strength_type' => $form['strength_type'] ?? 'hybrid',
-                    'combine_plyometric' => $form['combine_plyometric'] ?? true,
-                    'start_date' => $startDateStr,
-                    'target_date' => $targetDateStr,
-                ]
-            ]);
-
-            // Create enrollment
-            $enrollment = ProgramEnrollment::create([
-                'program_id' => $program->id,
-                'runner_id' => $user->id,
-                'start_date' => $startDate,
-                'end_date' => $targetDate,
-                'status' => 'active',
-                'payment_status' => 'paid', // Fully free
-            ]);
-
-            DB::commit();
-
+        if ($enrollment) {
             return response()->json([
                 'success' => true,
                 'enrollment_id' => $enrollment->id,
                 'message' => 'Program berhasil disimpan ke kalender!'
             ]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            Log::error('Save Program Error: ' . $e->getMessage());
-            return response()->json(['success' => false, 'message' => 'Gagal menyimpan program: ' . $e->getMessage()], 500);
         }
+
+        return response()->json(['success' => false, 'message' => 'Gagal menyimpan program.'], 500);
     }
 
     /**

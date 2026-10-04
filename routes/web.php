@@ -1504,6 +1504,13 @@ Route::get('/dashboard', function () {
     }
     $user = Illuminate\Support\Facades\Auth::user();
 
+    if (session()->has('pending_program_data')) {
+        $savedEnrollment = app(\App\Http\Controllers\SelfGeneratedProgramController::class)->processAutoSaveDirect($user);
+        if ($savedEnrollment) {
+            return redirect()->route('runner.calendar')->with('success', 'Program latihan Anda telah berhasil disimpan ke kalender!');
+        }
+    }
+
     return match ($user->role) {
         'admin' => redirect()->route('admin.dashboard'),
         'coach' => redirect()->route('coach.dashboard'),

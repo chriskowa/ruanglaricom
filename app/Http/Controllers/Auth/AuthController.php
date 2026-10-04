@@ -115,6 +115,10 @@ class AuthController extends Controller
                 }
             }
 
+            if (session()->has('pending_program_data')) {
+                $redirectTarget = route('programs.realistic');
+            }
+
             if ($request->wantsJson()) {
                 return response()->json([
                     'success' => true,
@@ -231,6 +235,10 @@ class AuthController extends Controller
             if (\Illuminate\Support\Str::startsWith($target, '/') || \Illuminate\Support\Str::startsWith($target, url('/'))) {
                 $redirectTarget = $target;
             }
+        }
+
+        if (session()->has('pending_program_data')) {
+            $redirectTarget = route('programs.realistic');
         }
 
         return response()->json([
@@ -499,6 +507,10 @@ class AuthController extends Controller
         Auth::login($user);
 
         // Redirect ke intended URL atau dashboard berdasarkan role
+        if (session()->has('pending_program_data')) {
+            return redirect()->route('programs.realistic');
+        }
+
         $dashboard = match ($user->role) {
             'admin' => route('admin.dashboard'),
             'coach' => route('coach.dashboard'),
@@ -621,6 +633,10 @@ class AuthController extends Controller
         ]);
 
         Auth::login($user);
+
+        if (session()->has('pending_program_data')) {
+            return redirect()->route('programs.realistic');
+        }
 
         $dashboard = match ($user->role) {
             'admin' => route('admin.dashboard'),

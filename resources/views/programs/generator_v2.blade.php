@@ -3088,7 +3088,7 @@
                     }
 
                     if (window.openLoginModal) {
-                        window.openLoginModal();
+                        window.openLoginModal('{{ route("programs.realistic") }}');
                     } else {
                         showNotification('Harap login terlebih dahulu.', 'error');
                     }
@@ -3114,6 +3114,30 @@
                         },
                         body: JSON.stringify(payload)
                     });
+
+                    if (response.status === 401) {
+                        try {
+                            await fetch('{{ route("generator.store-pending", [], false) }}', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                                    'Accept': 'application/json'
+                                },
+                                body: JSON.stringify({
+                                    form: form,
+                                    result: result.value
+                                })
+                            });
+                        } catch (e) {}
+
+                        if (window.openLoginModal) {
+                            window.openLoginModal('{{ route("programs.realistic") }}');
+                        } else {
+                            showNotification('Sesi berakhir. Harap login kembali.', 'error');
+                        }
+                        return;
+                    }
 
                     const data = await response.json();
                     if (data.has_active_program && !actionParam) {

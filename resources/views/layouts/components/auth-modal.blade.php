@@ -156,6 +156,7 @@
                         <input type="password" name="password_confirmation" required class="w-full px-3.5 py-2.5 bg-zinc-900 border border-zinc-800 rounded-lg text-white placeholder-zinc-500 text-sm focus:outline-none focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 transition-all" placeholder="••••••••">
                     </div>
                 </div>
+                <input type="hidden" name="redirect" :value="redirectUrl">
                 <input type="hidden" name="g-recaptcha-response" value="">
 
                 <button type="submit" :disabled="loading" class="w-full py-2.5 bg-white hover:bg-zinc-200 text-zinc-950 font-semibold rounded-lg transition-all disabled:opacity-50 flex items-center justify-center gap-2 text-sm shadow-sm">
@@ -288,7 +289,8 @@
                         },
                         body: JSON.stringify({
                             user_id: this.userId,
-                            code: this.otpCode
+                            code: this.otpCode,
+                            redirect: this.redirectUrl
                         })
                     });
                     const data = await response.json();
