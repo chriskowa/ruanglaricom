@@ -155,19 +155,24 @@
     <meta name="twitter:image" content="{{ $metaImage }}">
     <meta name="twitter:image:alt" content="{{ $metaTitle }}">
     <script type="application/ld+json">{!! json_encode($schemaEvent, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}</script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
-    <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
-    <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    @if($showMidtrans && $midtransClientKey)
-        <script type="text/javascript" src="{{ $midtransUrl }}/snap/snap.js" data-client-key="{{ $midtransClientKey }}"></script>
-    @endif
-    @if(env('RECAPTCHA_SITE_KEY_v3'))
-        <script src="https://www.google.com/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY_v3') }}" onerror="this.onerror=null;this.src='https://www.recaptcha.net/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY_v3') }}';"></script>
-    @endif
+    <!-- DNS Preconnect & Preload for High Speed Rendering -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="preload" as="image" href="{{ $heroImage }}" fetchpriority="high">
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Stylesheets -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    <!-- Non-blocking Third-Party Integration Scripts -->
+    @if($showMidtrans && $midtransClientKey)
+        <script type="text/javascript" src="{{ $midtransUrl }}/snap/snap.js" data-client-key="{{ $midtransClientKey }}" defer></script>
+    @endif
+    @if(env('RECAPTCHA_SITE_KEY_v3'))
+        <script src="https://www.google.com/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY_v3') }}" async defer onerror="this.onerror=null;this.src='https://www.recaptcha.net/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY_v3') }}';"></script>
+    @endif
     <style>
         :root { 
             --primary: {{ $primaryColor }}; 
@@ -474,15 +479,22 @@
                         </span>
                         Galeri Event
                     </div>
-                    <div id="qlGallery" data-images='@json($galleryUrls)' class="relative w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 aspect-[16/9] sm:aspect-[21/9]">
-                        <img id="qlGalleryImg" src="{{ $galleryUrls[0] }}" alt="Event Gallery" class="w-full h-full object-cover transition-opacity duration-300" fetchpriority="high">
-                        <button id="qlGalleryPrev" type="button" class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-900/80 hover:bg-slate-900 text-white flex items-center justify-center text-xs transition-colors shadow">
+                    <div id="qlGallery" data-images='@json($galleryUrls)' class="relative w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-900/5 min-h-[200px] flex items-center justify-center group">
+                        <img id="qlGalleryImg" src="{{ $galleryUrls[0] }}" alt="Event Gallery" class="w-full h-auto max-h-[550px] sm:max-h-[650px] object-contain mx-auto block rounded-xl cursor-zoom-in transition-opacity duration-300" loading="lazy" decoding="async" title="Klik untuk membuka lightbox">
+                        
+                        <!-- Zoom Hint Badge -->
+                        <div class="absolute top-3 right-3 pointer-events-none z-10 flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-slate-900/80 text-white text-[11px] font-bold backdrop-blur-sm shadow-sm transition-opacity group-hover:bg-slate-900">
+                            <i class="fa-solid fa-magnifying-glass-plus text-white text-xs"></i>
+                            <span class="hidden sm:inline">Perbesar</span>
+                        </div>
+
+                        <button id="qlGalleryPrev" type="button" class="absolute left-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-900/80 hover:bg-slate-900 text-white flex items-center justify-center text-xs transition-colors shadow z-10" aria-label="Foto sebelumnya">
                             <i class="fa-solid fa-chevron-left text-white"></i>
                         </button>
-                        <button id="qlGalleryNext" type="button" class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-900/80 hover:bg-slate-900 text-white flex items-center justify-center text-xs transition-colors shadow">
+                        <button id="qlGalleryNext" type="button" class="absolute right-2.5 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-900/80 hover:bg-slate-900 text-white flex items-center justify-center text-xs transition-colors shadow z-10" aria-label="Foto selanjutnya">
                             <i class="fa-solid fa-chevron-right text-white"></i>
                         </button>
-                        <div id="qlGalleryDots" class="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-950/80 border border-white/20"></div>
+                        <div id="qlGalleryDots" class="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-950/80 border border-white/20 z-10"></div>
                     </div>
                 </div>
 
@@ -683,12 +695,14 @@
                                                                             <div class="mt-0.5 text-[10px] font-bold text-slate-500">{{ number_format($cat->distance_km, 0, ',', '.') }}K</div>
                                                                         @endif
                                                                     </div>
-                                                                    <div class="text-right shrink-0">
-                                                                        @if($displayPrice !== $priceRegular && $priceRegular > 0)
-                                                                            <div class="text-[10px] text-slate-400 line-through">Rp {{ number_format($priceRegular, 0, ',', '.') }}</div>
-                                                                        @endif
-                                                                        <div class="text-xs font-bold text-theme-primary">Rp {{ number_format($displayPrice, 0, ',', '.') }}</div>
-                                                                    </div>
+                                                                    @if($displayPrice > 0)
+                                                                        <div class="text-right shrink-0">
+                                                                            @if($displayPrice !== $priceRegular && $priceRegular > 0)
+                                                                                <div class="text-[10px] text-slate-400 line-through">Rp {{ number_format($priceRegular, 0, ',', '.') }}</div>
+                                                                            @endif
+                                                                            <div class="text-xs font-bold text-theme-primary">Rp {{ number_format($displayPrice, 0, ',', '.') }}</div>
+                                                                        </div>
+                                                                    @endif
                                                                 </div>
                                                             </label>
                                                         @endforeach
@@ -945,12 +959,14 @@
                                                                             <div class="mt-0.5 text-[10px] font-bold text-slate-500">{{ number_format($cat->distance_km, 0, ',', '.') }}K</div>
                                                                         @endif
                                                                     </div>
-                                                                    <div class="text-right shrink-0">
-                                                                        @if($displayPrice !== $priceRegular && $priceRegular > 0)
-                                                                            <div class="text-[10px] text-slate-400 line-through">Rp {{ number_format($priceRegular, 0, ',', '.') }}</div>
-                                                                        @endif
-                                                                        <div class="text-xs font-bold text-theme-primary">Rp {{ number_format($displayPrice, 0, ',', '.') }}</div>
-                                                                    </div>
+                                                                    @if($displayPrice > 0)
+                                                                        <div class="text-right shrink-0">
+                                                                            @if($displayPrice !== $priceRegular && $priceRegular > 0)
+                                                                                <div class="text-[10px] text-slate-400 line-through">Rp {{ number_format($priceRegular, 0, ',', '.') }}</div>
+                                                                            @endif
+                                                                            <div class="text-xs font-bold text-theme-primary">Rp {{ number_format($displayPrice, 0, ',', '.') }}</div>
+                                                                        </div>
+                                                                    @endif
                                                                 </div>
                                                             </label>
                                                         @endforeach
@@ -1187,7 +1203,7 @@
                                 </div>
 
                                 <!-- Coupon Input Box -->
-                                <div class="rounded-xl border border-slate-200 bg-white p-3.5">
+                                <div id="qlCouponContainer" class="rounded-xl border border-slate-200 bg-white p-3.5">
                                     <div class="flex items-center justify-between gap-4">
                                         <div>
                                             <div class="text-xs font-bold uppercase tracking-wider text-slate-700">Kode Kupon / Promo</div>
@@ -1205,12 +1221,12 @@
                                 </div>
 
                                 <!-- Price Breakdown Summary -->
-                                <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2 text-xs">
-                                    <div class="flex items-center justify-between text-slate-600">
+                                <div id="qlPriceBreakdownContainer" class="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-2 text-xs">
+                                    <div id="qlTicketRow" class="flex items-center justify-between text-slate-600">
                                         <span>Subtotal Tiket</span>
                                         <span id="ql-ticket-price" class="font-bold text-slate-900">Rp 0</span>
                                     </div>
-                                    <div class="flex items-center justify-between text-slate-600">
+                                    <div id="qlAddonRow" class="flex items-center justify-between text-slate-600">
                                         <span>Add-on</span>
                                         <span id="ql-addon-price" class="font-bold text-slate-900">Rp 0</span>
                                     </div>
@@ -1218,7 +1234,7 @@
                                         <span>Diskon Kupon <span id="qlCouponLabel" class="font-bold text-slate-700"></span></span>
                                         <span id="qlDiscountAmount" class="font-bold text-emerald-600">-Rp 0</span>
                                     </div>
-                                    <div class="flex items-center justify-between text-slate-600">
+                                    <div id="qlFeeRow" class="flex items-center justify-between text-slate-600">
                                         <span>Biaya Layanan (Platform Fee)</span>
                                         <span id="ql-platform-fee" class="font-bold text-slate-900">Rp {{ number_format($platformFee, 0, ',', '.') }}</span>
                                     </div>
@@ -1269,6 +1285,33 @@
     </main>
 
     @include('events.partials.moota-payment-modal')
+
+    <!-- Event Gallery Lightbox Modal -->
+    <div id="qlLightboxModal" class="fixed inset-0 z-[1100] hidden flex items-center justify-center p-3 sm:p-6 bg-slate-950/90 backdrop-blur-sm select-none" role="dialog" aria-modal="true">
+        <!-- Close Button -->
+        <button type="button" id="qlLightboxClose" class="absolute top-4 right-4 z-20 w-10 h-10 rounded-full bg-slate-900/80 hover:bg-slate-900 text-white flex items-center justify-center transition border border-white/20 shadow-lg cursor-pointer" aria-label="Tutup Lightbox">
+            <i class="fa-solid fa-xmark text-lg text-white"></i>
+        </button>
+
+        <!-- Navigation Buttons -->
+        <button type="button" id="qlLightboxPrev" class="absolute left-3 sm:left-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-slate-900/80 hover:bg-slate-900 text-white flex items-center justify-center transition border border-white/20 shadow-lg cursor-pointer" aria-label="Foto Sebelumnya">
+            <i class="fa-solid fa-chevron-left text-base text-white"></i>
+        </button>
+
+        <button type="button" id="qlLightboxNext" class="absolute right-3 sm:right-6 top-1/2 -translate-y-1/2 z-20 w-11 h-11 rounded-full bg-slate-900/80 hover:bg-slate-900 text-white flex items-center justify-center transition border border-white/20 shadow-lg cursor-pointer" aria-label="Foto Selanjutnya">
+            <i class="fa-solid fa-chevron-right text-base text-white"></i>
+        </button>
+
+        <!-- Counter Indicator -->
+        <div id="qlLightboxCounter" class="absolute bottom-5 left-1/2 -translate-x-1/2 z-20 px-3.5 py-1 rounded-full bg-slate-900/85 border border-white/20 text-white text-xs font-bold tracking-wider">
+            1 / 1
+        </div>
+
+        <!-- Lightbox Image Wrapper -->
+        <div id="qlLightboxContent" class="relative max-w-5xl max-h-[88vh] flex items-center justify-center overflow-hidden">
+            <img id="qlLightboxImg" src="" alt="Full Preview" class="max-w-full max-h-[85vh] object-contain rounded-xl shadow-2xl transition-opacity duration-200">
+        </div>
+    </div>
 
     <!-- Webcam Capture Modal for Direct Photo Snapping -->
     <div id="qlWebcamModal" class="fixed inset-0 z-[1000] hidden flex items-center justify-center p-4 bg-slate-900/80">
@@ -1345,6 +1388,10 @@
                 </div>
 
                 <div class="relative flex-1 min-h-[350px] sm:min-h-[460px] bg-slate-100">
+                    <div id="route-mapbox-loader" class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-slate-100/90 text-slate-500 gap-2 transition-opacity duration-300">
+                        <i class="fa-solid fa-spinner fa-spin text-2xl text-theme-primary"></i>
+                        <span class="text-xs font-bold text-slate-700">Memuat Peta Rute...</span>
+                    </div>
                     <div id="route-mapbox-map" class="w-full h-full min-h-[350px] sm:min-h-[460px]"></div>
                     @if($event->map_embed_url)
                         <div id="route-iframe-container" class="hidden w-full h-full min-h-[350px] sm:min-h-[460px]">
@@ -1473,10 +1520,64 @@
         var hasGpx = {{ (!empty($gpxList) && $gpxList->isNotEmpty()) ? 'true' : 'false' }};
         var mapEmbedUrl = "{{ $event->map_embed_url ?: '' }}";
 
+        var mapboxAssetsLoading = false;
+        var mapboxAssetsLoaded = false;
+
+        function loadMapboxAssets(callback) {
+            if (window.mapboxgl) {
+                if (callback) callback();
+                return;
+            }
+            if (mapboxAssetsLoading) {
+                const checkInterval = setInterval(function() {
+                    if (window.mapboxgl) {
+                        clearInterval(checkInterval);
+                        if (callback) callback();
+                    }
+                }, 50);
+                return;
+            }
+            mapboxAssetsLoading = true;
+
+            // Load Mapbox CSS on demand
+            if (!document.getElementById('mapbox-gl-css')) {
+                const link = document.createElement('link');
+                link.id = 'mapbox-gl-css';
+                link.rel = 'stylesheet';
+                link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
+                document.head.appendChild(link);
+            }
+
+            // Load Mapbox JS on demand
+            const script = document.createElement('script');
+            script.src = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js';
+            script.async = true;
+            script.onload = function() {
+                mapboxAssetsLoaded = true;
+                mapboxAssetsLoading = false;
+                if (callback) callback();
+            };
+            script.onerror = function() {
+                mapboxAssetsLoading = false;
+                showIframeFallback();
+            };
+            document.head.appendChild(script);
+        }
+
+        function hideMapLoader() {
+            const loader = document.getElementById('route-mapbox-loader');
+            if (loader) {
+                loader.classList.add('opacity-0', 'pointer-events-none');
+                setTimeout(() => loader.classList.add('hidden'), 300);
+            }
+        }
+
         function openRouteModal() {
             const modal = document.getElementById('routeModal');
             modal.classList.remove('hidden');
-            setTimeout(initRouteMap, 100);
+            loadMapboxAssets(function() {
+                setTimeout(initRouteMap, 100);
+            });
         }
 
         function closeRouteModal() {
@@ -1575,6 +1676,7 @@
             const mapboxToken = '{{ config('services.mapbox.token') }}';
             if (!mapboxToken || !window.mapboxgl) {
                 showIframeFallback();
+                hideMapLoader();
                 return;
             }
 
@@ -1590,9 +1692,11 @@
                 routeMap.addControl(new mapboxgl.NavigationControl());
 
                 routeMap.on('load', function() {
+                    hideMapLoader();
                     triggerGpxOrEventLocation();
                 });
             } else {
+                hideMapLoader();
                 routeMap.resize();
                 triggerGpxOrEventLocation();
             }
@@ -1627,6 +1731,7 @@
         }
 
         function showIframeFallback() {
+            hideMapLoader();
             document.getElementById('route-mapbox-map').classList.add('hidden');
             document.getElementById('route-iframe-container').classList.remove('hidden');
         }
@@ -1743,7 +1848,16 @@
             const prevBtn = document.getElementById('qlGalleryPrev');
             const nextBtn = document.getElementById('qlGalleryNext');
             const dotsEl = document.getElementById('qlGalleryDots');
-            if (!root || !imgEl || !prevBtn || !nextBtn || !dotsEl) return;
+
+            // Lightbox elements
+            const lightbox = document.getElementById('qlLightboxModal');
+            const lightboxImg = document.getElementById('qlLightboxImg');
+            const lightboxClose = document.getElementById('qlLightboxClose');
+            const lightboxPrev = document.getElementById('qlLightboxPrev');
+            const lightboxNext = document.getElementById('qlLightboxNext');
+            const lightboxCounter = document.getElementById('qlLightboxCounter');
+
+            if (!root || !imgEl) return;
 
             let items = [];
             try {
@@ -1752,25 +1866,34 @@
                 items = [];
             }
             items = Array.isArray(items) ? items.filter(Boolean) : [];
-            if (items.length <= 1) {
-                prevBtn.style.display = 'none';
-                nextBtn.style.display = 'none';
-                dotsEl.style.display = 'none';
-                return;
+            if (items.length === 0 && imgEl.src) {
+                items.push(imgEl.src);
             }
 
             let index = 0;
+
+            if (items.length <= 1) {
+                if (prevBtn) prevBtn.style.display = 'none';
+                if (nextBtn) nextBtn.style.display = 'none';
+                if (dotsEl) dotsEl.style.display = 'none';
+                if (lightboxPrev) lightboxPrev.style.display = 'none';
+                if (lightboxNext) lightboxNext.style.display = 'none';
+                if (lightboxCounter) lightboxCounter.style.display = 'none';
+            }
+
             function show(i) {
+                if (items.length === 0) return;
                 index = (i + items.length) % items.length;
-                imgEl.style.opacity = '0.4';
+                imgEl.style.opacity = '0.35';
                 setTimeout(() => {
                     imgEl.src = items[index];
                     imgEl.style.opacity = '1';
                     renderDots();
-                }, 150);
+                }, 120);
             }
 
             function renderDots() {
+                if (!dotsEl || items.length <= 1) return;
                 dotsEl.innerHTML = '';
                 items.forEach((_, i) => {
                     const dot = document.createElement('div');
@@ -1781,9 +1904,84 @@
                 });
             }
 
-            prevBtn.onclick = () => show(index - 1);
-            nextBtn.onclick = () => show(index + 1);
+            if (prevBtn) prevBtn.onclick = (e) => { e.stopPropagation(); show(index - 1); };
+            if (nextBtn) nextBtn.onclick = (e) => { e.stopPropagation(); show(index + 1); };
             renderDots();
+
+            // Lightbox logic
+            function openLightbox(idx) {
+                if (!lightbox || !lightboxImg || items.length === 0) return;
+                if (idx !== undefined) {
+                    show(idx);
+                }
+                updateLightboxView();
+                lightbox.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            }
+
+            function closeLightbox() {
+                if (!lightbox) return;
+                lightbox.classList.add('hidden');
+                document.body.style.overflow = '';
+            }
+
+            function updateLightboxView() {
+                if (!lightboxImg || items.length === 0) return;
+                lightboxImg.style.opacity = '0.4';
+                setTimeout(() => {
+                    lightboxImg.src = items[index];
+                    lightboxImg.style.opacity = '1';
+                    if (lightboxCounter && items.length > 1) {
+                        lightboxCounter.textContent = (index + 1) + ' / ' + items.length;
+                    }
+                }, 100);
+            }
+
+            // Click on gallery image opens lightbox
+            imgEl.addEventListener('click', function () {
+                openLightbox(index);
+            });
+
+            if (lightboxClose) {
+                lightboxClose.addEventListener('click', closeLightbox);
+            }
+
+            if (lightboxPrev) {
+                lightboxPrev.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    show(index - 1);
+                    updateLightboxView();
+                });
+            }
+
+            if (lightboxNext) {
+                lightboxNext.addEventListener('click', function (e) {
+                    e.stopPropagation();
+                    show(index + 1);
+                    updateLightboxView();
+                });
+            }
+
+            if (lightbox) {
+                lightbox.addEventListener('click', function (e) {
+                    if (e.target === lightbox || e.target.id === 'qlLightboxContent') {
+                        closeLightbox();
+                    }
+                });
+            }
+
+            window.addEventListener('keydown', function (e) {
+                if (!lightbox || lightbox.classList.contains('hidden')) return;
+                if (e.key === 'Escape') {
+                    closeLightbox();
+                } else if (e.key === 'ArrowLeft' && items.length > 1) {
+                    show(index - 1);
+                    updateLightboxView();
+                } else if (e.key === 'ArrowRight' && items.length > 1) {
+                    show(index + 1);
+                    updateLightboxView();
+                }
+            });
         })();
     </script>
 
@@ -2026,6 +2224,22 @@
                 if (platformFeeEl) platformFeeEl.textContent = formatCurrency(fee);
                 if (totalPriceEl) totalPriceEl.textContent = formatCurrency(total);
 
+                // Hide individual rows if 0
+                const ticketRow = document.getElementById('qlTicketRow');
+                const addonRow = document.getElementById('qlAddonRow');
+                const feeRow = document.getElementById('qlFeeRow');
+                const breakdownContainer = document.getElementById('qlPriceBreakdownContainer');
+                const couponContainer = document.getElementById('qlCouponContainer');
+
+                if (ticketRow) ticketRow.classList.toggle('hidden', ticket <= 0);
+                if (addonRow) addonRow.classList.toggle('hidden', addons <= 0);
+                if (feeRow) feeRow.classList.toggle('hidden', fee <= 0);
+
+                // If total is 0 (nominal 0 / free event), hide the entire price breakdown and coupon box
+                const isFree = total <= 0;
+                if (breakdownContainer) breakdownContainer.classList.toggle('hidden', isFree);
+                if (couponContainer) couponContainer.classList.toggle('hidden', isFree);
+
                 if (couponRowEl) couponRowEl.classList.toggle('hidden', ! (couponHiddenEl && couponHiddenEl.value));
                 if (couponLabelEl && couponHiddenEl && couponHiddenEl.value) couponLabelEl.textContent = '(' + couponHiddenEl.value + ')';
                 if (discountAmountEl) discountAmountEl.textContent = discount > 0 ? '-' + formatCurrency(discount) : '-Rp 0';
@@ -2093,6 +2307,44 @@
                 return String(phone || '').replace(/[^0-9]/g, '');
             }
 
+            function compressImageFile(file, maxDimension, quality, callback) {
+                const reader = new FileReader();
+                reader.onload = function(evt) {
+                    const img = new Image();
+                    img.onload = function() {
+                        let width = img.width;
+                        let height = img.height;
+
+                        if (width > maxDimension || height > maxDimension) {
+                            if (width > height) {
+                                height = Math.round((height * maxDimension) / width);
+                                width = maxDimension;
+                            } else {
+                                width = Math.round((width * maxDimension) / height);
+                                height = maxDimension;
+                            }
+                        }
+
+                        const canvas = document.createElement('canvas');
+                        canvas.width = width;
+                        canvas.height = height;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, width, height);
+
+                        const compressedDataUrl = canvas.toDataURL('image/jpeg', quality || 0.8);
+                        callback(compressedDataUrl);
+                    };
+                    img.onerror = function() {
+                        callback(evt.target.result);
+                    };
+                    img.src = evt.target.result;
+                };
+                reader.onerror = function() {
+                    alert('Gagal membaca file foto.');
+                };
+                reader.readAsDataURL(file);
+            }
+
             function setupPhotoUploadListeners(item) {
                 const fileInput = item.querySelector('.photo-file-input');
                 const photoHidden = item.querySelector('input[data-field="photo"]');
@@ -2112,23 +2364,27 @@
                         return;
                     }
 
-                    if (file.size > 5 * 1024 * 1024) {
-                        alert('Ukuran file maksimal 5MB.');
+                    if (file.size > 15 * 1024 * 1024) {
+                        alert('Ukuran file maksimal 15MB.');
                         return;
                     }
 
-                    const reader = new FileReader();
-                    reader.onload = function(evt) {
-                        const dataUrl = evt.target.result;
-                        photoHidden.value = dataUrl;
+                    if (placeholderIcon) {
+                        placeholderIcon.className = 'fa-solid fa-spinner fa-spin text-theme-primary text-lg photo-placeholder-icon';
+                    }
+
+                    compressImageFile(file, 1000, 0.8, function(compressedDataUrl) {
+                        photoHidden.value = compressedDataUrl;
                         if (previewImg) {
-                            previewImg.src = dataUrl;
+                            previewImg.src = compressedDataUrl;
                             previewImg.classList.remove('hidden');
                         }
-                        if (placeholderIcon) placeholderIcon.classList.add('hidden');
+                        if (placeholderIcon) {
+                            placeholderIcon.className = 'fa-solid fa-camera text-slate-400 text-lg photo-placeholder-icon';
+                            placeholderIcon.classList.add('hidden');
+                        }
                         if (clearBtn) clearBtn.classList.remove('hidden');
-                    };
-                    reader.readAsDataURL(file);
+                    });
                 });
 
                 if (cameraBtn) {
@@ -2145,7 +2401,10 @@
                             previewImg.src = '';
                             previewImg.classList.add('hidden');
                         }
-                        if (placeholderIcon) placeholderIcon.classList.remove('hidden');
+                        if (placeholderIcon) {
+                            placeholderIcon.className = 'fa-solid fa-camera text-slate-400 text-lg photo-placeholder-icon';
+                            placeholderIcon.classList.remove('hidden');
+                        }
                         clearBtn.classList.add('hidden');
                     });
                 }
@@ -2494,7 +2753,7 @@
     </script>
 
     @if(($hasPaidParticipants ?? false) && $event->show_participant_list)
-        <script src="https://unpkg.com/vue@3/dist/vue.global.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js'"></script>
+        <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js" onerror="this.onerror=null;this.src='https://cdn.jsdelivr.net/npm/vue@3/dist/vue.global.prod.js'"></script>
         <script>
             (function () {
                 if (!window.Vue) return;

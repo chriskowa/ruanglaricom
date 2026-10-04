@@ -235,6 +235,27 @@ class EventRegistrationController extends Controller
                 return redirect()->route('events.show', $slug)->with('success', 'Registrasi COD berhasil dikirim! Menunggu persetujuan panitia.')->with('payment', 'cod_pending');
             }
 
+            // Handle Free Event / Zero Amount Registration
+            if ($transaction->payment_status === 'paid' || (float) ($transaction->final_amount ?? 0) <= 0) {
+                if ($wantsJson) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Pendaftaran berhasil dikonfirmasi!',
+                        'payment_status' => 'paid',
+                        'transaction_id' => $transaction->id,
+                        'registration_id' => $transaction->public_ref,
+                        'redirect_url' => route('events.show', $slug).'?payment=success&tx='.$transaction->id.'&ref='.$transaction->public_ref,
+                    ]);
+                }
+
+                return redirect()->route('events.show', [
+                    'slug' => $slug,
+                    'payment' => 'success',
+                    'tx' => $transaction->id,
+                    'ref' => $transaction->public_ref,
+                ])->with('success', 'Pendaftaran berhasil dikonfirmasi!');
+            }
+
             // If AJAX request, return JSON
             if ($wantsJson) {
                 return response()->json([
