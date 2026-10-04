@@ -123,7 +123,8 @@ class SelfGeneratedProgramController extends Controller
                     'weight_kg' => $form['weight_kg'] ?? null,
                     'injury_history' => $form['injury_history'] ?? 'none',
                     'include_strength' => $form['include_strength'] ?? true,
-                    'strength_type' => $form['strength_type'] ?? 'bodyweight',
+                    'strength_type' => $form['strength_type'] ?? 'hybrid',
+                    'combine_plyometric' => $form['combine_plyometric'] ?? true,
                     'training_paces' => $result['paces'] ?? [],
                 ],
             ]);
@@ -190,6 +191,7 @@ class SelfGeneratedProgramController extends Controller
             'injury_history' => 'nullable|string|in:none,knee,hamstring,ankle,shin,back',
             'include_strength' => 'nullable|boolean',
             'strength_type' => 'nullable|string|in:bodyweight,gym,plyometric,isometric,hybrid',
+            'combine_plyometric' => 'nullable|boolean',
             'is_tropical' => 'nullable|boolean',
             'use_ai' => 'nullable|boolean',
             'force_infeasible_ack' => 'nullable|boolean',
@@ -331,7 +333,11 @@ class SelfGeneratedProgramController extends Controller
 
             $isTropical = filter_var($validated['is_tropical'] ?? false, FILTER_VALIDATE_BOOLEAN);
             $includeStrength = filter_var($validated['include_strength'] ?? true, FILTER_VALIDATE_BOOLEAN);
-            $strengthType = $validated['strength_type'] ?? 'bodyweight';
+            $strengthType = $validated['strength_type'] ?? 'hybrid';
+            $combinePlyometric = filter_var($validated['combine_plyometric'] ?? ($strengthType === 'hybrid'), FILTER_VALIDATE_BOOLEAN);
+            if ($combinePlyometric && $strengthType !== 'hybrid') {
+                $strengthType = 'hybrid';
+            }
             $injuryHistory = $validated['injury_history'] ?? 'none';
 
             $heightCm = isset($validated['height_cm']) ? (float)$validated['height_cm'] : null;
@@ -426,6 +432,7 @@ class SelfGeneratedProgramController extends Controller
                 'is_tropical' => $isTropical,
                 'include_strength' => $includeStrength,
                 'strength_type' => $strengthType,
+                'combine_plyometric' => $combinePlyometric,
                 'injury_history' => $injuryHistory,
                 'aggressiveness' => $aggressiveness,
                 'feasibility_assess' => $assess,
@@ -486,6 +493,7 @@ class SelfGeneratedProgramController extends Controller
                     'injury_history' => $injuryHistory,
                     'include_strength' => $includeStrength,
                     'strength_type' => $strengthType,
+                    'combine_plyometric' => $combinePlyometric,
                     'weeks' => $weeksUntilRace,
                     'sessions' => $sessions,
                     'feasibility' => $assess,
@@ -711,7 +719,8 @@ class SelfGeneratedProgramController extends Controller
                     'weight_kg' => $form['weight_kg'] ?? null,
                     'injury_history' => $form['injury_history'] ?? 'none',
                     'include_strength' => $form['include_strength'] ?? true,
-                    'strength_type' => $form['strength_type'] ?? 'bodyweight',
+                    'strength_type' => $form['strength_type'] ?? 'hybrid',
+                    'combine_plyometric' => $form['combine_plyometric'] ?? true,
                     'start_date' => $startDateStr,
                     'target_date' => $targetDateStr,
                 ]

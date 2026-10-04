@@ -60,6 +60,10 @@ class ProgramBuilderService
         $isTropical = $config['is_tropical'] ?? false;
         $includeStrength = filter_var($config['include_strength'] ?? true, FILTER_VALIDATE_BOOLEAN);
         $strengthType = $config['strength_type'] ?? 'bodyweight';
+        $combinePlyometric = filter_var($config['combine_plyometric'] ?? ($strengthType === 'hybrid'), FILTER_VALIDATE_BOOLEAN);
+        if ($combinePlyometric && $strengthType !== 'hybrid') {
+            $strengthType = 'hybrid';
+        }
         $injuryHistory = $config['injury_history'] ?? 'none';
         $startingPhase = $config['starting_phase'] ?? 'base';
         $intensityTone = $config['intensity_tone'] ?? ($config['aggressiveness'] ?? 'standard');
@@ -310,7 +314,11 @@ class ProgramBuilderService
                 foreach ($strengthCandidates as $d) {
                     if ($assignedStrength >= $strengthDaysNeeded) break;
                     if ($dayAssignments[$d]['type'] === 'rest') {
-                        $dayAssignments[$d] = ['type' => 'strength', 'workout' => null];
+                        $dayAssignments[$d] = [
+                            'type' => 'strength',
+                            'workout' => null,
+                            'strength_session_index' => $assignedStrength,
+                        ];
                         $assignedStrength++;
                     }
                 }
@@ -561,14 +569,51 @@ class ProgramBuilderService
                     $session['type'] = 'strength';
                     $session['distance'] = 0;
                     $session['duration'] = ($phase === 'Taper') ? '00:25:00' : '00:40:00';
-                    $session['workout_name'] = match($strengthType) {
-                        'plyometric' => 'Plyometric Training',
-                        'isometric'  => 'Isometric Training',
-                        'hybrid'     => 'Hybrid Strength & Plyo',
-                        'gym'        => 'Gym Strength Training',
-                        default      => 'Bodyweight Strength',
-                    };
-                    $session['description'] = $this->getStrengthDescription($strengthType, $phase, $injuryHistory);
+                    $strengthIndex = $assignment['strength_session_index'] ?? 0;
+
+                    if ($strengthType === 'hybrid') {
+                        if ($phase === 'Taper') {
+                            $session['workout_name'] = 'Hybrid Strength & Plyo (Taper)';
+                            $session['description'] = $this->getStrengthDescription('hybrid', $phase, $injuryHistory);
+                        } else {
+                            if ($strengthIndex === 0) {
+                                // Sesi 1: Strength & Core Stability (Penguatan Otot & Sendi)
+                                $session['workout_name'] = 'Strength & Core Stability';
+                                $session['description'] = "Strength Training (Penguatan Otot & Sendi) — Fondasi Kekuatan & Daya Tahan Otot\n"
+                                    . "Warm Up: 6-8 menit dynamic mobility & core activation\n"
+                                    . "Main Set: 3 set x 8-10 reps\n"
+                                    . "- Squat (Goblet / Bodyweight): 3 sets x 8-10 reps (Paha depan & glutes)\n"
+                                    . "- Romanian Deadlift (RDL): 3 sets x 8-10 reps (Rantai posterior & hamstring)\n"
+                                    . "- Standing Calf Raise: 3 sets x 12-15 reps (Tendon Achilles & betis)\n"
+                                    . "- Walking Lunge: 3 sets x 8 reps/sisi (Stabilitas pelvis & unilateral)\n"
+                                    . "- Core: Plank (3 sets x 45-60s) & Pallof Press / Side Plank (3 sets x 30s/sisi)\n"
+                                    . "Cool Down: 5 menit peregangan statis paha & pinggul."
+                                    . $this->getStrengthInjuryAdvice($injuryHistory, 'hybrid');
+                            } else {
+                                // Sesi 2: Plyometrics & Tendon Reactivity (Daya Ledak & Elastisitas Tendon)
+                                $session['workout_name'] = 'Plyometrics & Tendon Reactivity';
+                                $session['description'] = "Plyometric & Tendon Elasticity — Daya Ledak & Reaktivitas Tendon Achilles\n"
+                                    . "Warm Up: 6-8 menit dynamic warm-up & ankle mobility drills\n"
+                                    . "Main Set: 3 set (Fokus kualitas kontak tanah kilat / short Ground Contact Time)\n"
+                                    . "- Pogo Hops (Elastisitas Tendon Achilles): 3 sets x 20-25 reps (kontak tanah kilat, lutut sedikit ditekuk)\n"
+                                    . "- A-Skips & B-Skips (Knee Drive & Koordinasi Langkah): 3 sets x 20 meter\n"
+                                    . "- Split Squat Jumps / Scissor Jumps: 3 sets x 6-8 reps/sisi (mendarat lembut di ball of foot)\n"
+                                    . "- Single-Leg Lateral Bounds (Stabilitas Frontal & Panggul): 3 sets x 8 reps/sisi\n"
+                                    . "- Box / Step Jump-Ups (Triple Extension Eksplosif): 3 sets x 6-8 reps (mendarat lembut, turun pelan)\n"
+                                    . "- Core: Deadbug & Hollow Body Hold: 3 sets x 30-45 detik\n"
+                                    . "Cool Down: 5 menit foam rolling betis, telapak kaki, & hamstring."
+                                    . $this->getStrengthInjuryAdvice($injuryHistory, 'plyometric');
+                            }
+                        }
+                    } else {
+                        $session['workout_name'] = match($strengthType) {
+                            'plyometric' => 'Plyometric Training',
+                            'isometric'  => 'Isometric Training',
+                            'gym'        => 'Gym Strength Training',
+                            default      => 'Bodyweight Strength',
+                        };
+                        $session['description'] = $this->getStrengthDescription($strengthType, $phase, $injuryHistory);
+                    }
                 } else {
                     // Rest day
                     $session['duration'] = '00:00:00';

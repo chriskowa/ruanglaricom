@@ -255,6 +255,8 @@
     }
 
     input[type="date"].input-field {
+        position: relative;
+        cursor: pointer;
         background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2394a3b8' stroke-width='2'%3e%3cpath stroke-linecap='round' stroke-linejoin='round' d='M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z'/%3e%3c/svg%3e") !important;
         background-position: right 0.75rem center !important;
         background-repeat: no-repeat !important;
@@ -262,6 +264,15 @@
         padding-right: 2.25rem !important;
     }
     input[type="date"].input-field::-webkit-calendar-picker-indicator {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        padding: 0;
         background: transparent;
         cursor: pointer;
         opacity: 0;
@@ -856,7 +867,7 @@
                         <div class="space-y-5">
                             <div>
                                 <label class="label-text">Target Jarak Lomba</label>
-                                <select v-model="form.target_distance" @change="recommendMileage" class="input-field cursor-pointer text-sm">
+                                <select v-model="form.target_distance" @change="onTargetDistanceChange" class="input-field cursor-pointer text-sm">
                                     <option value="5k">5K (5 Kilometer)</option>
                                     <option value="10k">10 Kilometer (10K)</option>
                                     <option value="21k">Half Marathon (21.0975 Km)</option>
@@ -868,7 +879,7 @@
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label class="label-text">Tanggal Mulai Latihan</label>
-                                    <input v-model="form.start_date" type="date" class="input-field">
+                                    <input v-model="form.start_date" type="date" @click="openDatePicker($event)" class="input-field cursor-pointer">
                                 </div>
                                 <div>
                                     <div class="flex items-center justify-between mb-1">
@@ -880,12 +891,20 @@
                                             Set @{{ recommendedWeeks }} Mgg
                                         </button>
                                     </div>
-                                    <input v-model="form.target_date" type="date" class="input-field">
+                                    <input v-model="form.target_date" type="date" @click="openDatePicker($event)" class="input-field cursor-pointer">
                                 </div>
                             </div>
 
                             <div>
-                                <label class="label-text">Target Waktu Finish (Jam : Menit : Detik)</label>
+                                <div class="flex items-center justify-between mb-1">
+                                    <label class="label-text !mb-0">Target Waktu Finish (Jam : Menit : Detik)</label>
+                                    <button v-if="current_vdot > 0" 
+                                            @click="recalculateRecommendedGoalTime" 
+                                            type="button" 
+                                            class="text-[10px] font-semibold text-[#CCFF00] hover:underline cursor-pointer">
+                                        Hitung Ulang Rekomendasi VDOT
+                                    </button>
+                                </div>
                                 <div class="grid grid-cols-3 gap-3">
                                     <div>
                                         <input v-model.number="goal_hours" type="number" min="0" max="99" class="input-field text-center font-bold text-base sm:text-lg" placeholder="00">
@@ -1084,14 +1103,28 @@
                                     </label>
                                     <span v-if="form.include_strength" class="text-[10px] text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded font-semibold border border-emerald-800/40">2x/Mgg</span>
                                 </div>
-                                <div v-if="form.include_strength" class="pt-1 space-y-2">
-                                    <select v-model="form.strength_type" class="input-field text-xs sm:text-sm cursor-pointer">
-                                        <option value="bodyweight">Rumah / Bodyweight (Tanpa Alat - Calisthenics & Core)</option>
-                                        <option value="gym">Gym / Weighted (Beban Dumbbell, Squat & Deadlift)</option>
-                                        <option value="plyometric">Plyometric (Daya Ledak, Reaktivitas & Tendon Achilles)</option>
-                                        <option value="isometric">Isometric (Stabilitas Sendi, Patella & Core Hold)</option>
-                                        <option value="hybrid">Hybrid Runner (Kombinasi Strength, Isometric & Plyo)</option>
-                                    </select>
+                                <div v-if="form.include_strength" class="pt-1 space-y-2.5">
+                                    <div>
+                                        <label class="label-text !text-[10px] !mb-1">Fokus / Tipe Latihan Kekuatan</label>
+                                        <select v-model="form.strength_type" @change="onStrengthTypeChange" class="input-field text-xs sm:text-sm cursor-pointer">
+                                            <option value="hybrid">Kombinasi Strength & Plyometrics (Hybrid Runner - Sangat Disarankan)</option>
+                                            <option value="bodyweight">Rumah / Bodyweight (Tanpa Alat - Calisthenics & Core)</option>
+                                            <option value="gym">Gym / Weighted (Beban Dumbbell, Squat & Deadlift)</option>
+                                            <option value="plyometric">Plyometric Murni (Daya Ledak & Tendon Achilles)</option>
+                                            <option value="isometric">Isometric (Stabilitas Sendi, Patella & Core Hold)</option>
+                                        </select>
+                                    </div>
+                                    <div class="p-3 bg-slate-900/80 rounded-md border border-slate-800">
+                                        <label class="flex items-start gap-2.5 cursor-pointer select-none">
+                                            <input type="checkbox" v-model="form.combine_plyometric" @change="onToggleCombinePlyometric" class="w-4 h-4 mt-0.5 accent-[#CCFF00] rounded">
+                                            <div>
+                                                <span class="text-xs font-semibold text-white block">Kombinasikan dengan Latihan Plyometric</span>
+                                                <span class="text-[11px] text-slate-300 block mt-0.5 leading-relaxed">
+                                                    Membagi 2 sesi mingguan: 1 sesi penguatan otot/beban (Strength) dan 1 sesi drill daya ledak & tendon Achilles (Plyometric) untuk meningkatkan running economy.
+                                                </span>
+                                            </div>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
 
@@ -1833,7 +1866,8 @@
                 weight_kg: 65,
                 injury_history: 'none',
                 include_strength: true,
-                strength_type: 'bodyweight',
+                strength_type: 'hybrid',
+                combine_plyometric: true,
                 runner_level: 'intermediate',
                 long_run_day: 'sunday',
                 is_tropical: false
@@ -1985,6 +2019,8 @@
             const userEditedPb = ref(false);
             const _debugSuggestOverwrites = ref(0);
             const _debugGoalTimeline = reactive([]);
+            let isAutoUpdatingGoal = false;
+
             const _dbgPushGoal = (src, note = '') => {
                 try {
                     const cv = typeof current_vdot !== 'undefined' ? (current_vdot.value || 0) : 0;
@@ -2004,6 +2040,7 @@
                 } catch (e) {}
             };
             watch([goal_hours, goal_minutes, goal_seconds], ([nh, nm, ns], [oh, om, os]) => {
+                if (isAutoUpdatingGoal) return;
                 if (nh !== oh || nm !== om || ns !== os) {
                     userEditedGoal.value = true;
                     _dbgPushGoal('user_manual_edit_goal', `old=${oh}:${om}:${os} new=${nh}:${nm}:${ns}`);
@@ -2246,9 +2283,14 @@
                 if (Number.isFinite(ovr.goal_time_sec)) {
                     const sec = Math.max(0, Math.round(Number(ovr.goal_time_sec)));
                     userEditedGoal.value = false; // clear flag karena user explicitly accept saran 1-klik
-                    goal_hours.value = Math.floor(sec / 3600);
-                    goal_minutes.value = Math.floor((sec % 3600) / 60);
-                    goal_seconds.value = sec % 60;
+                    isAutoUpdatingGoal = true;
+                    try {
+                        goal_hours.value = Math.floor(sec / 3600);
+                        goal_minutes.value = Math.floor((sec % 3600) / 60);
+                        goal_seconds.value = sec % 60;
+                    } finally {
+                        isAutoUpdatingGoal = false;
+                    }
                     _dbgPushGoal('applyChipOption_goal', `applied_sec=${sec} hms=${goal_hours.value}:${goal_minutes.value}:${goal_seconds.value}`);
                 }
                 if (Number.isFinite(ovr.extend_weeks) && form.start_date) {
@@ -2492,11 +2534,52 @@
                     const oldH = goal_hours.value;
                     const oldM = goal_minutes.value;
                     const oldS = goal_seconds.value;
-                    goal_hours.value = Math.floor(predictedSeconds / 3600);
-                    goal_minutes.value = Math.floor((predictedSeconds % 3600) / 60);
-                    goal_seconds.value = Math.floor(predictedSeconds % 60);
+                    isAutoUpdatingGoal = true;
+                    try {
+                        goal_hours.value = Math.floor(predictedSeconds / 3600);
+                        goal_minutes.value = Math.floor((predictedSeconds % 3600) / 60);
+                        goal_seconds.value = Math.floor(predictedSeconds % 60);
+                    } finally {
+                        isAutoUpdatingGoal = false;
+                    }
                     _debugSuggestOverwrites.value += 1;
                     _dbgPushGoal('suggestGoalTime_applied', `force=${force} old=${oldH}:${oldM}:${oldS} new=${goal_hours.value}:${goal_minutes.value}:${goal_seconds.value} targetVdot=${Math.round(targetVdotFinal*100)/100} cv=${Math.round(cv*100)/100} predSec=${predictedSeconds}`);
+                }
+            };
+
+            const openDatePicker = (event) => {
+                try {
+                    if (event && event.target && typeof event.target.showPicker === 'function') {
+                        event.target.showPicker();
+                    }
+                } catch (e) {}
+            };
+
+            const onTargetDistanceChange = () => {
+                recommendMileage();
+                applyRecommendedTargetDate();
+                userEditedGoal.value = false;
+                suggestGoalTime(true);
+            };
+
+            const recalculateRecommendedGoalTime = () => {
+                userEditedGoal.value = false;
+                suggestGoalTime(true);
+            };
+
+            const onToggleCombinePlyometric = () => {
+                if (form.combine_plyometric) {
+                    form.strength_type = 'hybrid';
+                } else if (form.strength_type === 'hybrid') {
+                    form.strength_type = 'bodyweight';
+                }
+            };
+
+            const onStrengthTypeChange = () => {
+                if (form.strength_type === 'hybrid') {
+                    form.combine_plyometric = true;
+                } else {
+                    form.combine_plyometric = false;
                 }
             };
 
@@ -2552,6 +2635,9 @@
             watch([() => form.start_date, () => form.target_distance], ([newStartDate, newDist], [oldStartDate, oldDist]) => {
                 if (recommendedTargetDate.value && (!form.target_date || newDist !== oldDist)) {
                     applyRecommendedTargetDate();
+                }
+                if (newDist && newDist !== oldDist) {
+                    onTargetDistanceChange();
                 }
             });
 
@@ -2685,6 +2771,9 @@
                     const data = JSON.parse(raw);
                     if (data && data.form) {
                         Object.assign(form, data.form);
+                        if (form.combine_plyometric === undefined) {
+                            form.combine_plyometric = (form.strength_type === 'hybrid');
+                        }
                         if (data.pb_hours !== undefined) pb_hours.value = data.pb_hours;
                         if (data.pb_minutes !== undefined) pb_minutes.value = data.pb_minutes;
                         if (data.pb_seconds !== undefined) pb_seconds.value = data.pb_seconds;
@@ -2729,7 +2818,8 @@
                 form.weight_kg = 65;
                 form.injury_history = 'none';
                 form.include_strength = true;
-                form.strength_type = 'bodyweight';
+                form.strength_type = 'hybrid';
+                form.combine_plyometric = true;
                 form.runner_level = 'intermediate';
                 form.long_run_day = 'sunday';
                 form.is_tropical = false;
@@ -2752,6 +2842,7 @@
                 () => form.injury_history,
                 () => form.include_strength,
                 () => form.strength_type,
+                () => form.combine_plyometric,
                 () => form.runner_level,
                 () => form.long_run_day,
                 () => form.is_tropical,
@@ -3125,6 +3216,7 @@
                 goal_hours, goal_minutes, goal_seconds,
                 idealMileage, recommendMileage, realism,
                 current_vdot, target_vdot, recommendedTargetDate, recommendedWeeks, applyRecommendedTargetDate, suggestGoalTime,
+                openDatePicker, onTargetDistanceChange, recalculateRecommendedGoalTime, onToggleCombinePlyometric, onStrengthTypeChange,
                 bmi, bmiCategory, proteinRecommendation,
                 showNotification,
                 wizardStep, lastSavedTime, goToWizardStep, nextWizardStep, prevWizardStep, resetFormDraft,
