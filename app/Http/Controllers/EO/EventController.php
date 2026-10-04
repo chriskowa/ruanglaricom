@@ -1768,6 +1768,8 @@ class EventController extends Controller
             'blood_type' => 'nullable|string|in:A,B,AB,O',
             'strava_url' => 'nullable|string|max:500',
             'is_picked_up' => 'nullable|boolean',
+            'picked_up_by' => 'nullable|string|max:255',
+            'payment_status' => 'nullable|string|in:paid,pending,cod,failed,expired,cancelled',
             'coupon_id' => 'nullable|exists:coupons,id',
             'target_time' => ['nullable', 'string', 'regex:/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/'],
             'pic_name' => 'nullable|string|max:255',
@@ -1793,12 +1795,30 @@ class EventController extends Controller
         // If is_picked_up is toggled, handle timestamp
         if (isset($validated['is_picked_up'])) {
             $validated['is_picked_up'] = (bool) $validated['is_picked_up'];
+            $pickedUpBy = ! empty($validated['picked_up_by']) ? trim($validated['picked_up_by']) : (auth()->user()->name ?? 'Panitia');
             if ($validated['is_picked_up'] && ! $participant->is_picked_up) {
                 $validated['picked_up_at'] = now();
-                $validated['picked_up_by'] = auth()->user()->name ?? 'Admin';
+                $validated['picked_up_by'] = $pickedUpBy;
             } elseif (! $validated['is_picked_up'] && $participant->is_picked_up) {
                 $validated['picked_up_at'] = null;
                 $validated['picked_up_by'] = null;
+            } elseif ($validated['is_picked_up'] && ! empty($validated['picked_up_by'])) {
+                $validated['picked_up_by'] = $pickedUpBy;
+            }
+        }
+
+        // Handle payment_status update if supplied
+        if ($participant->transaction && ! empty($validated['payment_status'])) {
+            $newPaymentStatus = $validated['payment_status'];
+            $oldPaymentStatus = $participant->transaction->payment_status;
+            if ($oldPaymentStatus !== $newPaymentStatus) {
+                $participant->transaction->update([
+                    'payment_status' => $newPaymentStatus,
+                    'paid_at' => ($newPaymentStatus === 'paid' ? now() : null),
+                ]);
+                if ($newPaymentStatus === 'paid') {
+                    \App\Jobs\ProcessPaidEventTransaction::dispatchAfterResponse($participant->transaction);
+                }
             }
         }
 
@@ -1962,6 +1982,7 @@ class EventController extends Controller
                 'is_picked_up' => $participant->is_picked_up,
                 'picked_up_at' => $participant->picked_up_at,
                 'picked_up_by' => $participant->picked_up_by,
+                'payment_status' => $participant->transaction?->payment_status ?? 'pending',
                 'coupon_id' => $participant->transaction->coupon_id ?? null,
                 'coupon_code' => $participant->transaction->coupon?->code ?? null,
                 'pic_name' => $participant->pic_name,
@@ -2103,10 +2124,39 @@ class EventController extends Controller
             ], 404);
         }
 
+        // Validate category quota before approving (Option A quota control)
+        if ($participant->category && $participant->category->quota !== null) {
+            $catId = $participant->category->id;
+            $approvedCount = \App\Models\Participant::where('race_category_id', $catId)
+                ->where('isApproved', 1)
+                ->where('status', '!=', 'cancelled')
+                ->where('id', '!=', $participant->id)
+                ->count();
+            if ($approvedCount >= $participant->category->quota) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal menyetujui: Kuota untuk kategori ' . $participant->category->name . ' sudah penuh (' . $participant->category->quota . ' peserta).',
+                ], 422);
+            }
+        }
+
         $participant->update([
             'isApproved' => 1,
             'status' => 'confirmed',
         ]);
+
+        if ($participant->transaction && ($participant->transaction->payment_gateway === 'free' || (float)($participant->transaction->final_amount ?? 0) <= 0)) {
+            $participant->transaction->update([
+                'payment_status' => 'paid',
+                'paid_at' => now(),
+            ]);
+        }
+
+        if ($participant->category) {
+            try {
+                app(\App\Services\EventCacheService::class)->invalidateCategoryCache($participant->category);
+            } catch (\Throwable $e) {}
+        }
 
         // Generate BIB if missing
         if (empty($participant->bib_number) && $participant->category) {
@@ -2170,6 +2220,12 @@ class EventController extends Controller
             'notes' => $participant->notes ? ($participant->notes . ' | Alasan Ditolak: ' . $reason) : ('Alasan Ditolak: ' . $reason),
         ]);
 
+        if ($participant->category) {
+            try {
+                app(\App\Services\EventCacheService::class)->invalidateCategoryCache($participant->category);
+            } catch (\Throwable $e) {}
+        }
+
         return response()->json([
             'success' => true,
             'message' => 'Peserta ' . $participant->name . ' telah ditolak (Rejected).',
@@ -2204,12 +2260,37 @@ class EventController extends Controller
 
         $approvedCount = 0;
         $errors = [];
+        $affectedCategories = [];
 
         foreach ($participants as $participant) {
+            if ($participant->category && $participant->category->quota !== null) {
+                $catId = $participant->category->id;
+                $approvedCountInCat = \App\Models\Participant::where('race_category_id', $catId)
+                    ->where('isApproved', 1)
+                    ->where('status', '!=', 'cancelled')
+                    ->where('id', '!=', $participant->id)
+                    ->count();
+                if ($approvedCountInCat >= $participant->category->quota) {
+                    $errors[] = "Kuota kategori {$participant->category->name} sudah penuh untuk {$participant->name}";
+                    continue;
+                }
+            }
+
             $participant->update([
                 'isApproved' => 1,
                 'status' => 'confirmed',
             ]);
+
+            if ($participant->transaction && ($participant->transaction->payment_gateway === 'free' || (float)($participant->transaction->final_amount ?? 0) <= 0)) {
+                $participant->transaction->update([
+                    'payment_status' => 'paid',
+                    'paid_at' => now(),
+                ]);
+            }
+
+            if ($participant->category) {
+                $affectedCategories[$participant->category->id] = $participant->category;
+            }
 
             // Generate BIB if missing
             if (empty($participant->bib_number) && $participant->category) {
@@ -2246,9 +2327,20 @@ class EventController extends Controller
             }
         }
 
+        foreach ($affectedCategories as $cat) {
+            try {
+                app(\App\Services\EventCacheService::class)->invalidateCategoryCache($cat);
+            } catch (\Throwable $e) {}
+        }
+
+        $msg = "Berhasil menyetujui {$approvedCount} peserta dan mengirimkan email konfirmasi e-Tiket.";
+        if (! empty($errors)) {
+            $msg .= ' Catatan: ' . implode(', ', array_slice($errors, 0, 3));
+        }
+
         return response()->json([
             'success' => true,
-            'message' => "Berhasil menyetujui {$approvedCount} peserta dan mengirimkan email konfirmasi e-Tiket.",
+            'message' => $msg,
         ]);
     }
 
@@ -2267,7 +2359,7 @@ class EventController extends Controller
 
         $reason = $request->input('reason', 'Pendaftaran ditolak oleh panitia.');
 
-        $participants = \App\Models\Participant::with('transaction')
+        $participants = \App\Models\Participant::with(['transaction', 'category'])
             ->whereIn('id', $request->participant_ids)
             ->whereHas('transaction', function ($q) use ($event) {
                 $q->where('event_id', $event->id);
@@ -2287,6 +2379,12 @@ class EventController extends Controller
                 'status' => 'cancelled',
                 'notes' => $participant->notes ? ($participant->notes . ' | Alasan Ditolak: ' . $reason) : ('Alasan Ditolak: ' . $reason),
             ]);
+
+            if ($participant->category) {
+                try {
+                    app(\App\Services\EventCacheService::class)->invalidateCategoryCache($participant->category);
+                } catch (\Throwable $e) {}
+            }
         }
 
         return response()->json([
@@ -3370,8 +3468,14 @@ class EventController extends Controller
         $this->authorizeEvent($event);
 
         // Verify participant belongs to this event
-        $participantEventId = (int) ($participant?->transaction?->event_id ?? 0);
-        if ($participantEventId !== (int) $event->id) {
+        $belongsToEvent = false;
+        if ($participant->transaction && (int) $participant->transaction->event_id === (int) $event->id) {
+            $belongsToEvent = true;
+        } elseif ($participant->category && (int) $participant->category->event_id === (int) $event->id) {
+            $belongsToEvent = true;
+        }
+
+        if (! $belongsToEvent) {
             abort(403, 'Unauthorized');
         }
 
@@ -3383,7 +3487,7 @@ class EventController extends Controller
         $wasPickedUp = (bool) $participant->is_picked_up;
         $isPickedUp = (bool) $validated['is_picked_up'];
         if ($isPickedUp) {
-            $paymentStatus = (string) ($participant->transaction->payment_status ?? '');
+            $paymentStatus = (string) ($participant->transaction?->payment_status ?? '');
             if (! in_array($paymentStatus, ['paid', 'cod'], true)) {
                 $message = 'Tidak bisa pickup: status pembayaran belum paid.';
                 if ($request->ajax() || $request->wantsJson()) {
@@ -3415,11 +3519,13 @@ class EventController extends Controller
                     'is_picked_up' => (bool) $participant->is_picked_up,
                     'picked_up_at' => $participant->picked_up_at ? $participant->picked_up_at->format('Y-m-d H:i:s') : null,
                     'picked_up_by' => $participant->picked_up_by,
-                    'payment_status' => $participant->transaction->payment_status ?? 'pending',
+                    'payment_status' => $participant->transaction?->payment_status ?? 'pending',
                 ],
                 'jersey_sizes_pending_pickup' => $this->getJerseyPendingPickupCounts($event),
             ]);
         }
+
+        return back()->with('success', 'Status pengambilan berhasil diperbarui');
 
     }
 

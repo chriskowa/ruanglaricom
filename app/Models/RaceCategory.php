@@ -77,12 +77,20 @@ class RaceCategory extends Model
             return 999999; // Unlimited
         }
 
-        // Count registered participants
-        $registeredCount = \App\Models\Participant::where('race_category_id', $this->id)
-            ->whereHas('transaction', function ($query) {
-                $query->whereIn('payment_status', ['paid', 'cod']);
-            })
-            ->count();
+        $event = $this->event;
+        if ($event && ! empty($event->premium_amenities['requires_approval'])) {
+            $registeredCount = \App\Models\Participant::where('race_category_id', $this->id)
+                ->where('isApproved', 1)
+                ->where('status', '!=', 'cancelled')
+                ->count();
+        } else {
+            // Count registered participants
+            $registeredCount = \App\Models\Participant::where('race_category_id', $this->id)
+                ->whereHas('transaction', function ($query) {
+                    $query->whereIn('payment_status', ['paid', 'cod']);
+                })
+                ->count();
+        }
 
         return max(0, $this->quota - $registeredCount);
     }

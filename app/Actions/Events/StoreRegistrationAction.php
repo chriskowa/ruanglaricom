@@ -353,7 +353,11 @@ class StoreRegistrationAction
             $activeParticipantExists = Participant::where('race_category_id', $participant['category_id'])
                 ->where('id_card', $participant['id_card'])
                 ->whereHas('transaction', function ($query) use ($event) {
-                    $query->whereIn('payment_status', ['paid', 'cod']);
+                    $query->whereIn('payment_status', ['paid', 'cod'])
+                        ->orWhere(function ($sub) {
+                            $sub->where('payment_gateway', 'free')
+                                ->where('payment_status', 'pending');
+                        });
                     if ($event->hardcoded === 'latbarkamis') {
                         if ($event->registration_open_at) {
                             $query->where('created_at', '>=', $event->registration_open_at);
@@ -363,11 +367,12 @@ class StoreRegistrationAction
                         }
                     }
                 })
+                ->where('status', '!=', 'cancelled')
                 ->exists();
 
             if ($activeParticipantExists) {
                 throw \Illuminate\Validation\ValidationException::withMessages([
-                    "participants.{$index}.id_card" => ["Peserta dengan ID Card {$participant['id_card']} sudah terdaftar (status Pending atau Paid) di kategori ini."],
+                    "participants.{$index}.id_card" => ["Peserta dengan ID Card {$participant['id_card']} sudah terdaftar (status Pending atau Terkonfirmasi) di kategori ini."],
                 ]);
             }
 
@@ -403,15 +408,22 @@ class StoreRegistrationAction
 
                 // Validate quota if set
                 if ($category->quota !== null) {
-                    $paidCount = Participant::where('race_category_id', $categoryId)
-                        ->whereHas('transaction', function ($query) {
-                            $query->whereIn('payment_status', ['paid', 'cod']);
-                        })
-                        ->count();
+                    if (! empty($event->premium_amenities['requires_approval'])) {
+                        $occupiedCount = Participant::where('race_category_id', $categoryId)
+                            ->where('isApproved', 1)
+                            ->where('status', '!=', 'cancelled')
+                            ->count();
+                    } else {
+                        $occupiedCount = Participant::where('race_category_id', $categoryId)
+                            ->whereHas('transaction', function ($query) {
+                                $query->whereIn('payment_status', ['paid', 'cod']);
+                            })
+                            ->count();
+                    }
 
-                    if (($paidCount + $quantity) > $category->quota) {
-                        $available = max(0, $category->quota - $paidCount);
-                        throw new \Exception("Kuota untuk kategori {$category->name} tidak mencukupi (sisa: {$available})");
+                    if (($occupiedCount + $quantity) > $category->quota) {
+                        $available = max(0, $category->quota - $occupiedCount);
+                        throw new \Exception("Kuota untuk kategori {$category->name} sudah penuh atau tidak mencukupi (sisa: {$available})");
                     }
                 }
 
@@ -476,7 +488,7 @@ class StoreRegistrationAction
 
             $finalAmount = ($totalOriginal - $discountAmount) + $totalAdminFee;
 
-            // Handle Zero Amount (100% Discount)
+            // Handle Zero Amount (100% Discount / Free Event / Challenge)
             $isZeroAmount = $finalAmount <= 0;
             if ($isZeroAmount) {
                 $finalAmount = 0;
@@ -487,6 +499,9 @@ class StoreRegistrationAction
                 $uniqueCode = $this->mootaService->generateUniqueCode($finalAmount);
                 $finalAmount += $uniqueCode;
             }
+
+            $requiresApproval = ! empty($event->premium_amenities['requires_approval']) || ($paymentMethod === 'cod');
+            $isZeroAmountPending = $isZeroAmount && ! empty($event->premium_amenities['requires_approval']);
 
             // Create transaction
             $transaction = Transaction::create([
@@ -504,9 +519,9 @@ class StoreRegistrationAction
                 'discount_amount' => $discountAmount,
                 'admin_fee' => $totalAdminFee,
                 'final_amount' => $finalAmount,
-                'payment_status' => $isZeroAmount ? 'paid' : 'pending',
-                'paid_at' => $isZeroAmount ? now() : null,
-                'payment_gateway' => $paymentMethod === 'moota' ? 'moota' : ($paymentMethod === 'cod' ? 'cod' : 'midtrans'),
+                'payment_status' => ($isZeroAmount && ! $isZeroAmountPending) ? 'paid' : 'pending',
+                'paid_at' => ($isZeroAmount && ! $isZeroAmountPending) ? now() : null,
+                'payment_gateway' => $isZeroAmount ? 'free' : ($paymentMethod === 'moota' ? 'moota' : ($paymentMethod === 'cod' ? 'cod' : 'midtrans')),
                 'unique_code' => $uniqueCode > 0 ? $uniqueCode : 0,
             ]);
 
@@ -601,10 +616,10 @@ class StoreRegistrationAction
                 if (! $requiresApproval) {
                     // Dispatch emails only if no manual approval required
                     app(\App\Services\EventRegistrationEmailDispatcher::class)->dispatch($transaction);
-                }
 
-                // Process Paid Event Transaction (Wallet, Stats, etc)
-                \App\Jobs\ProcessPaidEventTransaction::dispatch($transaction);
+                    // Process Paid Event Transaction (Wallet, Stats, etc)
+                    \App\Jobs\ProcessPaidEventTransaction::dispatch($transaction);
+                }
 
                 return $transaction;
             }

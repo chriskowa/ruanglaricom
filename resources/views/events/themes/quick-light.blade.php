@@ -416,6 +416,18 @@
             </div>
         @endif
 
+        @if(session('payment') === 'approval_pending' || request('payment') === 'approval_pending')
+            <div id="payment-notification-badge" class="mb-6 rounded-lg bg-amber-50 border border-amber-300 p-4 sm:p-5 flex items-start gap-3 shadow-sm">
+                <div class="w-8 h-8 rounded-md bg-amber-700 text-white flex items-center justify-center text-sm shrink-0 mt-0.5">
+                    <i class="fa-solid fa-hourglass-half text-white"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-bold text-amber-950">Pendaftaran Berhasil Dikirim (Menunggu Persetujuan)</h3>
+                    <p class="text-xs text-amber-800 mt-0.5">Data pendaftaran kamu telah tersimpan dan sedang diverifikasi oleh panitia untuk seleksi kuota tantangan (challenge). Setelah disetujui, e-Tiket resmi dan nomor BIB akan dikirim ke email kamu.</p>
+                </div>
+            </div>
+        @endif
+
         @if(session('payment') === 'cod_pending' || request('payment') === 'cod_pending')
             <div id="payment-notification-badge" class="mb-6 rounded-lg bg-amber-50 border border-amber-300 p-4 sm:p-5 flex items-start gap-3 shadow-sm">
                 <div class="w-8 h-8 rounded-md bg-amber-700 text-white flex items-center justify-center text-sm shrink-0 mt-0.5">
@@ -2512,6 +2524,27 @@
                     throw new Error((data && data.message) || 'Pendaftaran gagal diproses.');
                 }
 
+                // 1. Free Registration with Pending Approval (Challenge / Curated Selection)
+                if (data.payment_gateway === 'free' && data.payment_status === 'pending') {
+                    if (data.redirect_url) {
+                        window.location.href = data.redirect_url;
+                        return;
+                    }
+                    window.location.href = `{{ route('events.show', $event->slug) }}?payment=approval_pending`;
+                    return;
+                }
+
+                // 2. Direct success for Free Confirmed / Paid Registration (Never trigger payment modal)
+                if (data.payment_status === 'paid' || (data.payment_gateway === 'free' && data.payment_status !== 'pending') || (Number(data.final_amount || 0) <= 0 && !data.snap_token && data.payment_gateway !== 'cod')) {
+                    if (data.redirect_url) {
+                        window.location.href = data.redirect_url;
+                        return;
+                    }
+                    window.location.href = `{{ route('events.show', $event->slug) }}?payment=success`;
+                    return;
+                }
+
+                // 2. COD
                 if (data.payment_gateway === 'cod') {
                     if (data.redirect_url) {
                         window.location.href = data.redirect_url;
@@ -2521,6 +2554,7 @@
                     return;
                 }
 
+                // 3. Midtrans Snap
                 if (data.snap_token) {
                     const qs = new URLSearchParams();
                     if (data.transaction_id) qs.set('tx', String(data.transaction_id));
@@ -2550,7 +2584,8 @@
                     }
                 }
 
-                if ((data.payment_gateway === 'moota' || data.redirect_url) && window.RuangLariMoota && typeof window.RuangLariMoota.open === 'function' && data.transaction_id) {
+                // 4. Moota (HANYA jika payment_gateway secara eksplisit adalah 'moota' dan belum paid)
+                if (data.payment_gateway === 'moota' && window.RuangLariMoota && typeof window.RuangLariMoota.open === 'function' && data.transaction_id) {
                     window.RuangLariMoota.open({
                         transaction_id: data.transaction_id,
                         registration_id: data.registration_id,

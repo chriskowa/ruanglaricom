@@ -46,10 +46,11 @@ class ProcessPaidEventTransaction implements ShouldQueue
             }
 
             $event = $this->transaction->event;
-            $requiresApproval = ! empty($event->premium_amenities['requires_approval']);
+            $isPaidTransaction = ((float) ($this->transaction->final_amount ?? 0) > 0) || ($this->transaction->payment_gateway !== 'free');
+            $requiresApproval = ! empty($event->premium_amenities['requires_approval']) && ! $isPaidTransaction;
 
             if ($requiresApproval) {
-                // 4. Set participant to pending review (isApproved = 0)
+                // 4. Set participant to pending review (isApproved = 0) for free/challenge requiring approval
                 $this->transaction->participants()->update([
                     'status' => 'pending',
                     'isApproved' => 0,
@@ -57,13 +58,13 @@ class ProcessPaidEventTransaction implements ShouldQueue
 
                 // 5. Note: e-Ticket email is deferred until EO approves the participant
             } else {
-                // 4. Update participant status to confirmed
+                // 4. Update participant status to confirmed (for paid tickets or events without approval)
                 $this->transaction->participants()->update([
                     'status' => 'confirmed',
                     'isApproved' => 1,
                 ]);
 
-                // 5. Send notifications (email/wa)
+                // 5. Send notifications (email/wa) immediately
                 app(\App\Services\EventRegistrationEmailDispatcher::class)->dispatch($this->transaction);
             }
 

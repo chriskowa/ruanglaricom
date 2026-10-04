@@ -337,6 +337,11 @@ class Event extends Model
         return $distances->unique('name');
     }
 
+    public function getRequiresApprovalAttribute(): bool
+    {
+        return ! empty($this->premium_amenities['requires_approval']);
+    }
+
     public function getIsEoAttribute()
     {
         // If user_id is not 1 (Admin), it's likely an EO event

@@ -7,7 +7,40 @@
 @section('title', 'Participants - ' . $event->name)
 
 @push('styles')
+    <style id="eo-col-visibility-style"></style>
     <script>
+        // Apply column visibility immediately to prevent layout flash
+        (function() {
+            try {
+                var saved = localStorage.getItem('eo_participants_cols_v1');
+                var def = {
+                    participant: true,
+                    id_card: false,
+                    pic_info: false,
+                    notes: false,
+                    jersey_size: true,
+                    blood_type: false,
+                    addons: false,
+                    category_bib: true,
+                    age_group: false,
+                    coupon: false,
+                    payment: true,
+                    approval: true,
+                    pickup: true,
+                    actions: true
+                };
+                var state = saved ? Object.assign({}, def, JSON.parse(saved)) : def;
+                var css = '';
+                for (var key in state) {
+                    if (state[key] === false) {
+                        css += '.col-' + key + ' { display: none !important; }\n';
+                    }
+                }
+                var styleEl = document.getElementById('eo-col-visibility-style');
+                if (styleEl) styleEl.textContent = css;
+            } catch(e) {}
+        })();
+
         if (typeof tailwind !== 'undefined') {
             tailwind.config = tailwind.config || {};
             tailwind.config.theme = tailwind.config.theme || {};
@@ -488,35 +521,61 @@
                 </span>
                 participants
             </div>
-            <form method="GET" action="{{ route('eo.events.participants', $event) }}" class="flex items-center gap-2 text-xs">
-                <span class="text-slate-400">Show</span>
-                <select name="per_page" class="bg-slate-800 border border-slate-600 text-white text-xs rounded-lg px-2 py-1 focus:border-yellow-400 focus:outline-none" onchange="this.form.submit()">
-                    @php
-                        $perPage = (int) request('per_page', $participants->perPage());
-                    @endphp
-                    @foreach([10, 20, 50, 100, 200] as $size)
-                        <option value="{{ $size }}" {{ $perPage === $size ? 'selected' : '' }}>{{ $size }}</option>
-                    @endforeach
-                </select>
-                <span class="text-slate-400">per page</span>
-                <input type="hidden" name="payment_status" value="{{ request('payment_status') }}">
-                <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
-                <input type="hidden" name="payment_gateway" value="{{ request('payment_gateway') }}">
-                <input type="hidden" name="is_picked_up" value="{{ request('is_picked_up') }}">
-                <input type="hidden" name="gender" value="{{ request('gender') }}">
-                <input type="hidden" name="category_id" value="{{ request('category_id') }}">
-                <input type="hidden" name="coupon_id" value="{{ request('coupon_id') }}">
-                <input type="hidden" name="addon" value="{{ request('addon') }}">
-                <input type="hidden" name="jersey_size" value="{{ request('jersey_size') }}">
-                <input type="hidden" name="age_group" value="{{ request('age_group') }}">
-                <input type="hidden" name="min_age" value="{{ request('min_age') }}">
-                <input type="hidden" name="max_age" value="{{ request('max_age') }}">
-                <input type="hidden" name="start_date" value="{{ request('start_date') }}">
-                <input type="hidden" name="end_date" value="{{ request('end_date') }}">
-                <input type="hidden" name="search" value="{{ request('search') }}">
-                <input type="hidden" name="sort_by" value="{{ request('sort_by', 'created_at') }}">
-                <input type="hidden" name="sort_dir" value="{{ request('sort_dir', 'desc') }}">
-            </form>
+            <div class="flex items-center gap-3">
+                <!-- Column Customizer Dropdown -->
+                <div class="relative inline-block" id="columnSelectorWrapper">
+                    <button type="button" id="btnToggleColumnDropdown" onclick="toggleColumnDropdown(event)" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white text-xs rounded-lg px-3 py-1.5 flex items-center gap-1.5 transition-colors focus:border-yellow-400 focus:outline-none">
+                        <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+                        </svg>
+                        <span>Kolom (<span id="visibleColsCount">7</span>/14)</span>
+                        <svg class="w-3 h-3 text-slate-400 ml-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                    </button>
+                    <div id="columnDropdownMenu" class="absolute right-0 mt-2 w-64 bg-slate-900 border border-slate-700 rounded-lg shadow-2xl p-3 hidden z-40 text-xs">
+                        <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-800">
+                            <span class="font-bold text-white text-xs">Tampilan Kolom</span>
+                            <div class="flex items-center gap-1.5">
+                                <button type="button" onclick="setAllColumns(true)" class="text-[11px] text-yellow-400 hover:underline">Semua</button>
+                                <span class="text-slate-600">•</span>
+                                <button type="button" onclick="resetDefaultColumns()" class="text-[11px] text-slate-400 hover:text-white">Default</button>
+                            </div>
+                        </div>
+                        <div class="max-h-64 overflow-y-auto space-y-1.5 pr-1 custom-scroll" id="columnCheckboxesList">
+                            <!-- Populated dynamically via JS -->
+                        </div>
+                    </div>
+                </div>
+
+                <form method="GET" action="{{ route('eo.events.participants', $event) }}" class="flex items-center gap-2 text-xs">
+                    <span class="text-slate-400">Show</span>
+                    <select name="per_page" class="bg-slate-800 border border-slate-600 text-white text-xs rounded-lg px-2 py-1 focus:border-yellow-400 focus:outline-none" onchange="this.form.submit()">
+                        @php
+                            $perPage = (int) request('per_page', $participants->perPage());
+                        @endphp
+                        @foreach([10, 20, 50, 100, 200] as $size)
+                            <option value="{{ $size }}" {{ $perPage === $size ? 'selected' : '' }}>{{ $size }}</option>
+                        @endforeach
+                    </select>
+                    <span class="text-slate-400">per page</span>
+                    <input type="hidden" name="payment_status" value="{{ request('payment_status') }}">
+                    <input type="hidden" name="approval_status" value="{{ request('approval_status') }}">
+                    <input type="hidden" name="payment_gateway" value="{{ request('payment_gateway') }}">
+                    <input type="hidden" name="is_picked_up" value="{{ request('is_picked_up') }}">
+                    <input type="hidden" name="gender" value="{{ request('gender') }}">
+                    <input type="hidden" name="category_id" value="{{ request('category_id') }}">
+                    <input type="hidden" name="coupon_id" value="{{ request('coupon_id') }}">
+                    <input type="hidden" name="addon" value="{{ request('addon') }}">
+                    <input type="hidden" name="jersey_size" value="{{ request('jersey_size') }}">
+                    <input type="hidden" name="age_group" value="{{ request('age_group') }}">
+                    <input type="hidden" name="min_age" value="{{ request('min_age') }}">
+                    <input type="hidden" name="max_age" value="{{ request('max_age') }}">
+                    <input type="hidden" name="start_date" value="{{ request('start_date') }}">
+                    <input type="hidden" name="end_date" value="{{ request('end_date') }}">
+                    <input type="hidden" name="search" value="{{ request('search') }}">
+                    <input type="hidden" name="sort_by" value="{{ request('sort_by', 'created_at') }}">
+                    <input type="hidden" name="sort_dir" value="{{ request('sort_dir', 'desc') }}">
+                </form>
+            </div>
         </div>
 
         <div class="overflow-x-auto">
@@ -526,50 +585,50 @@
                         <th class="px-6 py-4 w-12">
                             <input type="checkbox" id="selectAll" class="rounded border-slate-600 bg-slate-800 text-yellow-500 focus:ring-yellow-500/50 cursor-pointer">
                         </th>
-                        <th class="px-6 py-4">
+                        <th class="px-6 py-4 col-participant">
                             <button type="button" class="inline-flex items-center gap-2 text-slate-300 hover:text-white transition-colors" data-sort-key="name" onclick="setTableSort('name')">
                                 Participant
                                 <span class="sort-indicator" data-sort-indicator="name"></span>
                             </button>
                         </th>
-                        <th class="px-6 py-4">
+                        <th class="px-6 py-4 col-id_card">
                             <button type="button" class="inline-flex items-center gap-2 text-slate-300 hover:text-white transition-colors" data-sort-key="id_card" onclick="setTableSort('id_card')">
                                 ID Card
                                 <span class="sort-indicator" data-sort-indicator="id_card"></span>
                             </button>
                         </th>
-                        <th class="px-6 py-4">PIC Info</th>
-                        <th class="px-6 py-4">Keterangan</th>
-                        <th class="px-6 py-4">Jersey Size</th>
-                        <th class="px-6 py-4">Gol. Darah</th>
-                        <th class="px-6 py-4">Addons</th>
-                        <th class="px-6 py-4">
+                        <th class="px-6 py-4 col-pic_info">PIC Info</th>
+                        <th class="px-6 py-4 col-notes">Keterangan</th>
+                        <th class="px-6 py-4 col-jersey_size">Jersey Size</th>
+                        <th class="px-6 py-4 col-blood_type">Gol. Darah</th>
+                        <th class="px-6 py-4 col-addons">Addons</th>
+                        <th class="px-6 py-4 col-category_bib">
                             <button type="button" class="inline-flex items-center gap-2 text-slate-300 hover:text-white transition-colors" data-sort-key="bib_number" onclick="setTableSort('bib_number')">
                                 Category & BIB
                                 <span class="sort-indicator" data-sort-indicator="bib_number"></span>
                             </button>
                         </th>
-                        <th class="px-6 py-4">Age Group</th>                        
-                        <th class="px-6 py-4">
+                        <th class="px-6 py-4 col-age_group">Age Group</th>                        
+                        <th class="px-6 py-4 col-coupon">
                             <button type="button" class="inline-flex items-center gap-2 text-slate-300 hover:text-white transition-colors" data-sort-key="coupon_code" onclick="setTableSort('coupon_code')">
                                 Kupon
                                 <span class="sort-indicator" data-sort-indicator="coupon_code"></span>
                             </button>
                         </th>
-                        <th class="px-6 py-4">
+                        <th class="px-6 py-4 col-payment">
                             <button type="button" class="inline-flex items-center gap-2 text-slate-300 hover:text-white transition-colors" data-sort-key="payment_status" onclick="setTableSort('payment_status')">
                                 Payment
                                 <span class="sort-indicator" data-sort-indicator="payment_status"></span>
                             </button>
                         </th>
-                        <th class="px-6 py-4">Approval</th>
-                        <th class="px-6 py-4">
+                        <th class="px-6 py-4 col-approval">Approval</th>
+                        <th class="px-6 py-4 col-pickup">
                             <button type="button" class="inline-flex items-center gap-2 text-slate-300 hover:text-white transition-colors" data-sort-key="is_picked_up" onclick="setTableSort('is_picked_up')">
                                 Pickup Status
                                 <span class="sort-indicator" data-sort-indicator="is_picked_up"></span>
                             </button>
                         </th>
-                        <th class="px-6 py-4 text-right">Actions</th>
+                        <th class="px-6 py-4 text-right col-actions">Actions</th>
                     </tr>
                 </thead>
                 <tbody id="participantsTableBody" class="divide-y divide-slate-800">
@@ -621,7 +680,7 @@
                         <td class="px-6 py-4" onclick="event.stopPropagation()">
                             <input type="checkbox" class="participant-checkbox rounded border-slate-600 bg-slate-800 text-yellow-500 focus:ring-yellow-500/50 cursor-pointer" value="{{ $participant->id }}">
                         </td>
-                        <td class="px-6 py-4">
+                        <td class="px-6 py-4 col-participant">
                             <div class="flex items-center gap-2.5">
                                 @if($participant->photo)
                                     <img src="{{ asset('storage/' . $participant->photo) }}" alt="Foto" class="w-9 h-9 rounded-lg object-cover border border-slate-700 shrink-0 cursor-pointer hover:opacity-80 transition" onclick="event.stopPropagation(); openPhotoViewer('{{ asset('storage/' . $participant->photo) }}')" title="Klik untuk lihat foto COD">
@@ -636,28 +695,28 @@
                                 </div>
                             </div>
                         </td>
-                        <td class="px-6 py-4 text-white font-mono text-xs">
+                        <td class="px-6 py-4 text-white font-mono text-xs col-id_card">
                             {{ $participant->id_card ?? '-' }}
                         </td>
-                        <td class="px-6 py-4">
+                        <td class="px-6 py-4 col-pic_info">
                             @php $pic = $participant->transaction->pic_data ?? []; @endphp
                             <div class="text-sm text-white">{{ $pic['name'] ?? '-' }}</div>
                             <div class="text-xs text-slate-400">{{ $pic['phone'] ?? '-' }}</div>
                         </td>
-                        <td class="px-6 py-4 text-xs text-slate-300">
+                        <td class="px-6 py-4 text-xs text-slate-300 col-notes">
                             {{ $participant->notes ?? '-' }}
                         </td>
-                        <td class="px-6 py-4">
+                        <td class="px-6 py-4 col-jersey_size">
                             <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg text-sm font-bold bg-slate-800 border border-slate-600 text-white">
                                 {{ $participant->jersey_size ?? '-' }}
                             </span>
                         </td>
-                        <td class="px-6 py-4">
+                        <td class="px-6 py-4 col-blood_type">
                             <span class="inline-flex items-center justify-center w-10 h-10 rounded-lg text-sm font-bold bg-slate-800 border border-slate-600 text-white">
                                 {{ $participant->blood_type ?? '-' }}
                             </span>
                         </td>
-                        <td class="px-6 py-4">
+                        <td class="px-6 py-4 col-addons">
                             @php $addons = is_array($participant->addons) ? $participant->addons : []; @endphp
                             @if(count($addons) > 0)
                                 <div class="flex flex-col gap-1">
@@ -671,7 +730,7 @@
                                 <span class="text-xs text-slate-500 italic">-</span>
                             @endif
                         </td>
-                        <td class="px-6 py-4">
+                        <td class="px-6 py-4 col-category_bib">
                             <div class="flex flex-col gap-1">
                                 <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-200 w-fit">
                                     {{ $participant->category->name ?? '-' }}
@@ -681,12 +740,12 @@
                                 </span>
                             </div>
                         </td>
-                        <td class="px-6 py-4">
+                        <td class="px-6 py-4 col-age_group">
                             <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-200">
                                 {{ $participant->getAgeGroup($event->start_at) }}{{ $participant->date_of_birth ? ' (' . number_format($participant->date_of_birth->floatDiffInYears($event->start_at), 1) . ' thn)' : '' }}
                             </span>
                         </td>
-                        <td class="px-6 py-4">
+                        <td class="px-6 py-4 col-coupon">
                             @if($participant->transaction->coupon)
                                 <div class="text-xs text-yellow-400 font-bold flex items-center gap-1" title="Coupon Used">
                                     <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
@@ -696,7 +755,7 @@
                                 <span class="text-xs text-slate-500 italic">-</span>
                             @endif
                         </td>
-                        <td class="px-6 py-4">
+                        <td class="px-6 py-4 col-payment">
                             @php $status = $participant->transaction->payment_status ?? 'pending'; @endphp
                             <div class="relative inline-block">
                                 <button type="button" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border"
@@ -721,7 +780,7 @@
                                 </div>
                             @endif
                         </td>
-                        <td class="px-6 py-4" onclick="event.stopPropagation()">
+                        <td class="px-6 py-4 col-approval" onclick="event.stopPropagation()">
                             @if($participant->isApproved)
                                 <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-950 text-emerald-300 border border-emerald-700/60">
                                     <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
@@ -750,7 +809,7 @@
                                 </div>
                             @endif
                         </td>
-                        <td class="px-6 py-4">
+                        <td class="px-6 py-4 col-pickup">
                             @if($status == 'paid')
                                 <div class="flex flex-col items-start gap-1">
                                     <div class="flex items-center gap-2">
@@ -772,7 +831,7 @@
                                 <span class="text-xs text-slate-500 italic">Payment required</span>
                             @endif
                         </td>
-                        <td class="px-6 py-4 text-right">
+                        <td class="px-6 py-4 text-right col-actions">
                             <div class="flex items-center justify-end gap-2">
                                 @if($status == 'pending' && $participant->transaction->created_at->diffInDays(now()) >= 1)
                                     <button onclick="sendPendingReminder(event, {{ $participant->transaction->id }})" class="p-2 bg-yellow-600/20 text-yellow-400 hover:bg-yellow-600/40 rounded-lg transition-colors" title="Kirim Reminder Pembayaran">
@@ -797,7 +856,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="11" class="px-6 py-12 text-center">
+                        <td colspan="15" class="px-6 py-12 text-center">
                             <p class="text-slate-500">No participants found matching your criteria.</p>
                         </td>
                     </tr>
@@ -1895,12 +1954,26 @@
                                     
                                     <!-- Attendance Status -->
                                     <div class="pt-2 border-t border-slate-700/50 mt-2">
-                                        <div class="text-xs text-slate-500">Attendance (Race Pack)</div>
-                                        <div class="view-mode" id="dm_attendance_badge"></div>
-                                        <select name="is_picked_up" id="edit_is_picked_up" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none">
-                                            <option value="0">Not Picked Up</option>
-                                            <option value="1">Picked Up</option>
-                                        </select>
+                                        <div class="flex items-center justify-between mb-1">
+                                            <div class="text-xs text-slate-500">Attendance (Race Pack)</div>
+                                            <button type="button" id="dm_quick_pickup_toggle_btn" onclick="quickTogglePickupFromModal()" class="view-mode text-[11px] px-2 py-0.5 rounded bg-slate-700 hover:bg-slate-600 text-slate-200 border border-slate-600 transition flex items-center gap-1" title="Ubah status pengambilan race pack secara instan">
+                                                <span>Ubah Status</span>
+                                            </button>
+                                        </div>
+                                        <div class="view-mode">
+                                            <div id="dm_attendance_badge"></div>
+                                            <div id="dm_picked_up_by_text" class="text-xs text-slate-400 mt-1"></div>
+                                        </div>
+                                        <div class="edit-mode hidden space-y-2">
+                                            <select name="is_picked_up" id="edit_is_picked_up" class="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none" onchange="toggleEditPickedUpByField()">
+                                                <option value="0">Not Picked Up</option>
+                                                <option value="1">Picked Up</option>
+                                            </select>
+                                            <div id="edit_picked_up_by_wrapper">
+                                                <div class="text-xs text-slate-400 mb-0.5">Diambil Oleh:</div>
+                                                <input type="text" name="picked_up_by" id="edit_picked_up_by" placeholder="Nama pengambil race pack" class="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none placeholder-slate-500">
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <!-- Keterangan -->
@@ -2007,7 +2080,36 @@
                                     </div>
                                 </div>
                                 <div class="space-y-3">
-                                    <div><div class="text-xs text-slate-500">Payment Status</div><div id="dm_payment_status"></div></div>
+                                    <div>
+                                        <div class="flex items-center justify-between mb-1">
+                                            <div class="text-xs text-slate-500">Payment Status</div>
+                                            <div class="view-mode relative inline-block" id="dm_payment_quick_wrapper">
+                                                <button type="button" onclick="toggleModalPaymentQuickDropdown(event)" class="text-[11px] px-2 py-0.5 rounded bg-slate-700 hover:bg-slate-600 text-slate-200 border border-slate-600 transition flex items-center gap-1" title="Ubah status pembayaran langsung">
+                                                    <span>Ubah Status</span>
+                                                    <svg class="w-3 h-3 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                                </button>
+                                                <div id="dm_payment_dropdown" class="absolute right-0 mt-1 w-36 bg-slate-900 border border-slate-700 rounded-lg shadow-xl hidden z-30 py-1">
+                                                    <button type="button" class="w-full text-left px-3 py-1.5 text-xs hover:bg-slate-800 text-yellow-400" onclick="quickChangePaymentFromModal('pending')">Pending</button>
+                                                    <button type="button" class="w-full text-left px-3 py-1.5 text-xs hover:bg-slate-800 text-emerald-400" onclick="quickChangePaymentFromModal('paid')">Paid</button>
+                                                    <button type="button" class="w-full text-left px-3 py-1.5 text-xs hover:bg-slate-800 text-rose-400" onclick="quickChangePaymentFromModal('failed')">Failed</button>
+                                                    <button type="button" class="w-full text-left px-3 py-1.5 text-xs hover:bg-slate-800 text-slate-400" onclick="quickChangePaymentFromModal('expired')">Expired</button>
+                                                    <button type="button" class="w-full text-left px-3 py-1.5 text-xs hover:bg-slate-800 text-blue-400" onclick="quickChangePaymentFromModal('cod')">COD</button>
+                                                    <button type="button" class="w-full text-left px-3 py-1.5 text-xs hover:bg-slate-800 text-rose-300" onclick="quickChangePaymentFromModal('cancelled')">Cancelled</button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="view-mode" id="dm_payment_status"></div>
+                                        <div class="edit-mode hidden">
+                                            <select name="payment_status" id="edit_payment_status" class="w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none">
+                                                <option value="pending">Pending</option>
+                                                <option value="paid">Paid</option>
+                                                <option value="failed">Failed</option>
+                                                <option value="expired">Expired</option>
+                                                <option value="cod">COD</option>
+                                                <option value="cancelled">Cancelled</option>
+                                            </select>
+                                        </div>
+                                    </div>
                                     <div><div class="text-xs text-slate-500">Approval Status</div><div id="dm_approval_status"></div></div>
                                     <div>
                                         <div class="text-xs text-slate-500">Addons</div>
@@ -2099,6 +2201,7 @@
         var eventId = {{ $event->id }};
         var eoUserName = {!! json_encode(auth()->user()->name ?? '') !!};
         var currentParticipantsPage = 1;
+        window.currentParticipantsPage = 1;
 
         var qrStream = null;
         var qrRunning = false;
@@ -2420,7 +2523,7 @@
 
         function renderRows(items) {
             if (!items || items.length === 0) {
-                return '<tr><td colspan="11" class="px-6 py-12 text-center"><p class="text-slate-500">No participants found matching your criteria.</p></td></tr>';
+                return '<tr><td colspan="15" class="px-6 py-12 text-center"><p class="text-slate-500">No participants found matching your criteria.</p></td></tr>';
             }
             var html = '';
             items.forEach(function(p){
@@ -2532,7 +2635,7 @@
                     '<td class="px-6 py-4" onclick="event.stopPropagation()">'+
                         '<input type="checkbox" class="participant-checkbox rounded border-slate-600 bg-slate-800 text-yellow-500 focus:ring-yellow-500/50 cursor-pointer" value="'+ p.id +'">'+
                     '</td>'+
-                    '<td class="px-6 py-4">'+
+                    '<td class="px-6 py-4 col-participant">'+
                         '<div class="flex items-center gap-2.5">'+
                             photoThumbHtml +
                             '<div class="min-w-0">'+
@@ -2543,19 +2646,19 @@
                             '</div>'+
                         '</div>'+
                     '</td>'+
-                    '<td class="px-6 py-4 text-white font-mono text-xs">'+ (p.id_card || '-') +'</td>'+
-                    '<td class="px-6 py-4"><div class="text-sm text-white">'+ (p.pic_name || '-') +'</div><div class="text-xs text-slate-400">'+ (p.pic_phone || '-') +'</div></td>'+
-                    '<td class="px-6 py-4 text-xs text-slate-300">'+ (p.notes || '-') +'</td>'+
-                    '<td class="px-6 py-4"><span class="inline-flex items-center justify-center w-10 h-10 rounded-lg text-sm font-bold bg-slate-800 border border-slate-600 text-white">'+ (p.jersey_size || '-') +'</span></td>'+
-                    '<td class="px-6 py-4"><span class="inline-flex items-center justify-center w-10 h-10 rounded-lg text-sm font-bold bg-slate-800 border border-slate-600 text-white">'+ (p.blood_type || '-') +'</span></td>'+
-                    '<td class="px-6 py-4">'+ renderAddonsCell(p.addons) +'</td>'+
-                    '<td class="px-6 py-4"><div class="flex flex-col gap-1"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-200 w-fit">'+ (p.category || '-') +'</span><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-yellow-900/30 text-yellow-400 border border-yellow-500/30 w-fit">BIB: '+ (p.bib_number || 'N/A') +'</span></div></td>'+
-                    '<td class="px-6 py-4"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-200">'+ (p.age_group || '-') +'</span></td>'+
-                    '<td class="px-6 py-4">'+ couponHtml +'</td>'+
-                    '<td class="px-6 py-4"><div class="relative inline-block">'+ paymentBtn + paymentDd +'</div></td>'+
-                    '<td class="px-6 py-4" onclick="event.stopPropagation()">'+ approvalBadge +'</td>'+
-                    '<td class="px-6 py-4">'+ pickedBadge +'</td>'+
-                    '<td class="px-6 py-4 text-right"><div class="flex items-center justify-end gap-2">'+
+                    '<td class="px-6 py-4 text-white font-mono text-xs col-id_card">'+ (p.id_card || '-') +'</td>'+
+                    '<td class="px-6 py-4 col-pic_info"><div class="text-sm text-white">'+ (p.pic_name || '-') +'</div><div class="text-xs text-slate-400">'+ (p.pic_phone || '-') +'</div></td>'+
+                    '<td class="px-6 py-4 text-xs text-slate-300 col-notes">'+ (p.notes || '-') +'</td>'+
+                    '<td class="px-6 py-4 col-jersey_size"><span class="inline-flex items-center justify-center w-10 h-10 rounded-lg text-sm font-bold bg-slate-800 border border-slate-600 text-white">'+ (p.jersey_size || '-') +'</span></td>'+
+                    '<td class="px-6 py-4 col-blood_type"><span class="inline-flex items-center justify-center w-10 h-10 rounded-lg text-sm font-bold bg-slate-800 border border-slate-600 text-white">'+ (p.blood_type || '-') +'</span></td>'+
+                    '<td class="px-6 py-4 col-addons">'+ renderAddonsCell(p.addons) +'</td>'+
+                    '<td class="px-6 py-4 col-category_bib"><div class="flex flex-col gap-1"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-200 w-fit">'+ (p.category || '-') +'</span><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-yellow-900/30 text-yellow-400 border border-yellow-500/30 w-fit">BIB: '+ (p.bib_number || 'N/A') +'</span></div></td>'+
+                    '<td class="px-6 py-4 col-age_group"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-200">'+ (p.age_group || '-') +'</span></td>'+
+                    '<td class="px-6 py-4 col-coupon">'+ couponHtml +'</td>'+
+                    '<td class="px-6 py-4 col-payment"><div class="relative inline-block">'+ paymentBtn + paymentDd +'</div></td>'+
+                    '<td class="px-6 py-4 col-approval" onclick="event.stopPropagation()">'+ approvalBadge +'</td>'+
+                    '<td class="px-6 py-4 col-pickup">'+ pickedBadge +'</td>'+
+                    '<td class="px-6 py-4 text-right col-actions"><div class="flex items-center justify-end gap-2">'+
                         '<a href="mailto:'+ (p.email || '') +'" class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors" title="Email"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg></a>'+
                         '<a href="https://wa.me/'+ phoneToWa(p.phone) +'" target="_blank" class="p-2 rounded-lg bg-slate-800 text-green-400 hover:bg-slate-700 hover:text-green-300 transition-colors" title="WhatsApp"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.536 0 1.52 1.115 2.988 1.264 3.186.149.198 2.19 3.361 5.27 4.69 2.151.928 2.988.94 3.518.865.592-.084 1.758-.717 2.006-1.41.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.381a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg></a>'+
                         (status !== 'paid' ? '<button onclick="deleteParticipant('+ p.id +')" class="p-2 rounded-lg bg-slate-800 text-red-400 hover:bg-red-900/50 hover:text-red-300 transition-colors" title="Delete"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>' : '') +
@@ -2707,6 +2810,7 @@
             updateExportLink();
             if (res.meta) {
                 currentParticipantsPage = Number(res.meta.current_page || 1) || 1;
+                window.currentParticipantsPage = currentParticipantsPage;
                 updateRange(res.meta);
                 updatePaginationControls(res.meta);
             }
@@ -2722,6 +2826,7 @@
             })
             .catch(function(){ alert('Terjadi kesalahan'); });
         }
+        window.fetchParticipants = fetchParticipants;
 
         window.setTableSort = function (key) {
             if (!sortByInput || !sortDirInput) return;
@@ -2890,7 +2995,155 @@
             document.body.removeChild(link);
         };
     })();
+
+    // Ensure currentParticipantsPage is globally available across all scripts and handlers
+    window.currentParticipantsPage = window.currentParticipantsPage || 1;
+    var currentParticipantsPage = window.currentParticipantsPage;
     
+    /* ==========================================================
+       COLUMN CUSTOMIZER ENGINE (LOCALSTORAGE & CSS INJECTION)
+       ========================================================== */
+    var AVAILABLE_COLUMNS = [
+        { key: 'participant', label: 'Peserta (Nama, Telp, Email)', def: true },
+        { key: 'id_card', label: 'ID Card / KTP', def: false },
+        { key: 'pic_info', label: 'PIC Info', def: false },
+        { key: 'notes', label: 'Keterangan', def: false },
+        { key: 'jersey_size', label: 'Ukuran Jersey', def: true },
+        { key: 'blood_type', label: 'Golongan Darah', def: false },
+        { key: 'addons', label: 'Addons', def: false },
+        { key: 'category_bib', label: 'Kategori & BIB', def: true },
+        { key: 'age_group', label: 'Age Group', def: false },
+        { key: 'coupon', label: 'Kupon', def: false },
+        { key: 'payment', label: 'Payment Status', def: true },
+        { key: 'approval', label: 'Approval Status', def: true },
+        { key: 'pickup', label: 'Pickup Status', def: true },
+        { key: 'actions', label: 'Aksi (Email, WA, Hapus)', def: true }
+    ];
+
+    var STORAGE_KEY_COLS = 'eo_participants_cols_v1';
+
+    function getColumnState() {
+        var defState = {};
+        AVAILABLE_COLUMNS.forEach(function(col) {
+            defState[col.key] = col.def;
+        });
+        try {
+            var raw = localStorage.getItem(STORAGE_KEY_COLS);
+            if (raw) {
+                return Object.assign({}, defState, JSON.parse(raw));
+            }
+        } catch(e) {}
+        return defState;
+    }
+
+    function saveColumnState(state) {
+        try {
+            localStorage.setItem(STORAGE_KEY_COLS, JSON.stringify(state));
+        } catch(e) {}
+    }
+
+    function applyColumnVisibility(state) {
+        if (!state) state = getColumnState();
+        var css = '';
+        var visibleCount = 0;
+        AVAILABLE_COLUMNS.forEach(function(col) {
+            var isVis = state[col.key] !== false;
+            if (isVis) {
+                visibleCount++;
+            } else {
+                css += '.col-' + col.key + ' { display: none !important; }\n';
+            }
+        });
+
+        var styleEl = document.getElementById('eo-col-visibility-style');
+        if (!styleEl) {
+            styleEl = document.createElement('style');
+            styleEl.id = 'eo-col-visibility-style';
+            document.head.appendChild(styleEl);
+        }
+        styleEl.textContent = css;
+
+        var countEl = document.getElementById('visibleColsCount');
+        if (countEl) countEl.textContent = visibleCount;
+    }
+
+    function renderColumnCheckboxes() {
+        var container = document.getElementById('columnCheckboxesList');
+        if (!container) return;
+        var state = getColumnState();
+        var html = '';
+        AVAILABLE_COLUMNS.forEach(function(col) {
+            var isChecked = state[col.key] !== false;
+            html += '<label class="flex items-center gap-2 p-1.5 rounded hover:bg-slate-800 cursor-pointer select-none text-slate-300 hover:text-white">'+
+                '<input type="checkbox" class="rounded border-slate-600 bg-slate-800 text-yellow-500 focus:ring-yellow-500/50 cursor-pointer" data-col-key="'+ col.key +'" '+ (isChecked ? 'checked' : '') +' onchange="toggleColumn(\''+ col.key +'\', this.checked)">'+
+                '<span class="text-xs truncate">'+ col.label +'</span>'+
+                '</label>';
+        });
+        container.innerHTML = html;
+    }
+
+    window.toggleColumn = function(key, isVisible) {
+        var state = getColumnState();
+        state[key] = !!isVisible;
+        saveColumnState(state);
+        applyColumnVisibility(state);
+    };
+
+    window.resetDefaultColumns = function() {
+        var defState = {};
+        AVAILABLE_COLUMNS.forEach(function(col) {
+            defState[col.key] = col.def;
+        });
+        saveColumnState(defState);
+        applyColumnVisibility(defState);
+        renderColumnCheckboxes();
+    };
+
+    window.setAllColumns = function(val) {
+        var state = {};
+        AVAILABLE_COLUMNS.forEach(function(col) {
+            state[col.key] = !!val;
+        });
+        saveColumnState(state);
+        applyColumnVisibility(state);
+        renderColumnCheckboxes();
+    };
+
+    window.toggleColumnDropdown = function(e) {
+        if (e) e.stopPropagation();
+        var menu = document.getElementById('columnDropdownMenu');
+        if (menu) {
+            var willOpen = menu.classList.contains('hidden');
+            if (willOpen) {
+                renderColumnCheckboxes();
+                menu.classList.remove('hidden');
+            } else {
+                menu.classList.add('hidden');
+            }
+        }
+    };
+
+    // Close column dropdown and modal quick dropdowns when clicking outside
+    document.addEventListener('click', function(e) {
+        var menu = document.getElementById('columnDropdownMenu');
+        var btn = document.getElementById('btnToggleColumnDropdown');
+        if (menu && !menu.classList.contains('hidden')) {
+            if (!menu.contains(e.target) && (!btn || !btn.contains(e.target))) {
+                menu.classList.add('hidden');
+            }
+        }
+        var payDd = document.getElementById('dm_payment_dropdown');
+        var payWrapper = document.getElementById('dm_payment_quick_wrapper');
+        if (payDd && !payDd.classList.contains('hidden')) {
+            if (!payWrapper || !payWrapper.contains(e.target)) {
+                payDd.classList.add('hidden');
+            }
+        }
+    });
+
+    // Run column visibility setup on load
+    applyColumnVisibility();
+
     // Global variable to store current participant data and row for edit/cancel
     var currentParticipantData = null;
     var currentParticipantRow = null;
@@ -2989,17 +3242,30 @@
                 picked_up_by: isPickedUp ? runnerName : ''
             })
         })
-        .then(r => r.json())
-        .then(res => {
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
             checkbox.disabled = false;
-            if (res.success) {
-                fetchParticipants(currentParticipantsPage || 1);
+            if (res && res.success) {
+                if (typeof window.currentParticipantData !== 'undefined' && window.currentParticipantData && window.currentParticipantData.id == id) {
+                    window.currentParticipantData.is_picked_up = isPickedUp;
+                    if (isPickedUp) {
+                        window.currentParticipantData.picked_up_by = runnerName;
+                    }
+                    if (typeof updateModalAttendanceBadge === 'function') {
+                        updateModalAttendanceBadge(isPickedUp, isPickedUp ? runnerName : '');
+                    }
+                }
+                var p = (typeof window.currentParticipantsPage !== 'undefined') ? window.currentParticipantsPage : 1;
+                if (typeof window.fetchParticipants === 'function') {
+                    window.fetchParticipants(p);
+                }
             } else {
                 checkbox.checked = !isPickedUp;
-                alert(res.message || 'Gagal update status');
+                alert((res && res.message) ? res.message : 'Gagal update status');
             }
         })
-        .catch(err => {
+        .catch(function(err) {
+            console.error('togglePickupQuick error:', err);
             checkbox.disabled = false;
             checkbox.checked = !isPickedUp;
             alert('Terjadi kesalahan network');
@@ -3033,7 +3299,9 @@
         setValue('edit_city', d.city);
         setValue('edit_province', d.province);
         setValue('edit_postal_code', d.postal_code);
-        setValue('edit_is_picked_up', d.is_picked_up ? '1' : '0');
+        setValue('edit_is_picked_up', (d.is_picked_up == 1 || d.is_picked_up === true || d.is_picked_up === '1') ? '1' : '0');
+        setValue('edit_picked_up_by', d.picked_up_by || '');
+        setValue('edit_payment_status', d.payment_status || 'pending');
         
         // Explicitly set race category and log it
         var catId = d.race_category_id;
@@ -3052,9 +3320,158 @@
         var addons = Array.isArray(d.addons) ? d.addons : [];
         setValue('edit_addons_json', JSON.stringify(addons, null, 2));
         
-        // Handle attendance badge update if needed or specific logic
+        toggleEditPickedUpByField();
         togglePickedByField();
     }
+
+    window.toggleEditPickedUpByField = function() {
+        var select = document.getElementById('edit_is_picked_up');
+        var wrapper = document.getElementById('edit_picked_up_by_wrapper');
+        if (select && wrapper) {
+            if (select.value === '1') {
+                wrapper.classList.remove('hidden');
+            } else {
+                wrapper.classList.add('hidden');
+            }
+        }
+    };
+
+    window.updateModalPaymentBadge = function(status) {
+        status = String(status || 'pending').toLowerCase();
+        var badge = document.getElementById('dm_payment_status');
+        if (!badge) return;
+        badge.className = 'inline-flex items-center px-2.5 py-1 rounded text-xs font-bold border uppercase';
+        if (status === 'paid') {
+            badge.className += ' bg-emerald-950 text-emerald-300 border-emerald-700/60';
+        } else if (status === 'pending') {
+            badge.className += ' bg-amber-950 text-amber-300 border-amber-700/60';
+        } else if (status === 'cod') {
+            badge.className += ' bg-blue-950 text-blue-300 border-blue-700/60';
+        } else {
+            badge.className += ' bg-rose-950 text-rose-300 border-rose-700/60';
+        }
+        badge.textContent = status;
+    };
+
+    window.updateModalAttendanceBadge = function(isPickedUp, pickedUpBy) {
+        var attendanceBadge = document.getElementById('dm_attendance_badge');
+        var pickedText = document.getElementById('dm_picked_up_by_text');
+        var isPicked = (isPickedUp == 1 || isPickedUp === true || isPickedUp === '1');
+        if (attendanceBadge) {
+            if (isPicked) {
+                attendanceBadge.innerHTML = '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-bold bg-blue-950 text-blue-300 border border-blue-700/60"><svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>Picked Up</span>';
+            } else {
+                attendanceBadge.innerHTML = '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700">Not Picked Up</span>';
+            }
+        }
+        if (pickedText) {
+            if (isPicked && pickedUpBy) {
+                pickedText.textContent = 'Diambil oleh: ' + pickedUpBy;
+                pickedText.classList.remove('hidden');
+            } else {
+                pickedText.textContent = '';
+                pickedText.classList.add('hidden');
+            }
+        }
+    };
+
+    window.toggleModalPaymentQuickDropdown = function(e) {
+        if (e) e.stopPropagation();
+        var dd = document.getElementById('dm_payment_dropdown');
+        if (dd) dd.classList.toggle('hidden');
+    };
+
+    window.quickChangePaymentFromModal = function(newStatus) {
+        if (!currentParticipantData) return;
+        var dd = document.getElementById('dm_payment_dropdown');
+        if (dd) dd.classList.add('hidden');
+        
+        var trxId = currentParticipantData.transaction_id;
+        if (!trxId) {
+            alert('ID Transaksi tidak ditemukan');
+            return;
+        }
+        var url = '{{ url("eo/events/" . $event->id . "/transactions") }}/' + trxId + '/payment-status';
+        var tokenMeta = document.querySelector('meta[name="csrf-token"]');
+        var csrf = tokenMeta ? tokenMeta.getAttribute('content') : '';
+
+        fetch(url, {
+            method: 'POST',
+            headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json', 'Content-Type': 'application/json' },
+            body: JSON.stringify({ payment_status: newStatus })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+            if (res && res.success) {
+                currentParticipantData.payment_status = newStatus;
+                updateModalPaymentBadge(newStatus);
+                setValue('edit_payment_status', newStatus);
+                var p = (typeof window.currentParticipantsPage !== 'undefined') ? window.currentParticipantsPage : 1;
+                if (typeof window.fetchParticipants === 'function') {
+                    window.fetchParticipants(p);
+                }
+            } else {
+                alert((res && res.message) ? res.message : 'Gagal merubah payment status');
+            }
+        })
+        .catch(function(err) {
+            console.error('quickChangePaymentFromModal error:', err);
+            alert('Terjadi kesalahan network');
+        });
+    };
+
+    window.quickTogglePickupFromModal = function() {
+        if (!currentParticipantData) return;
+        var currentIsPicked = (currentParticipantData.is_picked_up == 1 || currentParticipantData.is_picked_up === true || currentParticipantData.is_picked_up === '1');
+        var newIsPicked = currentIsPicked ? 0 : 1;
+        var participantId = currentParticipantData.id;
+        var runnerName = currentParticipantData.name || '';
+        var pickedBy = newIsPicked ? (currentParticipantData.picked_up_by || runnerName) : '';
+
+        if (newIsPicked) {
+            var promptVal = prompt('Masukkan nama pengambil race pack:', pickedBy);
+            if (promptVal === null) return;
+            pickedBy = promptVal.trim() || runnerName;
+        }
+
+        var url = `{{ url('/eo/events/' . $event->id . '/participants') }}/${participantId}/status`;
+        var tokenMeta = document.querySelector('meta[name="csrf-token"]');
+        var csrf = tokenMeta ? tokenMeta.getAttribute('content') : '';
+
+        fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': csrf,
+                'Accept': 'application/json'
+            },
+            body: JSON.stringify({
+                is_picked_up: newIsPicked,
+                picked_up_by: pickedBy
+            })
+        })
+        .then(function(r) { return r.json(); })
+        .then(function(res) {
+            if (res && res.success) {
+                currentParticipantData.is_picked_up = newIsPicked;
+                currentParticipantData.picked_up_by = pickedBy;
+                updateModalAttendanceBadge(newIsPicked, pickedBy);
+                setValue('edit_is_picked_up', newIsPicked ? '1' : '0');
+                setValue('edit_picked_up_by', pickedBy);
+                toggleEditPickedUpByField();
+                var p = (typeof window.currentParticipantsPage !== 'undefined') ? window.currentParticipantsPage : 1;
+                if (typeof window.fetchParticipants === 'function') {
+                    window.fetchParticipants(p);
+                }
+            } else {
+                alert((res && res.message) ? res.message : 'Gagal update status pengambilan');
+            }
+        })
+        .catch(function(err) {
+            console.error('quickTogglePickupFromModal error:', err);
+            alert('Terjadi kesalahan network');
+        });
+    };
 
     function setValue(id, val) {
         var el = document.getElementById(id);
@@ -3127,7 +3544,9 @@
             city: document.getElementById('edit_city').value.trim(),
             province: document.getElementById('edit_province').value.trim(),
             postal_code: document.getElementById('edit_postal_code').value.trim(),
-            is_picked_up: document.getElementById('edit_is_picked_up').value,
+            is_picked_up: document.getElementById('edit_is_picked_up') ? document.getElementById('edit_is_picked_up').value : '0',
+            picked_up_by: document.getElementById('edit_picked_up_by') ? document.getElementById('edit_picked_up_by').value.trim() : '',
+            payment_status: document.getElementById('edit_payment_status') ? document.getElementById('edit_payment_status').value : '',
             race_category_id: document.getElementById('edit_race_category_id').value,
             bib_number: document.getElementById('edit_bib_number').value.trim(),
             jersey_size: document.getElementById('edit_jersey_size').value.trim(),
@@ -3225,6 +3644,7 @@
                         age_group: res.data.age_group,
                         is_picked_up: res.data.is_picked_up,
                         picked_up_by: res.data.picked_up_by,
+                        payment_status: res.data.payment_status || (currentParticipantData ? currentParticipantData.payment_status : 'pending'),
                         coupon_id: res.data.coupon_id,
                         coupon_code: res.data.coupon_code,
                         pic_name: res.data.pic_name,
@@ -3341,11 +3761,11 @@
                 document.getElementById('dm_notes').textContent = res.data.notes || '-';
                 
                 // Update Attendance Badge
-                var attendanceBadge = document.getElementById('dm_attendance_badge');
-                if (res.data.is_picked_up) {
-                     attendanceBadge.innerHTML = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-900/30 text-blue-400 border border-blue-500/30"><svg class="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>Picked Up</span>';
-                } else {
-                     attendanceBadge.innerHTML = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-700 text-slate-400 border border-slate-600">Not Picked Up</span>';
+                updateModalAttendanceBadge(res.data.is_picked_up, res.data.picked_up_by);
+                
+                // Update Payment Status Badge
+                if (res.data.payment_status) {
+                    updateModalPaymentBadge(res.data.payment_status);
                 }
                 
                 // Update Coupon View
@@ -3477,14 +3897,7 @@
         document.getElementById('dm_postal_code').textContent = data.postal_code || '';
 
         // Attendance / Picked Up Status
-        var isPickedUp = data.is_picked_up ? '1' : '0';
-        
-        var attendanceBadge = document.getElementById('dm_attendance_badge');
-        if (data.is_picked_up) {
-             attendanceBadge.innerHTML = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-900/30 text-blue-400 border border-blue-500/30"><svg class="w-3 h-3 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>Picked Up</span>';
-        } else {
-             attendanceBadge.innerHTML = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-700 text-slate-400 border border-slate-600">Not Picked Up</span>';
-        }
+        updateModalAttendanceBadge(data.is_picked_up, data.picked_up_by);
 
         // Populate Race Info
         document.getElementById('dm_category').textContent = data.category;
@@ -3525,17 +3938,9 @@
         couponEl.parentElement.classList.remove('hidden');
         
         // Payment Status Badge
-        var status = data.payment_status;
-        var badge = document.getElementById('dm_payment_status');
-        badge.className = 'px-2 py-1 rounded-full text-xs font-bold border';
-        if(status == 'paid') {
-            badge.classList.add('bg-green-900/30', 'text-green-400', 'border-green-500/30');
-        } else if(status == 'pending') {
-            badge.classList.add('bg-yellow-900/30', 'text-yellow-400', 'border-yellow-500/30');
-        } else {
-            badge.classList.add('bg-red-900/30', 'text-red-400', 'border-red-500/30');
-        }
-        badge.textContent = status.toUpperCase();
+        updateModalPaymentBadge(data.payment_status);
+        var ddPayment = document.getElementById('dm_payment_dropdown');
+        if (ddPayment) ddPayment.classList.add('hidden');
 
         // Populate Addons
         var addonsContainer = document.getElementById('dm_addons');

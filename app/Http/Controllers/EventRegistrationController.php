@@ -199,6 +199,53 @@ class EventRegistrationController extends Controller
         try {
             $transaction = $this->storeAction->execute($request, $event);
 
+            // Handle Free Event / Zero Amount Registration
+            if ($transaction->payment_gateway === 'free' || (float) ($transaction->final_amount ?? 0) <= 0) {
+                // Case 1: Free Registration that requires approval (Challenge / Curated Selection)
+                if ($transaction->payment_status === 'pending') {
+                    if ($wantsJson) {
+                        return response()->json([
+                            'success' => true,
+                            'message' => 'Pendaftaran berhasil dikirim! Menunggu seleksi dan persetujuan (approval) panitia.',
+                            'payment_gateway' => 'free',
+                            'payment_status' => 'pending',
+                            'final_amount' => 0,
+                            'transaction_id' => $transaction->id,
+                            'registration_id' => $transaction->public_ref,
+                            'redirect_url' => route('events.show', $slug).'?payment=approval_pending&tx='.$transaction->id.'&ref='.$transaction->public_ref,
+                        ]);
+                    }
+
+                    return redirect()->route('events.show', [
+                        'slug' => $slug,
+                        'payment' => 'approval_pending',
+                        'tx' => $transaction->id,
+                        'ref' => $transaction->public_ref,
+                    ])->with('success', 'Pendaftaran berhasil dikirim! Menunggu seleksi dan persetujuan panitia.');
+                }
+
+                // Case 2: Free Registration that is automatically confirmed (No approval required)
+                if ($wantsJson) {
+                    return response()->json([
+                        'success' => true,
+                        'message' => 'Pendaftaran berhasil dikonfirmasi!',
+                        'payment_gateway' => 'free',
+                        'payment_status' => 'paid',
+                        'final_amount' => 0,
+                        'transaction_id' => $transaction->id,
+                        'registration_id' => $transaction->public_ref,
+                        'redirect_url' => route('events.show', $slug).'?payment=success&tx='.$transaction->id.'&ref='.$transaction->public_ref,
+                    ]);
+                }
+
+                return redirect()->route('events.show', [
+                    'slug' => $slug,
+                    'payment' => 'success',
+                    'tx' => $transaction->id,
+                    'ref' => $transaction->public_ref,
+                ])->with('success', 'Pendaftaran berhasil dikonfirmasi!');
+            }
+
             // Handle Moota Redirect
             if ($transaction->payment_gateway === 'moota' && $transaction->payment_status === 'pending') {
                 if ($wantsJson) {
@@ -233,27 +280,6 @@ class EventRegistrationController extends Controller
                 }
 
                 return redirect()->route('events.show', $slug)->with('success', 'Registrasi COD berhasil dikirim! Menunggu persetujuan panitia.')->with('payment', 'cod_pending');
-            }
-
-            // Handle Free Event / Zero Amount Registration
-            if ($transaction->payment_status === 'paid' || (float) ($transaction->final_amount ?? 0) <= 0) {
-                if ($wantsJson) {
-                    return response()->json([
-                        'success' => true,
-                        'message' => 'Pendaftaran berhasil dikonfirmasi!',
-                        'payment_status' => 'paid',
-                        'transaction_id' => $transaction->id,
-                        'registration_id' => $transaction->public_ref,
-                        'redirect_url' => route('events.show', $slug).'?payment=success&tx='.$transaction->id.'&ref='.$transaction->public_ref,
-                    ]);
-                }
-
-                return redirect()->route('events.show', [
-                    'slug' => $slug,
-                    'payment' => 'success',
-                    'tx' => $transaction->id,
-                    'ref' => $transaction->public_ref,
-                ])->with('success', 'Pendaftaran berhasil dikonfirmasi!');
             }
 
             // If AJAX request, return JSON
