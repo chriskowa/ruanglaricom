@@ -19,15 +19,15 @@ return Application::configure(basePath: dirname(__DIR__))
                 return Limit::perMinute(60)->by($r->ip());
             });
             RateLimiter::for('kp-asset-upload', function (Request $r) {
-                $key = $r->user()?->id() ?: $r->ip();
+                $key = $r->user()?->id ?: $r->ip();
                 return Limit::perMinute(30)->by((string) $key);
             });
             RateLimiter::for('kp-pdf-heavy', function (Request $r) {
-                $key = $r->user()?->id() ?: $r->ip();
+                $key = $r->user()?->id ?: $r->ip();
                 return Limit::perHour(5)->by((string) $key);
             });
             RateLimiter::for('kp-payment', function (Request $r) {
-                $key = $r->user()?->id() ?: $r->ip();
+                $key = $r->user()?->id ?: $r->ip();
                 return Limit::perMinute(10)->by((string) $key);
             });
         },
