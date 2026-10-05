@@ -7,6 +7,7 @@ use App\Models\KalenderPelari\CalendarProject;
 use App\Services\KalenderPelari\CalendarDateEngineService;
 use App\Services\KalenderPelari\ProjectService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Gate;
 
 class EditorController extends Controller
 {
@@ -35,7 +36,7 @@ class EditorController extends Controller
 
     public function index(Request $request, CalendarProject $project)
     {
-        $this->authorize('update', $project);
+        Gate::authorize('update', $project);
 
         $yearMonths = $this->dates->yearMonthNames($project->year, 'id_ID');
         $canvas = $this->dates->canvasSizeFor($project->format_type);
@@ -55,7 +56,7 @@ class EditorController extends Controller
 
     public function destroy(Request $request, CalendarProject $project)
     {
-        $this->authorize('delete', $project);
+        Gate::authorize('delete', $project);
 
         $this->projects->delete($project);
 
