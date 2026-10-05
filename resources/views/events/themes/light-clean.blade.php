@@ -568,8 +568,8 @@
 
                                                 @if(!empty($event->premium_amenities['form_fields']['strava_activity']))
                                                 <div class="col-span-2">
-                                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Link Aktivitas Strava <span class="text-rose-500">*</span></label>
-                                                    <input type="url" name="participants[0][strava_url]" placeholder="https://www.strava.com/activities/..." class="input-premium w-full rounded-lg px-3 py-2 text-sm text-slate-900" required>
+                                                    <label class="block text-[10px] font-bold text-slate-400 uppercase mb-1">Link Aktivitas Strava <span class="text-slate-400 font-normal lowercase">(opsional)</span></label>
+                                                    <input type="url" name="participants[0][strava_url]" placeholder="https://www.strava.com/activities/..." class="input-premium w-full rounded-lg px-3 py-2 text-sm text-slate-900">
                                                 </div>
                                                 @endif
                                             </div>

@@ -1943,9 +1943,9 @@
                                         @if(!empty($event->premium_amenities['form_fields']['strava_activity']))
                                         <div class="grid grid-cols-1 gap-4 mt-2">
                                             <div class="space-y-1">
-                                                <label class="text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">Link Aktivitas Strava <span class="text-red-500">*</span></label>
-                                                <input type="url" name="participants[0][strava_url]" placeholder="https://www.strava.com/activities/..." class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>
-                                                <p class="text-[11px] text-slate-500 ml-1">Tautan aktivitas lari kualifikasi Strava Anda</p>
+                                                <label class="text-xs font-bold text-slate-700 uppercase tracking-wider ml-1">Link Aktivitas Strava <span class="text-slate-400 font-normal text-[11px] lowercase">(opsional)</span></label>
+                                                <input type="url" name="participants[0][strava_url]" placeholder="https://www.strava.com/activities/..." class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none">
+                                                <p class="text-[11px] text-slate-500 ml-1">Tautan aktivitas lari kualifikasi Strava Anda (opsional)</p>
                                             </div>
                                         </div>
                                         @endif

@@ -857,8 +857,8 @@
 
                                             @if($showStrava)
                                                 <div>
-                                                    <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Link Aktivitas Strava <span class="text-orange-600">*</span></label>
-                                                    <input class="field mt-1" type="url" data-field="strava_url" name="participants[0][strava_url]" placeholder="https://www.strava.com/activities/..." required>
+                                                    <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Link Aktivitas Strava <span class="text-slate-400 font-normal lowercase">(opsional)</span></label>
+                                                    <input class="field mt-1" type="url" data-field="strava_url" name="participants[0][strava_url]" placeholder="https://www.strava.com/activities/...">
                                                 </div>
                                             @else
                                                 <input type="hidden" data-hidden-auto="strava_url" name="participants[0][strava_url]" value="">
@@ -1105,8 +1105,8 @@
 
                                             @if($showStrava)
                                                 <div>
-                                                    <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Link Aktivitas Strava</label>
-                                                    <input class="field mt-1" type="url" data-field="strava_url" placeholder="https://www.strava.com/activities/..." required>
+                                                    <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Link Aktivitas Strava <span class="text-slate-400 font-normal lowercase">(opsional)</span></label>
+                                                    <input class="field mt-1" type="url" data-field="strava_url" placeholder="https://www.strava.com/activities/...">
                                                 </div>
                                             @else
                                                 <input type="hidden" data-hidden-auto="strava_url" value="">

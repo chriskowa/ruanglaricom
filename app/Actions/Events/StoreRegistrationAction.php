@@ -593,7 +593,7 @@ class StoreRegistrationAction
                     'target_time' => ! empty($participantData['target_time']) ? $participantData['target_time'] : null,
                     'jersey_size' => $jerseySize,
                     'blood_type' => $participantData['blood_type'] ?? null,
-                    'strava_url' => $participantData['strava_url'] ?? ($participantData['strava_activity'] ?? null),
+                    'strava_url' => ! empty($participantData['strava_url']) ? $participantData['strava_url'] : (! empty($participantData['strava_activity']) ? $participantData['strava_activity'] : null),
                     'photo' => $photoPath,
                     'addons' => $participantsWithAddons[$pIndex] ?? [],
                     'status' => 'pending',
