@@ -1,9 +1,11 @@
 export class KpElementProperties {
-    constructor({ store, emptyEl, propsPanel, registry }) {
+    constructor({ store, emptyEl, propsPanel, registry, api }) {
         this.store = store;
         this.emptyEl = emptyEl;
         this.propsPanel = propsPanel;
         this.registry = registry;
+        this.api = api || {};
+        this._raceTab = 'search';
         this.store.addEventListener('selection-changed', ({ detail: { id } }) => this.renderFor(id));
         this.store.addEventListener('changed', () => {
             if (!this.propsPanel?.contains(document.activeElement)) this.renderFor(this.store.selectedElementId);
@@ -129,6 +131,10 @@ export class KpElementProperties {
         p.querySelector('[data-action="duplicate"]')?.addEventListener('click', () => self.store.duplicateSelected());
         p.querySelector('[data-action="delete"]')?.addEventListener('click', () => self.store.deleteSelected());
         p.querySelector('[data-action="bringforward"]')?.addEventListener('click', () => self.store.bringForward(id, 1));
+
+        if (self.store.getSelectedElement()?.element_type === 'CALENDAR_GRID') {
+            self._bindGridEvents(p, id);
+        }
     }
 
     _textFields(e) {
@@ -164,10 +170,360 @@ export class KpElementProperties {
 
     _gridFields(e) {
         const s = e.style_config || {};
+        const c = e.content_json || {};
+        const races = Array.isArray(c.races) ? c.races : [];
+        const activePage = this.store.getActivePage();
+        const activeMonth = activePage?.month_number || 1;
+        const year = this.store.project?.year || new Date().getFullYear();
+        const monthNames = ['', 'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        const activeMonthName = monthNames[activeMonth] || `Bulan ${activeMonth}`;
+        const daysInMonth = new Date(Date.UTC(year, activeMonth, 0)).getUTCDate();
+
+        const raceListHtml = races.length === 0
+            ? `<div class="p-2.5 rounded-md border border-dashed border-slate-800 text-xs text-slate-400">Belum ada race yang ditandai untuk ${activeMonthName}.</div>`
+            : `<div class="space-y-1.5">
+                ${races.map(r => `
+                    <div class="kp-race-item">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="text-xs font-mono font-bold text-slate-300 shrink-0">Tgl ${r.day}</span>
+                            <span class="text-[11px] font-bold px-1.5 py-0.5 rounded text-white shrink-0" style="background:${r.color || '#E63946'}">${r.distance || 'Race'}</span>
+                            <span class="text-xs text-white truncate" title="${r.name || ''}">${r.name || 'Jadwal Race'}</span>
+                        </div>
+                        <button type="button" data-delete-race="${r.id}" class="text-xs font-medium text-slate-400 hover:text-red-400 p-1 shrink-0 transition" title="Hapus tanda race">Hapus</button>
+                    </div>
+                `).join('')}
+            </div>`;
+
+        const dayOptions = [];
+        for (let d = 1; d <= daysInMonth; d++) {
+            dayOptions.push(`<option value="${d}">Tgl ${d} ${activeMonthName}</option>`);
+        }
+
+        const isSearchTab = this._raceTab !== 'manual';
+
         return [
             row('Warna Header', colorInput('style_config.header_color', s.header_color || '#305a49')),
             row('Aksen Weekend', colorInput('style_config.weekend_bg', s.weekend_bg || '#f1f5f3')),
+            `<div class="kp-prop-row">
+                <div class="flex items-center justify-between mb-2">
+                    <span class="kp-prop-label">Jadwal Race (${activeMonthName})</span>
+                    <span class="text-xs font-mono text-slate-400">${races.length} race</span>
+                </div>
+                ${raceListHtml}
+            </div>`,
+            `<div class="kp-prop-row">
+                <span class="kp-prop-label mb-2">Tandai Jadwal Race Baru</span>
+                <div class="flex gap-1.5 mb-3">
+                    <button type="button" data-race-tab="search" class="kp-race-tab-btn ${isSearchTab ? 'active' : ''}">Cari Event RuangLari</button>
+                    <button type="button" data-race-tab="manual" class="kp-race-tab-btn ${!isSearchTab ? 'active' : ''}">Input Manual</button>
+                </div>
+
+                <div id="kp-race-tab-search-content" class="${isSearchTab ? '' : 'hidden'} space-y-2">
+                    <div class="relative">
+                        <input type="text" id="kp-race-search-input" class="kp-prop-input" placeholder="Cari event (cth: Pocari, Borobudur)...">
+                        <div id="kp-race-search-spinner" class="hidden absolute right-3 top-2.5 text-xs text-slate-400">Mencari...</div>
+                    </div>
+                    <div id="kp-race-search-results" class="space-y-1.5 max-h-48 overflow-y-auto pr-1"></div>
+                    <div id="kp-race-search-selected" class="hidden p-2.5 bg-slate-900 border border-slate-700 rounded-md space-y-2">
+                        <div class="text-xs font-bold text-white" id="kp-race-selected-title"></div>
+                        <div class="text-xs text-slate-300" id="kp-race-selected-meta"></div>
+                        <div class="space-y-1">
+                            <span class="text-[11px] font-semibold text-slate-300">Pilih / Ketik Jarak:</span>
+                            <div class="flex flex-wrap gap-1" id="kp-race-selected-dist-pills"></div>
+                            <input type="text" id="kp-race-search-custom-dist" class="kp-prop-input text-xs py-1.5 mt-1" placeholder="Jarak (cth: 21K, 10K, Marathon)">
+                        </div>
+                        <div class="space-y-1">
+                            <span class="text-[11px] font-semibold text-slate-300">Warna Badge:</span>
+                            <div class="flex items-center gap-1.5" id="kp-race-search-color-row">
+                                ${['#E63946', '#ccff00', '#2563EB', '#16A34A', '#F97316', '#8B5CF6'].map((hex, i) => `
+                                    <button type="button" data-pick-color="${hex}" class="w-6 h-6 rounded border ${i === 0 ? 'border-white' : 'border-slate-700'} kp-color-swatch" style="background:${hex};"></button>
+                                `).join('')}
+                                <input type="color" id="kp-race-search-color-input" value="#E63946" class="w-6 h-6 rounded border border-slate-700 bg-slate-800 cursor-pointer">
+                            </div>
+                        </div>
+                        <button type="button" id="kp-btn-confirm-search-race" class="kp-prop-btn w-full mt-2 font-bold text-slate-950 bg-white hover:bg-slate-200 border-none">+ Tandai di Kalender</button>
+                    </div>
+                </div>
+
+                <div id="kp-race-tab-manual-content" class="${!isSearchTab ? '' : 'hidden'} space-y-2.5">
+                    <div>
+                        <label class="text-[11px] font-semibold text-slate-300 block mb-1">Tanggal</label>
+                        <select id="kp-race-manual-day" class="kp-prop-input">
+                            ${dayOptions.join('')}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-semibold text-slate-300 block mb-1">Nama Race / Acara</label>
+                        <input type="text" id="kp-race-manual-name" class="kp-prop-input" placeholder="Cth: Half Marathon Race">
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-semibold text-slate-300 block mb-1">Jarak / Kategori</label>
+                        <div class="flex gap-1 mb-1.5">
+                            ${['5K', '10K', '21K', '42K', 'Ultra'].map(d => `
+                                <button type="button" data-set-manual-dist="${d}" class="flex-1 py-1 text-xs rounded border border-slate-700 bg-slate-800 text-slate-200 hover:text-white">${d}</button>
+                            `).join('')}
+                        </div>
+                        <input type="text" id="kp-race-manual-dist" class="kp-prop-input text-xs" value="21K" placeholder="Cth: 21K">
+                    </div>
+                    <div>
+                        <label class="text-[11px] font-semibold text-slate-300 block mb-1">Warna Badge</label>
+                        <div class="flex items-center gap-1.5" id="kp-race-manual-color-row">
+                            ${['#E63946', '#ccff00', '#2563EB', '#16A34A', '#F97316', '#8B5CF6'].map((hex, i) => `
+                                <button type="button" data-pick-manual-color="${hex}" class="w-6 h-6 rounded border ${i === 0 ? 'border-white' : 'border-slate-700'} kp-manual-color-swatch" style="background:${hex};"></button>
+                            `).join('')}
+                            <input type="color" id="kp-race-manual-color-input" value="#E63946" class="w-6 h-6 rounded border border-slate-700 bg-slate-800 cursor-pointer">
+                        </div>
+                    </div>
+                    <button type="button" id="kp-btn-add-manual-race" class="kp-prop-btn w-full mt-2 font-bold text-slate-950 bg-white hover:bg-slate-200 border-none">+ Tambah ke Kalender</button>
+                </div>
+            </div>`
         ];
+    }
+
+    _bindGridEvents(p, id) {
+        const self = this;
+        // Tab switching
+        p.querySelectorAll('[data-race-tab]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                self._raceTab = btn.dataset.raceTab;
+                const isSearch = self._raceTab !== 'manual';
+                p.querySelectorAll('[data-race-tab]').forEach(b => {
+                    b.classList.toggle('active', b.dataset.raceTab === self._raceTab);
+                });
+                const searchEl = p.querySelector('#kp-race-tab-search-content');
+                const manualEl = p.querySelector('#kp-race-tab-manual-content');
+                if (searchEl) searchEl.classList.toggle('hidden', !isSearch);
+                if (manualEl) manualEl.classList.toggle('hidden', isSearch);
+                if (isSearch && searchInput && !searchResults?.hasChildNodes()) {
+                    doSearch(searchInput.value.trim());
+                }
+            });
+        });
+
+        // Delete race button
+        p.querySelectorAll('[data-delete-race]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const raceId = btn.dataset.deleteRace;
+                const element = self.store.getSelectedElement();
+                if (!element) return;
+                const currentRaces = Array.isArray(element.content_json?.races) ? element.content_json.races : [];
+                const nextRaces = currentRaces.filter(r => r.id !== raceId);
+                self.store.updateElement(id, {
+                    content_json: { ...(element.content_json || {}), races: nextRaces }
+                }, { msg: 'delete-race' });
+                self.renderFor(id);
+            });
+        });
+
+        // Manual race inputs & presets
+        p.querySelectorAll('[data-set-manual-dist]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const input = p.querySelector('#kp-race-manual-dist');
+                if (input) input.value = btn.dataset.setManualDist;
+            });
+        });
+
+        let manualColor = '#E63946';
+        p.querySelectorAll('[data-pick-manual-color]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                manualColor = btn.dataset.pickManualColor;
+                p.querySelectorAll('.kp-manual-color-swatch').forEach(s => s.classList.remove('border-white'));
+                btn.classList.add('border-white');
+                const colorInput = p.querySelector('#kp-race-manual-color-input');
+                if (colorInput) colorInput.value = manualColor;
+            });
+        });
+        const manualColorInput = p.querySelector('#kp-race-manual-color-input');
+        if (manualColorInput) {
+            manualColorInput.addEventListener('input', () => {
+                manualColor = manualColorInput.value;
+                p.querySelectorAll('.kp-manual-color-swatch').forEach(s => s.classList.remove('border-white'));
+            });
+        }
+
+        const addManualBtn = p.querySelector('#kp-btn-add-manual-race');
+        if (addManualBtn) {
+            addManualBtn.addEventListener('click', () => {
+                const daySelect = p.querySelector('#kp-race-manual-day');
+                const nameInput = p.querySelector('#kp-race-manual-name');
+                const distInput = p.querySelector('#kp-race-manual-dist');
+                const day = parseInt(daySelect?.value || '1', 10);
+                const name = (nameInput?.value || '').trim() || 'Race Day';
+                const distance = (distInput?.value || '').trim() || '21K';
+
+                const element = self.store.getSelectedElement();
+                if (!element) return;
+                const currentRaces = Array.isArray(element.content_json?.races) ? [...element.content_json.races] : [];
+                const newRace = {
+                    id: 'race_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+                    day,
+                    name,
+                    distance,
+                    color: manualColor,
+                };
+                currentRaces.push(newRace);
+                currentRaces.sort((a, b) => Number(a.day) - Number(b.day));
+
+                self.store.updateElement(id, {
+                    content_json: { ...(element.content_json || {}), races: currentRaces }
+                }, { msg: 'add-race-manual' });
+                self.renderFor(id);
+            });
+        }
+
+        // RuangLari search inputs & events
+        const searchInput = p.querySelector('#kp-race-search-input');
+        const searchResults = p.querySelector('#kp-race-search-results');
+        const searchSpinner = p.querySelector('#kp-race-search-spinner');
+        const selectedBox = p.querySelector('#kp-race-search-selected');
+        let searchTimer = null;
+        let currentEventSelected = null;
+        let searchColor = '#E63946';
+
+        const doSearch = (query = '') => {
+            if (!searchResults) return;
+            const activePage = self.store.getActivePage();
+            const activeMonth = activePage?.month_number || 1;
+            const year = self.store.project?.year || new Date().getFullYear();
+            const endpoint = self.api?.event_search || '/kalender-pelari/api/events/search';
+
+            if (searchSpinner) searchSpinner.classList.remove('hidden');
+            const url = new URL(endpoint, window.location.origin);
+            url.searchParams.set('year', year);
+            url.searchParams.set('month', activeMonth);
+            if (query) url.searchParams.set('q', query);
+
+            fetch(url.toString(), { credentials: 'same-origin' })
+                .then(res => res.json())
+                .then(data => {
+                    if (searchSpinner) searchSpinner.classList.add('hidden');
+                    const events = data.events || [];
+                    if (events.length === 0) {
+                        searchResults.innerHTML = `<div class="p-2 text-xs text-slate-400">Tidak ada event ditemukan.</div>`;
+                        return;
+                    }
+                    searchResults.innerHTML = events.map(ev => `
+                        <div class="kp-race-search-item" data-ev-id="${ev.id}">
+                            <div class="flex items-center justify-between gap-1">
+                                <span class="text-xs font-bold text-white truncate">${ev.name}</span>
+                                <span class="text-[11px] font-mono font-bold text-emerald-400 shrink-0">${ev.day ? 'Tgl ' + ev.day : ''}</span>
+                            </div>
+                            <div class="text-[11px] text-slate-400 flex items-center gap-1.5 mt-0.5 truncate">
+                                <span>${ev.city || 'Indonesia'}</span>
+                                ${ev.month && ev.month !== activeMonth ? `<span class="text-amber-400 font-semibold">(Bulan ${ev.month})</span>` : ''}
+                                ${ev.distances?.length ? `<span>· ${ev.distances.join(', ')}</span>` : ''}
+                            </div>
+                        </div>
+                    `).join('');
+
+                    searchResults.querySelectorAll('.kp-race-search-item').forEach(item => {
+                        item.addEventListener('click', () => {
+                            const evId = parseInt(item.dataset.evId, 10);
+                            const ev = events.find(x => x.id === evId);
+                            if (!ev) return;
+                            currentEventSelected = ev;
+
+                            searchResults.querySelectorAll('.kp-race-search-item').forEach(el => el.classList.remove('border-emerald-500', 'bg-slate-800'));
+                            item.classList.add('border-emerald-500', 'bg-slate-800');
+
+                            if (selectedBox) {
+                                selectedBox.classList.remove('hidden');
+                                const titleEl = selectedBox.querySelector('#kp-race-selected-title');
+                                const metaEl = selectedBox.querySelector('#kp-race-selected-meta');
+                                const pillsEl = selectedBox.querySelector('#kp-race-selected-dist-pills');
+                                const customDistInput = selectedBox.querySelector('#kp-race-search-custom-dist');
+
+                                if (titleEl) titleEl.textContent = ev.name;
+                                const dateStr = ev.day ? `Tanggal ${ev.day} (Bulan ${ev.month || activeMonth})` : 'Jadwal race';
+                                if (metaEl) metaEl.textContent = `${dateStr} · ${ev.city || 'Indonesia'}`;
+
+                                const defaultDists = (ev.distances && ev.distances.length > 0) ? ev.distances : ['5K', '10K', '21K', '42K'];
+                                if (customDistInput) customDistInput.value = defaultDists[0] || '21K';
+
+                                if (pillsEl) {
+                                    pillsEl.innerHTML = defaultDists.map(d => `
+                                        <button type="button" data-pick-dist="${d}" class="px-2 py-0.5 text-xs rounded border border-slate-700 bg-slate-800 text-slate-200 hover:text-white">${d}</button>
+                                    `).join('');
+                                    pillsEl.querySelectorAll('[data-pick-dist]').forEach(pBtn => {
+                                        pBtn.addEventListener('click', () => {
+                                            if (customDistInput) customDistInput.value = pBtn.dataset.pickDist;
+                                        });
+                                    });
+                                }
+                            }
+                        });
+                    });
+                })
+                .catch(err => {
+                    if (searchSpinner) searchSpinner.classList.add('hidden');
+                    console.error('Failed to search events', err);
+                });
+        };
+
+        if (searchInput) {
+            searchInput.addEventListener('input', () => {
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(() => {
+                    doSearch(searchInput.value.trim());
+                }, 300);
+            });
+            // Initial auto-search for current month
+            doSearch('');
+        }
+
+        p.querySelectorAll('[data-pick-color]').forEach(btn => {
+            btn.addEventListener('click', () => {
+                searchColor = btn.dataset.pickColor;
+                p.querySelectorAll('.kp-color-swatch').forEach(s => s.classList.remove('border-white'));
+                btn.classList.add('border-white');
+                const colorInput = p.querySelector('#kp-race-search-color-input');
+                if (colorInput) colorInput.value = searchColor;
+            });
+        });
+        const searchColorInput = p.querySelector('#kp-race-search-color-input');
+        if (searchColorInput) {
+            searchColorInput.addEventListener('input', () => {
+                searchColor = searchColorInput.value;
+                p.querySelectorAll('.kp-color-swatch').forEach(s => s.classList.remove('border-white'));
+            });
+        }
+
+        const confirmSearchBtn = p.querySelector('#kp-btn-confirm-search-race');
+        if (confirmSearchBtn) {
+            confirmSearchBtn.addEventListener('click', () => {
+                if (!currentEventSelected) return;
+                const activePage = self.store.getActivePage();
+                const activeMonth = activePage?.month_number || 1;
+                const distInput = p.querySelector('#kp-race-search-custom-dist');
+                const distance = (distInput?.value || '').trim() || '21K';
+
+                let day = currentEventSelected.day;
+                if (!day || day < 1 || day > 31) day = 1;
+
+                if (currentEventSelected.month && currentEventSelected.month !== activeMonth) {
+                    const confirmed = confirm(`Event "${currentEventSelected.name}" terdaftar pada bulan ${currentEventSelected.month}. Halaman aktif saat ini adalah bulan ${activeMonth}. Tetap tandai di tanggal ${day} bulan ${activeMonth}?`);
+                    if (!confirmed) return;
+                }
+
+                const element = self.store.getSelectedElement();
+                if (!element) return;
+                const currentRaces = Array.isArray(element.content_json?.races) ? [...element.content_json.races] : [];
+                const newRace = {
+                    id: 'race_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7),
+                    day,
+                    name: currentEventSelected.name,
+                    distance,
+                    color: searchColor,
+                };
+                currentRaces.push(newRace);
+                currentRaces.sort((a, b) => Number(a.day) - Number(b.day));
+
+                self.store.updateElement(id, {
+                    content_json: { ...(element.content_json || {}), races: currentRaces }
+                }, { msg: 'add-race-searched' });
+                self.renderFor(id);
+            });
+        }
     }
 
     _statsFields(e) {

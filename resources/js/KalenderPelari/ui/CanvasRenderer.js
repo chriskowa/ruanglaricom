@@ -268,14 +268,50 @@ export class KpCanvasRenderer {
         table.appendChild(thead);
         const tbody = document.createElement('tbody');
         const s = e.style_config || {};
+        const races = Array.isArray(e.content_json?.races) ? e.content_json.races : [];
+
         for (const row of rows) {
             const tr = document.createElement('tr');
             for (const c of row) {
                 const td = document.createElement('td');
-                if (!c) { td.classList.add('empty'); }
-                else {
-                    td.textContent = String(c.day);
+                if (!c) {
+                    td.classList.add('empty');
+                } else {
                     if (c.weekend && s.weekend_bg) td.style.background = s.weekend_bg;
+
+                    const cellWrap = document.createElement('div');
+                    cellWrap.className = 'kp-calendar-cell-wrap';
+
+                    const daySpan = document.createElement('span');
+                    daySpan.className = 'kp-calendar-day-num';
+                    daySpan.textContent = String(c.day);
+                    cellWrap.appendChild(daySpan);
+
+                    const dayRaces = races.filter(r => Number(r.day) === Number(c.day));
+                    if (dayRaces.length > 0) {
+                        dayRaces.forEach(r => {
+                            const badge = document.createElement('div');
+                            badge.className = 'kp-race-badge';
+                            badge.style.background = r.color || '#E63946';
+                            badge.title = `${r.name || 'Race'}${r.distance ? ' (' + r.distance + ')' : ''}`;
+
+                            if (r.distance) {
+                                const distSpan = document.createElement('span');
+                                distSpan.className = 'kp-race-dist';
+                                distSpan.textContent = r.distance;
+                                badge.appendChild(distSpan);
+                            }
+
+                            const nameSpan = document.createElement('span');
+                            nameSpan.className = 'kp-race-title';
+                            nameSpan.textContent = r.name || 'Race';
+                            badge.appendChild(nameSpan);
+
+                            cellWrap.appendChild(badge);
+                        });
+                    }
+
+                    td.appendChild(cellWrap);
                 }
                 tr.appendChild(td);
             }

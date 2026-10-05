@@ -71,6 +71,7 @@ export function createKpEditor(rootEl) {
         emptyEl: emptyProps,
         propsPanel,
         registry,
+        api,
     });
     const dnd = new KpDragAndDrop({ store, renderer, canvasEl, rootEl });
 

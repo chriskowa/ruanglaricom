@@ -53,6 +53,18 @@ class StoreRegistrationAction
                 if (isset($p['email'])) {
                     $p['email'] = trim($p['email']);
                 }
+                if (isset($p['date_of_birth'])) {
+                    $p['date_of_birth'] = trim((string) $p['date_of_birth']);
+                    if ($p['date_of_birth'] === '') {
+                        $p['date_of_birth'] = null;
+                    }
+                }
+                if (isset($p['jersey_size'])) {
+                    $p['jersey_size'] = trim((string) $p['jersey_size']);
+                    if ($p['jersey_size'] === '') {
+                        $p['jersey_size'] = null;
+                    }
+                }
                 if (isset($p['target_time'])) {
                     $p['target_time'] = trim((string) $p['target_time']);
                     if ($p['target_time'] === '') {
@@ -563,7 +575,7 @@ class StoreRegistrationAction
                     : '-';
                 $jerseySize = ! empty($participantData['jersey_size'])
                     ? $participantData['jersey_size']
-                    : (collect($event->jersey_sizes ?? [])->filter()->first() ?? 'L');
+                    : ($jerseyRequired ? (collect($event->jersey_sizes ?? [])->filter()->first() ?? 'L') : null);
 
                 // Create participant
                 Participant::create([
@@ -577,8 +589,8 @@ class StoreRegistrationAction
                     'address' => $address,
                     'emergency_contact_name' => $emName,
                     'emergency_contact_number' => $emPhone,
-                    'date_of_birth' => $participantData['date_of_birth'] ?? null,
-                    'target_time' => $participantData['target_time'] ?? null,
+                    'date_of_birth' => ! empty($participantData['date_of_birth']) ? $participantData['date_of_birth'] : null,
+                    'target_time' => ! empty($participantData['target_time']) ? $participantData['target_time'] : null,
                     'jersey_size' => $jerseySize,
                     'blood_type' => $participantData['blood_type'] ?? null,
                     'strava_url' => $participantData['strava_url'] ?? ($participantData['strava_activity'] ?? null),

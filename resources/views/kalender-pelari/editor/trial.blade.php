@@ -61,6 +61,7 @@
         'asset_mark' => route('kalender-pelari.api.asset.local-only'),
         'login' => $authLoginUrl,
         'runner_calendar' => route('runner.calendar'),
+        'event_search' => route('kalender-pelari.api.events.search'),
     ];
     $_kpConfig = [
         'trial' => !($isAuthenticatedEditor ?? false),

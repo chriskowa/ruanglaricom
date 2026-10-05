@@ -74,7 +74,7 @@
     $rawShortDescription = str_replace('&nbsp;', ' ', $rawShortDescription);
     $shortDescription = trim(preg_replace('/\s+/u', ' ', strip_tags($rawShortDescription)));
     $platformFee = (int) ($event->platform_fee ?? 0);
-    $defaultJersey = collect($event->jersey_sizes ?? [])->filter()->first() ?? 'L';
+    $defaultJersey = collect($event->jersey_sizes ?? [])->filter()->first() ?? '';
     $formFields = $event->premium_amenities['form_fields'] ?? [];
     $showIdCard = !empty($formFields['id_card']);
     $showAddress = !empty($formFields['address']);
@@ -791,7 +791,7 @@
                                                     <input type="date" class="field mt-1" data-field="date_of_birth" name="participants[0][date_of_birth]" required>
                                                 </div>
                                             @else
-                                                <input type="hidden" data-hidden-auto="date_of_birth" name="participants[0][date_of_birth]">
+                                                <input type="hidden" data-hidden-auto="date_of_birth" name="participants[0][date_of_birth]" value="">
                                             @endif
 
                                             @if($showJersey)
@@ -805,7 +805,7 @@
                                                     </select>
                                                 </div>
                                             @else
-                                                <input type="hidden" data-hidden-auto="jersey_size" name="participants[0][jersey_size]" value="{{ $defaultJersey }}">
+                                                <input type="hidden" data-hidden-auto="jersey_size" name="participants[0][jersey_size]" value="">
                                             @endif
 
                                             @if($showTargetTime)
@@ -1061,6 +1061,7 @@
                                                 <div>
                                                     <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Ukuran Jersey</label>
                                                     <select class="field mt-1" data-field="jersey_size" required>
+                                                        <option value="">Pilih ukuran jersey</option>
                                                         @if(!empty($event->jersey_sizes) && is_array($event->jersey_sizes))
                                                             @foreach($event->jersey_sizes as $size)
                                                                 <option value="{{ $size }}">{{ $size }}</option>
@@ -1068,14 +1069,14 @@
                                                         @else
                                                             <option value="S">S</option>
                                                             <option value="M">M</option>
-                                                            <option value="L" selected>L</option>
+                                                            <option value="L">L</option>
                                                             <option value="XL">XL</option>
                                                             <option value="XXL">XXL</option>
                                                         @endif
                                                     </select>
                                                 </div>
                                             @else
-                                                <input type="hidden" data-hidden-auto="jersey_size" value="{{ $defaultJersey }}">
+                                                <input type="hidden" data-hidden-auto="jersey_size" value="">
                                             @endif
 
                                             @if($showTargetTime)
@@ -2501,14 +2502,17 @@
                     if (emPhoneEl) emPhoneEl.value = phone || '0811111111';
 
                     const dobEl = item.querySelector('[data-hidden-auto="date_of_birth"]');
-                    if (dobEl) dobEl.value = '1990-01-01';
+                    if (dobEl) dobEl.value = '';
 
-                    const targetHour = item.querySelector('[data-target-hour]')?.value || '00';
-                    const targetMinute = item.querySelector('[data-target-minute]')?.value || '30';
-                    const targetSecond = item.querySelector('[data-target-second]')?.value || '00';
-                    const targetTimeEl = item.querySelector('[data-field="target_time"]') || item.querySelector('[data-hidden-auto="target_time"]');
-                    if (targetTimeEl) {
-                        targetTimeEl.value = targetHour + ':' + targetMinute + ':' + targetSecond;
+                    const targetTimeField = item.querySelector('[data-field="target_time"]');
+                    if (targetTimeField) {
+                        const targetHour = item.querySelector('[data-target-hour]')?.value || '00';
+                        const targetMinute = item.querySelector('[data-target-minute]')?.value || '30';
+                        const targetSecond = item.querySelector('[data-target-second]')?.value || '00';
+                        targetTimeField.value = targetHour + ':' + targetMinute + ':' + targetSecond;
+                    } else {
+                        const targetTimeHidden = item.querySelector('[data-hidden-auto="target_time"]');
+                        if (targetTimeHidden) targetTimeHidden.value = '';
                     }
                 });
             }

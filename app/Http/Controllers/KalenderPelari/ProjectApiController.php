@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\KalenderPelari;
 
 use App\Http\Controllers\Controller;
+use App\Models\Event;
 use App\Models\KalenderPelari\CalendarProject;
 use App\Services\KalenderPelari\ProjectService;
 use App\Services\KalenderPelari\RunnerDataBindingService;
@@ -80,6 +81,71 @@ class ProjectApiController extends Controller
         return response()->json([
             'success' => true,
             'data' => $data,
+        ]);
+    }
+
+    public function searchEvents(Request $request)
+    {
+        $year = (int) $request->query('year', 0);
+        $month = (int) $request->query('month', 0);
+        $q = trim((string) $request->query('q', ''));
+
+        $query = Event::query()
+            ->select(['id', 'name', 'start_at', 'end_at', 'location_name', 'city_id', 'slug'])
+            ->with(['city:id,name', 'categories:id,event_id,name,distance_km', 'raceDistances:id,name'])
+            ->whereNotNull('start_at');
+
+        if ($year >= 2020 && $year <= 2040) {
+            $query->whereYear('start_at', $year);
+        }
+
+        if ($month >= 1 && $month <= 12 && $q === '') {
+            $query->whereMonth('start_at', $month);
+        }
+
+        if ($q !== '') {
+            $query->where('name', 'like', "%{$q}%");
+        }
+
+        $events = $query->orderBy('start_at', 'asc')
+            ->limit(25)
+            ->get()
+            ->map(function ($ev) {
+                $distances = [];
+                if ($ev->categories && $ev->categories->isNotEmpty()) {
+                    foreach ($ev->categories as $c) {
+                        $km = (float) $c->distance_km;
+                        if ($km > 0) {
+                            if ($km == 21.1) $distances[] = '21K';
+                            elseif ($km == 42.2) $distances[] = '42K';
+                            elseif (floor($km) == $km) $distances[] = ((int) $km).'K';
+                            else $distances[] = round($km, 1).'K';
+                        } elseif ($c->name) {
+                            $distances[] = $c->name;
+                        }
+                    }
+                } elseif ($ev->raceDistances && $ev->raceDistances->isNotEmpty()) {
+                    foreach ($ev->raceDistances as $rd) {
+                        if ($rd->name) $distances[] = $rd->name;
+                    }
+                }
+                $distances = array_values(array_unique(array_filter($distances)));
+
+                return [
+                    'id' => $ev->id,
+                    'name' => $ev->name,
+                    'date' => $ev->start_at ? $ev->start_at->format('Y-m-d') : null,
+                    'day' => $ev->start_at ? (int) $ev->start_at->format('j') : null,
+                    'month' => $ev->start_at ? (int) $ev->start_at->format('n') : null,
+                    'year' => $ev->start_at ? (int) $ev->start_at->format('Y') : null,
+                    'city' => $ev->city?->name ?? $ev->location_name ?? '',
+                    'distances' => $distances,
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'events' => $events,
         ]);
     }
 

@@ -42,6 +42,10 @@ Route::group([
     Route::post('/api/assets/trial/mark', [AssetController::class, 'markLocalOnly'])
         ->name('api.asset.local-only')
         ->middleware($anonThrottle);
+
+    Route::get('/api/events/search', [ProjectApiController::class, 'searchEvents'])
+        ->name('api.events.search')
+        ->middleware($anonThrottle);
 });
 
 Route::group([

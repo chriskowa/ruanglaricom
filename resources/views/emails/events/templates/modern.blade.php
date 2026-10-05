@@ -111,6 +111,8 @@
 
                     @php
                         $formFields = $event->premium_amenities['form_fields'] ?? [];
+                        $hasFormFields = isset($event->premium_amenities['form_fields']) && is_array($event->premium_amenities['form_fields']);
+                        $showJersey = $hasFormFields ? (!empty($formFields['jersey_size']) && ($event->ticket_email_show_jersey ?? true)) : ($event->ticket_email_show_jersey ?? true);
                     @endphp
 
                     @if(!empty($formFields['id_card']) && !empty($participant->id_card))
@@ -136,7 +138,7 @@
                     </tr>
                     @endif
 
-                    @if((!empty($formFields['jersey_size']) || ($event->ticket_email_show_jersey ?? true)) && !empty($participant->jersey_size))
+                    @if($showJersey && !empty($participant->jersey_size))
                     <tr>
                         <td class="ticket-label">Ukuran Jersey</td>
                         <td class="ticket-value">{{ $participant->jersey_size }}</td>
@@ -145,7 +147,7 @@
 
                     @if(!empty($formFields['target_time']) && !empty($participant->target_time))
                     <tr>
-                        <td class="ticket-label">Target Waktu</td>
+                        <td class="ticket-label">Personal Best</td>
                         <td class="ticket-value">{{ $participant->target_time }}</td>
                     </tr>
                     @endif
