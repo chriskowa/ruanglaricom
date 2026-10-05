@@ -15,6 +15,14 @@ class CalendarProject extends Model
     use HasFactory;
     use SoftDeletes;
 
+    public const STATUS_DRAFT_TRIAL = 'DRAFT_TRIAL';
+    public const STATUS_DRAFT_SAVED = 'DRAFT_SAVED';
+    public const STATUS_ACTIVE = 'ACTIVE';
+    public const STATUS_PENDING_CHECKOUT = 'PENDING_CHECKOUT';
+    public const STATUS_PRODUCTION_ACTIVE = 'PRODUCTION_ACTIVE';
+    public const STATUS_ARCHIVED = 'ARCHIVED';
+    public const STATUS_EXPIRED_TRIAL = 'EXPIRED_TRIAL';
+
     protected $table = 'kp_calendar_projects';
 
     protected $fillable = [
