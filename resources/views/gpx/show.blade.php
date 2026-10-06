@@ -660,13 +660,30 @@
             </div>
             <span id="nav-to-start-dist-badge" class="px-2 py-0.5 rounded bg-blue-950 border border-blue-800 text-blue-300 font-mono font-semibold text-[11px] tabular-nums shrink-0">-- m</span>
         </div>
-        <p id="nav-to-start-desc" class="text-slate-300 text-[11px] mt-1 leading-snug">
+
+        <!-- OSRM Routing Mode Toggle -->
+        <div class="flex items-center justify-between gap-1.5 mt-2 bg-slate-950/80 p-1 rounded-md border border-slate-800 text-[10px]">
+            <span class="text-slate-400 font-mono px-1">Jalur OSRM:</span>
+            <div class="flex items-center gap-1">
+                <button type="button" id="btn-osrm-mode-foot" onclick="setOsrmToStartMode('foot')" class="px-2 py-0.5 rounded bg-blue-600 text-white font-medium transition cursor-pointer" title="Ikuti jalan kaki / setapak terdekat via OSRM">
+                    <i class="fa-solid fa-person-walking text-[9px] mr-1"></i>Jalan Kaki
+                </button>
+                <button type="button" id="btn-osrm-mode-driving" onclick="setOsrmToStartMode('driving')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition cursor-pointer" title="Ikuti rute jalan kendaraan terdekat via OSRM">
+                    <i class="fa-solid fa-car text-[9px] mr-1"></i>Kendaraan
+                </button>
+                <button type="button" id="btn-osrm-mode-direct" onclick="setOsrmToStartMode('direct')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition cursor-pointer" title="Garis lurus kompas langsung">
+                    Lurus
+                </button>
+            </div>
+        </div>
+
+        <p id="nav-to-start-desc" class="text-slate-300 text-[11px] mt-2 leading-snug">
             Mendeteksi posisi GPS Anda menuju titik awal rute...
         </p>
         <div class="mt-2.5 pt-2 border-t border-slate-800 flex items-center gap-2">
             <button type="button" onclick="openGoogleMapsToStart()" class="flex-1 py-1.5 px-2.5 rounded-md bg-slate-800 hover:bg-slate-700 text-white text-[11px] font-medium transition flex items-center justify-center gap-1.5 cursor-pointer" title="Buka navigasi Google Maps untuk rute jalan ke titik start">
                 <i class="fa-solid fa-diamond-turn-right text-emerald-400 text-xs"></i>
-                <span>Arah Jalan (Google Maps)</span>
+                <span id="nav-to-start-gmaps-label">Arah Jalan (Google Maps)</span>
             </button>
             <button type="button" onclick="fitUserAndStart()" class="py-1.5 px-2.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-[11px] font-medium transition flex items-center justify-center gap-1 cursor-pointer" title="Fokus posisi saya dan titik start di peta">
                 <i class="fa-solid fa-crosshairs text-xs"></i>
@@ -1454,6 +1471,15 @@
         let recordedGpsTrack = [];
         const navOffCourseThresholdM = 60;
 
+        // OSRM Routing to Start Variables
+        let osrmToStartMode = 'foot'; // 'foot', 'driving', 'direct'
+        let osrmLastRoutedPos = null;
+        let isFetchingOsrmToStart = false;
+        let osrmRouteGeometry = [];
+        let osrmDistanceMeters = null;
+        let osrmDurationSeconds = null;
+        let osrmHasFittedBounds = false;
+
         function startLiveNavigation() {
             if (!navigator.geolocation) {
                 alert('Browser Anda tidak mendukung sensor geolokasi GPS.');
@@ -1486,6 +1512,16 @@
             recordedActualDistanceKm = 0;
             recordedGpsTrack = [];
 
+            // Reset OSRM Routing State
+            osrmToStartMode = 'foot';
+            osrmLastRoutedPos = null;
+            isFetchingOsrmToStart = false;
+            osrmRouteGeometry = [];
+            osrmDistanceMeters = null;
+            osrmDurationSeconds = null;
+            osrmHasFittedBounds = false;
+            updateOsrmModeButtonsUI();
+
             // Reset HUD Metrics
             const actualDistEl = document.getElementById('nav-actual-dist');
             const timeEl = document.getElementById('nav-running-time');
@@ -1513,6 +1549,170 @@
             );
         }
 
+        function updateOsrmModeButtonsUI() {
+            ['foot', 'driving', 'direct'].forEach(m => {
+                const btn = document.getElementById('btn-osrm-mode-' + m);
+                if (btn) {
+                    if (m === osrmToStartMode) {
+                        btn.className = 'px-2 py-0.5 rounded bg-blue-600 text-white font-medium transition cursor-pointer';
+                    } else {
+                        btn.className = 'px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition cursor-pointer';
+                    }
+                }
+            });
+            const gmapsLabel = document.getElementById('nav-to-start-gmaps-label');
+            if (gmapsLabel) {
+                gmapsLabel.textContent = osrmToStartMode === 'driving' ? 'Arah Kendaraan (G-Maps)' : 'Arah Jalan (G-Maps)';
+            }
+        }
+
+        function setOsrmToStartMode(mode) {
+            osrmToStartMode = mode;
+            updateOsrmModeButtonsUI();
+
+            osrmLastRoutedPos = null;
+            if (navLastUserPos && routePoints && routePoints.length > 0) {
+                const start = routePoints[0];
+                if (mode === 'direct') {
+                    osrmRouteGeometry = [];
+                    osrmDistanceMeters = null;
+                    osrmDurationSeconds = null;
+                    if (navToStartLine) {
+                        navToStartLine.setLatLngs([[navLastUserPos.lat, navLastUserPos.lng], [start.lat, start.lng]]);
+                    }
+                    updateStartGuidanceUI();
+                } else {
+                    fetchOsrmToStartRoute(navLastUserPos.lat, navLastUserPos.lng, start.lat, start.lng);
+                }
+            }
+        }
+
+        async function fetchOsrmToStartRoute(uLat, uLng, sLat, sLng) {
+            if (isFetchingOsrmToStart) return;
+            isFetchingOsrmToStart = true;
+            osrmLastRoutedPos = { lat: uLat, lng: uLng };
+
+            const descEl = document.getElementById('nav-to-start-desc');
+            if (descEl && osrmRouteGeometry.length === 0) {
+                descEl.textContent = 'Menghitung rute jalan terdekat (OSRM) ke titik start...';
+            }
+
+            const profile = osrmToStartMode === 'driving' ? 'driving' : 'foot';
+            const coords = `${uLng.toFixed(6)},${uLat.toFixed(6)};${sLng.toFixed(6)},${sLat.toFixed(6)}`;
+            const mapboxToken = "{{ config('services.mapbox.token') }}";
+
+            try {
+                let routeData = null;
+
+                // 1. Coba Mapbox Directions jika token tersedia
+                if (mapboxToken) {
+                    try {
+                        const mbProfile = profile === 'foot' ? 'mapbox/walking' : 'mapbox/driving';
+                        const mbUrl = `https://api.mapbox.com/directions/v5/${mbProfile}/${coords}?geometries=geojson&overview=full&steps=false&continue_straight=true&access_token=${mapboxToken}`;
+                        const mbRes = await fetch(mbUrl);
+                        if (mbRes.ok) {
+                            const mbJson = await mbRes.json();
+                            if (mbJson.routes && mbJson.routes[0]) {
+                                routeData = mbJson.routes[0];
+                            }
+                        }
+                    } catch (mbErr) {
+                        console.warn('Mapbox Directions fallback to OSRM:', mbErr);
+                    }
+                }
+
+                // 2. Jika Mapbox belum ada atau gagal, panggil OSRM publik (router.project-osrm.org)
+                if (!routeData) {
+                    const osrmUrl = `https://router.project-osrm.org/route/v1/${profile}/${coords}?overview=full&geometries=geojson&steps=false&continue_straight=true`;
+                    const osrmRes = await fetch(osrmUrl);
+                    if (!osrmRes.ok) throw new Error('OSRM API HTTP ' + osrmRes.status);
+                    const osrmJson = await osrmRes.json();
+                    if (osrmJson.code !== 'Ok' || !osrmJson.routes || !osrmJson.routes[0]) {
+                        throw new Error('OSRM route not found: ' + (osrmJson.code || 'unknown'));
+                    }
+                    routeData = osrmJson.routes[0];
+                }
+
+                const geoCoords = routeData.geometry && routeData.geometry.coordinates;
+                if (Array.isArray(geoCoords) && geoCoords.length >= 2) {
+                    osrmRouteGeometry = geoCoords.map(c => [c[1], c[0]]);
+                    osrmDistanceMeters = routeData.distance != null ? routeData.distance : (calculateHaversine(uLat, uLng, sLat, sLng) * 1000);
+                    osrmDurationSeconds = routeData.duration || 0;
+
+                    if (navToStartLine) {
+                        navToStartLine.setLatLngs(osrmRouteGeometry);
+                    }
+
+                    if (!osrmHasFittedBounds && navMap && navToStartLine) {
+                        osrmHasFittedBounds = true;
+                        navMap.fitBounds(navToStartLine.getBounds(), { padding: [50, 50], maxZoom: 17 });
+                    }
+                } else {
+                    throw new Error('Invalid geometry');
+                }
+            } catch (err) {
+                console.warn('Gagal rute OSRM, fallback garis lurus:', err);
+                osrmRouteGeometry = [];
+                osrmDistanceMeters = calculateHaversine(uLat, uLng, sLat, sLng) * 1000;
+                osrmDurationSeconds = (osrmDistanceMeters / 1000) / (profile === 'driving' ? 30 : 4) * 3600;
+                if (navToStartLine) {
+                    navToStartLine.setLatLngs([[uLat, uLng], [sLat, sLng]]);
+                }
+            } finally {
+                isFetchingOsrmToStart = false;
+                updateStartGuidanceUI();
+            }
+        }
+
+        function updateStartGuidanceUI() {
+            if (navSessionState !== 'ready') return;
+            const startPoint = (routePoints && routePoints.length > 0) ? routePoints[0] : null;
+            if (!startPoint || !navLastUserPos) return;
+
+            const straightDistM = calculateHaversine(navLastUserPos.lat, navLastUserPos.lng, startPoint.lat, startPoint.lng) * 1000;
+            const routeDistM = osrmDistanceMeters != null ? osrmDistanceMeters : straightDistM;
+            const distStr = routeDistM < 1000 ? Math.round(routeDistM) + ' m' : (routeDistM / 1000).toFixed(2) + ' km';
+
+            let durStr = '';
+            if (osrmDurationSeconds && osrmDurationSeconds > 0) {
+                const mins = Math.max(1, Math.round(osrmDurationSeconds / 60));
+                durStr = mins >= 60 ? Math.floor(mins / 60) + ' j ' + (mins % 60) + ' m' : mins + ' mnt';
+            }
+
+            const distBadge = document.getElementById('nav-to-start-dist-badge');
+            const titleEl = document.getElementById('nav-to-start-title');
+            const descEl = document.getElementById('nav-to-start-desc');
+            const dotEl = document.getElementById('nav-to-start-dot');
+            const proxText = document.getElementById('nav-proximity-text');
+            const startBtnText = document.getElementById('btn-start-run-text');
+
+            if (distBadge) distBadge.textContent = distStr;
+
+            if (straightDistM <= 50) {
+                if (titleEl) titleEl.textContent = 'Sudah di Titik Start';
+                if (descEl) descEl.textContent = 'Posisi Anda sudah berada di titik awal rute! Tekan Mulai Rute (Start) untuk merekam dan mengikuti peta navigasi.';
+                if (dotEl) dotEl.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0';
+                if (distBadge) distBadge.className = 'px-2 py-0.5 rounded bg-emerald-950 border border-emerald-800 text-emerald-300 font-mono font-semibold text-[11px] tabular-nums shrink-0';
+                if (proxText) proxText.innerHTML = '<span class="text-emerald-400 font-bold">Sudah di titik start</span> &bull; Siap mulai rute!';
+                if (startBtnText) startBtnText.textContent = 'Mulai Rute (Start)';
+            } else {
+                const modeLabel = osrmToStartMode === 'driving' ? 'Kendaraan' : (osrmToStartMode === 'foot' ? 'Jalan Kaki' : 'Garis Lurus');
+                if (titleEl) titleEl.textContent = 'Menuju Titik Start (' + modeLabel + ')';
+                if (dotEl) dotEl.className = 'w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse shrink-0';
+                if (distBadge) distBadge.className = 'px-2 py-0.5 rounded bg-blue-950 border border-blue-800 text-blue-300 font-mono font-semibold text-[11px] tabular-nums shrink-0';
+
+                const estSuffix = durStr ? ` (~${durStr})` : '';
+                const sourceLabel = osrmRouteGeometry.length > 0 ? 'jalur OSRM' : 'jalur terdekat';
+                if (descEl) {
+                    descEl.textContent = `Jarak ${distStr}${estSuffix} via ${sourceLabel} (${modeLabel}). Ikuti garis biru di peta atau buka Google Maps.`;
+                }
+                if (proxText) {
+                    proxText.textContent = `${distStr}${estSuffix} ke start via ${modeLabel}`;
+                }
+                if (startBtnText) startBtnText.textContent = 'Mulai Rute Sekarang';
+            }
+        }
+
         function resetNavReadyButtons() {
             const wrap = document.getElementById('nav-action-buttons-wrap');
             if (wrap) {
@@ -1521,7 +1721,7 @@
                         <div id="nav-start-proximity-notice" class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-xs flex items-center justify-between gap-2">
                             <div class="flex items-center gap-2 min-w-0">
                                 <i class="fa-solid fa-location-dot text-[#FC4C02] text-xs shrink-0"></i>
-                                <span id="nav-proximity-text" class="text-slate-300 truncate text-[11px]">Memeriksa jarak GPS ke titik start...</span>
+                                <span id="nav-proximity-text" class="text-slate-300 truncate text-[11px]">Memeriksa rute OSRM ke titik start...</span>
                             </div>
                             <button type="button" onclick="openGoogleMapsToStart()" class="text-[#FC4C02] hover:underline text-[11px] font-bold shrink-0 flex items-center gap-1 cursor-pointer">
                                 <span>Arah Jalan</span>
@@ -1613,12 +1813,14 @@
                 navFinishMarker = L.marker([finishPoint.lat, finishPoint.lng], { icon: finishIcon, zIndexOffset: 1500 }).addTo(navMap);
                 navFinishMarker.bindTooltip('Titik Akhir (Finish)', { permanent: false, direction: 'top' });
 
-                // Dashed guide line from user to start
+                // OSRM road guide line from user to start
                 navToStartLine = L.polyline([], {
-                    color: '#3b82f6',
-                    weight: 3,
-                    dashArray: '6, 8',
-                    opacity: 0.85
+                    color: '#0284c7',
+                    weight: 4,
+                    dashArray: '6, 6',
+                    opacity: 0.9,
+                    lineCap: 'round',
+                    lineJoin: 'round'
                 }).addTo(navMap);
 
                 navMap.fitBounds(navPolyline.getBounds(), { padding: [35, 35] });
@@ -1641,41 +1843,27 @@
 
             const startPoint = (routePoints && routePoints.length > 0) ? routePoints[0] : null;
 
-            // --- MODE: READY (Menuju Titik Start) ---
+            // --- MODE: READY (Menuju Titik Start via OSRM) ---
             if (navSessionState === 'ready' && startPoint) {
-                const distToStartM = calculateHaversine(lat, lng, startPoint.lat, startPoint.lng) * 1000;
-                const distStr = distToStartM < 1000 ? Math.round(distToStartM) + ' m' : (distToStartM / 1000).toFixed(2) + ' km';
+                if (osrmToStartMode !== 'direct') {
+                    const needFetch = !osrmLastRoutedPos ||
+                        (calculateHaversine(lat, lng, osrmLastRoutedPos.lat, osrmLastRoutedPos.lng) * 1000 > 30);
 
-                if (navToStartLine) {
-                    navToStartLine.setLatLngs([[lat, lng], [startPoint.lat, startPoint.lng]]);
-                }
-
-                const distBadge = document.getElementById('nav-to-start-dist-badge');
-                const titleEl = document.getElementById('nav-to-start-title');
-                const descEl = document.getElementById('nav-to-start-desc');
-                const dotEl = document.getElementById('nav-to-start-dot');
-                const proxText = document.getElementById('nav-proximity-text');
-                const startBtnText = document.getElementById('btn-start-run-text');
-
-                if (distBadge) distBadge.textContent = distStr;
-
-                if (distToStartM <= 50) {
-                    if (titleEl) titleEl.textContent = 'Sudah di Titik Start';
-                    if (descEl) descEl.textContent = 'Posisi Anda sudah berada di titik awal rute! Tekan Mulai Rute (Start) untuk merekam dan mengikuti peta navigasi.';
-                    if (dotEl) dotEl.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0';
-                    if (distBadge) distBadge.className = 'px-2 py-0.5 rounded bg-emerald-950 border border-emerald-800 text-emerald-300 font-mono font-semibold text-[11px] tabular-nums shrink-0';
-                    if (proxText) proxText.innerHTML = '<span class="text-emerald-400 font-bold">Sudah di titik start</span> &bull; Siap mulai rute!';
-                    if (startBtnText) startBtnText.textContent = 'Mulai Rute (Start)';
+                    if (needFetch && !isFetchingOsrmToStart) {
+                        fetchOsrmToStartRoute(lat, lng, startPoint.lat, startPoint.lng);
+                    } else if (osrmRouteGeometry.length > 0 && navToStartLine) {
+                        // Perbarui titik awal polyline agar menyambung mulus ke posisi GPS terkini
+                        navToStartLine.setLatLngs([[lat, lng], ...osrmRouteGeometry.slice(1)]);
+                    }
                 } else {
-                    if (titleEl) titleEl.textContent = 'Menuju Titik Start';
-                    if (descEl) descEl.textContent = `Jarak ${distStr} menuju titik awal rute. Buka Google Maps untuk rute jalan atau ikuti garis biru di peta.`;
-                    if (dotEl) dotEl.className = 'w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse shrink-0';
-                    if (distBadge) distBadge.className = 'px-2 py-0.5 rounded bg-blue-950 border border-blue-800 text-blue-300 font-mono font-semibold text-[11px] tabular-nums shrink-0';
-                    if (proxText) proxText.textContent = `${distStr} menuju titik start`;
-                    if (startBtnText) startBtnText.textContent = 'Mulai Rute Sekarang';
+                    if (navToStartLine) {
+                        navToStartLine.setLatLngs([[lat, lng], [startPoint.lat, startPoint.lng]]);
+                    }
                 }
 
-                if (navMap && !recordedGpsTrack.length) {
+                updateStartGuidanceUI();
+
+                if (navMap && !recordedGpsTrack.length && !osrmHasFittedBounds) {
                     navMap.panTo([lat, lng], { animate: true, duration: 0.5 });
                 }
                 return;
@@ -1762,14 +1950,17 @@
                 return;
             }
             const start = routePoints[0];
-            const url = `https://www.google.com/maps/dir/?api=1&destination=${start.lat},${start.lng}&travelmode=driving`;
+            const travelmode = osrmToStartMode === 'driving' ? 'driving' : 'walking';
+            const url = `https://www.google.com/maps/dir/?api=1&destination=${start.lat},${start.lng}&travelmode=${travelmode}`;
             window.open(url, '_blank');
         }
 
         function fitUserAndStart() {
             if (!navMap || !routePoints || routePoints.length === 0) return;
             const start = routePoints[0];
-            if (navLastUserPos) {
+            if (navToStartLine && navToStartLine.getLatLngs().length > 1) {
+                navMap.fitBounds(navToStartLine.getBounds(), { padding: [60, 60], maxZoom: 17 });
+            } else if (navLastUserPos) {
                 const bounds = L.latLngBounds([
                     [navLastUserPos.lat, navLastUserPos.lng],
                     [start.lat, start.lng]
@@ -1805,10 +1996,11 @@
                 if (timeEl) timeEl.textContent = formatDurationTime(totalSec);
             }, 1000);
 
-            // Hide start banner and guide line
+            // Sembunyikan banner dan bersihkan garis panduan OSRM
             const startBanner = document.getElementById('nav-to-start-banner');
             if (startBanner) startBanner.classList.add('hidden');
             if (navToStartLine) navToStartLine.setLatLngs([]);
+            osrmRouteGeometry = [];
 
             const wrap = document.getElementById('nav-action-buttons-wrap');
             if (wrap) {
