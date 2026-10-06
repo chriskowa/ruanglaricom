@@ -164,16 +164,12 @@ class ProgramBuilderService
 
         $longRunDayIndex = $longRunDay === 'saturday' ? 6 : 7;
 
-        // Map target distance to goal categories
-        $distanceMap = [
-            '5k' => '5K', '10k' => '10K',
-            '21k' => 'HALF_MARATHON', '42k' => 'FULL_MARATHON',
-        ];
-        $goal = $distanceMap[strtolower($targetDistance)] ?? '10K';
+        $normalizedDistance = $this->normalizeDistanceKey($targetDistance);
+        $goal = $this->resolveGoalCategory($normalizedDistance);
 
         // ===== PHASE CALCULATION =====
-        $phases = $this->calculatePhases($weeks, $targetDistance, $runnerLevel, $startingPhase);
-        $taperConfig = $library['taper_config'][strtolower($targetDistance)] ?? ['weeks' => 1, 'factors' => [0.50]];
+        $phases = $this->calculatePhases($weeks, $normalizedDistance, $runnerLevel, $startingPhase);
+        $taperConfig = $library['taper_config'][$normalizedDistance] ?? ['weeks' => 1, 'factors' => [0.50]];
         $taperWeeks = $taperConfig['weeks'];
 
         // ===== VDOT PROGRESSION =====
@@ -194,7 +190,7 @@ class ProgramBuilderService
         $mileageSchedule = $this->buildMileageSchedule($weeks, $targetMileage, $taperConfig, $runnerLevel);
 
         // ===== LONG RUN PROGRESSION =====
-        $longRunCaps = $library['long_run_caps'][strtolower($targetDistance)] ?? ['max_km' => 20, 'max_ratio' => 0.35];
+        $longRunCaps = $library['long_run_caps'][$normalizedDistance] ?? ['max_km' => 20, 'max_ratio' => 0.35];
 
         // ===== WORKOUT ORDERING =====
         // Get all workouts sorted by difficulty_order for ordered cycling
@@ -203,6 +199,8 @@ class ProgramBuilderService
 
         $sessions = [];
         $dayCount = 1;
+        $hadHillLastWeek = false;
+        $totalHillsAssigned = 0;
 
         for ($w = 1; $w <= $weeks; $w++) {
             // Determine current phase
@@ -229,15 +227,12 @@ class ProgramBuilderService
             // Current week's mileage from progressive schedule
             $currentMileage = $mileageSchedule[$w - 1];
 
-            // Smart deload: only during Base/Strength, never during Taper
+            // Smart deload: already applied in buildMileageSchedule()
             $isDeload = ($w % 4 === 0) && !in_array($phase, ['Taper']);
-            if ($isDeload) {
-                $currentMileage *= 0.80;
-            }
 
             // ===== LONG RUN DISTANCE (progressive) =====
             $longRunDistance = $this->calculateLongRunForWeek(
-                $w, $weeks, $currentMileage, $targetDistance, $longRunCaps, $phase, $runnerLevel, $taperWeeks
+                $w, $weeks, $currentMileage, $normalizedDistance, $longRunCaps, $phase, $runnerLevel, $taperWeeks
             );
 
             // Mileage warning
@@ -265,15 +260,29 @@ class ProgramBuilderService
             }
 
             $weekQualityWorkouts = [];
+            $weekHadHill = false;
             for ($q = 0; $q < $weeklyQualityCount; $q++) {
                 $workout = $this->getOrderedWorkoutForPhase(
-                    $goal, $phase, $library, $allWorkouts, $workoutCycleIndex, $runnerLevel
+                    $goal,
+                    $phase,
+                    $library,
+                    $allWorkouts,
+                    $workoutCycleIndex,
+                    $runnerLevel,
+                    $isDeload,
+                    ($hadHillLastWeek || $weekHadHill),
+                    $totalHillsAssigned
                 );
                 if ($workout) {
                     $weekQualityWorkouts[] = $workout;
+                    if (($workout['type'] ?? '') === 'hill') {
+                        $weekHadHill = true;
+                        $totalHillsAssigned++;
+                    }
                     $workoutCycleIndex++;
                 }
             }
+            $hadHillLastWeek = $weekHadHill;
 
             // ===== DAY ASSIGNMENTS =====
             $dayAssignments = array_fill(1, 7, ['type' => 'rest', 'workout' => null]);
@@ -331,7 +340,9 @@ class ProgramBuilderService
                     $workout = $assign['workout'];
                     $scaledMainSet = $this->scaleWorkoutVolume($workout['main_set'], $volumeFactor);
                     $mainSetDist = $this->calculateMainSetDistance($scaledMainSet);
-                    $totalQDist = round(2.0 + $mainSetDist + 1.5, 1);
+                    $warmUp = ($runnerLevel === 'beginner') ? 1.5 : 2.0;
+                    $coolDown = ($runnerLevel === 'beginner') ? 1.5 : 2.0;
+                    $totalQDist = (float) (round(($warmUp + $mainSetDist + $coolDown) * 2) / 2);
                     $qualityDistances[$d] = $totalQDist;
                 }
             }
@@ -340,17 +351,29 @@ class ProgramBuilderService
             $easyPool = max(0, $currentMileage - $totalAssignedHardDist);
 
             $easyDaysCount = 0;
+            $recoveryDaysCount = 0;
             foreach ($dayAssignments as $assign) {
-                if ($assign['type'] === 'easy_run' || $assign['type'] === 'recovery_run') {
+                if ($assign['type'] === 'easy_run') {
                     $easyDaysCount++;
+                } elseif ($assign['type'] === 'recovery_run') {
+                    $recoveryDaysCount++;
                 }
             }
 
-            $easyDistance = $easyDaysCount > 0 ? round($easyPool / $easyDaysCount, 1) : 0;
-            if ($easyDistance < 3.0 && $easyDaysCount > 0 && $easyPool > 0) {
-                $easyDistance = 3.0;
-            } elseif ($easyDistance > 15.0) {
-                $easyDistance = 15.0;
+            $totalEasyDays = $easyDaysCount + $recoveryDaysCount;
+            $easyDistance = 0.0;
+            $recoveryDistance = 0.0;
+
+            if ($totalEasyDays > 0) {
+                $rawAvg = $easyPool / $totalEasyDays;
+                $roundedEasy = ($rawAvg < 5.0) ? (round($rawAvg * 2) / 2) : round($rawAvg);
+                $easyDistance = (float) max(3.0, min(16.0, $roundedEasy));
+
+                if ($recoveryDaysCount > 0) {
+                    $recoveryDistance = (float) max(3.0, min($easyDistance, ($easyDistance > 4.0 ? $easyDistance - 1.0 : $easyDistance)));
+                } else {
+                    $recoveryDistance = $easyDistance;
+                }
             }
 
             // Determine whether this runner should use Run-Walk protocol (Daniels White Plan / Galloway)
@@ -379,10 +402,10 @@ class ProgramBuilderService
                     $session['type'] = 'long_run';
 
                     if ($isRunWalk) {
-                        // Cap beginner long run distance to max 4.5 - 5.5 km
-                        $effectiveLongRun = min($longRunDistance, 4.5 + ($w * 0.15));
+                        // Cap beginner long run distance to max 4.0 - 5.5 km
+                        $effectiveLongRun = min($longRunDistance, 4.0 + ($w * 0.20));
                         $effectiveLongRun = min($effectiveLongRun, 5.5);
-                        $session['distance'] = round($effectiveLongRun, 1);
+                        $session['distance'] = (float) (round($effectiveLongRun * 2) / 2);
                         $session['target_pace'] = '@ 8:00 - 8:30/km (Run/Walk)';
                         $session['duration'] = $this->calculateDuration($session['distance'], 9.5); // blended ~9:30 min/km
 
@@ -480,11 +503,11 @@ class ProgramBuilderService
 
                     if ($isRunWalk) {
                         if ($assignment['type'] === 'recovery_run') {
-                            $session['distance'] = 2.5;
-                            $session['duration'] = '00:25:00';
+                            $session['distance'] = 3.0;
+                            $session['duration'] = '00:30:00';
                             $session['target_pace'] = '@ 10:30 - 11:30/km (Jalan Pemulihan)';
                             $session['description'] = "Recovery Walk & Mobility (Pemulihan Aktif)\n"
-                                . "• Durasi: 25 menit Jalan Cepat Santai (Pace 10:30–11:30/km)\n"
+                                . "• Durasi: 30 menit Jalan Cepat Santai (Pace 10:30–11:30/km)\n"
                                 . "• Fokus: Melancarkan sirkulasi darah tanpa impak hentakan keras pada sendi.\n"
                                 . "• Gerakan: Postur tegak, langkah santai, peregangan betis dan paha di akhir sesi.";
                         } else {
@@ -492,8 +515,8 @@ class ProgramBuilderService
 
                             if ($weekProgress <= 0.35) {
                                 // Fase Awal (Base Awal): 1m Run + 2m Walk
-                                $session['distance'] = 3.2;
-                                $session['duration'] = '00:34:00';
+                                $session['distance'] = 3.0;
+                                $session['duration'] = '00:30:00';
                                 $session['target_pace'] = '@ 8:00 - 8:30/km (Run/Walk)';
                                 $session['description'] = "Metode Lari-Jalan (Run-Walk Interval) — Fondasi Aerobik & Proteksi Sendi\n"
                                     . "• Pemanasan: 5 menit Jalan Cepat Aktif\n"
@@ -504,7 +527,7 @@ class ProgramBuilderService
                                     . "TUJUAN: Melatih sistem kardiovaskular dan mitokondria tanpa membebani sendi/tulang. Jeda jalan menjaga detak jantung tetap stabil di Zona 2.";
                             } elseif ($weekProgress <= 0.70) {
                                 // Fase Menengah: 2m Run + 1m Walk
-                                $session['distance'] = 3.6;
+                                $session['distance'] = 3.5;
                                 $session['duration'] = '00:35:00';
                                 $session['target_pace'] = '@ 8:00 - 8:30/km (Run/Walk)';
                                 $session['description'] = "Metode Lari-Jalan (Run-Walk Progression) — Peningkatan Kapasitas Aerobik\n"
@@ -516,8 +539,8 @@ class ProgramBuilderService
                                     . "TUJUAN: Menaikkan rasio durasi lari 2x lebih lama dari jeda jalan seraya mempertahankan biomekanika lari yang efisien.";
                             } else {
                                 // Fase Lanjutan: Transisi Kontinu
-                                $session['distance'] = 3.8;
-                                $session['duration'] = '00:30:00';
+                                $session['distance'] = 4.0;
+                                $session['duration'] = '00:32:00';
                                 $session['target_pace'] = '@ 8:00 - 8:30/km (Transisi Kontinu)';
                                 $session['description'] = "Easy Aerobic Run (Transisi Lari Kontinu)\n"
                                     . "• Pemanasan: 5 menit Jalan Cepat Aktif\n"
@@ -528,9 +551,10 @@ class ProgramBuilderService
                             }
                         }
                     } else {
-                        $session['distance'] = $easyDistance;
+                        $targetDist = ($assignment['type'] === 'recovery_run') ? $recoveryDistance : $easyDistance;
+                        $session['distance'] = $targetDist;
                         $session['target_pace'] = $this->formatPace($paces['E']);
-                        $session['duration'] = $this->calculateDuration($easyDistance, $paces['E']);
+                        $session['duration'] = $this->calculateDuration($targetDist, $paces['E']);
 
                         $paceFast = max(0, $paces['E'] - (5 / 60));
                         $paceSlow = $paces['E'] + (10 / 60);
@@ -672,7 +696,7 @@ class ProgramBuilderService
             default => 0.75,
         };
 
-        $startMileage = round($targetMileage * $startPercent, 1);
+        $startMileage = (float) round($targetMileage * $startPercent);
         $buildWeeks = max(1, $totalWeeks - $taperWeeks);
         $peakWeek = $buildWeeks;
 
@@ -694,7 +718,7 @@ class ProgramBuilderService
             if ($w > $buildWeeks) {
                 $taperIndex = $w - $buildWeeks - 1;
                 $factor = $taperFactors[$taperIndex] ?? end($taperFactors);
-                $planned = (float) round($targetMileage * $factor, 1);
+                $planned = (float) round($targetMileage * $factor);
                 $schedule[] = $planned;
                 $prevMileage = $planned;
                 continue;
@@ -713,20 +737,20 @@ class ProgramBuilderService
                 $deloadFactor = 0.80;
                 if ($prevMileage !== null) {
                     $deloadBaseline = max($weekMileage, $prevMileage * 0.95);
-                    $weekMileage = (float) round($deloadBaseline * $deloadFactor, 1);
+                    $weekMileage = (float) round($deloadBaseline * $deloadFactor);
                 } else {
-                    $weekMileage = (float) round($weekMileage * $deloadFactor, 1);
+                    $weekMileage = (float) round($weekMileage * $deloadFactor);
                 }
             }
 
             if ($prevMileage !== null && !$isDeloadWeek) {
                 $dropRatio = $prevMileage > 0 ? ($weekMileage / $prevMileage) : 1;
                 if ($dropRatio < 0.88) {
-                    $weekMileage = max($weekMileage, (float) round($prevMileage * 0.90, 1));
+                    $weekMileage = max($weekMileage, (float) round($prevMileage * 0.90));
                 }
             }
 
-            $finalVal = (float) round($weekMileage, 1);
+            $finalVal = (float) round($weekMileage);
             $schedule[] = $finalVal;
             $prevMileage = $finalVal;
         }
@@ -756,13 +780,13 @@ class ProgramBuilderService
         $minLongRunFloor = $this->getMinLongRunFloor($targetDistance, $weeklyMileage, $runnerLevel);
 
         // Calculate the peak long run distance (capped)
-        $peakLongRun = min($maxKm, round($weeklyMileage * $maxRatio, 1));
+        $peakLongRun = min($maxKm, (float) round($weeklyMileage * $maxRatio));
 
         // Runner level adjustment
         if ($runnerLevel === 'beginner') {
-            $peakLongRun = round($peakLongRun * 0.85, 1);
+            $peakLongRun = (float) round($peakLongRun * 0.85);
         } elseif ($runnerLevel === 'advanced') {
-            $peakLongRun = round($peakLongRun * 1.10, 1);
+            $peakLongRun = (float) round($peakLongRun * 1.10);
             $peakLongRun = min($peakLongRun, $maxKm); // Still respect cap
         }
 
@@ -771,7 +795,7 @@ class ProgramBuilderService
             $buildWeeks = $totalWeeks - $taperWeeks;
             $weeksIntoTaper = $week - $buildWeeks;
             $taperReduction = 0.5 + (0.15 * max(0, $taperWeeks - $weeksIntoTaper));
-            return round(max($minLongRunFloor * 0.6, $peakLongRun * min(1.0, $taperReduction)), 1);
+            return (float) round(max($minLongRunFloor * 0.6, $peakLongRun * min(1.0, $taperReduction)));
         }
 
         // Progressive build: start at 60% of peak, build to 100%
@@ -779,26 +803,57 @@ class ProgramBuilderService
         $progress = min(1.0, ($week - 1) / max(1, $buildWeeks - 1));
         // Ease-in curve for gradual increase
         $easedProgress = pow($progress, 0.8);
-        $startLongRun = max($minLongRunFloor, round($peakLongRun * 0.60, 1));
+        $startLongRun = max($minLongRunFloor, (float) round($peakLongRun * 0.60));
 
-        $longRunDistance = round($startLongRun + ($peakLongRun - $startLongRun) * $easedProgress, 1);
+        $longRunDistance = (float) round($startLongRun + ($peakLongRun - $startLongRun) * $easedProgress);
 
         // Never exceed cap
         $longRunDistance = min($longRunDistance, $maxKm);
         // Never exceed ratio of this week's mileage
-        $longRunDistance = min($longRunDistance, round($weeklyMileage * $maxRatio, 1));
+        $longRunDistance = min($longRunDistance, (float) round($weeklyMileage * $maxRatio));
 
         // Floor enforcement
         if ($longRunDistance < $minLongRunFloor) {
             $longRunDistance = $minLongRunFloor;
         }
 
-        return $longRunDistance;
+        return (float) round($longRunDistance);
+    }
+
+    public function normalizeDistanceKey(string $targetDistance): string
+    {
+        $d = strtolower(trim($targetDistance));
+        if (in_array($d, ['42k', 'marathon', 'full_marathon', 'full marathon', 'fm', '42.195k', '42.2k'], true)) {
+            return '42k';
+        }
+        if (in_array($d, ['21k', 'half_marathon', 'half marathon', 'half-marathon', 'hm', '21.1k', '21.097k'], true)) {
+            return '21k';
+        }
+        if (in_array($d, ['10k', '10km'], true)) {
+            return '10k';
+        }
+        if (in_array($d, ['5k', '5km', 'cooper12', 'cooper'], true)) {
+            return '5k';
+        }
+        return $d;
+    }
+
+    public function resolveGoalCategory(string $targetDistance): string
+    {
+        $normalized = $this->normalizeDistanceKey($targetDistance);
+        return match ($normalized) {
+            '42k' => 'FULL_MARATHON',
+            '21k' => 'HALF_MARATHON',
+            '10k' => '10K',
+            '5k'  => '5K',
+            default => '10K',
+        };
     }
 
     private function getMinLongRunFloor(string $targetDistance, float $weeklyMileage = 0.0, string $runnerLevel = 'intermediate'): float
     {
-        $hardFloor = match (strtolower($targetDistance)) {
+        $normalized = $this->normalizeDistanceKey($targetDistance);
+        $hardFloor = match ($normalized) {
             '42k' => 18.0,
             '21k' => 12.0,
             '10k' => 8.0,
@@ -831,7 +886,8 @@ class ProgramBuilderService
     private function calculatePhases(int $totalWeeks, string $targetDistance, string $runnerLevel = 'intermediate', string $startingPhase = 'base'): array
     {
         $library = $this->loadLibrary();
-        $taperConfig = $library['taper_config'][strtolower($targetDistance)] ?? ['weeks' => 1, 'factors' => [0.50]];
+        $normalized = $this->normalizeDistanceKey($targetDistance);
+        $taperConfig = $library['taper_config'][$normalized] ?? ['weeks' => 1, 'factors' => [0.50]];
         $taperWeeks = $taperConfig['weeks'];
         $trainingWeeks = max(2, $totalWeeks - $taperWeeks);
 
@@ -863,22 +919,23 @@ class ProgramBuilderService
 
         // Level-aware phase ratios for full cycle (starting from Base)
         $ratios = match ($runnerLevel) {
-            'beginner' => match (strtolower($targetDistance)) {
+            'beginner' => match ($normalized) {
                 '42k' => ['base' => 0.50, 'strength' => 0.32, 'speed' => 0.18],
                 '21k' => ['base' => 0.45, 'strength' => 0.32, 'speed' => 0.23],
                 '10k' => ['base' => 0.40, 'strength' => 0.35, 'speed' => 0.25],
                 default => ['base' => 0.38, 'strength' => 0.37, 'speed' => 0.25], // 5k
             },
-            'advanced' => match (strtolower($targetDistance)) {
+            'advanced' => match ($normalized) {
                 '42k' => ['base' => 0.30, 'strength' => 0.30, 'speed' => 0.40],
                 '21k' => ['base' => 0.22, 'strength' => 0.30, 'speed' => 0.48],
                 '10k' => ['base' => 0.18, 'strength' => 0.27, 'speed' => 0.55],
                 default => ['base' => 0.18, 'strength' => 0.27, 'speed' => 0.55], // 5k
             },
-            default => match (strtolower($targetDistance)) { // intermediate
+            default => match ($normalized) { // intermediate
                 '42k' => ['base' => 0.40, 'strength' => 0.30, 'speed' => 0.30],
                 '21k' => ['base' => 0.30, 'strength' => 0.30, 'speed' => 0.40],
-                default => ['base' => 0.25, 'strength' => 0.30, 'speed' => 0.45],
+                '10k' => ['base' => 0.25, 'strength' => 0.35, 'speed' => 0.40],
+                default => ['base' => 0.25, 'strength' => 0.30, 'speed' => 0.45], // 5k
             },
         };
 
@@ -946,18 +1003,24 @@ class ProgramBuilderService
     // =========================================================================
 
     /**
-     * Select a workout using ordered cycling with level-aware filtering.
+     * Select a workout using ordered cycling with level-aware filtering and scientific hill guardrails.
      *
-     * Strategy:
-     * 1. Filter by level_restriction (if present) — beginner only sees beginner-safe workouts
-     * 2. Filter by phase preference
-     * 3. For beginner in Base phase: prefer strides/hill types (safe high-intensity)
-     * 4. Sort by difficulty_order (difficulty_order 0 = beginner-safe = appear first)
-     * 5. Cycle through in order using the global index
+     * Scientific coaching guardrails (Barnes 2013, Ferley 2014, Lydiard, Daniels):
+     * 1. No hill workouts on deload recovery weeks ($isDeload)
+     * 2. No back-to-back hill workouts ($disallowHills)
+     * 3. No hill workouts in Speed or Taper phases (race-pace flat specificity)
+     * 4. Macrocycle cap of max 4 hill sessions total
      */
     private function getOrderedWorkoutForPhase(
-        string $goal, string $phase, array $library, array $allWorkouts, int $cycleIndex,
-        string $runnerLevel = 'intermediate'
+        string $goal,
+        string $phase,
+        array $library,
+        array $allWorkouts,
+        int $cycleIndex,
+        string $runnerLevel = 'intermediate',
+        bool $isDeload = false,
+        bool $disallowHills = false,
+        int $totalHillsAssigned = 0
     ): ?array {
         if (empty($allWorkouts)) {
             return null;
@@ -1005,12 +1068,11 @@ class ProgramBuilderService
 
         // === STEP 3: Base Phase Coaching Guardrail ===
         if ($phase === 'Base') {
-            // For BEGINNERS in Base phase: prefer strides & hill sprints (difficulty_order 0)
-            // These are safe high-intensity that stimulate Type IIA mitochondria
             if ($runnerLevel === 'beginner') {
+                // Beginner in Base: prioritize aerobic foundation, strides, hill sprints, and safe threshold/progression
+                // Exclude hard VO2max intervals (type === interval or difficulty > 2)
                 $beginnerBase = array_filter($pool, function ($w) {
-                    return in_array($w['type'] ?? '', ['strides', 'hill'], true)
-                        && ($w['difficulty_order'] ?? 99) <= 0;
+                    return ($w['type'] ?? '') !== 'interval' && ($w['difficulty_order'] ?? 99) <= 2;
                 });
                 if (!empty($beginnerBase)) {
                     $pool = array_values($beginnerBase);
@@ -1026,12 +1088,41 @@ class ProgramBuilderService
             }
         }
 
-        // === STEP 4: Sort by difficulty_order ===
+        // === STEP 4: Hill Workout Guardrail (Barnes 2013, Ferley 2014, Lydiard) ===
+        // Hills are prohibited on:
+        // - Deload recovery weeks (prevent heavy eccentric load)
+        // - Consecutive weeks ($disallowHills = true if last week or this week had hill)
+        // - Speed & Taper phases (maintain flat terrain race-specific velocity)
+        // - Program cap reached (max 4 sessions total)
+        $shouldFilterHills = $disallowHills
+            || $isDeload
+            || in_array($phase, ['Speed', 'Taper'], true)
+            || ($totalHillsAssigned >= 4);
+
+        if ($shouldFilterHills) {
+            $nonHills = array_values(array_filter($pool, function ($w) {
+                return ($w['type'] ?? '') !== 'hill';
+            }));
+
+            if (!empty($nonHills)) {
+                $pool = $nonHills;
+            } else {
+                // If phase pool only contained hills, fallback to non-hill workouts from $levelFiltered
+                $fallbackNonHills = array_values(array_filter($levelFiltered, function ($w) {
+                    return ($w['type'] ?? '') !== 'hill';
+                }));
+                if (!empty($fallbackNonHills)) {
+                    $pool = $fallbackNonHills;
+                }
+            }
+        }
+
+        // === STEP 5: Sort by difficulty_order ===
         usort($pool, function ($a, $b) {
             return ($a['difficulty_order'] ?? 99) <=> ($b['difficulty_order'] ?? 99);
         });
 
-        // === STEP 5: Cycle through ordered pool ===
+        // === STEP 6: Cycle through ordered pool ===
         $index = $cycleIndex % count($pool);
         return $pool[$index];
     }
@@ -1072,27 +1163,46 @@ class ProgramBuilderService
 
     public function calculateMainSetDistance(string $mainSet): float
     {
-        if (preg_match('/(\d+)\s*reps\s*x\s*(\d+(?:\.\d+)?)\s*(K|m|meters)/i', $mainSet, $matches)) {
+        // 1. Time-based workouts: e.g. "20 min @ target", "25 min", "30 min", "35 min"
+        if (preg_match('/(\d+)\s*(?:min|minutes)\b/i', $mainSet, $m)) {
+            $minutes = (float) $m[1];
+            // At aerobic/threshold pace (~5:00 min/km), distance in km is ~ minutes / 5.0
+            return (float) (round(($minutes / 5.0) * 2) / 2);
+        }
+
+        // 2. Short sprint intervals (seconds): e.g. "8 reps x 20 sec", "6 reps x 20 sec", "10 reps x 30 sec"
+        if (preg_match('/(\d+)\s*reps?\s*x\s*(\d+)\s*(?:sec|second|detik)\b/i', $mainSet, $m)) {
+            $reps = (int) $m[1];
+            $sec = (int) $m[2];
+            $distPerRep = ($sec <= 30) ? 0.15 : 0.25;
+            return (float) (round($reps * $distPerRep * 2) / 2);
+        }
+
+        // 3. Reps x distance: "12 reps x 400m", "5 reps x 1K", "20 reps x 200m"
+        if (preg_match('/(\d+)\s*reps?\s*x\s*(\d+(?:\.\d+)?)\s*(K|km|m|meters)\b/i', $mainSet, $matches)) {
             $reps = (float) $matches[1];
             $val = (float) $matches[2];
             $unit = strtolower($matches[3]);
             if ($unit === 'm' || $unit === 'meters') {
-                return ($reps * $val) / 1000.0;
+                return (float) round(($reps * $val) / 1000.0, 1);
             }
-            return $reps * $val;
+            return (float) round($reps * $val, 1);
         }
 
-        if (preg_match('/(\d+)\s*x\s*(\d+(?:\.\d+)?)\s*(K|m|meters)/i', $mainSet, $matches)) {
+        // 4. "12 x 400m", "5 x 1K", "4 x 2K"
+        if (preg_match('/(\d+)\s*x\s*(\d+(?:\.\d+)?)\s*(K|km|m|meters)\b/i', $mainSet, $matches)) {
             $reps = (float) $matches[1];
             $val = (float) $matches[2];
             $unit = strtolower($matches[3]);
             if ($unit === 'm' || $unit === 'meters') {
-                return ($reps * $val) / 1000.0;
+                return (float) round(($reps * $val) / 1000.0, 1);
             }
-            return $reps * $val;
+            return (float) round($reps * $val, 1);
         }
 
-        if (preg_match_all('/(\d+(?:\.\d+)?)\s*(K|m|meters)/i', $mainSet, $matches, PREG_SET_ORDER)) {
+        // 5. Progression / combo: "2K easy + 2K steady + 2K target 10K pace"
+        // Negative lookahead to ensure "10K pace" or "5K race" is not matched as a segment distance!
+        if (preg_match_all('/(\d+(?:\.\d+)?)\s*(K|km|m|meters)\b(?!\s*(?:pace|effort|race|lomba|kecepatan))/i', $mainSet, $matches, PREG_SET_ORDER)) {
             $total = 0.0;
             foreach ($matches as $match) {
                 $val = (float) $match[1];
@@ -1104,11 +1214,11 @@ class ProgramBuilderService
                 }
             }
             if ($total > 0) {
-                return $total;
+                return (float) round($total, 1);
             }
         }
 
-        return 5.0;
+        return 3.0;
     }
 
     public function formatPace(float $minPerKm): string
