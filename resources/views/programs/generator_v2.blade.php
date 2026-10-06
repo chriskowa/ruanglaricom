@@ -2157,7 +2157,6 @@
                 }
 
                 const vdotRate = COACH_VDOT_RATE[level] ?? 0.45;
-                const tv = targVdot > 0 ? targVdot : initVdot;
                 const deltaVdot = Math.max(0, tv - initVdot);
                 const requiredWeeksByVdot = vdotRate > 0 ? Math.ceil(deltaVdot / vdotRate) : 0;
                 const finalRequiredWeeksByVdot = dist === '42k' ? Math.max(requiredWeeksByVdot, Math.ceil(minWeeks * 0.85)) : requiredWeeksByVdot;
