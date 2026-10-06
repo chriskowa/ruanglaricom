@@ -527,7 +527,7 @@
                         <div v-show="heroVdotTab === 'paces'" class="space-y-2 text-xs">
                             <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
                                 <span class="text-slate-300 font-medium">Easy / Recovery (Zone 2)</span>
-                                <strong class="text-white font-bold">@{{ heroFormatPace(heroVdotCompute.easy_high) }} - @{{ heroFormatPace(heroVdotCompute.easy_low) }}</strong>
+                                <strong class="text-white font-bold">@{{ heroFormatPaceRange(heroVdotCompute.easy_high, heroVdotCompute.easy_low) }}</strong>
                             </div>
                             <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
                                 <span class="text-slate-300 font-medium">Marathon Pace</span>
@@ -660,7 +660,7 @@
                     <div class="p-4 rounded-md surface-nested space-y-1">
                         <span class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Tolok Ukur Contoh:</span>
                         <div class="text-sm font-bold text-white">5K — 00:27:30</div>
-                        <div class="text-[11px] text-slate-400">Pace rata-rata 05:30 /km</div>
+                        <div class="text-[11px] text-slate-400">Pace rata-rata 05:30 min/km</div>
                     </div>
                     <div class="p-4 rounded-md surface-nested space-y-1">
                         <span class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Target Lomba Contoh:</span>
@@ -680,27 +680,27 @@
                     <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
                         <div class="p-2.5 rounded bg-[#111726] border border-slate-800">
                             <span class="text-emerald-400 font-bold block text-[11px]">Easy (E)</span>
-                            <span class="text-white text-xs mt-0.5 block font-bold">06:45–07:15</span>
+                            <span class="text-white text-xs mt-0.5 block font-bold">06:45–07:15 min/km</span>
                             <span class="text-[10px] text-slate-400">65–78% HR Max</span>
                         </div>
                         <div class="p-2.5 rounded bg-[#111726] border border-slate-800">
                             <span class="text-blue-400 font-bold block text-[11px]">Marathon (M)</span>
-                            <span class="text-white text-xs mt-0.5 block font-bold">06:12 /km</span>
+                            <span class="text-white text-xs mt-0.5 block font-bold">06:12 min/km</span>
                             <span class="text-[10px] text-slate-400">79–88% HR Max</span>
                         </div>
                         <div class="p-2.5 rounded bg-[#111726] border border-slate-800">
                             <span class="text-amber-400 font-bold block text-[11px]">Threshold (T)</span>
-                            <span class="text-white text-xs mt-0.5 block font-bold">05:40 /km</span>
+                            <span class="text-white text-xs mt-0.5 block font-bold">05:40 min/km</span>
                             <span class="text-[10px] text-slate-400">88–92% HR Max</span>
                         </div>
                         <div class="p-2.5 rounded bg-[#111726] border border-slate-800">
                             <span class="text-rose-400 font-bold block text-[11px]">Interval (I)</span>
-                            <span class="text-white text-xs mt-0.5 block font-bold">05:12 /km</span>
+                            <span class="text-white text-xs mt-0.5 block font-bold">05:12 min/km</span>
                             <span class="text-[10px] text-slate-400">95–100% HR Max</span>
                         </div>
                         <div class="p-2.5 rounded bg-[#111726] border border-slate-800 col-span-2 sm:col-span-1">
                             <span class="text-[#FC4C02] font-bold block text-[11px]">Repetition (R)</span>
-                            <span class="text-white text-xs mt-0.5 block font-bold">04:50 /km</span>
+                            <span class="text-white text-xs mt-0.5 block font-bold">04:50 min/km</span>
                             <span class="text-[10px] text-slate-400">>105% Anaerobik</span>
                         </div>
                     </div>
@@ -1995,12 +1995,24 @@
                 if (v >= 28) return 'Beginner Plus';
                 return 'Beginner';
             });
-            const heroFormatPace = (minPerKm) => {
+            const heroFormatPaceVal = (minPerKm) => {
                 if (!minPerKm || minPerKm <= 0) return '-';
                 const sec = Math.max(0, Math.round(minPerKm * 60));
                 const mm = Math.floor(sec / 60);
                 const ss = sec % 60;
-                return `${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}/km`;
+                return `${String(mm).padStart(2, '0')}:${String(ss).padStart(2, '0')}`;
+            };
+            const heroFormatPace = (minPerKm) => {
+                const val = heroFormatPaceVal(minPerKm);
+                return val === '-' ? '-' : `${val} min/km`;
+            };
+            const heroFormatPaceRange = (pHigh, pLow) => {
+                const v1 = heroFormatPaceVal(pHigh);
+                const v2 = heroFormatPaceVal(pLow);
+                if (v1 === '-' && v2 === '-') return '-';
+                if (v1 === '-') return `${v2} min/km`;
+                if (v2 === '-') return `${v1} min/km`;
+                return `${v1} - ${v2} min/km`;
             };
             const heroFormatDur = (sec) => {
                 sec = Math.max(0, Math.round(Number(sec) || 0));
@@ -3253,13 +3265,13 @@
 
             const formatPace = (pace, type) => {
                 if (type === 'E' && result.value?.paces?.is_run_walk) {
-                    return '08:00 - 08:30 /km (Run/Walk)';
+                    return '08:00 - 08:30 min/km (Run/Walk)';
                 }
                 if (type === 'E' && result.value?.paces?.E_high && result.value?.paces?.E_low) {
-                    return `${formatPaceVal(result.value.paces.E_high)} - ${formatPaceVal(result.value.paces.E_low)} /km`;
+                    return `${formatPaceVal(result.value.paces.E_high)} - ${formatPaceVal(result.value.paces.E_low)} min/km`;
                 }
                 if (!pace || pace <= 0) return '-';
-                return `${formatPaceVal(pace)} /km`;
+                return `${formatPaceVal(pace)} min/km`;
             };
 
             const getSessionClass = (type) => {
@@ -3298,7 +3310,7 @@
                 applyChipOption, computeCoachAssessment, showFeasibilityModal, feasibilityModalPayload,
                 userEditedGoal, userEditedPb, _debugGoalTimeline, _debugSuggestOverwrites, _dbgPushGoal,
                 heroVdotTab, heroVdotDistance, heroVdotH, heroVdotM, heroVdotS, heroVdotCalculated, heroVdotCompute, heroVdotLevel,
-                heroCalculateVdot, heroFormatPace, heroFormatDur, heroApplyToWizard
+                heroCalculateVdot, heroFormatPace, heroFormatPaceRange, heroFormatDur, heroApplyToWizard
             };
         }
     }).mount('#generator-v2-app');

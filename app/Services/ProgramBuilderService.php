@@ -422,7 +422,7 @@ class ProgramBuilderService
                         $effectiveLongRun = min($longRunDistance, 4.0 + ($w * 0.20));
                         $effectiveLongRun = min($effectiveLongRun, 5.5);
                         $session['distance'] = (float) (round($effectiveLongRun * 2) / 2);
-                        $session['target_pace'] = '@ 8:00 - 8:30/km (Run/Walk)';
+                        $session['target_pace'] = '@ 8:00 - 8:30 min/km (Run/Walk)';
                         $session['duration'] = $this->calculateDuration($session['distance'], 9.5); // blended ~9:30 min/km
 
                         $session['description'] = $isDeload
@@ -444,7 +444,7 @@ class ProgramBuilderService
                         $paceFast = max(0, $paces['E'] - (5 / 60));
                         $paceSlow = $paces['E'] + (10 / 60);
                         $rangeStr = sprintf(
-                            '%d:%02d - %d:%02d/km',
+                            '%d:%02d - %d:%02d min/km',
                             floor($paceFast), round(($paceFast - floor($paceFast)) * 60),
                             floor($paceSlow), round(($paceSlow - floor($paceSlow)) * 60)
                         );
@@ -481,7 +481,7 @@ class ProgramBuilderService
                     $paceFast = max(0, $paces[$workoutPaceKey] - (5 / 60));
                     $paceSlow = $paces[$workoutPaceKey] + (10 / 60);
                     $rangeStr = sprintf(
-                        '%d:%02d - %d:%02d/km',
+                        '%d:%02d - %d:%02d min/km',
                         floor($paceFast), round(($paceFast - floor($paceFast)) * 60),
                         floor($paceSlow), round(($paceSlow - floor($paceSlow)) * 60)
                     );
@@ -521,9 +521,9 @@ class ProgramBuilderService
                         if ($assignment['type'] === 'recovery_run') {
                             $session['distance'] = 3.0;
                             $session['duration'] = '00:30:00';
-                            $session['target_pace'] = '@ 10:30 - 11:30/km (Jalan Pemulihan)';
+                            $session['target_pace'] = '@ 10:30 - 11:30 min/km (Jalan Pemulihan)';
                             $session['description'] = "Recovery Walk & Mobility (Pemulihan Aktif)\n"
-                                . "• Durasi: 30 menit Jalan Cepat Santai (Pace 10:30–11:30/km)\n"
+                                . "• Durasi: 30 menit Jalan Cepat Santai (Pace 10:30–11:30 min/km)\n"
                                 . "• Fokus: Melancarkan sirkulasi darah tanpa impak hentakan keras pada sendi.\n"
                                 . "• Gerakan: Postur tegak, langkah santai, peregangan betis dan paha di akhir sesi.";
                         } else {
@@ -533,34 +533,34 @@ class ProgramBuilderService
                                 // Fase Awal (Base Awal): 1m Run + 2m Walk
                                 $session['distance'] = 3.0;
                                 $session['duration'] = '00:30:00';
-                                $session['target_pace'] = '@ 8:00 - 8:30/km (Run/Walk)';
+                                $session['target_pace'] = '@ 8:00 - 8:30 min/km (Run/Walk)';
                                 $session['description'] = "Metode Lari-Jalan (Run-Walk Interval) — Fondasi Aerobik & Proteksi Sendi\n"
                                     . "• Pemanasan: 5 menit Jalan Cepat Aktif\n"
                                     . "• Sesi Utama: 8 repetisi × [1 menit Lari Santai + 2 menit Jalan Cepat]\n"
-                                    . "  - Pace Lari: 8:00 - 8:30/km (Form lari santai alami, langkah rileks, RPE 3-4)\n"
-                                    . "  - Pace Jalan: 10:30 - 11:30/km (Jalan cepat aktif untuk kontrol detak jantung)\n"
+                                    . "  - Pace Lari: 8:00 - 8:30 min/km (Form lari santai alami, langkah rileks, RPE 3-4)\n"
+                                    . "  - Pace Jalan: 10:30 - 11:30 min/km (Jalan cepat aktif untuk kontrol detak jantung)\n"
                                     . "• Pendinginan: 5 menit Jalan Santai & Peregangan Otot\n"
                                     . "TUJUAN: Melatih sistem kardiovaskular dan mitokondria tanpa membebani sendi/tulang. Jeda jalan menjaga detak jantung tetap stabil di Zona 2.";
                             } elseif ($weekProgress <= 0.70) {
                                 // Fase Menengah: 2m Run + 1m Walk
                                 $session['distance'] = 3.5;
                                 $session['duration'] = '00:35:00';
-                                $session['target_pace'] = '@ 8:00 - 8:30/km (Run/Walk)';
+                                $session['target_pace'] = '@ 8:00 - 8:30 min/km (Run/Walk)';
                                 $session['description'] = "Metode Lari-Jalan (Run-Walk Progression) — Peningkatan Kapasitas Aerobik\n"
                                     . "• Pemanasan: 5 menit Jalan Cepat Aktif\n"
                                     . "• Sesi Utama: 9 repetisi × [2 menit Lari Santai + 1 menit Jalan Cepat]\n"
-                                    . "  - Pace Lari: 8:00 - 8:30/km (Ritme langkah teratur, postur tegak)\n"
-                                    . "  - Pace Jalan: 10:30 - 11:30/km (Jalan aktif pemulihan napas)\n"
+                                    . "  - Pace Lari: 8:00 - 8:30 min/km (Ritme langkah teratur, postur tegak)\n"
+                                    . "  - Pace Jalan: 10:30 - 11:30 min/km (Jalan aktif pemulihan napas)\n"
                                     . "• Pendinginan: 5 menit Jalan Santai & Peregangan\n"
                                     . "TUJUAN: Menaikkan rasio durasi lari 2x lebih lama dari jeda jalan seraya mempertahankan biomekanika lari yang efisien.";
                             } else {
                                 // Fase Lanjutan: Transisi Kontinu
                                 $session['distance'] = 4.0;
                                 $session['duration'] = '00:32:00';
-                                $session['target_pace'] = '@ 8:00 - 8:30/km (Transisi Kontinu)';
+                                $session['target_pace'] = '@ 8:00 - 8:30 min/km (Transisi Kontinu)';
                                 $session['description'] = "Easy Aerobic Run (Transisi Lari Kontinu)\n"
                                     . "• Pemanasan: 5 menit Jalan Cepat Aktif\n"
-                                    . "• Sesi Utama: 20-25 menit Lari Santai Berkelanjutan (Pace 8:00 - 8:30/km, RPE 3-4)\n"
+                                    . "• Sesi Utama: 20-25 menit Lari Santai Berkelanjutan (Pace 8:00 - 8:30 min/km, RPE 3-4)\n"
                                     . "  - Tips: Jika detak jantung melewati batas Zona 2 atau napas mulai terengah, sisipkan 60 detik jalan cepat lalu lanjutkan lari santai.\n"
                                     . "• Pendinginan: 5 menit Jalan Santai\n"
                                     . "TUJUAN: Tubuh dan sistem kardio telah beradaptasi, siap berlari terus-menerus secara nyaman dan aman.";
@@ -575,7 +575,7 @@ class ProgramBuilderService
                         $paceFast = max(0, $paces['E'] - (5 / 60));
                         $paceSlow = $paces['E'] + (10 / 60);
                         $rangeStr = sprintf(
-                            '%d:%02d - %d:%02d/km',
+                            '%d:%02d - %d:%02d min/km',
                             floor($paceFast), round(($paceFast - floor($paceFast)) * 60),
                             floor($paceSlow), round(($paceSlow - floor($paceSlow)) * 60)
                         );
@@ -1267,7 +1267,7 @@ class ProgramBuilderService
     {
         $m = floor($minPerKm);
         $s = round(($minPerKm - $m) * 60);
-        return sprintf('@ %d:%02d/km', $m, $s);
+        return sprintf('@ %d:%02d min/km', $m, $s);
     }
 
     public function calculateDuration(float $distanceKm, float $paceMinPerKm): string
