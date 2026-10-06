@@ -2093,17 +2093,62 @@
 
                 const distKm = distanceKm[dist] || 10;
                 const goalPaceSecPerKm = goalSec > 0 ? (goalSec / distKm) : 0;
+                const tv = targVdot > 0 ? targVdot : initVdot;
+                const effectiveVdot = Math.max(initVdot, tv);
 
-                if (dist === '10k' && goalSec > 0 && goalPaceSecPerKm <= 222) {
-                    if (level === 'advanced') {
-                        minMileage = Math.max(minMileage, 42);
-                        idealMileage = agg === 'sharp' ? Math.max(idealMileage, 56) : Math.max(idealMileage, 52);
-                    } else {
-                        minMileage = Math.max(minMileage, (level === 'intermediate' ? 45 : 48));
-                        idealMileage = agg === 'sharp' ? Math.max(idealMileage, 55) : Math.max(idealMileage, 50);
+                // === PACE & VDOT-AWARE PHYSIOLOGICAL ELEVATION ===
+                if (dist === '5k' && (goalPaceSecPerKm > 0 || effectiveVdot > 0)) {
+                    if ((goalPaceSecPerKm > 0 && goalPaceSecPerKm <= 222) || effectiveVdot >= 54) {
+                        minMileage = Math.max(minMileage, 45);
+                        idealMileage = agg === 'sharp' ? Math.max(idealMileage, 62) : Math.max(idealMileage, 55);
+                        minFreq = Math.max(minFreq, 5);
+                        minWeeks = Math.max(minWeeks, 10);
+                    } else if ((goalPaceSecPerKm > 0 && goalPaceSecPerKm <= 240) || effectiveVdot >= 49) {
+                        minMileage = Math.max(minMileage, 38);
+                        idealMileage = agg === 'sharp' ? Math.max(idealMileage, 55) : Math.max(idealMileage, 48);
+                        minFreq = Math.max(minFreq, 4);
+                        minWeeks = Math.max(minWeeks, 8);
+                    } else if ((goalPaceSecPerKm > 0 && goalPaceSecPerKm <= 270) || effectiveVdot >= 43) {
+                        minMileage = Math.max(minMileage, 30);
+                        idealMileage = agg === 'sharp' ? Math.max(idealMileage, 46) : Math.max(idealMileage, 40);
+                        minFreq = Math.max(minFreq, 4);
                     }
-                    minFreq = Math.max(minFreq, 5);
-                    minWeeks = Math.max(minWeeks, 10);
+                } else if (dist === '10k' && (goalPaceSecPerKm > 0 || effectiveVdot > 0)) {
+                    if ((goalPaceSecPerKm > 0 && goalPaceSecPerKm <= 222) || effectiveVdot >= 54) {
+                        minMileage = Math.max(minMileage, 48);
+                        idealMileage = agg === 'sharp' ? Math.max(idealMileage, 65) : Math.max(idealMileage, 58);
+                        minFreq = Math.max(minFreq, 5);
+                        minWeeks = Math.max(minWeeks, 10);
+                    } else if ((goalPaceSecPerKm > 0 && goalPaceSecPerKm <= 252) || effectiveVdot >= 48) {
+                        minMileage = Math.max(minMileage, 40);
+                        idealMileage = agg === 'sharp' ? Math.max(idealMileage, 55) : Math.max(idealMileage, 48);
+                        minFreq = Math.max(minFreq, 4);
+                        minWeeks = Math.max(minWeeks, 10);
+                    }
+                } else if (dist === '21k' && (goalPaceSecPerKm > 0 || effectiveVdot > 0)) {
+                    if ((goalPaceSecPerKm > 0 && goalPaceSecPerKm <= 242) || effectiveVdot >= 54) {
+                        minMileage = Math.max(minMileage, 60);
+                        idealMileage = agg === 'sharp' ? Math.max(idealMileage, 80) : Math.max(idealMileage, 72);
+                        minFreq = Math.max(minFreq, 5);
+                        minWeeks = Math.max(minWeeks, 12);
+                    } else if ((goalPaceSecPerKm > 0 && goalPaceSecPerKm <= 270) || effectiveVdot >= 47) {
+                        minMileage = Math.max(minMileage, 50);
+                        idealMileage = agg === 'sharp' ? Math.max(idealMileage, 65) : Math.max(idealMileage, 58);
+                        minFreq = Math.max(minFreq, 5);
+                        minWeeks = Math.max(minWeeks, 12);
+                    }
+                } else if (dist === '42k' && (goalPaceSecPerKm > 0 || effectiveVdot > 0)) {
+                    if ((goalPaceSecPerKm > 0 && goalPaceSecPerKm <= 256) || effectiveVdot >= 54) {
+                        minMileage = Math.max(minMileage, 75);
+                        idealMileage = agg === 'sharp' ? Math.max(idealMileage, 100) : Math.max(idealMileage, 90);
+                        minFreq = Math.max(minFreq, 5);
+                        minWeeks = Math.max(minWeeks, 16);
+                    } else if ((goalPaceSecPerKm > 0 && goalPaceSecPerKm <= 299) || effectiveVdot >= 46) {
+                        minMileage = Math.max(minMileage, 62);
+                        idealMileage = agg === 'sharp' ? Math.max(idealMileage, 82) : Math.max(idealMileage, 75);
+                        minFreq = Math.max(minFreq, 5);
+                        minWeeks = Math.max(minWeeks, 14);
+                    }
                 }
 
                 if (injury !== 'none') {
@@ -2169,8 +2214,13 @@
                 const pctVdot = initVdot > 0 ? Math.round((deltaVdot / initVdot) * 1000) / 10 : 0;
 
                 let reason = '';
-                if (dist === '10k' && minMileage >= 42) {
-                    reason = `Target ${distLabel} ${goalTimeStr} (${paceStr}/km termasuk kategori cepat) menuntut stimulus aerobik + adaptasi ambang laktat yang tidak dapat dicapai hanya dengan 20–30 km/minggu. Minimum puncak mingguan = ${minMileage} km dengan frekuensi latih minimal 5 hari/minggu, idealnya ${idealMileage} km selama minimal ${minWeeks} pekan. `;
+                const isFastTarget = (dist === '5k' && minMileage >= 38)
+                    || (dist === '10k' && minMileage >= 40)
+                    || (dist === '21k' && minMileage >= 50)
+                    || (dist === '42k' && minMileage >= 62);
+
+                if (isFastTarget) {
+                    reason = `Target ${distLabel} ${goalTimeStr} (${paceStr}/km termasuk kategori cepat / kompetitif) menuntut stimulus aerobik + adaptasi ambang laktat dan kapasitas mitokondria yang memadai. Minimum puncak mingguan = ${minMileage} km dengan frekuensi latih minimal ${minFreq} hari/minggu, idealnya ${idealMileage} km selama minimal ${minWeeks} pekan. `;
                 } else {
                     reason = `Target ${distLabel} ${goalTimeStr} untuk level ${level} membutuhkan puncak beban ${minMileage}–${idealMileage} km/minggu. `;
                 }

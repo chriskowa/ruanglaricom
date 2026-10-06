@@ -232,7 +232,7 @@ class ProgramBuilderService
 
             // ===== LONG RUN DISTANCE (progressive) =====
             $longRunDistance = $this->calculateLongRunForWeek(
-                $w, $weeks, $currentMileage, $normalizedDistance, $longRunCaps, $phase, $runnerLevel, $taperWeeks
+                $w, $weeks, $currentMileage, (float) $targetMileage, $normalizedDistance, $longRunCaps, $phase, $runnerLevel, $taperWeeks
             );
 
             // Mileage warning
@@ -368,6 +368,22 @@ class ProgramBuilderService
                 $rawAvg = $easyPool / $totalEasyDays;
                 $roundedEasy = ($rawAvg < 5.0) ? (round($rawAvg * 2) / 2) : round($rawAvg);
                 $easyDistance = (float) max(3.0, min(16.0, $roundedEasy));
+
+                // ANTI-INVERSION RULE: The Long Run must be the single longest run of the week.
+                // An Easy Run can NEVER be equal to or longer than the Long Run.
+                if ($easyDistance >= $longRunDistance) {
+                    $potentialLongRun = min($longRunCaps['max_km'] ?? 16, max($minLongRunFloor ?? 5.0, $easyDistance + 2.0));
+                    if ($potentialLongRun > $longRunDistance && ($potentialLongRun <= $currentMileage * 0.45)) {
+                        $longRunDistance = $potentialLongRun;
+                        $easyPool = max(0, $currentMileage - ($longRunDistance + array_sum($qualityDistances)));
+                        $rawAvg = $easyPool / $totalEasyDays;
+                        $roundedEasy = ($rawAvg < 5.0) ? (round($rawAvg * 2) / 2) : round($rawAvg);
+                        $easyDistance = (float) max(3.0, min(16.0, $roundedEasy));
+                    }
+                    if ($easyDistance >= $longRunDistance) {
+                        $easyDistance = (float) max(3.0, $longRunDistance - 1.0);
+                    }
+                }
 
                 if ($recoveryDaysCount > 0) {
                     $recoveryDistance = (float) max(3.0, min($easyDistance, ($easyDistance > 4.0 ? $easyDistance - 1.0 : $easyDistance)));
@@ -771,7 +787,7 @@ class ProgramBuilderService
      * - Reduces during taper
      */
     private function calculateLongRunForWeek(
-        int $week, int $totalWeeks, float $weeklyMileage,
+        int $week, int $totalWeeks, float $weeklyMileage, float $peakTargetMileage,
         string $targetDistance, array $longRunCaps, string $phase,
         string $runnerLevel, int $taperWeeks
     ): float {
@@ -779,8 +795,9 @@ class ProgramBuilderService
         $maxRatio = $longRunCaps['max_ratio'];
         $minLongRunFloor = $this->getMinLongRunFloor($targetDistance, $weeklyMileage, $runnerLevel);
 
-        // Calculate the peak long run distance (capped)
-        $peakLongRun = min($maxKm, (float) round($weeklyMileage * $maxRatio));
+        // Peak long run of the program is based on the peak target mileage (not starting week's reduced mileage)
+        $effectivePeakMileage = max($weeklyMileage, $peakTargetMileage);
+        $peakLongRun = min($maxKm, (float) round($effectivePeakMileage * $maxRatio));
 
         // Runner level adjustment
         if ($runnerLevel === 'beginner') {
@@ -789,6 +806,7 @@ class ProgramBuilderService
             $peakLongRun = (float) round($peakLongRun * 1.10);
             $peakLongRun = min($peakLongRun, $maxKm); // Still respect cap
         }
+        $peakLongRun = max($minLongRunFloor, $peakLongRun);
 
         if ($phase === 'Taper') {
             // During taper, long run is reduced
@@ -798,19 +816,28 @@ class ProgramBuilderService
             return (float) round(max($minLongRunFloor * 0.6, $peakLongRun * min(1.0, $taperReduction)));
         }
 
-        // Progressive build: start at 60% of peak, build to 100%
+        // Progressive build: start at ~65-72% of peak, build to 100%
         $buildWeeks = max(1, $totalWeeks - $taperWeeks);
         $progress = min(1.0, ($week - 1) / max(1, $buildWeeks - 1));
         // Ease-in curve for gradual increase
         $easedProgress = pow($progress, 0.8);
-        $startLongRun = max($minLongRunFloor, (float) round($peakLongRun * 0.60));
+
+        $startPercent = match ($runnerLevel) {
+            'advanced' => 0.72,
+            'intermediate' => 0.65,
+            default => 0.60,
+        };
+        $startLongRun = max($minLongRunFloor, (float) round($peakLongRun * $startPercent));
 
         $longRunDistance = (float) round($startLongRun + ($peakLongRun - $startLongRun) * $easedProgress);
 
         // Never exceed cap
         $longRunDistance = min($longRunDistance, $maxKm);
-        // Never exceed ratio of this week's mileage
-        $longRunDistance = min($longRunDistance, (float) round($weeklyMileage * $maxRatio));
+
+        // Safe weekly ratio ceiling (max 38% of current week), but never below floor
+        $maxWeeklyRatio = max(0.35, $maxRatio);
+        $maxAllowedForWeek = max($minLongRunFloor, (float) round($weeklyMileage * $maxWeeklyRatio));
+        $longRunDistance = min($longRunDistance, $maxAllowedForWeek);
 
         // Floor enforcement
         if ($longRunDistance < $minLongRunFloor) {
@@ -854,16 +881,31 @@ class ProgramBuilderService
     {
         $normalized = $this->normalizeDistanceKey($targetDistance);
         $hardFloor = match ($normalized) {
-            '42k' => 18.0,
-            '21k' => 12.0,
-            '10k' => 8.0,
-            '5k'  => 5.0,
-            default => 5.0,
+            '42k' => match ($runnerLevel) {
+                'advanced' => 24.0,
+                'intermediate' => 20.0,
+                default => 16.0,
+            },
+            '21k' => match ($runnerLevel) {
+                'advanced' => 14.0,
+                'intermediate' => 12.0,
+                default => 10.0,
+            },
+            '10k' => match ($runnerLevel) {
+                'advanced' => 12.0,
+                'intermediate' => 10.0,
+                default => 7.0,
+            },
+            '5k'  => match ($runnerLevel) {
+                'advanced' => 10.0,
+                'intermediate' => 8.0,
+                default => 5.0,
+            },
+            default => 6.0,
         };
 
-        // For beginners with lower mileage, cap the floor at 30% of weekly mileage
-        // Prevents imposing a 8km long run floor on a beginner running only 15km/week
-        if ($runnerLevel === 'beginner' && $weeklyMileage > 0) {
+        // For beginners with low weekly mileage (< 20km), cap the floor at 30% of weekly mileage
+        if ($runnerLevel === 'beginner' && $weeklyMileage > 0 && $weeklyMileage < 20.0) {
             $dynamicFloor = round($weeklyMileage * 0.30, 1);
             return min($hardFloor, max(3.0, $dynamicFloor));
         }

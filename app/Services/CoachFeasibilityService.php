@@ -83,22 +83,108 @@ class CoachFeasibilityService
 
         $goalPacePerKmSec = ($goalSec > 0) ? ($goalSec / $this->distanceKm($distance)) : 0;
 
-        if ($distance === '10k' && $goalSec > 0 && $goalPacePerKmSec <= 222) {
-            if ($level === 'advanced') {
-                $minMileage = max($minMileage, 42);
+        $effectiveVdot = max($initialVdot, $targetVdot);
+
+        // === PACE & VDOT-AWARE PHYSIOLOGICAL ELEVATION ===
+        // Fast race targets demand proportional aerobic volume and frequency.
+        // A sub-18:30 5K runner or 3:38/km pace (VDOT >= 54) cannot prepare with only 22-32 km/week!
+        if ($distance === '5k' && ($goalPacePerKmSec > 0 || $effectiveVdot > 0)) {
+            if (($goalPacePerKmSec > 0 && $goalPacePerKmSec <= 222) || $effectiveVdot >= 54) {
+                // Sub-18:30 / 18:10 5K (pace <= 3:42/km) - Competitive / Sub-elite
+                $minMileage = max($minMileage, 45);
                 $idealMileage = match (true) {
-                    $aggressiveness === 'sharp' => max($idealMileage, 56),
-                    default                     => max($idealMileage, 52),
+                    $aggressiveness === 'sharp' => max($idealMileage, 62),
+                    default                     => max($idealMileage, 55),
                 };
-            } else {
-                $minMileage = max($minMileage, ($level === 'intermediate' ? 45 : 48));
+                $maxMileage = max($maxMileage, 80);
+                $minFreq = max($minFreq, 5);
+                $minWeeks = max($minWeeks, 10);
+            } elseif (($goalPacePerKmSec > 0 && $goalPacePerKmSec <= 240) || $effectiveVdot >= 49) {
+                // Sub-20:00 5K (pace <= 4:00/km) - Advanced
+                $minMileage = max($minMileage, 38);
                 $idealMileage = match (true) {
                     $aggressiveness === 'sharp' => max($idealMileage, 55),
-                    default                     => max($idealMileage, 50),
+                    default                     => max($idealMileage, 48),
                 };
+                $maxMileage = max($maxMileage, 70);
+                $minFreq = max($minFreq, 4);
+                $minWeeks = max($minWeeks, 8);
+            } elseif (($goalPacePerKmSec > 0 && $goalPacePerKmSec <= 270) || $effectiveVdot >= 43) {
+                // Sub-22:30 5K (pace <= 4:30/km) - Strong Intermediate
+                $minMileage = max($minMileage, 30);
+                $idealMileage = match (true) {
+                    $aggressiveness === 'sharp' => max($idealMileage, 46),
+                    default                     => max($idealMileage, 40),
+                };
+                $maxMileage = max($maxMileage, 60);
+                $minFreq = max($minFreq, 4);
             }
-            $minFreq = max($minFreq, 5);
-            $minWeeks = max($minWeeks, 10);
+        } elseif ($distance === '10k' && ($goalPacePerKmSec > 0 || $effectiveVdot > 0)) {
+            if (($goalPacePerKmSec > 0 && $goalPacePerKmSec <= 222) || $effectiveVdot >= 54) {
+                // Sub-37:00 10K (pace <= 3:42/km)
+                $minMileage = max($minMileage, 48);
+                $idealMileage = match (true) {
+                    $aggressiveness === 'sharp' => max($idealMileage, 65),
+                    default                     => max($idealMileage, 58),
+                };
+                $maxMileage = max($maxMileage, 85);
+                $minFreq = max($minFreq, 5);
+                $minWeeks = max($minWeeks, 10);
+            } elseif (($goalPacePerKmSec > 0 && $goalPacePerKmSec <= 252) || $effectiveVdot >= 48) {
+                // Sub-42:00 10K (pace <= 4:12/km)
+                $minMileage = max($minMileage, 40);
+                $idealMileage = match (true) {
+                    $aggressiveness === 'sharp' => max($idealMileage, 55),
+                    default                     => max($idealMileage, 48),
+                };
+                $maxMileage = max($maxMileage, 75);
+                $minFreq = max($minFreq, 4);
+                $minWeeks = max($minWeeks, 10);
+            }
+        } elseif ($distance === '21k' && ($goalPacePerKmSec > 0 || $effectiveVdot > 0)) {
+            if (($goalPacePerKmSec > 0 && $goalPacePerKmSec <= 242) || $effectiveVdot >= 54) {
+                // Sub-1:25 Half Marathon (pace <= 4:02/km)
+                $minMileage = max($minMileage, 60);
+                $idealMileage = match (true) {
+                    $aggressiveness === 'sharp' => max($idealMileage, 80),
+                    default                     => max($idealMileage, 72),
+                };
+                $maxMileage = max($maxMileage, 105);
+                $minFreq = max($minFreq, 5);
+                $minWeeks = max($minWeeks, 12);
+            } elseif (($goalPacePerKmSec > 0 && $goalPacePerKmSec <= 270) || $effectiveVdot >= 47) {
+                // Sub-1:35 Half Marathon (pace <= 4:30/km)
+                $minMileage = max($minMileage, 50);
+                $idealMileage = match (true) {
+                    $aggressiveness === 'sharp' => max($idealMileage, 65),
+                    default                     => max($idealMileage, 58),
+                };
+                $maxMileage = max($maxMileage, 85);
+                $minFreq = max($minFreq, 5);
+                $minWeeks = max($minWeeks, 12);
+            }
+        } elseif ($distance === '42k' && ($goalPacePerKmSec > 0 || $effectiveVdot > 0)) {
+            if (($goalPacePerKmSec > 0 && $goalPacePerKmSec <= 256) || $effectiveVdot >= 54) {
+                // Sub-3:00 Marathon (pace <= 4:16/km)
+                $minMileage = max($minMileage, 75);
+                $idealMileage = match (true) {
+                    $aggressiveness === 'sharp' => max($idealMileage, 100),
+                    default                     => max($idealMileage, 90),
+                };
+                $maxMileage = max($maxMileage, 130);
+                $minFreq = max($minFreq, 5);
+                $minWeeks = max($minWeeks, 16);
+            } elseif (($goalPacePerKmSec > 0 && $goalPacePerKmSec <= 299) || $effectiveVdot >= 46) {
+                // Sub-3:30 Marathon (pace <= 4:59/km)
+                $minMileage = max($minMileage, 62);
+                $idealMileage = match (true) {
+                    $aggressiveness === 'sharp' => max($idealMileage, 82),
+                    default                     => max($idealMileage, 75),
+                };
+                $maxMileage = max($maxMileage, 105);
+                $minFreq = max($minFreq, 5);
+                $minWeeks = max($minWeeks, 14);
+            }
         }
 
         if ($injury !== 'none') {
@@ -246,8 +332,13 @@ class CoachFeasibilityService
         $pctVdot = $initialVdot > 0 ? round(($deltaVdot / $initialVdot) * 100, 1) : 0;
 
         $parts = [];
-        if ($distance === '10k' && $minMileage >= 42) {
-            $parts[] = "Target $distanceLabel $goalTimeStr ($paceStr/km termasuk kategori cepat) menuntut stimulus aerobik + adaptasi ambang laktat yang tidak dapat dicapai hanya dengan 20–30 km/minggu.";
+        $isFastTarget = ($distance === '5k' && $minMileage >= 38)
+            || ($distance === '10k' && $minMileage >= 40)
+            || ($distance === '21k' && $minMileage >= 50)
+            || ($distance === '42k' && $minMileage >= 62);
+
+        if ($isFastTarget) {
+            $parts[] = "Target $distanceLabel $goalTimeStr ($paceStr/km termasuk kategori cepat / kompetitif) menuntut stimulus aerobik + adaptasi ambang laktat dan kapasitas mitokondria yang memadai.";
             $parts[] = "Minimum puncak mingguan = $minMileage km dengan frekuensi latih minimal 5 hari/minggu, idealnya $idealMileage km selama minimal $minWeeks pekan.";
         } else {
             $parts[] = "Target {$distanceLabel} {$goalTimeStr} untuk level {$level} membutuhkan puncak beban {$minMileage}–{$idealMileage} km/minggu.";
