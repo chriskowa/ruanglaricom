@@ -651,6 +651,40 @@
         </button>
     </div>
 
+    <!-- Floating Guidance: Navigasi Menuju Titik Start -->
+    <div id="nav-to-start-banner" class="absolute top-16 left-3 right-3 sm:left-4 sm:right-auto sm:w-96 z-20 bg-slate-900/95 border border-slate-800 rounded-lg p-3 shadow-xl backdrop-blur-sm text-xs transition-all duration-300 hidden">
+        <div class="flex items-start justify-between gap-2">
+            <div class="flex items-center gap-2 min-w-0">
+                <span id="nav-to-start-dot" class="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse shrink-0"></span>
+                <span class="font-bold text-white text-xs truncate" id="nav-to-start-title">Menuju Titik Start</span>
+            </div>
+            <span id="nav-to-start-dist-badge" class="px-2 py-0.5 rounded bg-blue-950 border border-blue-800 text-blue-300 font-mono font-semibold text-[11px] tabular-nums shrink-0">-- m</span>
+        </div>
+        <p id="nav-to-start-desc" class="text-slate-300 text-[11px] mt-1 leading-snug">
+            Mendeteksi posisi GPS Anda menuju titik awal rute...
+        </p>
+        <div class="mt-2.5 pt-2 border-t border-slate-800 flex items-center gap-2">
+            <button type="button" onclick="openGoogleMapsToStart()" class="flex-1 py-1.5 px-2.5 rounded-md bg-slate-800 hover:bg-slate-700 text-white text-[11px] font-medium transition flex items-center justify-center gap-1.5 cursor-pointer" title="Buka navigasi Google Maps untuk rute jalan ke titik start">
+                <i class="fa-solid fa-diamond-turn-right text-emerald-400 text-xs"></i>
+                <span>Arah Jalan (Google Maps)</span>
+            </button>
+            <button type="button" onclick="fitUserAndStart()" class="py-1.5 px-2.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-[11px] font-medium transition flex items-center justify-center gap-1 cursor-pointer" title="Fokus posisi saya dan titik start di peta">
+                <i class="fa-solid fa-crosshairs text-xs"></i>
+                <span>Fokus Peta</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Quick Map Controls Floating -->
+    <div class="absolute right-3 sm:right-5 bottom-72 sm:bottom-64 z-20 flex flex-col gap-2">
+        <button type="button" onclick="recenterNavMapOnUser()" class="w-10 h-10 rounded-lg bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-white hover:text-[#FC4C02] flex items-center justify-center shadow-lg transition cursor-pointer" title="Posisikan ke Lokasi Saya">
+            <i class="fa-solid fa-location-crosshairs text-sm"></i>
+        </button>
+        <button type="button" onclick="fitNavRoute()" class="w-10 h-10 rounded-lg bg-slate-900/90 hover:bg-slate-800 border border-slate-700 text-white hover:text-[#FC4C02] flex items-center justify-center shadow-lg transition cursor-pointer" title="Lihat Seluruh Rute">
+            <i class="fa-solid fa-route text-sm"></i>
+        </button>
+    </div>
+
     <div id="nav-fullscreen-map" class="flex-1 w-full h-full relative z-10 pt-14 pb-64"></div>
 
     <div class="nav-solid-bottom absolute bottom-0 left-0 right-0 z-30 bg-[#0B0F17] border-t border-slate-800 p-4 sm:p-5 shadow-2xl">
@@ -690,10 +724,28 @@
             </div>
 
             <div id="nav-action-buttons-wrap" class="pt-1">
-                <button type="button" onclick="startRunningSession()" class="w-full py-3.5 px-4 rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white font-black text-sm uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#FC4C02]/25">
-                    <i class="fa-solid fa-play text-xs"></i>
-                    <span>Mulai Lari (Start)</span>
-                </button>
+                <div id="nav-ready-actions" class="space-y-2">
+                    <div id="nav-start-proximity-notice" class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-xs flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <i class="fa-solid fa-location-dot text-[#FC4C02] text-xs shrink-0"></i>
+                            <span id="nav-proximity-text" class="text-slate-300 truncate text-[11px]">Memeriksa jarak GPS ke titik start...</span>
+                        </div>
+                        <button type="button" onclick="openGoogleMapsToStart()" class="text-[#FC4C02] hover:underline text-[11px] font-bold shrink-0 flex items-center gap-1 cursor-pointer">
+                            <span>Arah Jalan</span>
+                            <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" onclick="openGoogleMapsToStart()" class="py-3 px-3 rounded-lg border border-slate-700 hover:border-slate-600 bg-slate-800 hover:bg-slate-750 text-slate-200 font-semibold text-xs uppercase tracking-wide transition flex items-center justify-center gap-1.5 cursor-pointer text-center">
+                            <i class="fa-solid fa-diamond-turn-right text-xs text-blue-400"></i>
+                            <span>Arah ke Start</span>
+                        </button>
+                        <button type="button" id="btn-start-run-session" onclick="startRunningSession()" class="py-3 px-3 rounded-lg bg-[#FC4C02] hover:bg-[#e04300] text-white font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#FC4C02]/25 text-center">
+                            <i class="fa-solid fa-play text-xs"></i>
+                            <span id="btn-start-run-text">Mulai Rute (Start)</span>
+                        </button>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -743,6 +795,7 @@
             initMap();
             initElevationProfile();
             initPacePro();
+            checkOfflineCacheStatus();
         });
 
         // 1. Bearing & Rotation Calculations
@@ -1381,23 +1434,25 @@
         }
 
         // =========================================================================
-        // LIVE GPS NAVIGATION ENGINE (HUD & Run Tracking)
+        // LIVE GPS NAVIGATION ENGINE (HUD, Start Guidance, & Run Tracking)
         // =========================================================================
         let navMap = null;
         let navPolyline = null;
         let navUserMarker = null;
         let navAccuracyCircle = null;
+        let navStartMarker = null;
+        let navFinishMarker = null;
+        let navToStartLine = null;
+        let navLastUserPos = null;
         let navWatchId = null;
         let navWakeLock = null;
         let navTimerInterval = null;
-        let navSessionState = 'ready';
+        let navSessionState = 'ready'; // 'ready', 'running', 'paused'
         let navRunStartTimestamp = null;
         let navAccumulatedElapsedSec = 0;
         let recordedActualDistanceKm = 0;
         let recordedGpsTrack = [];
-        let userLocationMarker = null;
-        let userLocationCircle = null;
-        let userDistanceLine = null;
+        const navOffCourseThresholdM = 60;
 
         function startLiveNavigation() {
             if (!navigator.geolocation) {
@@ -1431,12 +1486,14 @@
             recordedActualDistanceKm = 0;
             recordedGpsTrack = [];
 
+            // Reset HUD Metrics
             const actualDistEl = document.getElementById('nav-actual-dist');
             const timeEl = document.getElementById('nav-running-time');
             const progBar = document.getElementById('nav-progress-bar');
             const progPctEl = document.getElementById('nav-progress-pct');
             const remDistEl = document.getElementById('nav-remaining-dist');
             const livePaceEl = document.getElementById('nav-live-pace');
+            const startBanner = document.getElementById('nav-to-start-banner');
 
             if (actualDistEl) actualDistEl.textContent = '0.00';
             if (timeEl) timeEl.textContent = '00:00';
@@ -1444,6 +1501,9 @@
             if (progPctEl) progPctEl.textContent = '0%';
             if (remDistEl) remDistEl.textContent = totalRouteDistance.toFixed(2);
             if (livePaceEl) livePaceEl.textContent = '--:--';
+            if (startBanner) startBanner.classList.remove('hidden');
+
+            resetNavReadyButtons();
 
             if (navWatchId) navigator.geolocation.clearWatch(navWatchId);
             navWatchId = navigator.geolocation.watchPosition(
@@ -1451,6 +1511,36 @@
                 handleNavGpsError,
                 { enableHighAccuracy: true, maximumAge: 0, timeout: 10000 }
             );
+        }
+
+        function resetNavReadyButtons() {
+            const wrap = document.getElementById('nav-action-buttons-wrap');
+            if (wrap) {
+                wrap.innerHTML = `
+                    <div id="nav-ready-actions" class="space-y-2">
+                        <div id="nav-start-proximity-notice" class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-xs flex items-center justify-between gap-2">
+                            <div class="flex items-center gap-2 min-w-0">
+                                <i class="fa-solid fa-location-dot text-[#FC4C02] text-xs shrink-0"></i>
+                                <span id="nav-proximity-text" class="text-slate-300 truncate text-[11px]">Memeriksa jarak GPS ke titik start...</span>
+                            </div>
+                            <button type="button" onclick="openGoogleMapsToStart()" class="text-[#FC4C02] hover:underline text-[11px] font-bold shrink-0 flex items-center gap-1 cursor-pointer">
+                                <span>Arah Jalan</span>
+                                <i class="fa-solid fa-arrow-up-right-from-square text-[9px]"></i>
+                            </button>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" onclick="openGoogleMapsToStart()" class="py-3 px-3 rounded-lg border border-slate-700 hover:border-slate-600 bg-slate-800 hover:bg-slate-750 text-slate-200 font-semibold text-xs uppercase tracking-wide transition flex items-center justify-center gap-1.5 cursor-pointer text-center">
+                                <i class="fa-solid fa-diamond-turn-right text-xs text-blue-400"></i>
+                                <span>Arah ke Start</span>
+                            </button>
+                            <button type="button" id="btn-start-run-session" onclick="startRunningSession()" class="py-3 px-3 rounded-lg bg-[#FC4C02] hover:bg-[#e04300] text-white font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#FC4C02]/25 text-center">
+                                <i class="fa-solid fa-play text-xs"></i>
+                                <span id="btn-start-run-text">Mulai Rute (Start)</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
         }
 
         function initNavMap() {
@@ -1486,6 +1576,7 @@
                     lineJoin: 'round',
                 }).addTo(navMap);
 
+                // User dot icon with pulsing ring
                 const userDotIcon = L.divIcon({
                     className: 'border-0 bg-transparent',
                     html: `
@@ -1501,6 +1592,35 @@
                 navUserMarker = L.marker(latlngs[0], { icon: userDotIcon, zIndexOffset: 2000 }).addTo(navMap);
                 navAccuracyCircle = L.circle(latlngs[0], { radius: 15, color: '#3b82f6', fillOpacity: 0.12, weight: 1 }).addTo(navMap);
 
+                // Start Marker ('S')
+                const startIcon = L.divIcon({
+                    className: 'border-0 bg-transparent',
+                    html: '<div class="w-6 h-6 rounded-full bg-emerald-500 border-2 border-white text-[10px] font-mono font-bold text-white flex items-center justify-center shadow-lg">S</div>',
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 12]
+                });
+                navStartMarker = L.marker([routePoints[0].lat, routePoints[0].lng], { icon: startIcon, zIndexOffset: 1500 }).addTo(navMap);
+                navStartMarker.bindTooltip('Titik Awal (Start)', { permanent: false, direction: 'top' });
+
+                // Finish Marker ('F')
+                const finishPoint = routePoints[routePoints.length - 1];
+                const finishIcon = L.divIcon({
+                    className: 'border-0 bg-transparent',
+                    html: '<div class="w-6 h-6 rounded-full bg-[#FC4C02] border-2 border-white text-[10px] font-mono font-bold text-white flex items-center justify-center shadow-lg">F</div>',
+                    iconSize: [24, 24],
+                    iconAnchor: [12, 12]
+                });
+                navFinishMarker = L.marker([finishPoint.lat, finishPoint.lng], { icon: finishIcon, zIndexOffset: 1500 }).addTo(navMap);
+                navFinishMarker.bindTooltip('Titik Akhir (Finish)', { permanent: false, direction: 'top' });
+
+                // Dashed guide line from user to start
+                navToStartLine = L.polyline([], {
+                    color: '#3b82f6',
+                    weight: 3,
+                    dashArray: '6, 8',
+                    opacity: 0.85
+                }).addTo(navMap);
+
                 navMap.fitBounds(navPolyline.getBounds(), { padding: [35, 35] });
             }
         }
@@ -1511,6 +1631,7 @@
             const accuracy = pos.coords.accuracy || 10;
             const speedMps = pos.coords.speed;
             const now = Date.now();
+            navLastUserPos = { lat, lng };
 
             if (navUserMarker) navUserMarker.setLatLng([lat, lng]);
             if (navAccuracyCircle) {
@@ -1518,7 +1639,54 @@
                 navAccuracyCircle.setRadius(Math.min(accuracy, 25));
             }
 
+            const startPoint = (routePoints && routePoints.length > 0) ? routePoints[0] : null;
+
+            // --- MODE: READY (Menuju Titik Start) ---
+            if (navSessionState === 'ready' && startPoint) {
+                const distToStartM = calculateHaversine(lat, lng, startPoint.lat, startPoint.lng) * 1000;
+                const distStr = distToStartM < 1000 ? Math.round(distToStartM) + ' m' : (distToStartM / 1000).toFixed(2) + ' km';
+
+                if (navToStartLine) {
+                    navToStartLine.setLatLngs([[lat, lng], [startPoint.lat, startPoint.lng]]);
+                }
+
+                const distBadge = document.getElementById('nav-to-start-dist-badge');
+                const titleEl = document.getElementById('nav-to-start-title');
+                const descEl = document.getElementById('nav-to-start-desc');
+                const dotEl = document.getElementById('nav-to-start-dot');
+                const proxText = document.getElementById('nav-proximity-text');
+                const startBtnText = document.getElementById('btn-start-run-text');
+
+                if (distBadge) distBadge.textContent = distStr;
+
+                if (distToStartM <= 50) {
+                    if (titleEl) titleEl.textContent = 'Sudah di Titik Start';
+                    if (descEl) descEl.textContent = 'Posisi Anda sudah berada di titik awal rute! Tekan Mulai Rute (Start) untuk merekam dan mengikuti peta navigasi.';
+                    if (dotEl) dotEl.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0';
+                    if (distBadge) distBadge.className = 'px-2 py-0.5 rounded bg-emerald-950 border border-emerald-800 text-emerald-300 font-mono font-semibold text-[11px] tabular-nums shrink-0';
+                    if (proxText) proxText.innerHTML = '<span class="text-emerald-400 font-bold">Sudah di titik start</span> &bull; Siap mulai rute!';
+                    if (startBtnText) startBtnText.textContent = 'Mulai Rute (Start)';
+                } else {
+                    if (titleEl) titleEl.textContent = 'Menuju Titik Start';
+                    if (descEl) descEl.textContent = `Jarak ${distStr} menuju titik awal rute. Buka Google Maps untuk rute jalan atau ikuti garis biru di peta.`;
+                    if (dotEl) dotEl.className = 'w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse shrink-0';
+                    if (distBadge) distBadge.className = 'px-2 py-0.5 rounded bg-blue-950 border border-blue-800 text-blue-300 font-mono font-semibold text-[11px] tabular-nums shrink-0';
+                    if (proxText) proxText.textContent = `${distStr} menuju titik start`;
+                    if (startBtnText) startBtnText.textContent = 'Mulai Rute Sekarang';
+                }
+
+                if (navMap && !recordedGpsTrack.length) {
+                    navMap.panTo([lat, lng], { animate: true, duration: 0.5 });
+                }
+                return;
+            }
+
+            // --- MODE: RUNNING (Mengikuti Rute) ---
             if (navSessionState === 'running') {
+                if (navToStartLine) navToStartLine.setLatLngs([]);
+                const startBanner = document.getElementById('nav-to-start-banner');
+                if (startBanner) startBanner.classList.add('hidden');
+
                 if (recordedGpsTrack.length > 0) {
                     const prev = recordedGpsTrack[recordedGpsTrack.length - 1];
                     const segmentDist = calculateHaversine(prev.lat, prev.lng, lat, lng);
@@ -1541,6 +1709,21 @@
                     nearestPoint = p;
                 }
             });
+
+            // Off-Course Detection
+            const navStatusLabel = document.getElementById('nav-status-label');
+            const navGpsIndicator = document.getElementById('nav-gps-indicator');
+            if (navStatusLabel && navGpsIndicator) {
+                if (minDistanceM > navOffCourseThresholdM) {
+                    navStatusLabel.textContent = `Off Course (+${Math.round(minDistanceM)}m dari jalur)`;
+                    navStatusLabel.className = 'text-[10px] font-mono font-bold uppercase tracking-wider text-rose-400 block truncate';
+                    navGpsIndicator.className = 'w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0 animate-ping';
+                } else {
+                    navStatusLabel.textContent = 'Navigasi GPS Aktif (On Course)';
+                    navStatusLabel.className = 'text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400 block truncate';
+                    navGpsIndicator.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0';
+                }
+            }
 
             const routeProgressKm = Math.min(totalRouteDistance, nearestPoint?.dist || 0);
             const remainingRouteDist = Math.max(0, totalRouteDistance - routeProgressKm);
@@ -1573,6 +1756,44 @@
             console.warn('Nav GPS Error:', err);
         }
 
+        function openGoogleMapsToStart() {
+            if (!routePoints || routePoints.length === 0) {
+                alert('Titik start rute tidak tersedia.');
+                return;
+            }
+            const start = routePoints[0];
+            const url = `https://www.google.com/maps/dir/?api=1&destination=${start.lat},${start.lng}&travelmode=driving`;
+            window.open(url, '_blank');
+        }
+
+        function fitUserAndStart() {
+            if (!navMap || !routePoints || routePoints.length === 0) return;
+            const start = routePoints[0];
+            if (navLastUserPos) {
+                const bounds = L.latLngBounds([
+                    [navLastUserPos.lat, navLastUserPos.lng],
+                    [start.lat, start.lng]
+                ]);
+                navMap.fitBounds(bounds, { padding: [60, 60], maxZoom: 17 });
+            } else {
+                navMap.setView([start.lat, start.lng], 16);
+            }
+        }
+
+        function recenterNavMapOnUser() {
+            if (!navMap) return;
+            if (navLastUserPos) {
+                navMap.panTo([navLastUserPos.lat, navLastUserPos.lng], { animate: true, duration: 0.5 });
+            } else {
+                alert('Menunggu sinyal GPS Anda...');
+            }
+        }
+
+        function fitNavRoute() {
+            if (!navMap || !navPolyline) return;
+            navMap.fitBounds(navPolyline.getBounds(), { padding: [35, 35] });
+        }
+
         function startRunningSession() {
             navSessionState = 'running';
             navRunStartTimestamp = Date.now();
@@ -1584,15 +1805,20 @@
                 if (timeEl) timeEl.textContent = formatDurationTime(totalSec);
             }, 1000);
 
+            // Hide start banner and guide line
+            const startBanner = document.getElementById('nav-to-start-banner');
+            if (startBanner) startBanner.classList.add('hidden');
+            if (navToStartLine) navToStartLine.setLatLngs([]);
+
             const wrap = document.getElementById('nav-action-buttons-wrap');
             if (wrap) {
                 wrap.innerHTML = `
                     <div class="grid grid-cols-2 gap-2">
-                        <button type="button" onclick="pauseRunningSession()" class="py-3 px-3 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer">
+                        <button type="button" onclick="pauseRunningSession()" class="py-3 px-3 rounded-lg bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer">
                             <i class="fa-solid fa-pause text-xs"></i>
                             <span>Jeda</span>
                         </button>
-                        <button type="button" onclick="closeLiveNavigation()" class="py-3 px-4 rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#FC4C02]/20">
+                        <button type="button" onclick="closeLiveNavigation()" class="py-3 px-4 rounded-lg bg-[#FC4C02] hover:bg-[#e04300] text-white font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#FC4C02]/20">
                             <i class="fa-solid fa-flag-checkered text-xs"></i>
                             <span>Selesai</span>
                         </button>
@@ -1613,11 +1839,11 @@
             if (wrap) {
                 wrap.innerHTML = `
                     <div class="grid grid-cols-2 gap-2">
-                        <button type="button" onclick="startRunningSession()" class="py-3 px-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer">
+                        <button type="button" onclick="startRunningSession()" class="py-3 px-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer">
                             <i class="fa-solid fa-play text-xs"></i>
                             <span>Lanjut</span>
                         </button>
-                        <button type="button" onclick="closeLiveNavigation()" class="py-3 px-4 rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#FC4C02]/20">
+                        <button type="button" onclick="closeLiveNavigation()" class="py-3 px-4 rounded-lg bg-[#FC4C02] hover:bg-[#e04300] text-white font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#FC4C02]/20">
                             <i class="fa-solid fa-flag-checkered text-xs"></i>
                             <span>Selesai</span>
                         </button>
@@ -1648,16 +1874,211 @@
                 navWakeLock.release().catch(() => {});
                 navWakeLock = null;
             }
-
-            const wrap = document.getElementById('nav-action-buttons-wrap');
-            if (wrap) {
-                wrap.innerHTML = `
-                    <button type="button" onclick="startRunningSession()" class="w-full py-3.5 px-4 rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white font-black text-sm uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#FC4C02]/25">
-                        <i class="fa-solid fa-play text-xs"></i>
-                        <span>Mulai Lari (Start)</span>
-                    </button>
-                `;
+            if (navToStartLine) {
+                navToStartLine.setLatLngs([]);
             }
+
+            resetNavReadyButtons();
+        }
+
+        // =========================================================================
+        // OFFLINE MAP & ROUTE CACHE STORAGE
+        // =========================================================================
+        const offlineCacheKey = 'gpx_offline_' + currentMasterGpxId;
+        const offlineCacheStore = 'gpx-offline-' + currentMasterGpxId;
+
+        function checkOfflineCacheStatus() {
+            const isSaved = !!localStorage.getItem(offlineCacheKey);
+            updateOfflineCacheUI(isSaved);
+        }
+
+        function updateOfflineCacheUI(isSaved) {
+            const banner = document.getElementById('offline-status-banner');
+            const icon = document.getElementById('offline-status-icon');
+            const title = document.getElementById('offline-status-title');
+            const desc = document.getElementById('offline-status-desc');
+            const deleteBtn = document.getElementById('btn-delete-offline-cache');
+            const startLabel = document.getElementById('btn-cache-label');
+            const btnToggle = document.getElementById('btn-offline-cache-toggle');
+            const btnLabel = document.getElementById('label-offline-btn');
+            const btnIcon = document.getElementById('icon-offline-btn');
+
+            if (isSaved) {
+                if (banner) {
+                    banner.className = 'p-3 rounded-md border flex items-start gap-3 text-xs bg-emerald-950/40 border-emerald-800/80';
+                }
+                if (icon) {
+                    icon.className = 'mt-0.5 text-sm shrink-0 text-emerald-400 font-bold';
+                    icon.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400"></i>';
+                }
+                if (title) title.textContent = 'Status: Peta & Rute Tersimpan Offline';
+                if (desc) desc.textContent = 'Data lintasan GPS dan tile peta resolusi tinggi siap dipakai tanpa internet di gunung.';
+                if (deleteBtn) deleteBtn.classList.remove('hidden');
+                if (startLabel) startLabel.textContent = 'Unduh Ulang';
+                if (btnLabel) btnLabel.textContent = 'Tersimpan';
+                if (btnIcon) btnIcon.className = 'fa-solid fa-cloud-arrow-down text-[11px] text-emerald-400';
+                if (btnToggle) btnToggle.classList.add('border-emerald-700/60');
+            } else {
+                if (banner) {
+                    banner.className = 'p-3 rounded-md border flex items-start gap-3 text-xs bg-slate-950 border-slate-800';
+                }
+                if (icon) {
+                    icon.className = 'mt-0.5 text-sm shrink-0 text-amber-400 font-bold';
+                    icon.innerHTML = '&#9432;';
+                }
+                if (title) title.textContent = 'Status: Belum Tersimpan Offline';
+                if (desc) desc.textContent = 'Unduh data lintasan & tile peta resolusi tinggi saat masih ada Wi-Fi/sinyal di basecamp.';
+                if (deleteBtn) deleteBtn.classList.add('hidden');
+                if (startLabel) startLabel.textContent = 'Mulai Unduh Offline';
+                if (btnLabel) btnLabel.textContent = 'Offline';
+                if (btnIcon) btnIcon.className = 'fa-solid fa-cloud-arrow-down text-[11px] text-slate-300';
+                if (btnToggle) btnToggle.classList.remove('border-emerald-700/60');
+            }
+        }
+
+        function openOfflineCacheModal() {
+            const modal = document.getElementById('modal-gpx-offline-cache');
+            if (modal) modal.classList.remove('hidden');
+            checkOfflineCacheStatus();
+        }
+
+        function closeOfflineCacheModal() {
+            const modal = document.getElementById('modal-gpx-offline-cache');
+            if (modal) modal.classList.add('hidden');
+        }
+
+        async function startOfflineCache() {
+            if (!('caches' in window)) {
+                alert('Browser Anda tidak mendukung Cache Storage offline.');
+                return;
+            }
+
+            if (!routePoints || routePoints.length === 0) {
+                alert('Data koordinat rute belum siap.');
+                return;
+            }
+
+            const progressWrap = document.getElementById('offline-progress-wrap');
+            const progressPct = document.getElementById('offline-progress-pct');
+            const progressBar = document.getElementById('offline-progress-bar');
+            const progressLabel = document.getElementById('offline-progress-label');
+            const startBtn = document.getElementById('btn-start-offline-cache');
+
+            if (progressWrap) progressWrap.classList.remove('hidden');
+            if (startBtn) startBtn.disabled = true;
+
+            try {
+                const cache = await caches.open(offlineCacheStore);
+
+                // 1. Simpan metadata & rute
+                const routePayload = {
+                    id: currentMasterGpxId,
+                    title: routeTitle,
+                    distKm: totalRouteDistance,
+                    gainM: totalElevationGain,
+                    points: routePoints,
+                    savedAt: new Date().toISOString()
+                };
+
+                await cache.put(
+                    new Request('/offline-data/gpx/' + currentMasterGpxId),
+                    new Response(JSON.stringify(routePayload), {
+                        headers: { 'Content-Type': 'application/json' }
+                    })
+                );
+
+                // 2. Hitung tile peta di sepanjang lintasan (zoom 13, 14, 15)
+                function lon2tile(lon, zoom) { return Math.floor((lon + 180) / 360 * Math.pow(2, zoom)); }
+                function lat2tile(lat, zoom) { return Math.floor((1 - Math.log(Math.tan(lat * Math.PI / 180) + 1 / Math.cos(lat * Math.PI / 180)) / Math.PI) / 2 * Math.pow(2, zoom)); }
+
+                const zoomLevels = [13, 14, 15];
+                const tileSet = new Set();
+                const mapboxToken = "{{ config('services.mapbox.token') }}";
+
+                const step = Math.max(1, Math.floor(routePoints.length / 50));
+                const sampled = [];
+                for (let i = 0; i < routePoints.length; i += step) {
+                    sampled.push(routePoints[i]);
+                }
+                if (routePoints.length > 0) sampled.push(routePoints[routePoints.length - 1]);
+
+                zoomLevels.forEach(z => {
+                    sampled.forEach(p => {
+                        const x = lon2tile(p.lng, z);
+                        const y = lat2tile(p.lat, z);
+                        for (let dx = -1; dx <= 1; dx++) {
+                            for (let dy = -1; dy <= 1; dy++) {
+                                tileSet.add(`${z}/${x + dx}/${y + dy}`);
+                            }
+                        }
+                    });
+                });
+
+                const tileList = Array.from(tileSet).slice(0, 160);
+                const totalTiles = tileList.length;
+                let downloaded = 0;
+
+                if (progressLabel) progressLabel.textContent = `Menyimpan ${totalTiles} tile peta resolusi tinggi...`;
+
+                for (let i = 0; i < tileList.length; i++) {
+                    const [z, x, y] = tileList[i].split('/');
+                    let tileUrl = '';
+                    if (mapboxToken) {
+                        tileUrl = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/tiles/${z}/${x}/${y}?access_token=${mapboxToken}`;
+                    } else {
+                        const sub = ['a', 'b', 'c', 'd'][Math.abs(parseInt(x) + parseInt(y)) % 4];
+                        tileUrl = `https://${sub}.basemaps.cartocdn.com/rastertiles/voyager/${z}/${x}/${y}.png`;
+                    }
+
+                    try {
+                        const res = await fetch(tileUrl, { mode: 'cors' });
+                        if (res.ok) {
+                            await cache.put(tileUrl, res.clone());
+                        }
+                    } catch (tileErr) {
+                        // Lanjutkan jika satu tile gagal
+                    }
+
+                    downloaded++;
+                    const pct = Math.round((downloaded / totalTiles) * 100);
+                    if (progressBar) progressBar.style.width = pct + '%';
+                    if (progressPct) progressPct.textContent = pct + '%';
+                }
+
+                localStorage.setItem(offlineCacheKey, JSON.stringify({
+                    id: currentMasterGpxId,
+                    title: routeTitle,
+                    tilesCount: downloaded,
+                    date: new Date().toLocaleDateString('id-ID')
+                }));
+
+                updateOfflineCacheUI(true);
+
+                if (progressLabel) progressLabel.textContent = 'Peta & rute berhasil disimpan offline!';
+                setTimeout(() => {
+                    if (progressWrap) progressWrap.classList.add('hidden');
+                }, 2000);
+
+            } catch (err) {
+                console.error('Offline Cache Error:', err);
+                alert('Gagal menyimpan peta offline: ' + err.message);
+            } finally {
+                if (startBtn) startBtn.disabled = false;
+            }
+        }
+
+        async function deleteOfflineCache() {
+            if (!confirm('Hapus rute & peta offline yang tersimpan untuk rute ini?')) {
+                return;
+            }
+
+            if ('caches' in window) {
+                try {
+                    await caches.delete(offlineCacheStore);
+                } catch (e) {}
+            }
+            localStorage.removeItem(offlineCacheKey);
+            updateOfflineCacheUI(false);
         }
 
         function copyPaceStrategy() {

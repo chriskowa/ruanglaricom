@@ -50,20 +50,20 @@
                     <span id="offline-progress-pct" class="font-mono font-semibold text-white">0%</span>
                 </div>
                 <div class="w-full h-2 rounded-sm bg-slate-800 overflow-hidden">
-                    <div id="offline-progress-bar" class="h-full bg-neon transition-all duration-150 rounded-sm" style="width: 0%;"></div>
+                    <div id="offline-progress-bar" class="h-full bg-emerald-500 transition-all duration-150 rounded-sm" style="width: 0%;"></div>
                 </div>
             </div>
 
             <!-- Action Area / Buttons -->
             <div class="pt-3 border-t border-slate-800 flex items-center justify-between gap-3">
-                <button type="button" id="btn-delete-offline-cache" onclick="deleteOfflineCache()" class="hidden px-3 py-1.5 rounded-md bg-rose-950 hover:bg-rose-900 border border-rose-800 text-rose-300 text-xs font-medium transition">
+                <button type="button" id="btn-delete-offline-cache" onclick="deleteOfflineCache()" class="hidden px-3 py-1.5 rounded-md bg-rose-950 hover:bg-rose-900 border border-rose-800 text-rose-300 text-xs font-medium transition cursor-pointer">
                     Hapus Peta Tersimpan
                 </button>
                 <div class="flex-1"></div>
-                <button type="button" onclick="closeOfflineCacheModal()" class="px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white text-xs font-medium transition">
+                <button type="button" onclick="closeOfflineCacheModal()" class="px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white text-xs font-medium transition cursor-pointer">
                     Tutup
                 </button>
-                <button type="button" id="btn-start-offline-cache" onclick="startOfflineCache()" class="px-4 py-2 rounded-md bg-neon text-dark hover:bg-white text-xs font-semibold transition">
+                <button type="button" id="btn-start-offline-cache" onclick="startOfflineCache()" class="px-4 py-2 rounded-md bg-[#FC4C02] text-white hover:bg-[#e04300] text-xs font-semibold transition cursor-pointer">
                     <span id="btn-cache-label">Mulai Unduh Offline</span>
                 </button>
             </div>
