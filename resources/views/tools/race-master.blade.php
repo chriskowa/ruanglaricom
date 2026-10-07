@@ -115,8 +115,8 @@
 
                 <!-- Right: Action & Utility Buttons (Single Neat Row on Mobile) -->
                 <div class="flex items-center gap-1.5 sm:gap-2 overflow-x-auto no-scrollbar py-0.5 w-full sm:w-auto justify-start sm:justify-end">
-                    <!-- Host Quick Controls in TV Topbar -->
-                    <div v-if="isSessionHost" class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                    <!-- Quick Timer Controls in TV Topbar (Start/Pause accessible to all connected stations) -->
+                    <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
                         <!-- Start / Resume -->
                         <button
                             v-if="!timer.running"
@@ -141,23 +141,25 @@
                             <span>Pause</span>
                         </button>
 
-                        <!-- Reset -->
+                        <!-- Reset (Host Only) -->
                         <button
+                            v-if="isSessionHost"
                             type="button"
                             @click="resetRace"
                             class="h-8 sm:h-10 px-2.5 sm:px-4 rounded-lg bg-transparent hover:bg-slate-900 text-slate-400 hover:text-white border border-slate-700 font-semibold text-xs flex items-center gap-1.5 transition-colors"
-                            title="Reset Timer dan Sesi Balapan"
+                            title="Reset Timer dan Sesi Balapan (Khusus Host)"
                         >
                             <i class="fa-solid fa-rotate-left text-[10px]"></i>
                             <span>Reset</span>
                         </button>
 
-                        <!-- Finish Race -->
+                        <!-- Finish Race (Host Only) -->
                         <button
+                            v-if="isSessionHost"
                             type="button"
                             @click="finishRace"
                             class="h-8 sm:h-10 px-2.5 sm:px-4 rounded-lg bg-transparent hover:bg-red-950/40 text-red-400 hover:text-red-300 border border-red-900/70 hover:border-red-800 font-semibold text-xs flex items-center gap-1.5 transition-colors"
-                            title="Selesaikan & Simpan Hasil Sesi"
+                            title="Selesaikan & Simpan Hasil Sesi (Khusus Host)"
                         >
                             <i class="fa-solid fa-flag-checkered text-[10px]"></i>
                             <span>Finish</span>
@@ -1006,16 +1008,16 @@
                         <!-- Host / Satellite Status Badge -->
                         <div v-if="!isSessionHost" class="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 text-[11px] font-bold text-center border border-slate-200 dark:border-slate-700 flex items-center justify-center gap-1.5">
                             <i class="fa-solid fa-satellite-dish text-indigo-500"></i>
-                            <span>Station Satelit (Viewer)</span>
+                            <span>Station Satelit</span>
                         </div>
 
-                        <!-- Primary Start/Pause Button (Host Only or Local) -->
-                        <button v-if="!timer.running && isSessionHost" @click="startRace" 
+                        <!-- Primary Start/Pause Button (Host or Satellite) -->
+                        <button v-if="!timer.running" @click="startRace" 
                             class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-sm flex items-center justify-center gap-2 transition shadow-sm" :title="timer.elapsed > 0 ? 'Resume Timer' : 'Start Timer'">
                             <i class="fa-solid fa-play text-xs"></i>
                             <span>@{{ timer.elapsed > 0 ? 'Resume Timer' : 'Start Timer' }}</span>
                         </button>
-                        <button v-if="timer.running && isSessionHost" @click="pauseRace" 
+                        <button v-if="timer.running" @click="pauseRace" 
                             class="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-sm flex items-center justify-center gap-2 transition shadow-sm" title="Pause Timer">
                             <i class="fa-solid fa-pause text-xs"></i>
                             <span>Pause</span>
@@ -4577,23 +4579,49 @@
                     // Background async sync (does NOT block or delay timer)
                     (async () => {
                         try {
-                            const nameTrim = String(raceName.value || '').trim();
-                            if (!nameTrim) raceName.value = `Race ${raceCategory.value}`;
-                            await ensureRaceInDb();
-                            await syncParticipantsToDb();
-                            await ensureSessionInDb(true);
-
-                            // If session already existed, tell backend timer has started
-                            const slug = sessionSlug.value || currentSessionId.value;
-                            if (slug) {
+                            // If this device is the session host and session not yet in DB, initialize it
+                            if (isSessionHost.value) {
                                 try {
-                                    await apiFetchJson(`${apiBase}/sessions/${encodeURIComponent(String(slug))}/start-timer`, { method: 'POST' });
-                                } catch (e) {
-                                    try {
-                                        await apiFetchJson(`${apiBase}/public/${encodeURIComponent(String(slug))}/start-timer`, { method: 'POST' });
-                                    } catch (_) {}
+                                    const nameTrim = String(raceName.value || '').trim();
+                                    if (!nameTrim) raceName.value = `Race ${raceCategory.value}`;
+                                    await ensureRaceInDb();
+                                    await syncParticipantsToDb();
+                                    await ensureSessionInDb(true);
+                                } catch (err) {
+                                    console.warn('Host DB init notice on start:', err);
                                 }
                             }
+
+                            // Tell backend timer has started (works for both host and satellite users)
+                            const targetSlug = sessionSlug.value || currentSessionId.value;
+                            if (targetSlug) {
+                                const payload = { started_at_ms: timer.value.startTime };
+                                let notified = false;
+
+                                if (isAuthenticated && isSessionHost.value) {
+                                    try {
+                                        await apiFetchJson(`${apiBase}/sessions/${encodeURIComponent(String(targetSlug))}/start-timer`, {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify(payload),
+                                        });
+                                        notified = true;
+                                    } catch (_) {}
+                                }
+
+                                if (!notified) {
+                                    try {
+                                        await apiFetchJson(`${apiBase}/public/${encodeURIComponent(String(targetSlug))}/start-timer`, {
+                                            method: 'POST',
+                                            headers: { 'Content-Type': 'application/json' },
+                                            body: JSON.stringify(payload),
+                                        });
+                                    } catch (e) {
+                                        console.warn('Public start-timer sync notice:', e);
+                                    }
+                                }
+                            }
+
                             startLiveSyncPolling();
                         } catch (e) {
                             console.warn('Background sync on timer start:', e);
@@ -4722,10 +4750,8 @@
                     // Automatically switch view from empty setup to active race or results!
                     if (data.session.ended_at) {
                         currentView.value = 'results';
-                    } else if (data.session.is_running || (Array.isArray(data.participants) && data.participants.length > 0)) {
-                        if (currentView.value === 'setup') {
-                            currentView.value = 'race';
-                        }
+                    } else if (currentView.value === 'setup') {
+                        currentView.value = 'race';
                     }
 
                     startLiveSyncPolling();
@@ -4774,28 +4800,31 @@
                             
                             // Detect if session was reset on host / server
                             if (data.is_reset || (!data.session.is_running && !data.session.started_at_ms && !data.session.ended_at)) {
-                                const hasLocalProgress = timer.value.running || timer.value.elapsed > 0 || participants.value.some(p => p.laps && p.laps.length > 0) || maxSyncedLapId.value > 0;
-                                if (hasLocalProgress) {
-                                    if (timer.value.interval) clearInterval(timer.value.interval);
-                                    timer.value.interval = null;
-                                    timer.value.running = false;
-                                    timer.value.paused = false;
-                                    timer.value.elapsed = 0;
-                                    timer.value.startTime = null;
+                                const justStartedLocally = timer.value.running && timer.value.startTime && (Date.now() - timer.value.startTime < 5000);
+                                if (!justStartedLocally) {
+                                    const hasLocalProgress = timer.value.running || timer.value.elapsed > 0 || participants.value.some(p => p.laps && p.laps.length > 0) || maxSyncedLapId.value > 0;
+                                    if (hasLocalProgress) {
+                                        if (timer.value.interval) clearInterval(timer.value.interval);
+                                        timer.value.interval = null;
+                                        timer.value.running = false;
+                                        timer.value.paused = false;
+                                        timer.value.elapsed = 0;
+                                        timer.value.startTime = null;
 
-                                    participants.value.forEach(p => {
-                                        p.laps = [];
-                                        p.status = 'ready';
-                                        p.totalTime = 0;
-                                        p.recentlyScanned = false;
-                                        p.lastScanTime = 0;
-                                    });
-                                    maxSyncedLapId.value = 0;
-                                    lastSeenLapIdSet.clear();
-                                    if (currentView.value === 'results') {
-                                        currentView.value = 'race';
+                                        participants.value.forEach(p => {
+                                            p.laps = [];
+                                            p.status = 'ready';
+                                            p.totalTime = 0;
+                                            p.recentlyScanned = false;
+                                            p.lastScanTime = 0;
+                                        });
+                                        maxSyncedLapId.value = 0;
+                                        lastSeenLapIdSet.clear();
+                                        if (currentView.value === 'results') {
+                                            currentView.value = 'race';
+                                        }
+                                        saveState();
                                     }
-                                    saveState();
                                 }
                             }
 

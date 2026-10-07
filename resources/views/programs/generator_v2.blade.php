@@ -116,7 +116,7 @@
           "name": "Bagaimana cara menyimpan dan menyinkronkan program ke kalender lari?",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "Setelah menekan tombol 'Buat Program Latihan' dan meninjau hasil kalkulasi, klik tombol 'Simpan ke Kalender Lari'. Jika Anda telah masuk (login), seluruh jadwal latihan harian—termasuk jarak, target pace, dan jenis sesi—akan tersinkronisasi otomatis ke dashboard Kalender Lari Anda."
+            "text": "Setelah menekan tombol 'Buat Program Latihan' dan meninjau hasil kalkulasi, klik tombol 'Simpan ke Kalender Lari'. Jika Anda telah masuk (login), seluruh jadwal latihan harian (jarak, target pace, dan jenis sesi) akan tersinkronisasi otomatis ke dashboard Kalender Lari Anda."
           }
         },
         {
@@ -172,6 +172,11 @@
         color: #CCFF00 !important;
     }
 
+    /* Brand Utility Classes */
+    .text-brand-lime { color: #CCFF00 !important; }
+    .bg-brand-lime { background-color: #CCFF00 !important; color: #090D15 !important; }
+    .border-brand-lime { border-color: #CCFF00 !important; }
+
     /* Dark Mode Surface System */
     .surface-canvas { background-color: #090D15; }
     .surface-card { background-color: #111726; border: 1px solid #1E293B; }
@@ -185,8 +190,8 @@
         font-weight: 800 !important;
         border-radius: 0.375rem !important; /* rounded-md */
         border: 1px solid #CCFF00 !important;
-        box-shadow: 0 4px 14px rgba(204, 255, 0, 0.22) !important;
-        transition: all 0.15s ease-in-out !important;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05) !important;
+        transition: background-color 0.15s ease-in-out, border-color 0.15s ease-in-out !important;
         text-decoration: none !important;
         display: inline-flex;
         align-items: center;
@@ -197,8 +202,6 @@
         background-color: #b8e600 !important;
         border-color: #b8e600 !important;
         color: #090D15 !important;
-        transform: translateY(-1px);
-        box-shadow: 0 6px 18px rgba(204, 255, 0, 0.3) !important;
     }
 
     /* Secondary Ghost Button */
@@ -351,25 +354,9 @@
         </div>
     </transition>
 
-    <!-- SECTION 1: HERO VIEWPORT (Controlled Height ~70-80vh, No Form Clutter) -->
-    <header class="relative w-full min-h-[70vh] sm:min-h-[75vh] flex items-center justify-center overflow-hidden border-b border-slate-800 bg-[#090D15] text-white py-12 sm:py-16 px-4 sm:px-6 lg:px-8">
-        
-        <!-- Subtle Athletic Route Track Background -->
-        <div class="absolute inset-0 pointer-events-none overflow-hidden z-0 select-none opacity-20" aria-hidden="true">
-            <svg class="w-full h-full object-cover min-w-[1000px]" viewBox="0 0 1440 600" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <defs>
-                    <pattern id="heroGrid" width="48" height="48" patternUnits="userSpaceOnUse">
-                        <path d="M 48 0 L 0 0 0 48" fill="none" stroke="rgba(255,255,255,0.03)" stroke-width="1"/>
-                    </pattern>
-                </defs>
-                <rect width="1440" height="600" fill="url(#heroGrid)" />
-                <path d="M-80 220 C 220 120, 480 340, 820 200 C 1160 70, 1340 280, 1560 170" stroke="rgba(255, 255, 255, 0.05)" stroke-width="1.5" stroke-dasharray="6 6"/>
-                <path d="M 40 450 C 160 370, 260 470, 420 410 C 560 350, 620 200, 780 220 C 940 240, 990 410, 1140 340 C 1280 280, 1360 150, 1480 170" 
-                      stroke="#CCFF00" stroke-opacity="0.3" stroke-width="2.5" stroke-linecap="round"/>
-            </svg>
-        </div>
-
-        <div class="relative z-10 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+    <!-- SECTION 1: HERO VIEWPORT -->
+    <header class="relative w-full border-b border-slate-800 bg-slate-950 text-white py-12 sm:py-16">
+        <div class="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
 
             <!-- Left Column: Focused Copy, 3 Micro Steps, 1 Primary CTA -->
             <div class="lg:col-span-7 space-y-6 text-left">
@@ -377,7 +364,7 @@
                 <!-- Main H1 Heading -->
                 <h1 class="text-3xl sm:text-4xl lg:text-[44px] font-extrabold text-white tracking-tight leading-[1.12]">
                     Buat Program Lari Terstruktur.<br>
-                    <span class="text-[#CCFF00]">Capai Target 5K Hingga Marathon.</span>
+                    <span class="text-brand-lime">Capai Target 5K Hingga Marathon.</span>
                 </h1>
 
                 <!-- Subhead -->
@@ -388,17 +375,17 @@
                 <!-- 3 Inline Micro Steps under Subhead -->
                 <div class="flex flex-wrap items-center gap-2 sm:gap-3 text-xs text-slate-300 pt-1">
                     <div class="flex items-center gap-1.5 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-md">
-                        <span class="w-4 h-4 rounded bg-[#CCFF00] text-slate-950 font-black text-[10px] flex items-center justify-center">1</span>
+                        <span class="w-4 h-4 rounded bg-brand-lime text-slate-950 font-black text-[10px] flex items-center justify-center">1</span>
                         <span class="font-medium text-slate-200">Input PB Terkini</span>
                     </div>
                     <span class="text-slate-600 hidden sm:inline">→</span>
                     <div class="flex items-center gap-1.5 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-md">
-                        <span class="w-4 h-4 rounded bg-[#CCFF00] text-slate-950 font-black text-[10px] flex items-center justify-center">2</span>
+                        <span class="w-4 h-4 rounded bg-brand-lime text-slate-950 font-black text-[10px] flex items-center justify-center">2</span>
                         <span class="font-medium text-slate-200">Tentukan Target Lomba</span>
                     </div>
                     <span class="text-slate-600 hidden sm:inline">→</span>
                     <div class="flex items-center gap-1.5 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-md">
-                        <span class="w-4 h-4 rounded bg-[#CCFF00] text-slate-950 font-black text-[10px] flex items-center justify-center">3</span>
+                        <span class="w-4 h-4 rounded bg-brand-lime text-slate-950 font-black text-[10px] flex items-center justify-center">3</span>
                         <span class="font-medium text-slate-200">Dapatkan Kalender Latihan</span>
                     </div>
                 </div>
@@ -427,16 +414,16 @@
 
             </div>
 
-            <!-- Right Column: Interactive Training Lab (VDOT Pace Calculator) — sesuai /programs -->
+            <!-- Right Column: Interactive Training Lab (VDOT Pace Calculator) -->
             <div class="lg:col-span-5 relative">
-                <div class="rounded-lg border border-slate-800 bg-slate-900 shadow-2xl overflow-hidden border-t-2 border-t-[#CCFF00]">
+                <div class="rounded-lg border border-slate-800 bg-slate-900 shadow-sm overflow-hidden">
                     <!-- Card Header -->
-                    <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
+                    <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950">
                         <div>
                             <span class="text-[10px] font-mono font-bold tracking-widest text-slate-400 uppercase block">Performance Lab / VDOT</span>
-                            <h2 class="text-base sm:text-lg font-bold text-white mt-0.5">Kalkulator Pace & Target Lari Interaktif</h2>
+                            <h2 class="text-base sm:text-lg font-bold text-white mt-0.5">Kalkulator Pace & Target Lari</h2>
                         </div>
-                        <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-[10px] font-mono font-bold text-[#CCFF00]">RL-01</span>
+                        <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-[10px] font-mono font-bold text-slate-300">Jack Daniels VDOT</span>
                     </div>
 
                     <!-- Form Input Body -->
@@ -447,7 +434,7 @@
                                 Jarak Parameter / PB Terakhir
                             </label>
                             <select v-model="heroVdotDistance"
-                                    class="w-full px-3.5 py-2.5 rounded-md bg-slate-950 border border-slate-800 text-white text-xs sm:text-sm focus:outline-none focus:border-[#CCFF00] transition cursor-pointer">
+                                    class="w-full px-3.5 py-2.5 rounded-md bg-slate-950 border border-slate-800 text-white text-xs sm:text-sm focus:outline-none focus:border-brand-lime transition cursor-pointer">
                                 <option value="5k">5K (5 Kilometer)</option>
                                 <option value="10k">10K (10 Kilometer)</option>
                                 <option value="21k">Half Marathon (21.1K)</option>
@@ -464,21 +451,21 @@
                                 <div>
                                     <div class="relative">
                                         <input v-model.number="heroVdotH" type="number" min="0" max="99"
-                                               class="w-full px-3 py-2.5 rounded-md bg-slate-950 border border-slate-800 text-white text-center text-sm font-bold focus:outline-none focus:border-[#CCFF00] transition">
+                                               class="w-full px-3 py-2.5 rounded-md bg-slate-950 border border-slate-800 text-white text-center text-sm font-bold focus:outline-none focus:border-brand-lime transition">
                                     </div>
                                     <span class="text-[10px] text-slate-400 block text-center mt-1">Jam</span>
                                 </div>
                                 <div>
                                     <div class="relative">
                                         <input v-model.number="heroVdotM" type="number" min="0" max="59"
-                                               class="w-full px-3 py-2.5 rounded-md bg-slate-950 border border-slate-800 text-white text-center text-sm font-bold focus:outline-none focus:border-[#CCFF00] transition">
+                                               class="w-full px-3 py-2.5 rounded-md bg-slate-950 border border-slate-800 text-white text-center text-sm font-bold focus:outline-none focus:border-brand-lime transition">
                                     </div>
                                     <span class="text-[10px] text-slate-400 block text-center mt-1">Menit</span>
                                 </div>
                                 <div>
                                     <div class="relative">
                                         <input v-model.number="heroVdotS" type="number" min="0" max="59"
-                                               class="w-full px-3 py-2.5 rounded-md bg-slate-950 border border-slate-800 text-white text-center text-sm font-bold focus:outline-none focus:border-[#CCFF00] transition">
+                                               class="w-full px-3 py-2.5 rounded-md bg-slate-950 border border-slate-800 text-white text-center text-sm font-bold focus:outline-none focus:border-brand-lime transition">
                                     </div>
                                     <span class="text-[10px] text-slate-400 block text-center mt-1">Detik</span>
                                 </div>
@@ -496,12 +483,12 @@
                     </div>
 
                     <!-- Result Display Box (Revealed on calculate) -->
-                    <div v-show="heroVdotCalculated" class="border-t border-slate-800 bg-slate-950/80 p-5 space-y-4">
+                    <div v-show="heroVdotCalculated" class="border-t border-slate-800 bg-slate-950 p-5 space-y-4">
                         <!-- VDOT Score Strip -->
                         <div class="p-3.5 rounded-md bg-slate-900 border border-slate-800 flex items-center justify-between">
                             <div>
                                 <span class="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Estimasi VDOT Score</span>
-                                <span class="text-2xl font-black text-[#CCFF00] mt-0.5 block">@{{ (heroVdotCompute.vdot || 0).toFixed(1) }}</span>
+                                <span class="text-2xl font-black text-brand-lime mt-0.5 block">@{{ (heroVdotCompute.vdot || 0).toFixed(1) }}</span>
                             </div>
                             <div class="text-right">
                                 <span class="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Level Kebugaran</span>
@@ -512,12 +499,12 @@
                         <!-- Tab Buttons -->
                         <div class="grid grid-cols-2 gap-1.5 p-1 rounded-md bg-slate-900 border border-slate-800 text-xs font-semibold">
                             <button type="button" @click="heroVdotTab = 'paces'"
-                                    :class="heroVdotTab === 'paces' ? 'bg-[#CCFF00] text-slate-950 font-bold' : 'text-slate-300 hover:text-white'"
+                                    :class="heroVdotTab === 'paces' ? 'bg-brand-lime text-slate-950 font-bold' : 'text-slate-300 hover:text-white'"
                                     class="py-1.5 px-3 rounded text-center transition">
-                                Pace Latihan
+                                Pace Latihan (min/km)
                             </button>
                             <button type="button" @click="heroVdotTab = 'races'"
-                                    :class="heroVdotTab === 'races' ? 'bg-[#CCFF00] text-slate-950 font-bold' : 'text-slate-300 hover:text-white'"
+                                    :class="heroVdotTab === 'races' ? 'bg-brand-lime text-slate-950 font-bold' : 'text-slate-300 hover:text-white'"
                                     class="py-1.5 px-3 rounded text-center transition">
                                 Prediksi Race
                             </button>
@@ -527,23 +514,23 @@
                         <div v-show="heroVdotTab === 'paces'" class="space-y-2 text-xs">
                             <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
                                 <span class="text-slate-300 font-medium">Easy / Recovery (Zone 2)</span>
-                                <strong class="text-white font-bold">@{{ heroFormatPaceRange(heroVdotCompute.easy_high, heroVdotCompute.easy_low) }}</strong>
+                                <strong class="text-white font-mono font-bold">@{{ heroFormatPaceRange(heroVdotCompute.easy_high, heroVdotCompute.easy_low) }}</strong>
                             </div>
                             <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
                                 <span class="text-slate-300 font-medium">Marathon Pace</span>
-                                <strong class="text-white font-bold">@{{ heroFormatPace(heroVdotCompute.marathon) }}</strong>
+                                <strong class="text-white font-mono font-bold">@{{ heroFormatPace(heroVdotCompute.marathon) }}</strong>
                             </div>
                             <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
                                 <span class="text-slate-300 font-medium">Threshold / Tempo</span>
-                                <strong class="text-white font-bold">@{{ heroFormatPace(heroVdotCompute.threshold) }}</strong>
+                                <strong class="text-white font-mono font-bold">@{{ heroFormatPace(heroVdotCompute.threshold) }}</strong>
                             </div>
                             <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
                                 <span class="text-slate-300 font-medium">Interval (VO2max)</span>
-                                <strong class="text-white font-bold">@{{ heroFormatPace(heroVdotCompute.interval) }} <span class="text-slate-400 font-normal text-[11px]">(@{{ heroVdotCompute.interval_400 }}s/400m)</span></strong>
+                                <strong class="text-white font-mono font-bold">@{{ heroFormatPace(heroVdotCompute.interval) }} <span class="text-slate-400 font-normal text-[11px]">(@{{ heroVdotCompute.interval_400 }}s/400m)</span></strong>
                             </div>
                             <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
                                 <span class="text-slate-300 font-medium">Repetition (Speed Form)</span>
-                                <strong class="text-white font-bold">@{{ heroFormatPace(heroVdotCompute.repetition) }} <span class="text-slate-400 font-normal text-[11px]">(@{{ heroVdotCompute.repetition_400 }}s/400m)</span></strong>
+                                <strong class="text-white font-mono font-bold">@{{ heroFormatPace(heroVdotCompute.repetition) }} <span class="text-slate-400 font-normal text-[11px]">(@{{ heroVdotCompute.repetition_400 }}s/400m)</span></strong>
                             </div>
                         </div>
 
@@ -551,26 +538,26 @@
                         <div v-show="heroVdotTab === 'races'" class="space-y-2 text-xs">
                             <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
                                 <span class="text-slate-300 font-medium">5K Race Target</span>
-                                <strong class="text-white font-bold">@{{ heroFormatDur(heroVdotCompute.r_5k) }}</strong>
+                                <strong class="text-white font-mono font-bold">@{{ heroFormatDur(heroVdotCompute.r_5k) }}</strong>
                             </div>
                             <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
                                 <span class="text-slate-300 font-medium">10K Race Target</span>
-                                <strong class="text-white font-bold">@{{ heroFormatDur(heroVdotCompute.r_10k) }}</strong>
+                                <strong class="text-white font-mono font-bold">@{{ heroFormatDur(heroVdotCompute.r_10k) }}</strong>
                             </div>
                             <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
                                 <span class="text-slate-300 font-medium">Half Marathon (21.1K)</span>
-                                <strong class="text-white font-bold">@{{ heroFormatDur(heroVdotCompute.r_21k) }}</strong>
+                                <strong class="text-white font-mono font-bold">@{{ heroFormatDur(heroVdotCompute.r_21k) }}</strong>
                             </div>
                             <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
                                 <span class="text-slate-300 font-medium">Marathon (42.2K)</span>
-                                <strong class="text-white font-bold">@{{ heroFormatDur(heroVdotCompute.r_42k) }}</strong>
+                                <strong class="text-white font-mono font-bold">@{{ heroFormatDur(heroVdotCompute.r_42k) }}</strong>
                             </div>
                         </div>
 
                         <!-- Action Buttons: CTA sync ke Wizard Step 1 (auto scroll ke tool-container) -->
                         <div class="flex flex-col sm:flex-row gap-2 pt-1">
                             <button type="button" @click="heroApplyToWizard"
-                                    class="flex-1 btn-lime-primary py-2.5 px-4 rounded-md text-white text-xs font-bold uppercase tracking-wider transition cursor-pointer text-center">
+                                    class="flex-1 btn-lime-primary py-2.5 px-4 rounded-md text-slate-950 text-xs font-bold uppercase tracking-wider transition cursor-pointer text-center">
                                 Buat Program
                             </button>
                             <a href="#dasar-vdot"
@@ -618,7 +605,7 @@
             <!-- 4-Step Progress Preview (Clean Roadmap, Visual Guide) -->
             <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
                 <div class="p-3.5 rounded-lg surface-card border border-slate-800 flex flex-col justify-between opacity-90">
-                    <div class="text-[10px] font-bold text-[#CCFF00] uppercase tracking-wider mb-1">Tahap 01</div>
+                    <div class="text-[10px] font-bold text-brand-lime uppercase tracking-wider mb-1">Tahap 01</div>
                     <div class="text-xs sm:text-sm font-bold text-white">Kebugaran PB</div>
                     <div class="text-[11px] text-slate-400 mt-0.5">Tolok Ukur VDOT</div>
                 </div>
@@ -646,7 +633,7 @@
                     <div>
                         <div class="flex items-center gap-2">
                             <h3 class="text-lg font-bold text-white">Simulasi Output Program</h3>
-                            <span class="text-[10px] font-bold text-slate-950 bg-[#CCFF00] px-2 py-0.5 rounded uppercase">Contoh Hasil</span>
+                            <span class="text-[10px] font-bold text-slate-950 bg-brand-lime px-2 py-0.5 rounded uppercase">Contoh Hasil</span>
                         </div>
                         <p class="text-xs text-slate-300 mt-1">Ilustrasi program race 10K yang dihasilkan secara otomatis dari data tolok ukur PB 5K.</p>
                     </div>
@@ -659,7 +646,7 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="p-4 rounded-md surface-nested space-y-1">
                         <span class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Tolok Ukur Contoh:</span>
-                        <div class="text-sm font-bold text-white">5K — 00:27:30</div>
+                        <div class="text-sm font-bold text-white">5K (00:27:30)</div>
                         <div class="text-[11px] text-slate-400">Pace rata-rata 05:30 min/km</div>
                     </div>
                     <div class="p-4 rounded-md surface-nested space-y-1">
@@ -678,28 +665,28 @@
                 <div class="p-4 rounded-md surface-nested space-y-3">
                     <div class="text-xs font-bold text-slate-300 uppercase tracking-wider">5 Zona Pace Latihan Terkalibrasi:</div>
                     <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
-                        <div class="p-2.5 rounded bg-[#111726] border border-slate-800">
+                        <div class="p-2.5 rounded bg-slate-900 border border-slate-800">
                             <span class="text-emerald-400 font-bold block text-[11px]">Easy (E)</span>
                             <span class="text-white text-xs mt-0.5 block font-bold">06:45–07:15 min/km</span>
                             <span class="text-[10px] text-slate-400">65–78% HR Max</span>
                         </div>
-                        <div class="p-2.5 rounded bg-[#111726] border border-slate-800">
+                        <div class="p-2.5 rounded bg-slate-900 border border-slate-800">
                             <span class="text-blue-400 font-bold block text-[11px]">Marathon (M)</span>
                             <span class="text-white text-xs mt-0.5 block font-bold">06:12 min/km</span>
                             <span class="text-[10px] text-slate-400">79–88% HR Max</span>
                         </div>
-                        <div class="p-2.5 rounded bg-[#111726] border border-slate-800">
+                        <div class="p-2.5 rounded bg-slate-900 border border-slate-800">
                             <span class="text-amber-400 font-bold block text-[11px]">Threshold (T)</span>
                             <span class="text-white text-xs mt-0.5 block font-bold">05:40 min/km</span>
                             <span class="text-[10px] text-slate-400">88–92% HR Max</span>
                         </div>
-                        <div class="p-2.5 rounded bg-[#111726] border border-slate-800">
+                        <div class="p-2.5 rounded bg-slate-900 border border-slate-800">
                             <span class="text-rose-400 font-bold block text-[11px]">Interval (I)</span>
                             <span class="text-white text-xs mt-0.5 block font-bold">05:12 min/km</span>
                             <span class="text-[10px] text-slate-400">95–100% HR Max</span>
                         </div>
-                        <div class="p-2.5 rounded bg-[#111726] border border-slate-800 col-span-2 sm:col-span-1">
-                            <span class="text-[#FC4C02] font-bold block text-[11px]">Repetition (R)</span>
+                        <div class="p-2.5 rounded bg-slate-900 border border-slate-800 col-span-2 sm:col-span-1">
+                            <span class="text-orange-500 font-bold block text-[11px]">Repetition (R)</span>
                             <span class="text-white text-xs mt-0.5 block font-bold">04:50 min/km</span>
                             <span class="text-[10px] text-slate-400">>105% Anaerobik</span>
                         </div>
@@ -730,10 +717,10 @@
                     <p class="text-xs text-slate-300 mt-0.5">Panduan 4 tahap untuk menghasilkan periodisasi yang presisi dan realistis.</p>
                 </div>
                 <div class="flex items-center gap-2">
-                    <button type="button" @click="closeWizard" class="text-xs text-slate-300 hover:text-white py-1.5 px-3 rounded-md border border-slate-800 bg-[#162035] transition cursor-pointer">
+                    <button type="button" @click="closeWizard" class="text-xs text-slate-300 hover:text-white py-1.5 px-3 rounded-md border border-slate-800 bg-slate-800 hover:bg-slate-700 transition cursor-pointer">
                         Tutup Formulir
                     </button>
-                    <button type="button" @click="resetFormDraft" class="text-xs text-slate-300 hover:text-rose-400 py-1.5 px-3 rounded-md border border-slate-800 bg-[#162035] transition cursor-pointer">
+                    <button type="button" @click="resetFormDraft" class="text-xs text-slate-300 hover:text-rose-400 py-1.5 px-3 rounded-md border border-slate-800 bg-slate-800 hover:bg-slate-700 transition cursor-pointer">
                         Reset Draf
                     </button>
                 </div>
@@ -754,8 +741,8 @@
                             wizardStep === s.step 
                                 ? 'form-tab-active font-bold' 
                                 : (wizardStep > s.step 
-                                    ? 'bg-[#162035] text-[#CCFF00] border-slate-800' 
-                                    : 'bg-[#111726] text-slate-300 border-slate-800')
+                                    ? 'bg-slate-800 text-brand-lime border-slate-800' 
+                                    : 'bg-slate-900 text-slate-300 border-slate-800')
                         ]"
                         class="p-3 rounded-md border text-left transition cursor-pointer flex flex-col justify-between">
                     <div class="flex items-center justify-between mb-1">
@@ -778,9 +765,9 @@
                                 <h3 class="text-base font-bold text-white">1. Tolok Ukur Kebugaran Awal (Benchmark / PB)</h3>
                                 <p class="text-xs text-slate-300 mt-0.5">Hasil tes kebugaran atau PB terkini untuk kalkulasi VDOT Jack Daniels</p>
                             </div>
-                            <div v-if="current_vdot && current_vdot > 0" class="text-left sm:text-right bg-[#162035] sm:bg-transparent p-2.5 sm:p-0 rounded-md sm:rounded-none border border-slate-800 sm:border-0">
+                            <div v-if="current_vdot && current_vdot > 0" class="text-left sm:text-right bg-slate-800 sm:bg-transparent p-2.5 sm:p-0 rounded-md sm:rounded-none border border-slate-800 sm:border-0">
                                 <span class="text-[10px] text-slate-400 uppercase tracking-wider block font-medium">Estimasi VDOT</span>
-                                <span class="text-base font-black text-slate-950 bg-[#CCFF00] px-2.5 py-0.5 rounded inline-block mt-0.5 font-bold">
+                                <span class="text-base font-black text-slate-950 bg-brand-lime px-2.5 py-0.5 rounded inline-block mt-0.5 font-bold">
                                     @{{ current_vdot.toFixed(1) }}
                                 </span>
                             </div>
@@ -835,7 +822,7 @@
 
                             <!-- Informational Tip Box -->
                             <div class="p-3.5 surface-nested rounded-md flex items-start gap-3">
-                                <div class="w-5 h-5 rounded bg-[#111726] text-[#CCFF00] font-bold flex items-center justify-center text-xs shrink-0 mt-0.5">i</div>
+                                <div class="w-5 h-5 rounded bg-slate-900 text-brand-lime font-bold flex items-center justify-center text-xs shrink-0 mt-0.5">i</div>
                                 <div class="text-xs text-slate-300 leading-relaxed">
                                     <span class="font-semibold text-white">Prinsip Fisiologi:</span> Waktu tolok ukur digunakan untuk memetakan kapasitas VO2 Max fungsional (VDOT). Seluruh target pace latihan harian akan berpatokan dari data ini untuk mencegah overtraining.
                                 </div>
@@ -887,7 +874,7 @@
                                         <button v-if="recommendedTargetDate && form.target_date !== recommendedTargetDate" 
                                                 @click="applyRecommendedTargetDate" 
                                                 type="button" 
-                                                class="text-[10px] font-semibold text-[#CCFF00] hover:underline cursor-pointer">
+                                                class="text-[10px] font-semibold text-brand-lime hover:underline cursor-pointer">
                                             Set @{{ recommendedWeeks }} Mgg
                                         </button>
                                     </div>
@@ -901,7 +888,7 @@
                                     <button v-if="current_vdot > 0" 
                                             @click="recalculateRecommendedGoalTime" 
                                             type="button" 
-                                            class="text-[10px] font-semibold text-[#CCFF00] hover:underline cursor-pointer">
+                                            class="text-[10px] font-semibold text-brand-lime hover:underline cursor-pointer">
                                         Hitung Ulang Rekomendasi VDOT
                                     </button>
                                 </div>
@@ -975,7 +962,7 @@
                                             <button v-for="(opt, idx) in realism.options" :key="opt.id || ('chip-'+idx)"
                                                     type="button" @click="applyChipOption(opt)"
                                                     class="text-left px-3 py-2.5 rounded-md border text-xs transition cursor-pointer hover:scale-[1.01] border-slate-700/60 bg-slate-800/40 text-slate-200 hover:bg-slate-800 hover:border-slate-600">
-                                                <span class="inline-block w-1.5 h-1.5 rounded-full mr-2 align-middle bg-[#CCFF00]"></span>
+                                                <span class="inline-block w-1.5 h-1.5 rounded-full mr-2 align-middle bg-brand-lime"></span>
                                                 @{{ opt.label }}
                                             </button>
                                         </div>
@@ -1008,13 +995,13 @@
                             <div>
                                 <div class="flex justify-between items-center mb-1">
                                     <label class="label-text !mb-0">Mileage Mingguan Puncak (Km)</label>
-                                    <span class="text-[11px] font-semibold" :class="coachAssessment && coachAssessment.color === 'emerald' ? 'text-emerald-300' : (coachAssessment && coachAssessment.color === 'red' ? 'text-red-300' : 'text-[#CCFF00]')">Saran: @{{ idealMileage }} km · Min: @{{ coachAssessment.min_required_peak_mileage || '-' }} km</span>
+                                    <span class="text-[11px] font-semibold" :class="coachAssessment && coachAssessment.color === 'emerald' ? 'text-emerald-300' : (coachAssessment && coachAssessment.color === 'red' ? 'text-red-300' : 'text-brand-lime')">Saran: @{{ idealMileage }} km · Min: @{{ coachAssessment.min_required_peak_mileage || '-' }} km</span>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <input v-model.number="form.weekly_mileage" type="number" :min="minMileageDynamic" max="150" step="1"
-                                           class="font-bold text-base rounded-md transition-all duration-300 w-full bg-slate-900/70 border text-slate-100 px-3 py-2.5 outline-none focus:ring-2 focus:ring-[#CCFF00]/30"
+                                           class="font-bold text-base rounded-md transition-all duration-300 w-full bg-slate-900/70 border text-slate-100 px-3 py-2.5 outline-none focus:ring-2 focus:ring-brand-lime/30"
                                            :class="[
-                                               highlightMileage ? 'border-[#CCFF00] ring-2 ring-[#CCFF00]/50 bg-slate-900 shadow-[0_0_16px_rgba(204,255,0,0.15)]' : 'border-slate-700 focus:border-[#CCFF00]',
+                                               highlightMileage ? 'border-brand-lime ring-2 ring-brand-lime/50 bg-slate-900 shadow-sm' : 'border-slate-700 focus:border-brand-lime',
                                                (coachAssessment && form.weekly_mileage > 0 && form.weekly_mileage < (coachAssessment.min_required_peak_mileage||0) * 0.85) ? '!border-red-500/70 !ring-2 !ring-red-500/20' : ''
                                            ]">
                                     <button type="button" @click="recommendMileage" class="btn-ghost-secondary px-3 py-2.5 text-xs whitespace-nowrap">
@@ -1204,7 +1191,7 @@
                             
                             <div class="p-3.5 surface-nested rounded-md text-xs text-slate-300 flex flex-wrap items-center justify-between gap-2">
                                 <span>Indeks Massa Tubuh: <strong class="text-white">@{{ bmi || '-' }}</strong> <span v-if="bmiCategory" :class="bmiCategory.color" class="font-semibold">(@{{ bmiCategory.label }})</span></span>
-                                <span>Target Protein: <strong class="text-[#CCFF00]">@{{ proteinRecommendation ? (proteinRecommendation.min + '–' + proteinRecommendation.max + ' g/hari') : '-' }}</strong></span>
+                                <span>Target Protein: <strong class="text-brand-lime">@{{ proteinRecommendation ? (proteinRecommendation.min + '–' + proteinRecommendation.max + ' g/hari') : '-' }}</strong></span>
                             </div>
                         </div>
 
@@ -1215,7 +1202,7 @@
                                     <h3 class="text-base font-bold text-white">Ringkasan Parameter Program</h3>
                                     <p class="text-xs text-slate-300 mt-0.5">Tinjau seluruh data sebelum membuat jadwal latihan</p>
                                 </div>
-                                <span class="text-[10px] font-bold text-slate-950 bg-[#CCFF00] px-2 py-0.5 rounded uppercase">
+                                <span class="text-[10px] font-bold text-slate-950 bg-brand-lime px-2 py-0.5 rounded uppercase">
                                     Siap Generate
                                 </span>
                             </div>
@@ -1260,7 +1247,7 @@
                                         <button v-for="(opt, idx) in realism.options" :key="'rv-'+(opt.id||idx)"
                                                 type="button" @click="applyChipOption(opt); wizardStep = 3;"
                                                 class="text-left px-2.5 py-1.5 rounded border border-slate-700/60 bg-slate-800/50 text-slate-200 hover:bg-slate-800 hover:border-slate-600 transition cursor-pointer text-[11px]">
-                                            <span class="inline-block w-1 h-1 rounded-full mr-2 align-middle bg-[#CCFF00]"></span>
+                                            <span class="inline-block w-1 h-1 rounded-full mr-2 align-middle bg-brand-lime"></span>
                                             @{{ opt.label }} <span class="text-slate-500 text-[10px] ml-1">→ ke Step 3</span>
                                         </button>
                                     </div>
@@ -1273,7 +1260,7 @@
                                         class="btn-lime-primary w-full py-3.5 text-xs sm:text-sm tracking-wider uppercase font-extrabold disabled:opacity-50 disabled:cursor-not-allowed">
                                     <span v-if="!loading">Buat Program</span>
                                     <span v-else class="flex items-center gap-2">
-                                        <svg class="animate-spin h-4 w-4 text-[#090D15]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <svg class="animate-spin h-4 w-4 text-slate-950" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                         </svg>
@@ -1312,8 +1299,8 @@
                         <button v-for="(opt, idx) in feasibilityModalPayload.options" :key="'mopt-'+idx"
                                 type="button"
                                 @click="applyChipOption(opt); showFeasibilityModal = false; setTimeout(() => generateProgram(), 120);"
-                                class="w-full text-left px-3 py-2.5 rounded-md border border-slate-700/70 bg-slate-800/50 text-slate-200 hover:bg-slate-800 hover:border-[#CCFF00]/50 transition cursor-pointer text-xs">
-                            <span class="inline-block w-1.5 h-1.5 rounded-full mr-2 align-middle bg-[#CCFF00]"></span>
+                                class="w-full text-left px-3 py-2.5 rounded-md border border-slate-700/70 bg-slate-800/50 text-slate-200 hover:bg-slate-800 hover:border-brand-lime/50 transition cursor-pointer text-xs">
+                            <span class="inline-block w-1.5 h-1.5 rounded-full mr-2 align-middle bg-brand-lime"></span>
                             <span class="font-semibold">@{{ opt.label }}</span>
                         </button>
                     </div>
@@ -1460,7 +1447,7 @@
                                 <div>
                                     <h4 class="text-[10px] font-bold text-white leading-tight mb-1 uppercase tracking-tight">@{{ day.workout_name || day.type.replace('_', ' ') }}</h4>
                                     <p class="text-xs font-bold text-white">@{{ day.distance }} <span class="text-[9px] font-normal text-slate-400">KM</span></p>
-                                    <p v-if="day.target_pace" class="text-[9px] text-[#CCFF00] font-bold mt-0.5">@{{ day.target_pace }}</p>
+                                    <p v-if="day.target_pace" class="text-[9px] text-brand-lime font-bold mt-0.5">@{{ day.target_pace }}</p>
                                 </div>
                             </div>
                         </div>
@@ -1483,7 +1470,7 @@
                 
                 <div class="surface-card p-6 rounded-lg border border-slate-800 space-y-3">
                     <div class="flex items-center justify-between">
-                        <div class="w-8 h-8 rounded-md bg-[#162035] text-[#CCFF00] font-bold text-sm flex items-center justify-center border border-slate-700">
+                        <div class="w-8 h-8 rounded-md bg-slate-800 text-brand-lime font-bold text-sm flex items-center justify-center border border-slate-700">
                             01
                         </div>
                         <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1498,7 +1485,7 @@
 
                 <div class="surface-card p-6 rounded-lg border border-slate-800 space-y-3">
                     <div class="flex items-center justify-between">
-                        <div class="w-8 h-8 rounded-md bg-[#162035] text-[#CCFF00] font-bold text-sm flex items-center justify-center border border-slate-700">
+                        <div class="w-8 h-8 rounded-md bg-slate-800 text-brand-lime font-bold text-sm flex items-center justify-center border border-slate-700">
                             02
                         </div>
                         <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1513,7 +1500,7 @@
 
                 <div class="surface-card p-6 rounded-lg border border-slate-800 space-y-3">
                     <div class="flex items-center justify-between">
-                        <div class="w-8 h-8 rounded-md bg-[#162035] text-[#CCFF00] font-bold text-sm flex items-center justify-center border border-slate-700">
+                        <div class="w-8 h-8 rounded-md bg-slate-800 text-brand-lime font-bold text-sm flex items-center justify-center border border-slate-700">
                             03
                         </div>
                         <svg class="w-5 h-5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -1552,7 +1539,7 @@
                         </p>
                     </div>
                     <div class="pt-2 text-xs">
-                        <a href="{{ route('landing.program-lari-5k') }}" class="text-[#CCFF00] hover:underline font-semibold">Pelajari Program 5K →</a>
+                        <a href="{{ route('landing.program-lari-5k') }}" class="text-brand-lime hover:underline font-semibold">Pelajari Program 5K →</a>
                     </div>
                 </div>
 
@@ -1568,7 +1555,7 @@
                         </p>
                     </div>
                     <div class="pt-2 text-xs">
-                        <a href="{{ route('landing.program-lari-10k') }}" class="text-[#CCFF00] hover:underline font-semibold">Pelajari Program 10K →</a>
+                        <a href="{{ route('landing.program-lari-10k') }}" class="text-brand-lime hover:underline font-semibold">Pelajari Program 10K →</a>
                     </div>
                 </div>
 
@@ -1584,7 +1571,7 @@
                         </p>
                     </div>
                     <div class="pt-2 text-xs">
-                        <a href="{{ route('programs.index') }}" class="text-[#CCFF00] hover:underline font-semibold">Katalog Half Marathon →</a>
+                        <a href="{{ route('programs.index') }}" class="text-brand-lime hover:underline font-semibold">Katalog Half Marathon →</a>
                     </div>
                 </div>
 
@@ -1600,7 +1587,7 @@
                         </p>
                     </div>
                     <div class="pt-2 text-xs">
-                        <a href="{{ route('programs.index') }}" class="text-[#CCFF00] hover:underline font-semibold">Katalog Marathon →</a>
+                        <a href="{{ route('programs.index') }}" class="text-brand-lime hover:underline font-semibold">Katalog Marathon →</a>
                     </div>
                 </div>
 
@@ -1632,7 +1619,7 @@
                 <div class="p-4 sm:p-5 pt-0 border-t border-slate-800">
                     <div class="overflow-x-auto rounded-md border border-slate-800 mt-3">
                         <table class="w-full text-left text-xs">
-                            <thead class="bg-[#162035] border-b border-slate-800 text-slate-400 uppercase font-semibold">
+                            <thead class="bg-slate-800 border-b border-slate-800 text-slate-400 uppercase font-semibold">
                                 <tr>
                                     <th class="py-2.5 px-3">Zona Pace</th>
                                     <th class="py-2.5 px-3">% VO2 Max</th>
@@ -1671,7 +1658,7 @@
                                     <td class="py-2.5 px-3 text-slate-400">Repeats 800m–1200m</td>
                                 </tr>
                                 <tr>
-                                    <td class="py-2.5 px-3 font-bold text-[#FC4C02]">Repetition (R)</td>
+                                    <td class="py-2.5 px-3 font-bold text-orange-500">Repetition (R)</td>
                                     <td class="py-2.5 px-3">> 105%</td>
                                     <td class="py-2.5 px-3">Anaerobik</td>
                                     <td class="py-2.5 px-3">Kecepatan neuromuskular dan irama cadence tinggi.</td>
@@ -1769,7 +1756,7 @@
                         </svg>
                     </summary>
                     <p class="text-xs text-slate-300 leading-relaxed mt-2.5 pt-2.5 border-t border-slate-800">
-                        Setelah menekan tombol 'Buat Program Latihan' dan meninjau hasil kalkulasi, klik tombol 'Simpan ke Kalender Lari'. Jika Anda telah masuk (login), seluruh jadwal latihan harian—termasuk jarak, target pace, dan jenis sesi—akan tersinkronisasi otomatis ke dashboard Kalender Lari Anda.
+                        Setelah menekan tombol 'Buat Program Latihan' dan meninjau hasil kalkulasi, klik tombol 'Simpan ke Kalender Lari'. Jika Anda telah masuk (login), seluruh jadwal latihan harian (jarak, target pace, dan jenis sesi) akan tersinkronisasi otomatis ke dashboard Kalender Lari Anda.
                     </p>
                 </details>
 
@@ -1974,7 +1961,7 @@
             const heroVdotH = ref(1);
             const heroVdotM = ref(55);
             const heroVdotS = ref(0);
-            const heroVdotCalculated = ref(false);
+            const heroVdotCalculated = ref(true);
             const heroVdotCompute = reactive({
                 vdot: 0,
                 pbSec: 0,
@@ -2218,8 +2205,8 @@
                 else if (score >= 20) { feasibility = 'HIGH_RISK'; color = 'orange'; label = 'Risiko Tinggi'; }
                 else { feasibility = 'INFEASIBLE'; color = 'red'; label = 'Tidak Realistis'; }
 
-                const paceStr = goalSec > 0 ? formatDurationSec(Math.round(goalPaceSecPerKm)) : '—';
-                const goalTimeStr = goalSec > 0 ? formatDurationSec(goalSec) : '—';
+                const paceStr = goalSec > 0 ? formatDurationSec(Math.round(goalPaceSecPerKm)) : '-';
+                const goalTimeStr = goalSec > 0 ? formatDurationSec(goalSec) : '-';
                 const distLabel = String(dist || '10k').toUpperCase();
 
                 const pctVdot = initVdot > 0 ? Math.round((deltaVdot / initVdot) * 1000) / 10 : 0;
@@ -2448,16 +2435,19 @@
                 const vdot = Math.max(15, Math.min(85, calculateVDOTFromPerformance(distKey, sec)));
                 heroVdotCompute.vdot = Math.round(vdot * 100) / 100;
                 const vvo2max = vvo2FromVDOT(vdot);
-                const paceSecPerKm = (vdot > 0 && vvo2max > 0) ? (60 / (vvo2max * getRatioForDistance(distKey, vdot))) : 0;
-                heroVdotCompute.easy_low = paceSecPerKm * 1.28;
-                heroVdotCompute.easy_high = paceSecPerKm * 1.19;
-                heroVdotCompute.marathon = paceSecPerKm * 1.09;
-                heroVdotCompute.tempo = paceSecPerKm * 1.03;
-                heroVdotCompute.threshold = paceSecPerKm * 1.00;
-                heroVdotCompute.interval = paceSecPerKm * 0.92;
-                heroVdotCompute.interval_400 = Math.round((paceSecPerKm * 0.92) * 0.4);
-                heroVdotCompute.repetition = paceSecPerKm * 0.87;
-                heroVdotCompute.repetition_400 = Math.round((paceSecPerKm * 0.87) * 0.4);
+                if (vvo2max > 0) {
+                    // Formula Jack Daniels: kecepatan v = vVO2max * ratio (m/min)
+                    // Pace dalam menit per kilometer (min/km) = 1000m / kecepatan (m/min)
+                    heroVdotCompute.easy_high = 1000 / (vvo2max * 0.72);
+                    heroVdotCompute.easy_low = 1000 / (vvo2max * 0.66);
+                    heroVdotCompute.marathon = 1000 / (vvo2max * 0.82);
+                    heroVdotCompute.tempo = 1000 / (vvo2max * 0.88);
+                    heroVdotCompute.threshold = 1000 / (vvo2max * 0.88);
+                    heroVdotCompute.interval = 1000 / (vvo2max * 0.97);
+                    heroVdotCompute.interval_400 = Math.round((400 / (vvo2max * 0.97)) * 60);
+                    heroVdotCompute.repetition = 1000 / (vvo2max * 1.05);
+                    heroVdotCompute.repetition_400 = Math.round((400 / (vvo2max * 1.05)) * 60);
+                }
                 heroVdotCompute.r_5k = predictRaceTimeSeconds(vdot, '5k');
                 heroVdotCompute.r_10k = predictRaceTimeSeconds(vdot, '10k');
                 heroVdotCompute.r_21k = predictRaceTimeSeconds(vdot, '21k');
@@ -2916,6 +2906,7 @@
             });
 
             onMounted(() => {
+                heroCalculateVdot();
                 const params = new URLSearchParams(window.location.search);
                 let dist = params.get('distance');
                 const time = params.get('time');
@@ -3250,7 +3241,7 @@
                     'M': 'text-blue-400', 
                     'T': 'text-amber-400', 
                     'I': 'text-rose-400', 
-                    'R': 'text-[#FC4C02]' 
+                    'R': 'text-orange-500' 
                 };
                 return colors[type] || 'text-slate-400';
             };

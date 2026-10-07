@@ -522,7 +522,11 @@ class RaceMasterApiController extends Controller
         $session = $this->resolveRaceSession($session);
 
         if (! $session->started_at) {
-            $session->started_at = now();
+            if ($request->filled('started_at_ms')) {
+                $session->started_at = Carbon::createFromTimestampMs((float) $request->input('started_at_ms'));
+            } else {
+                $session->started_at = now();
+            }
             $session->save();
         }
 
