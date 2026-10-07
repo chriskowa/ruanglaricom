@@ -299,6 +299,11 @@
             letter-spacing: -0.03em !important;
         }
 
+        html {
+            scroll-behavior: smooth;
+            scroll-padding-top: 5.5rem;
+        }
+
         body {
             font-family: 'Plus Jakarta Sans', sans-serif;
             background-color: #f8fafc; /* bg-slate-50 */
@@ -345,11 +350,13 @@
             accent-color: var(--theme-primary) !important;
         }
 
-        /* Nav scrolled state */
+        /* Navbar elevation shadows */
+        #navbar {
+            box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.05), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
+        }
         .nav-scrolled {
             background-color: rgba(255, 255, 255, 0.98) !important;
-            border-bottom: 1px solid #e2e8f0 !important;
-            box-shadow: 0 4px 12px -2px rgba(15, 23, 42, 0.06) !important;
+            box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.07) !important;
         }
 
         /* Custom Scrollbar */
@@ -416,49 +423,65 @@
     @endif
 
     <!-- Main Navigation Bar -->
-    <header class="fixed top-0 inset-x-0 z-50 transition duration-200 bg-white/90 border-b border-slate-200" id="navbar">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-16 sm:h-20">
+    <header class="fixed top-0 inset-x-0 z-50 transition duration-200 bg-white/95 backdrop-blur-md shadow-xs sm:shadow-sm" id="navbar">
+        <div class="max-w-7xl 2xl:max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 xl:px-10">
+            <div class="flex items-center justify-between h-16 sm:h-20 gap-3 lg:gap-6 xl:gap-8">
                 <!-- Brand / Logo -->
-                <a href="#top" class="flex items-center gap-3">
+                <a href="#top" class="flex items-center gap-2.5 sm:gap-3 shrink-0 group">
                     @if($event->logo_image)
-                        <img src="{{ asset('storage/' . $event->logo_image) }}" alt="{{ $event->name }}" class="h-9 sm:h-11 w-auto object-contain">
+                        <img src="{{ asset('storage/' . $event->logo_image) }}" alt="{{ $event->name }}" class="h-9 sm:h-11 w-auto object-contain shrink-0">
                     @else
-                        <div class="w-9 h-9 rounded-md bg-theme-primary text-white font-heading text-lg flex items-center justify-center shadow-sm">
+                        <div class="w-9 h-9 sm:w-10 sm:h-10 rounded-md bg-theme-primary text-white font-heading text-lg flex items-center justify-center shadow-sm shrink-0 group-hover:opacity-95 transition">
                             {{ substr($event->name, 0, 1) }}
                         </div>
-                        <span class="font-heading text-lg sm:text-xl text-slate-900 uppercase tracking-tight">{{ $event->name }}</span>
+                        <span class="font-heading text-base sm:text-lg xl:text-xl text-slate-900 uppercase tracking-tight truncate max-w-[150px] sm:max-w-[220px] lg:max-w-[180px] xl:max-w-xs shrink-0 group-hover:text-theme-primary transition">
+                            {{ $event->name }}
+                        </span>
                     @endif
                 </a>
 
                 <!-- Desktop Menu -->
-                <nav class="hidden lg:flex items-center space-x-7">
-                    <a href="#about" class="text-sm font-semibold text-slate-600 hover-text-theme-primary transition">Tentang</a>
-                    <a href="#categories" class="text-sm font-semibold text-slate-600 hover-text-theme-primary transition">Kategori</a>
-                    <a href="#racepack" class="text-sm font-semibold text-slate-600 hover-text-theme-primary transition">Race Pack</a>
-                    <a href="#venue" class="text-sm font-semibold text-slate-600 hover-text-theme-primary transition">Lokasi</a>
-                    <a href="#info" class="text-sm font-semibold text-slate-600 hover-text-theme-primary transition">Info</a>
-                    <a href="#faq" class="text-sm font-semibold text-slate-600 hover-text-theme-primary transition">FAQ</a>
+                <nav class="hidden lg:flex items-center justify-center flex-1 mx-2 lg:mx-4 xl:mx-8 gap-1 lg:gap-1.5 xl:gap-2.5 2xl:gap-4">
+                    <a href="#about" class="px-2.5 lg:px-3 xl:px-3.5 py-1.5 xl:py-2 rounded-md text-xs xl:text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 hover-text-theme-primary transition duration-150 whitespace-nowrap">
+                        Tentang
+                    </a>
+                    <a href="#categories" class="px-2.5 lg:px-3 xl:px-3.5 py-1.5 xl:py-2 rounded-md text-xs xl:text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 hover-text-theme-primary transition duration-150 whitespace-nowrap">
+                        Kategori
+                    </a>
+                    <a href="#racepack" class="px-2.5 lg:px-3 xl:px-3.5 py-1.5 xl:py-2 rounded-md text-xs xl:text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 hover-text-theme-primary transition duration-150 whitespace-nowrap">
+                        Race Pack
+                    </a>
+                    <a href="#venue" class="px-2.5 lg:px-3 xl:px-3.5 py-1.5 xl:py-2 rounded-md text-xs xl:text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 hover-text-theme-primary transition duration-150 whitespace-nowrap">
+                        Lokasi
+                    </a>
+                    <a href="#info" class="px-2.5 lg:px-3 xl:px-3.5 py-1.5 xl:py-2 rounded-md text-xs xl:text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 hover-text-theme-primary transition duration-150 whitespace-nowrap">
+                        Info
+                    </a>
+                    <a href="#faq" class="px-2.5 lg:px-3 xl:px-3.5 py-1.5 xl:py-2 rounded-md text-xs xl:text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 hover-text-theme-primary transition duration-150 whitespace-nowrap">
+                        FAQ
+                    </a>
                     @if(($hasPaidParticipants ?? false) && $event->show_participant_list)
-                        <a href="#participants-list" class="text-sm font-semibold text-slate-600 hover-text-theme-primary transition">Daftar Peserta</a>
+                        <a href="#participants-list" class="px-2.5 lg:px-3 xl:px-3.5 py-1.5 xl:py-2 rounded-md text-xs xl:text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 hover-text-theme-primary transition duration-150 whitespace-nowrap">
+                            Daftar Peserta
+                        </a>
                     @endif
                 </nav>
 
                 <!-- Actions -->
-                <div class="hidden sm:flex items-center gap-3">
-                    <a href="{{ route('community.register.index', ['slug' => $event->slug]) }}" class="px-4 py-2 rounded-md border border-slate-300 hover:border-theme-primary bg-slate-50 hover:bg-theme-light text-slate-700 hover-text-theme-primary text-xs font-bold transition">
+                <div class="hidden sm:flex items-center gap-2 xl:gap-3 shrink-0">
+                    <a href="{{ route('community.register.index', ['slug' => $event->slug]) }}" class="px-3 xl:px-4 py-2 rounded-md border border-slate-300 hover:border-theme-primary bg-slate-50 hover:bg-theme-light text-slate-700 hover-text-theme-primary text-xs font-bold transition whitespace-nowrap shadow-2xs">
                         Daftar Komunitas
                     </a>
                     @if($isRegOpen)
-                        <a href="#register" class="px-5 py-2.5 rounded-md bg-theme-primary hover-bg-theme-primary text-white text-xs font-bold transition shadow-sm">
+                        <a href="#register" class="px-4 xl:px-5 py-2 xl:py-2.5 rounded-md bg-theme-primary hover-bg-theme-primary text-white text-xs font-bold transition shadow-sm whitespace-nowrap">
                             Daftar Sekarang
                         </a>
                     @elseif($isNaturallyClosed)
-                        <a href="#register" class="px-5 py-2.5 rounded-md bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition shadow-sm">
+                        <a href="#register" class="px-4 xl:px-5 py-2 xl:py-2.5 rounded-md bg-red-600 hover:bg-red-700 text-white text-xs font-bold transition shadow-sm whitespace-nowrap">
                             Slot Penuh
                         </a>
                     @else
-                        <span class="px-4 py-2 rounded-md bg-slate-100 text-slate-400 text-xs font-bold border border-slate-200">
+                        <span class="px-3 xl:px-4 py-2 rounded-md bg-slate-100 text-slate-400 text-xs font-bold border border-slate-200 whitespace-nowrap">
                             Pendaftaran Tutup
                         </span>
                     @endif
@@ -535,7 +558,7 @@
                         <!-- CTA Row -->
                         <div class="flex flex-wrap items-center gap-3 pt-2">
                             @if($isRegOpen)
-                                <a href="#register" class="px-7 py-3.5 rounded-md bg-theme-primary hover-bg-theme-primary text-white font-bold text-sm transition shadow-sm flex items-center gap-2">
+                                <a href="#register" class="px-8 py-3.5 rounded-md bg-theme-primary hover-bg-theme-primary text-white font-bold text-sm transition shadow-sm flex items-center gap-2">
                                     <span>Amankan Slot Sekarang</span>
                                     <i class="fas fa-arrow-right text-xs"></i>
                                 </a>
