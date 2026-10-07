@@ -266,6 +266,8 @@ Route::prefix('/api/tools/race-master')->middleware(['auth', 'role:admin|eo'])->
     Route::post('/races', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'storeRace'])->name('tools.race-master.api.races.store');
     Route::put('/races/{race}', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'updateRace'])->name('tools.race-master.api.races.update');
     Route::post('/races/{race}/participants/bulk', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'upsertParticipants'])->name('tools.race-master.api.races.participants.bulk');
+    Route::delete('/races/{race}/participants', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'clearParticipants'])->name('tools.race-master.api.races.participants.clear');
+    Route::delete('/races/{race}/participants/{bib}', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'deleteParticipant'])->name('tools.race-master.api.races.participants.destroy');
     Route::post('/races/{race}/sessions', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'startSession'])->name('tools.race-master.api.races.sessions.start');
     Route::post('/sessions/{session}/laps', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'storeLap'])->name('tools.race-master.api.sessions.laps.store');
     Route::post('/sessions/{session}/laps/bulk', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'storeLapsBulk'])->name('tools.race-master.api.sessions.laps.bulk');
@@ -287,6 +289,8 @@ Route::prefix('/api/tools/race-master/public')->group(function () {
     Route::post('/{slug}/laps/bulk', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicStoreLapsBulk'])->name('tools.race-master.api.public.laps.bulk');
     Route::post('/{slug}/participants/{bib}/poster', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicParticipantPoster'])->name('tools.race-master.api.public.poster');
     Route::post('/{slug}/participants/{bib}/certificate', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicParticipantCertificate'])->name('tools.race-master.api.public.certificate');
+    Route::delete('/{slug}/participants', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicClearParticipants'])->name('tools.race-master.api.public.participants.clear');
+    Route::delete('/{slug}/participants/{bib}', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicDeleteParticipant'])->name('tools.race-master.api.public.participants.destroy');
     Route::post('/{slug}/reset', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicResetSession'])->name('tools.race-master.api.public.reset');
 });
 

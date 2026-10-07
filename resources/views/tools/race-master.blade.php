@@ -458,34 +458,64 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Left: Current Active Room & Share Link -->
-                    <div class="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 space-y-2.5">
-                        <div class="flex items-center justify-between">
-                            <div class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase">Sesi Lomba Saat Ini:</div>
-                            <button v-if="!sessionSlug && !currentSessionId" type="button" @click="initializeRaceSession(false)" :disabled="initializingSession"
-                                class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5">
-                                <i v-if="initializingSession" class="fa-solid fa-circle-notch fa-spin text-xs"></i>
-                                <i v-else class="fa-solid fa-play text-xs"></i>
-                                <span>@{{ initializingSession ? 'Menyiapkan...' : 'Buat Sesi Sekarang' }}</span>
-                            </button>
+                    <div class="p-3.5 sm:p-4 bg-slate-50 dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-700 space-y-3">
+                        <div class="flex items-center justify-between gap-2 flex-wrap">
+                            <div class="flex items-center gap-2">
+                                <span class="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase">Sesi Lomba Saat Ini:</span>
+                                <span v-if="timer.running" class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800 flex items-center gap-1">
+                                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Running
+                                </span>
+                                <span v-else-if="timer.elapsed > 0" class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
+                                    Jeda / Selesai
+                                </span>
+                                <span v-else-if="sessionSlug || currentSessionId" class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-200 text-slate-700 dark:bg-slate-800 dark:text-slate-300">
+                                    Standby (00:00:00)
+                                </span>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <button v-if="!sessionSlug && !currentSessionId" type="button" @click="initializeRaceSession(false)" :disabled="initializingSession"
+                                    class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5">
+                                    <i v-if="initializingSession" class="fa-solid fa-circle-notch fa-spin text-xs"></i>
+                                    <i v-else class="fa-solid fa-play text-xs"></i>
+                                    <span>@{{ initializingSession ? 'Menyiapkan...' : 'Buat Sesi Sekarang' }}</span>
+                                </button>
+                                <button v-else-if="isSessionHost" type="button" @click="createNewSession" :disabled="initializingSession"
+                                    class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center gap-1.5"
+                                    title="Buat sesi lomba baru untuk race ini (wave/heat baru)">
+                                    <i v-if="initializingSession" class="fa-solid fa-circle-notch fa-spin text-xs"></i>
+                                    <i v-else class="fa-solid fa-plus text-xs"></i>
+                                    <span>Buat Sesi Baru</span>
+                                </button>
+                            </div>
                         </div>
 
-                        <div v-if="sessionSlug || currentSessionId" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
-                            <div class="flex-1 font-mono font-black text-sm sm:text-base px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white truncate">
-                                @{{ sessionSlug || currentSessionId }}
+                        <div v-if="sessionSlug || currentSessionId" class="space-y-2.5">
+                            <div class="flex items-center justify-between px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 rounded-xl">
+                                <div class="font-mono font-black text-sm sm:text-base text-slate-900 dark:text-white truncate" title="Kode/Slug Sesi">
+                                    @{{ sessionSlug || currentSessionId }}
+                                </div>
+                                <div class="font-mono text-xs font-bold text-slate-500 dark:text-slate-400 shrink-0 pl-2">
+                                    @{{ formattedTime }}
+                                </div>
                             </div>
-                            <div class="grid grid-cols-2 sm:flex items-center gap-2">
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                                <button v-if="isSessionHost" type="button" @click="resetRace" 
+                                    class="px-3 py-2 bg-rose-50 hover:bg-rose-100 dark:bg-rose-950/40 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 font-bold text-xs rounded-xl shadow-sm transition flex items-center justify-center gap-1.5 border border-rose-200 dark:border-rose-900/70" title="Reset Timer & Lap Sesi Ini ke 00:00:00 (Khusus Host)">
+                                    <i class="fa-solid fa-rotate-left"></i>
+                                    <span>Reset Sesi</span>
+                                </button>
                                 <button v-if="isSessionHost" type="button" @click="openEditTimingModal" 
-                                    class="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl shadow-sm transition flex items-center justify-center gap-1.5 border border-slate-700" title="Koreksi Tanggal & Jam Mulai Lomba (Human Error Start)">
+                                    class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs rounded-xl shadow-sm transition flex items-center justify-center gap-1.5 border border-slate-700" title="Koreksi Tanggal & Jam Mulai Lomba (Human Error Start)">
                                     <i class="fa-solid fa-clock-rotate-left"></i>
                                     <span>Koreksi Start</span>
                                 </button>
                                 <button type="button" @click="copySessionShareUrl" 
-                                    class="px-3.5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center justify-center gap-1.5" title="Salin link untuk admin/spotter">
+                                    class="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center justify-center gap-1.5" title="Salin link untuk admin/spotter">
                                     <i class="fa-solid fa-copy"></i>
                                     <span>Salin Sesi</span>
                                 </button>
                                 <button type="button" @click="copyTvDisplayUrl" 
-                                    class="px-3.5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center justify-center gap-1.5" title="Salin link yang otomatis fullscreen untuk layar TV">
+                                    class="px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow-sm transition flex items-center justify-center gap-1.5" title="Salin link yang otomatis fullscreen untuk layar TV">
                                     <i class="fa-solid fa-tv"></i>
                                     <span>URL TV Display</span>
                                 </button>
@@ -665,7 +695,14 @@
                     <div class="sm:col-span-2">
                         <div class="text-sm text-slate-600 bg-slate-50 p-3.5 rounded-xl border border-slate-200 dark:bg-slate-900 dark:border-slate-700 dark:text-slate-300 flex items-center justify-between">
                             <span class="font-medium">Total Peserta Terdaftar:</span>
-                            <span class="font-black text-indigo-600 text-lg dark:text-indigo-400 font-mono">@{{ participants.length }} Peserta</span>
+                            <div class="flex items-center gap-3">
+                                <span class="font-black text-indigo-600 text-lg dark:text-indigo-400 font-mono">@{{ participants.length }} Peserta</span>
+                                <button v-if="participants.length > 0" type="button" @click="removeAllParticipants" 
+                                    class="px-2.5 py-1 rounded-lg bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:hover:bg-red-900/60 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/80 font-bold text-xs flex items-center gap-1 transition" title="Hapus semua peserta dari daftar">
+                                    <i class="fa-solid fa-trash-can text-[11px]"></i>
+                                    <span>Hapus Semua</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -678,6 +715,11 @@
                         <h2 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">2. Tambah Peserta & Biometrik Wajah</h2>
                         <p class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Daftarkan peserta secara manual satu per satu, impor massal via file CSV, atau gunakan biometrik wajah AI.</p>
                     </div>
+                    <button v-if="participants.length > 0" type="button" @click="removeAllParticipants" 
+                        class="self-start sm:self-auto px-3 py-1.5 rounded-xl bg-red-50 hover:bg-red-100 dark:bg-red-950/40 dark:hover:bg-red-900/60 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/80 font-bold text-xs flex items-center gap-1.5 transition" title="Hapus semua peserta dari daftar">
+                        <i class="fa-solid fa-trash-can text-xs"></i>
+                        <span>Hapus Semua Peserta (@{{ participants.length }})</span>
+                    </button>
                 </div>
 
                 <!-- CSV Batch Import Action Box -->
@@ -824,7 +866,14 @@
                                 <th class="p-3 font-bold">BIB</th>
                                 <th class="p-3 font-bold">Nama</th>
                                 <th class="p-3 font-bold">Prediksi</th>
-                                <th class="p-3 font-bold text-center">Aksi</th>
+                                <th class="p-3 font-bold text-center">
+                                    <div class="flex items-center justify-center gap-1.5">
+                                        <span>Aksi</span>
+                                        <button v-if="participants.length > 0" type="button" @click="removeAllParticipants" class="text-red-400 hover:text-red-600 text-xs transition p-0.5" title="Hapus Semua Peserta">
+                                            <i class="fa-solid fa-trash-can"></i>
+                                        </button>
+                                    </div>
+                                </th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100 dark:divide-slate-700 text-sm">
@@ -861,7 +910,11 @@
                 </div>
             </div>
             
-            <div class="flex justify-end mt-4">
+            <div class="flex flex-col sm:flex-row items-center justify-between gap-3 mt-4">
+                <button type="button" @click="resetAllRaceSetup" class="text-xs text-red-500 hover:text-red-700 dark:text-red-400 hover:underline flex items-center gap-1.5 transition">
+                    <i class="fa-solid fa-rotate-left"></i>
+                    <span>Reset Total Race Master (Mulai Baru dari Nol)</span>
+                </button>
                 <button @click="goToBibs" class="w-full sm:w-auto bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-950 px-6 py-3 rounded-xl font-bold hover:bg-black transition flex items-center justify-center gap-2">
                     <span>Lanjut: Generate BIB</span>
                     <i class="fa-solid fa-arrow-right"></i>
@@ -3940,6 +3993,71 @@
                 }
             };
 
+            const createNewSession = async () => {
+                if (!isSessionHost.value) {
+                    alert('Hanya Host pembuat sesi yang berhak membuat sesi baru.');
+                    return;
+                }
+                if (!confirm('Buat sesi balap baru untuk perlombaan ini?\n\nSesi baru akan dibuat dengan kode room baru, timer disiapkan mulai dari 00:00:00, dan status peserta siap untuk wave/heat baru.\n(Hasil dan rekaman lap sesi sebelumnya tetap tersimpan aman di database).')) {
+                    return;
+                }
+
+                initializingSession.value = true;
+                try {
+                    const nameTrim = String(raceName.value || '').trim();
+                    if (!nameTrim) raceName.value = `Race ${raceCategory.value || 'Umum'}`;
+                    await ensureRaceInDb();
+                    await syncParticipantsToDb();
+
+                    if (timer.value.interval) clearInterval(timer.value.interval);
+                    timer.value.interval = null;
+                    timer.value.running = false;
+                    timer.value.paused = false;
+                    timer.value.elapsed = 0;
+                    timer.value.startTime = null;
+                    if (queueFlushInterval.value) {
+                        clearInterval(queueFlushInterval.value);
+                        queueFlushInterval.value = null;
+                    }
+
+                    participants.value.forEach(p => {
+                        p.laps = [];
+                        p.status = 'ready';
+                        p.totalTime = 0;
+                        p.recentlyScanned = false;
+                        p.lastScanTime = 0;
+                    });
+                    maxSyncedLapId.value = 0;
+                    lastSeenLapIdSet.clear();
+
+                    const payload = {
+                        start_timer_now: false
+                    };
+                    const category = String(raceCategory.value || '').trim();
+                    if (category) payload.category = category;
+                    const dist = String(raceDistanceKm.value || '').trim();
+                    if (dist) payload.distance_km = dist;
+
+                    const data = await apiFetchJson(`${apiBase}/races/${encodeURIComponent(String(currentRaceId.value))}/sessions`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload),
+                    });
+
+                    currentSessionId.value = data?.session?.id || null;
+                    sessionSlug.value = data?.session?.slug || '';
+                    publicResultsUrl.value = data?.session?.public_results_url || '';
+                    saveState();
+                    startLiveSyncPolling();
+                    alert(`Sesi Balap Baru Berhasil Dibuat!\n\nKode/Slug Sesi: ${sessionSlug.value || currentSessionId.value}\nTimer disiapkan pada 00:00:00. Link Sesi dan URL TV Display sekarang aktif.`);
+                } catch (e) {
+                    console.error('Create new session error:', e);
+                    alert(e?.message || 'Gagal membuat sesi baru.');
+                } finally {
+                    initializingSession.value = false;
+                }
+            };
+
             const parseTimeInputToMs = (raw) => {
                 const s = String(raw ?? '').trim();
                 if (!s) return null;
@@ -4330,11 +4448,62 @@
                 alert(summaryMsg);
             };
 
-            const removeParticipant = (index) => {
-                if(confirm('Hapus peserta ini?')) {
-                    participants.value.splice(index, 1);
-                    saveState();
+            const removeParticipant = async (index) => {
+                const p = participants.value[index];
+                if (!p) return;
+                if (!confirm(`Hapus peserta BIB #${p.bib} (${p.name})?`)) return;
+
+                const removedBib = p.bib;
+                participants.value.splice(index, 1);
+                saveState();
+
+                const targetRace = currentRaceId.value;
+                const targetSession = sessionSlug.value || currentSessionId.value;
+                if (targetRace) {
+                    try {
+                        await apiFetchJson(`${apiBase}/races/${encodeURIComponent(String(targetRace))}/participants/${encodeURIComponent(String(removedBib))}`, { method: 'DELETE' });
+                    } catch (_) {}
+                } else if (targetSession) {
+                    try {
+                        await apiFetchJson(`${apiBase}/public/${encodeURIComponent(String(targetSession))}/participants/${encodeURIComponent(String(removedBib))}`, { method: 'DELETE' });
+                    } catch (_) {}
                 }
+            };
+
+            const removeAllParticipants = async () => {
+                if (!participants.value.length) return;
+                const count = participants.value.length;
+                if (!confirm(`Hapus SEMUA ${count} peserta dari perlombaan ini?\n\nPerhatian: Seluruh data nomor BIB, nama, dan biometrik wajah peserta akan dikosongkan.`)) {
+                    return;
+                }
+
+                participants.value = [];
+                saveState();
+
+                const targetRace = currentRaceId.value;
+                const targetSession = sessionSlug.value || currentSessionId.value;
+                if (targetRace) {
+                    try {
+                        await apiFetchJson(`${apiBase}/races/${encodeURIComponent(String(targetRace))}/participants`, { method: 'DELETE' });
+                    } catch (e) {
+                        console.warn('Backend clear participants error:', e?.message);
+                    }
+                } else if (targetSession) {
+                    try {
+                        await apiFetchJson(`${apiBase}/public/${encodeURIComponent(String(targetSession))}/participants`, { method: 'DELETE' });
+                    } catch (e) {
+                        console.warn('Backend clear participants error:', e?.message);
+                    }
+                }
+            };
+
+            const resetAllRaceSetup = () => {
+                if (!confirm('PERINGATAN: Reset total semua data di halaman ini?\n\nNama race, sesi, timer, dan seluruh daftar peserta di perangkat ini akan dikosongkan kembali ke awal.')) return;
+                try {
+                    localStorage.removeItem(STORAGE_KEY);
+                    localStorage.removeItem(QUEUE_STORAGE_KEY);
+                } catch (e) {}
+                window.location.reload();
             };
 
             const goToBibs = () => {
@@ -8285,7 +8454,8 @@
                 setLinePreset, switchCameraDevice, switchCameraMode,
                 sessionRoomInput, sessionSyncActive, sessionSyncLastUpdated, sessionSyncError,
                 copySessionShareUrl, joinLiveSession, startLiveSyncPolling,
-                initializingSession, initializeRaceSession,
+                initializingSession, initializeRaceSession, createNewSession,
+                removeAllParticipants, resetAllRaceSetup,
                 openAssignBibModal, confirmAssignBib,
                 bibScan, onBibSampleUpload, getBibRuntimeProfile, activeBibPattern,
                 ocrTestMode, ocrTestResult, toggleOcrTestMode,

@@ -392,6 +392,77 @@ class RaceMasterApiController extends Controller
         }
     }
 
+    public function clearParticipants(Request $request, Race $race)
+    {
+        $user = Auth::user();
+        if ($user && $user->role !== 'admin' && (int) $race->created_by !== (int) $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: Hanya Host pembuat race yang dapat mengosongkan peserta.',
+            ], 403);
+        }
+
+        DB::transaction(function () use ($race) {
+            $participantIds = RaceSessionParticipant::where('race_id', $race->id)->pluck('id');
+            if ($participantIds->isNotEmpty()) {
+                RaceSessionLap::whereIn('race_participant_id', $participantIds)->delete();
+                RaceSessionParticipant::whereIn('id', $participantIds)->delete();
+            }
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Seluruh peserta berhasil dihapus.',
+        ]);
+    }
+
+    public function publicClearParticipants(Request $request, $slug)
+    {
+        $session = $this->resolveRaceSession($slug);
+        if (! $session->race) {
+            return response()->json(['success' => false, 'message' => 'Race tidak ditemukan.'], 404);
+        }
+
+        return $this->clearParticipants($request, $session->race);
+    }
+
+    public function deleteParticipant(Request $request, Race $race, $bib)
+    {
+        $user = Auth::user();
+        if ($user && $user->role !== 'admin' && (int) $race->created_by !== (int) $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: Hanya Host pembuat race yang dapat menghapus peserta.',
+            ], 403);
+        }
+
+        DB::transaction(function () use ($race, $bib) {
+            $participant = RaceSessionParticipant::where('race_id', $race->id)
+                ->where('bib_number', (string) $bib)
+                ->first();
+
+            if ($participant) {
+                RaceSessionLap::where('race_participant_id', $participant->id)->delete();
+                $participant->delete();
+            }
+        });
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Peserta berhasil dihapus.',
+        ]);
+    }
+
+    public function publicDeleteParticipant(Request $request, $slug, $bib)
+    {
+        $session = $this->resolveRaceSession($slug);
+        if (! $session->race) {
+            return response()->json(['success' => false, 'message' => 'Race tidak ditemukan.'], 404);
+        }
+
+        return $this->deleteParticipant($request, $session->race, $bib);
+    }
+
     public function startSession(Request $request, Race $race)
     {
         $validated = $request->validate([
