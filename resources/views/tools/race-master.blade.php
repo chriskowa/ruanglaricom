@@ -1019,7 +1019,7 @@
                             </div>
                         </div>
 
-                        <!-- Primary Controls: Play / Resume / Pause -->
+                        <!-- Primary Controls: Play / Resume / Pause / Reset -->
                         <div class="flex items-center gap-2 shrink-0">
                             <button v-if="!timer.running" @click="startRace"
                                 :title="timer.elapsed > 0 ? 'Resume Timer' : 'Mulai Timer'"
@@ -1036,6 +1036,13 @@
                                 class="h-11 sm:h-12 px-5 sm:px-6 rounded-lg bg-slate-800 hover:bg-slate-700 dark:bg-slate-700 dark:hover:bg-slate-600 text-white font-bold text-sm flex items-center gap-2 transition shadow-sm">
                                 <i class="fa-solid fa-pause"></i>
                                 <span>Pause</span>
+                            </button>
+
+                            <!-- Reset — visible saat timer pernah jalan, host only -->
+                            <button v-if="timer.elapsed > 0 && isSessionHost" @click="resetRace"
+                                title="Reset Timer ke 00:00:00 (Khusus Host)"
+                                class="h-11 sm:h-12 w-11 sm:w-12 rounded-lg bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 flex items-center justify-center transition border border-slate-200 dark:border-slate-700">
+                                <i class="fa-solid fa-rotate-left text-sm"></i>
                             </button>
                         </div>
                     </div>
