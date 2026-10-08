@@ -248,7 +248,12 @@ class EventController extends Controller
             'payment_config' => 'nullable|array',
             'payment_config.midtrans_demo_mode' => 'nullable|boolean',
             'payment_config.allowed_methods' => 'nullable|array|min:1',
-            'payment_config.allowed_methods.*' => 'in:midtrans,moota,cod,all',
+            'payment_config.allowed_methods.*' => 'in:midtrans,moota,cod,manual_transfer,all',
+            'payment_config.manual_bank' => 'nullable|array',
+            'payment_config.manual_bank.bank_name' => 'nullable|string|max:100',
+            'payment_config.manual_bank.account_number' => 'nullable|string|max:100',
+            'payment_config.manual_bank.account_name' => 'nullable|string|max:150',
+            'payment_config.manual_bank.instructions' => 'nullable|string|max:1000',
             'whatsapp_config' => 'nullable|array',
             'whatsapp_config.enabled' => 'nullable|boolean',
             'whatsapp_config.template' => 'nullable|string',
@@ -390,7 +395,7 @@ class EventController extends Controller
                 $methods = [$methods];
             }
             if (in_array('all', $methods)) {
-                $validated['payment_config']['allowed_methods'] = ['midtrans', 'moota', 'cod'];
+                $validated['payment_config']['allowed_methods'] = ['midtrans', 'manual_transfer', 'moota', 'cod'];
             } else {
                 $validated['payment_config']['allowed_methods'] = array_values(array_unique($methods));
             }
@@ -595,7 +600,12 @@ class EventController extends Controller
             'payment_config' => 'nullable|array',
             'payment_config.midtrans_demo_mode' => 'nullable|boolean',
             'payment_config.allowed_methods' => 'nullable|array|min:1',
-            'payment_config.allowed_methods.*' => 'in:midtrans,moota,cod,all',
+            'payment_config.allowed_methods.*' => 'in:midtrans,moota,cod,manual_transfer,all',
+            'payment_config.manual_bank' => 'nullable|array',
+            'payment_config.manual_bank.bank_name' => 'nullable|string|max:100',
+            'payment_config.manual_bank.account_number' => 'nullable|string|max:100',
+            'payment_config.manual_bank.account_name' => 'nullable|string|max:150',
+            'payment_config.manual_bank.instructions' => 'nullable|string|max:1000',
             'whatsapp_config' => 'nullable|array',
             'whatsapp_config.enabled' => 'nullable|boolean',
             'whatsapp_config.template' => 'nullable|string',
@@ -787,7 +797,7 @@ class EventController extends Controller
                 $methods = [$methods];
             }
             if (in_array('all', $methods)) {
-                $validated['payment_config']['allowed_methods'] = ['midtrans', 'moota', 'cod'];
+                $validated['payment_config']['allowed_methods'] = ['midtrans', 'manual_transfer', 'moota', 'cod'];
             } else {
                 $validated['payment_config']['allowed_methods'] = array_values(array_unique($methods));
             }
@@ -1137,16 +1147,18 @@ class EventController extends Controller
                         $q->where('name', 'like', "%{$search}%");
                     })
                     ->orWhereHas('transaction', function ($t) use ($search) {
-                        $t->where(function ($jt) use ($search) {
-                            $jt->where('pic_data->name', 'like', "%{$search}%")
-                                ->orWhere('pic_data->email', 'like', "%{$search}%")
-                                ->orWhere('pic_data->phone', 'like', "%{$search}%")
-                                ->orWhere('pic_data', 'like', "%{$search}%");
-                        })->orWhereHas('user', function ($u) use ($search) {
-                            $u->where('name', 'like', "%{$search}%")
-                                ->orWhere('email', 'like', "%{$search}%")
-                                ->orWhere('phone', 'like', "%{$search}%");
-                        });
+                        $t->where('public_ref', 'like', "%{$search}%")
+                            ->orWhere('unique_code', $search)
+                            ->orWhere(function ($jt) use ($search) {
+                                $jt->where('pic_data->name', 'like', "%{$search}%")
+                                    ->orWhere('pic_data->email', 'like', "%{$search}%")
+                                    ->orWhere('pic_data->phone', 'like', "%{$search}%")
+                                    ->orWhere('pic_data', 'like', "%{$search}%");
+                            })->orWhereHas('user', function ($u) use ($search) {
+                                $u->where('name', 'like', "%{$search}%")
+                                    ->orWhere('email', 'like', "%{$search}%")
+                                    ->orWhere('phone', 'like', "%{$search}%");
+                            });
                     });
             });
         }
@@ -1244,6 +1256,11 @@ class EventController extends Controller
                     'created_at' => $p->created_at ? $p->created_at->format('d M Y') : '',
                     'payment_status' => $p->transaction->payment_status ?? 'pending',
                     'transaction_id' => $p->transaction->id,
+                    'unique_code' => $p->transaction->unique_code ?? 0,
+                    'final_amount' => (float) ($p->transaction->final_amount ?? 0),
+                    'payment_proof' => $p->transaction->payment_proof ? asset('storage/'.$p->transaction->payment_proof) : null,
+                    'payment_proof_uploaded_at' => $p->transaction->payment_proof_uploaded_at ? $p->transaction->payment_proof_uploaded_at->format('d M Y H:i') : null,
+                    'proof_notes' => $p->transaction->proof_notes ?? null,
                     'is_picked_up' => $p->is_picked_up,
                     'picked_up_by' => $p->picked_up_by,
                     'payment_update_url' => route('eo.events.transactions.payment-status', [$event, $p->transaction->id]),

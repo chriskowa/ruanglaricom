@@ -1,25 +1,172 @@
 @extends('layouts.pacerhub')
 
-@section('title', 'Report Event | Ruang Lari')
+@section('title', 'Report Event | ' . $event->name)
 
 @push('styles')
 <meta name="robots" content="noindex,nofollow,noarchive">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&family=Sora:wght@700;800&display=swap" rel="stylesheet">
 <style>
-    @keyframes bounceShort {
-        0%, 100% { transform: translateY(0); }
-        50% { transform: translateY(-8px); }
+    .font-brand-heading {
+        font-family: 'Inter Tight', 'Sora', sans-serif;
+        letter-spacing: -0.03em;
     }
-    .animate-bounce-short {
-        animation: bounceShort 0.6s ease-in-out 2;
+    .tabular-nums {
+        font-variant-numeric: tabular-nums;
     }
-    .glow-blue {
-        border-color: #3b82f6 !important;
-        box-shadow: 0 0 20px rgba(59, 130, 246, 0.4);
+
+    /* Report Theme Variables */
+    :root {
+        --rep-canvas: #020617;
+        --rep-card: #0f172a;
+        --rep-card-subtle: #0b1120;
+        --rep-border: #1e293b;
+        --rep-border-hover: #334155;
+        --rep-head: #ffffff;
+        --rep-body: #cbd5e1;
+        --rep-muted: #94a3b8;
+        --rep-input-bg: #020617;
+        --rep-input-border: #1e293b;
+        --rep-input-text: #ffffff;
+        --rep-th-bg: #0f172a;
+        --rep-th-text: #94a3b8;
+        --rep-tr-hover: rgba(30, 41, 59, 0.45);
+        --rep-divider: #1e293b;
+        --rep-btn-bg: #1e293b;
+        --rep-btn-hover: #334155;
+        --rep-btn-text: #f1f5f9;
+        --rep-btn-border: #334155;
     }
-    .glow-green {
-        border-color: #22c55e !important;
-        box-shadow: 0 0 25px rgba(34, 197, 94, 0.5);
+
+    body.theme-light,
+    .theme-light {
+        --rep-canvas: #f8fafc;
+        --rep-card: #ffffff;
+        --rep-card-subtle: #f1f5f9;
+        --rep-border: #e2e8f0;
+        --rep-border-hover: #cbd5e1;
+        --rep-head: #0f172a;
+        --rep-body: #334155;
+        --rep-muted: #64748b;
+        --rep-input-bg: #ffffff;
+        --rep-input-border: #cbd5e1;
+        --rep-input-text: #0f172a;
+        --rep-th-bg: #f8fafc;
+        --rep-th-text: #475569;
+        --rep-tr-hover: #f1f5f9;
+        --rep-divider: #e2e8f0;
+        --rep-btn-bg: #f8fafc;
+        --rep-btn-hover: #f1f5f9;
+        --rep-btn-text: #0f172a;
+        --rep-btn-border: #cbd5e1;
     }
+
+    /* Container Theming */
+    #report-page-container {
+        background-color: var(--rep-canvas);
+        color: var(--rep-body);
+        transition: background-color 0.2s ease, color 0.2s ease;
+    }
+
+    body.theme-light {
+        background-color: #f8fafc !important;
+        color: #0f172a !important;
+    }
+    body.theme-light #report-page-container {
+        background-color: #f8fafc !important;
+        color: #334155 !important;
+    }
+    body.theme-light .bg-card,
+    body.theme-light .rep-card {
+        background-color: #ffffff !important;
+        border-color: #e2e8f0 !important;
+        color: #334155 !important;
+        box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
+    }
+    body.theme-light .rep-card-subtle,
+    body.theme-light .bg-slate-900\/30,
+    body.theme-light .bg-slate-900\/40,
+    body.theme-light .bg-slate-900\/50,
+    body.theme-light .bg-slate-950\/50,
+    body.theme-light .bg-slate-950\/60 {
+        background-color: #f8fafc !important;
+        border-color: #e2e8f0 !important;
+    }
+    body.theme-light input,
+    body.theme-light select,
+    body.theme-light textarea {
+        background-color: #ffffff !important;
+        border-color: #cbd5e1 !important;
+        color: #0f172a !important;
+    }
+    body.theme-light input::placeholder {
+        color: #94a3b8 !important;
+    }
+    body.theme-light .border-slate-700,
+    body.theme-light .border-slate-800,
+    body.theme-light .border-slate-700\/80,
+    body.theme-light .border-slate-700\/50,
+    body.theme-light .border-slate-800\/60 {
+        border-color: #e2e8f0 !important;
+    }
+    body.theme-light .divide-slate-800 > :not([hidden]) ~ :not([hidden]) {
+        border-color: #e2e8f0 !important;
+    }
+    body.theme-light .text-white {
+        color: #0f172a !important;
+    }
+    body.theme-light .text-slate-200,
+    body.theme-light .text-slate-300 {
+        color: #334155 !important;
+    }
+    body.theme-light .text-slate-400 {
+        color: #64748b !important;
+    }
+    body.theme-light thead {
+        background-color: #f8fafc !important;
+        color: #475569 !important;
+    }
+    body.theme-light tr:hover {
+        background-color: #f1f5f9 !important;
+    }
+    body.theme-light .bg-slate-800 {
+        background-color: #f1f5f9 !important;
+        color: #0f172a !important;
+        border-color: #cbd5e1 !important;
+    }
+    body.theme-light .bg-slate-800:hover {
+        background-color: #e2e8f0 !important;
+    }
+    body.theme-light .bg-slate-900 {
+        background-color: #ffffff !important;
+        border-color: #e2e8f0 !important;
+    }
+    body.theme-light .bg-slate-950 {
+        background-color: #ffffff !important;
+    }
+
+    /* Modal surfaces in light mode */
+    body.theme-light #doorprizeModalCard,
+    body.theme-light #edit-modal > div,
+    body.theme-light #detail-modal > div,
+    body.theme-light #qrScanModal .relative,
+    body.theme-light #coupon-report-modal > div,
+    body.theme-light #activityLogModal .pointer-events-auto {
+        background-color: #ffffff !important;
+        border-color: #e2e8f0 !important;
+        color: #0f172a !important;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+    }
+    body.theme-light #doorprizeModalCard .border-b,
+    body.theme-light #edit-modal .border-b,
+    body.theme-light #detail-modal .border-b,
+    body.theme-light #qrScanModal .border-b,
+    body.theme-light #coupon-report-modal .border-b,
+    body.theme-light #activityLogModal .border-b {
+        border-color: #e2e8f0 !important;
+    }
+
     #doorprizeModalCard:fullscreen {
         background-color: #020617 !important;
         padding: 2.5rem !important;
@@ -57,7 +204,7 @@
         margin-bottom: 0 !important;
         padding: 0 !important;
         border-radius: 0 !important;
-        border-bottom: 1px solid #1e293b !important;
+        border-bottom: 1px solid var(--rep-divider) !important;
     }
     .view-mode-list tr.participant-row td {
         display: table-cell !important;
@@ -79,17 +226,17 @@
     }
     .view-mode-stacked tr.participant-row {
         display: block !important;
-        background-color: rgba(15, 23, 42, 0.5) !important;
-        margin-bottom: 1rem !important;
-        padding: 1rem !important;
-        border-radius: 1rem !important;
-        border: 1px solid #334155 !important;
+        background-color: var(--rep-card-subtle) !important;
+        margin-bottom: 0.75rem !important;
+        padding: 0.875rem !important;
+        border-radius: 0.5rem !important;
+        border: 1px solid var(--rep-border) !important;
     }
     .view-mode-stacked tr.participant-row td {
         display: flex !important;
         justify-content: space-between !important;
         align-items: center !important;
-        padding: 0.5rem 0 !important;
+        padding: 0.375rem 0 !important;
         border: none !important;
         white-space: normal !important;
     }
@@ -103,217 +250,234 @@
 @endpush
 
 @section('content')
-<div class="max-w-6xl mx-auto px-4 py-10">
-    <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-            <div class="text-xs text-slate-400 font-mono">/report/{{ $event->id }}</div>
-            <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">{{ $event->name }}</h1>
-            <div class="text-sm text-slate-300">
-                <span class="font-mono">#{{ $event->id }}</span>
-                @if($event->start_at)
-                    <span class="mx-2 text-slate-600">•</span>
-                    <span>{{ $event->start_at->format('d M Y H:i') }}</span>
+<div id="report-page-container" class="min-h-screen py-6 sm:py-8 px-4 sm:px-6 lg:px-8">
+    <div class="max-w-6xl mx-auto space-y-6">
+
+        <!-- Header -->
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between pb-5 border-b border-slate-800">
+            <div>
+                <div class="text-xs text-slate-400 font-mono tracking-wider">/report/{{ $event->id }}</div>
+                <h1 class="font-brand-heading text-2xl sm:text-3xl font-extrabold text-white mt-1">
+                    {{ $event->name }}
+                </h1>
+                <div class="text-xs sm:text-sm text-slate-300 mt-1 flex items-center gap-2">
+                    <span class="font-mono text-slate-400">#{{ $event->id }}</span>
+                    @if($event->start_at)
+                        <span class="text-slate-600">•</span>
+                        <span>{{ $event->start_at->translatedFormat('d M Y, H:i') }} WIB</span>
+                    @endif
+                    <span class="text-slate-600">•</span>
+                    <span class="text-slate-400">Laporan Internal Panitia</span>
+                </div>
+            </div>
+
+            <!-- Header Actions: Theme Toggle -->
+            <div class="flex items-center gap-2 self-start sm:self-auto">
+                <button type="button" id="theme-toggle-btn" onclick="toggleReportTheme()" class="px-3 py-1.5 rounded-md bg-slate-900 border border-slate-800 hover:border-slate-700 text-xs font-semibold text-slate-200 transition flex items-center gap-1.5 shadow-sm" title="Ganti Mode Tampilan (Dark / Light)">
+                    <i id="theme-toggle-icon" class="fa-solid fa-sun text-amber-400"></i>
+                    <span id="theme-toggle-label">Mode Terang</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- 6 Key Metric Cards -->
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3.5">
+            <div class="bg-card border border-slate-800 rounded-lg p-4">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Slot</div>
+                <div id="stat-total" class="text-2xl font-extrabold font-mono text-white tabular-nums mt-1">
+                    {{ is_string($report['total_slots'] ?? null) ? $report['total_slots'] : number_format((int) ($report['total_slots'] ?? 0)) }}
+                </div>
+            </div>
+            <div class="bg-card border border-slate-800 rounded-lg p-4">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Sold (Paid)</div>
+                <div id="stat-sold" class="text-2xl font-extrabold font-mono text-white tabular-nums mt-1">
+                    {{ number_format((int) ($report['sold_slots'] ?? 0)) }}
+                </div>
+            </div>
+            <div class="bg-card border border-slate-800 rounded-lg p-4">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Pending</div>
+                <div id="stat-pending" class="text-2xl font-extrabold font-mono text-white tabular-nums mt-1">
+                    {{ number_format((int) ($report['pending_slots'] ?? 0)) }}
+                </div>
+            </div>
+            <div class="bg-card border border-slate-800 rounded-lg p-4">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Sisa Slot</div>
+                <div id="stat-remaining" class="text-2xl font-extrabold font-mono text-white tabular-nums mt-1">
+                    {{ is_string($report['remaining_slots'] ?? null) ? $report['remaining_slots'] : number_format((int) ($report['remaining_slots'] ?? 0)) }}
+                </div>
+                @if(($report['show_warning'] ?? false) === true)
+                    <div class="mt-1 text-[11px] text-amber-400 font-semibold">Sisa slot &lt; 10%</div>
                 @endif
             </div>
-        </div>
-        <div class="text-xs text-slate-400">
-            Halaman ini bersifat privat (tidak untuk diindeks).
-        </div>
-    </div>
-
-    <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <div class="bg-card border border-slate-700 rounded-2xl p-4">
-            <div class="text-xs text-slate-400">Total Slot</div>
-            <div id="stat-total" class="text-2xl font-extrabold">
-                {{ is_string($report['total_slots'] ?? null) ? $report['total_slots'] : number_format((int) ($report['total_slots'] ?? 0)) }}
-            </div>
-        </div>
-        <div class="bg-card border border-slate-700 rounded-2xl p-4">
-            <div class="text-xs text-slate-400">Sold (Paid)</div>
-            <div id="stat-sold" class="text-2xl font-extrabold">{{ number_format((int) ($report['sold_slots'] ?? 0)) }}</div>
-        </div>
-        <div class="bg-card border border-slate-700 rounded-2xl p-4">
-            <div class="text-xs text-slate-400">Pending</div>
-            <div id="stat-pending" class="text-2xl font-extrabold">{{ number_format((int) ($report['pending_slots'] ?? 0)) }}</div>
-        </div>
-        <div class="bg-card border border-slate-700 rounded-2xl p-4">
-            <div class="text-xs text-slate-400">Sisa Slot</div>
-            <div id="stat-remaining" class="text-2xl font-extrabold">
-                {{ is_string($report['remaining_slots'] ?? null) ? $report['remaining_slots'] : number_format((int) ($report['remaining_slots'] ?? 0)) }}
-            </div>
-            @if(($report['show_warning'] ?? false) === true)
-                <div class="mt-2 text-xs text-yellow-300">Sisa slot &lt; 10%</div>
-            @endif
-        </div>
-        <div class="bg-card border border-slate-700 rounded-2xl p-4">
-            <div class="text-xs text-slate-400">Picked Up</div>
-            <div id="stat-picked" class="text-2xl font-extrabold text-emerald-400">
-                {{ number_format((int) ($report['pickup']['picked_up'] ?? 0)) }}
-            </div>
-        </div>
-        <div class="bg-card border border-slate-700 rounded-2xl p-4">
-            <div class="text-xs text-slate-400">Belum Diambil</div>
-            <div id="stat-unpicked" class="text-2xl font-extrabold text-slate-400">
-                {{ number_format((int) ($report['pickup']['not_picked_up'] ?? 0)) }}
-            </div>
-        </div>
-    </div>
-
-    <div class="mt-4 bg-card border border-slate-700 rounded-2xl p-4">
-        <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <div>
-                <div class="text-lg font-bold">Penjualan Slot</div>
-                <div class="text-xs text-slate-400">Trend paid vs pending</div>
-            </div>
-            <form id="sales-filters" class="flex flex-wrap items-end gap-2">
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase">Periode</label>
-                    <select id="sales_group" name="sales_group" class="mt-1 rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
-                        <option value="day" @selected(($filters['sales_group'] ?? 'day') === 'day')>Harian</option>
-                        <option value="month" @selected(($filters['sales_group'] ?? 'day') === 'month')>Bulanan</option>
-                    </select>
+            <div class="bg-card border border-slate-800 rounded-lg p-4">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Picked Up</div>
+                <div id="stat-picked" class="text-2xl font-extrabold font-mono text-emerald-400 tabular-nums mt-1">
+                    {{ number_format((int) ($report['pickup']['picked_up'] ?? 0)) }}
                 </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase">Mulai</label>
-                    <input id="sales_start_date" type="date" name="sales_start_date" value="{{ $filters['sales_start_date'] ?? '' }}" class="mt-1 rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
-                </div>
-                <div>
-                    <label class="block text-[10px] font-bold text-slate-400 uppercase">Akhir</label>
-                    <input id="sales_end_date" type="date" name="sales_end_date" value="{{ $filters['sales_end_date'] ?? '' }}" class="mt-1 rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
-                </div>
-                <button type="submit" class="px-4 py-2 rounded-xl bg-neon text-dark font-bold hover:bg-lime-300 transition">Apply</button>
-                <button type="button" id="sales-reset" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-200 hover:bg-slate-700 transition">Reset</button>
-            </form>
-        </div>
-        <div class="mt-4 grid grid-cols-1 lg:grid-cols-4 gap-4">
-            <div class="lg:col-span-3 border border-slate-700 rounded-2xl bg-slate-900/30 p-3">
-                <canvas id="salesChart" height="110"></canvas>
             </div>
-            <div class="border border-slate-700 rounded-2xl bg-slate-900/30 p-4">
-                <div class="text-xs text-slate-400 font-bold uppercase">Insight</div>
-                <div id="sales-insights" class="mt-2 space-y-2 text-sm text-slate-200"></div>
+            <div class="bg-card border border-slate-800 rounded-lg p-4">
+                <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Belum Diambil</div>
+                <div id="stat-unpicked" class="text-2xl font-extrabold font-mono text-slate-400 tabular-nums mt-1">
+                    {{ number_format((int) ($report['pickup']['not_picked_up'] ?? 0)) }}
+                </div>
             </div>
         </div>
-    </div>
 
-    <div class="mt-4 bg-card border border-slate-700 rounded-2xl p-4">
-        <div class="flex items-center justify-between">
-            <div>
-                <div class="text-lg font-bold">Jersey Breakdown</div>
-                <div class="text-xs text-slate-400">Stok / Terpakai (paid only) / Sisa per ukuran</div>
+        <!-- Sales Chart Card -->
+        <div class="bg-card border border-slate-800 rounded-lg p-5">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between pb-3 border-b border-slate-800">
+                <div>
+                    <h2 class="font-brand-heading text-base font-bold text-white">Penjualan Slot</h2>
+                    <p class="text-xs text-slate-400 mt-0.5">Tren transaksi paid vs pending</p>
+                </div>
+                <form id="sales-filters" class="flex flex-wrap items-end gap-2">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Periode</label>
+                        <select id="sales_group" name="sales_group" class="mt-1 rounded-md bg-slate-950 border border-slate-800 px-3 py-1.5 text-xs text-white outline-none focus:border-slate-600">
+                            <option value="day" @selected(($filters['sales_group'] ?? 'day') === 'day')>Harian</option>
+                            <option value="month" @selected(($filters['sales_group'] ?? 'day') === 'month')>Bulanan</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Mulai</label>
+                        <input id="sales_start_date" type="date" name="sales_start_date" value="{{ $filters['sales_start_date'] ?? '' }}" class="mt-1 rounded-md bg-slate-950 border border-slate-800 px-3 py-1.5 text-xs text-white outline-none focus:border-slate-600">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-400 uppercase tracking-wider">Akhir</label>
+                        <input id="sales_end_date" type="date" name="sales_end_date" value="{{ $filters['sales_end_date'] ?? '' }}" class="mt-1 rounded-md bg-slate-950 border border-slate-800 px-3 py-1.5 text-xs text-white outline-none focus:border-slate-600">
+                    </div>
+                    <button type="submit" class="px-3.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs border border-slate-700 transition">Terapkan</button>
+                    <button type="button" id="sales-reset" class="px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-slate-400 hover:text-white font-semibold text-xs border border-slate-800 transition">Reset</button>
+                </form>
+            </div>
+            <div class="mt-4 grid grid-cols-1 lg:grid-cols-4 gap-4">
+                <div class="lg:col-span-3 border border-slate-800 rounded-lg bg-slate-950/40 p-3 min-h-[200px]">
+                    <canvas id="salesChart" height="110"></canvas>
+                </div>
+                <div class="border border-slate-800 rounded-lg bg-slate-950/40 p-4">
+                    <div class="text-xs text-slate-400 font-bold uppercase tracking-wider">Insight Penjualan</div>
+                    <div id="sales-insights" class="mt-3 space-y-2 text-xs text-slate-300"></div>
+                </div>
             </div>
         </div>
-        @php
-            $jerseyCounts = $report['jersey_sizes'] ?? [];
-            $jerseyStockQuotas = $report['jersey_stock_quotas'] ?? [];
-            $jerseySizes = ['XXS','XS','S','M','L','XL','2XL','3XL','4XL','5XL'];
-            $jerseyActiveSizes = array_filter($jerseySizes, function($s) use ($jerseyCounts, $jerseyStockQuotas) {
-                $used = (int) ($jerseyCounts[$s] ?? $jerseyCounts[strtolower($s)] ?? $jerseyCounts[strtoupper($s)] ?? 0);
-                if ($s === '2XL') {
-                    $used += (int) ($jerseyCounts['XXL'] ?? $jerseyCounts['xxl'] ?? 0);
-                } elseif ($s === '3XL') {
-                    $used += (int) ($jerseyCounts['XXXL'] ?? $jerseyCounts['xxxl'] ?? 0);
-                }
-                return $used > 0 || isset($jerseyStockQuotas[$s]);
-            });
-            if (empty($jerseyActiveSizes)) $jerseyActiveSizes = ['XS','S','M','L','XL','2XL','3XL'];
-        @endphp
-        {{-- Header --}}
-        <div class="mt-3 hidden sm:grid grid-cols-4 gap-2 px-2 mb-1">
-            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Ukuran</span>
-            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider text-right">Stok</span>
-            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider text-right">Terpakai</span>
-            <span class="text-[10px] font-bold text-slate-500 uppercase tracking-wider text-right">Sisa</span>
-        </div>
-        <div class="mt-1 grid grid-cols-2 sm:grid-cols-1 gap-2">
-            @foreach($jerseyActiveSizes as $size)
-                @php
-                    $used  = (int) ($jerseyCounts[$size] ?? $jerseyCounts[strtolower($size)] ?? $jerseyCounts[strtoupper($size)] ?? 0);
-                    if ($size === '2XL') {
+
+        <!-- Jersey Breakdown Card -->
+        <div class="bg-card border border-slate-800 rounded-lg p-5">
+            <div class="pb-3 border-b border-slate-800">
+                <h2 class="font-brand-heading text-base font-bold text-white">Jersey Breakdown</h2>
+                <p class="text-xs text-slate-400 mt-0.5">Stok, terpakai (paid only), dan sisa per ukuran</p>
+            </div>
+            @php
+                $jerseyCounts = $report['jersey_sizes'] ?? [];
+                $jerseyStockQuotas = $report['jersey_stock_quotas'] ?? [];
+                $jerseySizes = ['XXS','XS','S','M','L','XL','2XL','3XL','4XL','5XL'];
+                $jerseyActiveSizes = array_filter($jerseySizes, function($s) use ($jerseyCounts, $jerseyStockQuotas) {
+                    $used = (int) ($jerseyCounts[$s] ?? $jerseyCounts[strtolower($s)] ?? $jerseyCounts[strtoupper($s)] ?? 0);
+                    if ($s === '2XL') {
                         $used += (int) ($jerseyCounts['XXL'] ?? $jerseyCounts['xxl'] ?? 0);
-                    } elseif ($size === '3XL') {
+                    } elseif ($s === '3XL') {
                         $used += (int) ($jerseyCounts['XXXL'] ?? $jerseyCounts['xxxl'] ?? 0);
                     }
-                    $quota = isset($jerseyStockQuotas[$size]) ? (int) $jerseyStockQuotas[$size] : null;
-                    $sisa  = $quota !== null ? max(0, $quota - $used) : null;
-                @endphp
-                <div class="rounded-xl border {{ $sisa !== null && $sisa == 0 ? 'border-red-500/40 bg-red-900/10' : ($sisa !== null && $sisa <= 5 ? 'border-yellow-500/40 bg-yellow-900/10' : 'border-slate-700 bg-slate-900/30') }} px-3 py-2">
-                    <div class="sm:hidden text-xs text-slate-400 font-bold mb-1">{{ $size }}</div>
-                    <div class="sm:grid sm:grid-cols-4 sm:gap-2 sm:items-center flex items-center justify-between">
-                        <div class="hidden sm:block text-sm font-bold text-slate-300">{{ $size }}</div>
-                        <div class="text-right">
-                            <div class="text-xs text-slate-500 sm:hidden">Stok</div>
-                            <div class="text-sm font-mono text-slate-400" id="stat-jersey-quota-{{ $size }}">{{ $quota !== null ? number_format($quota) : '∞' }}</div>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-xs text-slate-500 sm:hidden">Terpakai</div>
-                            <div class="text-sm font-mono font-bold text-white" id="stat-jersey-{{ $size }}">{{ number_format($used) }}</div>
-                        </div>
-                        <div class="text-right">
-                            <div class="text-xs text-slate-500 sm:hidden">Sisa</div>
-                            <div class="text-sm font-mono font-bold {{ $sisa !== null && $sisa == 0 ? 'text-red-400' : ($sisa !== null && $sisa <= 5 ? 'text-yellow-400' : 'text-emerald-400') }}" id="stat-jersey-sisa-{{ $size }}">
-                                {{ $sisa !== null ? $sisa : '∞' }}
+                    return $used > 0 || isset($jerseyStockQuotas[$s]);
+                });
+                if (empty($jerseyActiveSizes)) $jerseyActiveSizes = ['XS','S','M','L','XL','2XL','3XL'];
+            @endphp
+
+            <div class="mt-3 hidden sm:grid grid-cols-4 gap-2 px-3 mb-1">
+                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Ukuran</span>
+                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider text-right">Stok</span>
+                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider text-right">Terpakai</span>
+                <span class="text-[11px] font-bold text-slate-400 uppercase tracking-wider text-right">Sisa</span>
+            </div>
+            <div class="mt-1 grid grid-cols-2 sm:grid-cols-1 gap-2">
+                @foreach($jerseyActiveSizes as $size)
+                    @php
+                        $used  = (int) ($jerseyCounts[$size] ?? $jerseyCounts[strtolower($size)] ?? $jerseyCounts[strtoupper($size)] ?? 0);
+                        if ($size === '2XL') {
+                            $used += (int) ($jerseyCounts['XXL'] ?? $jerseyCounts['xxl'] ?? 0);
+                        } elseif ($size === '3XL') {
+                            $used += (int) ($jerseyCounts['XXXL'] ?? $jerseyCounts['xxxl'] ?? 0);
+                        }
+                        $quota = isset($jerseyStockQuotas[$size]) ? (int) $jerseyStockQuotas[$size] : null;
+                        $sisa  = $quota !== null ? max(0, $quota - $used) : null;
+                    @endphp
+                    <div class="rounded-md border {{ $sisa !== null && $sisa == 0 ? 'border-rose-500/30 bg-rose-950/20' : ($sisa !== null && $sisa <= 5 ? 'border-amber-500/30 bg-amber-950/20' : 'border-slate-800 bg-slate-950/30') }} px-3 py-2">
+                        <div class="sm:hidden text-xs text-slate-400 font-bold mb-1">{{ $size }}</div>
+                        <div class="sm:grid sm:grid-cols-4 sm:gap-2 sm:items-center flex items-center justify-between">
+                            <div class="hidden sm:block text-xs font-bold text-slate-200">{{ $size }}</div>
+                            <div class="text-right">
+                                <div class="text-[10px] text-slate-400 sm:hidden">Stok</div>
+                                <div class="text-xs font-mono text-slate-400" id="stat-jersey-quota-{{ $size }}">{{ $quota !== null ? number_format($quota) : '∞' }}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-[10px] text-slate-400 sm:hidden">Terpakai</div>
+                                <div class="text-xs font-mono font-bold text-white" id="stat-jersey-{{ $size }}">{{ number_format($used) }}</div>
+                            </div>
+                            <div class="text-right">
+                                <div class="text-[10px] text-slate-400 sm:hidden">Sisa</div>
+                                <div class="text-xs font-mono font-bold {{ $sisa !== null && $sisa == 0 ? 'text-rose-400' : ($sisa !== null && $sisa <= 5 ? 'text-amber-400' : 'text-emerald-400') }}" id="stat-jersey-sisa-{{ $size }}">
+                                    {{ $sisa !== null ? $sisa : '∞' }}
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            @endforeach
-        </div>
-        {{-- Total --}}
-        @php
-            $totalUsed = 0;
-            foreach ($jerseyActiveSizes as $s) {
-                $cnt = (int) ($jerseyCounts[$s] ?? $jerseyCounts[strtolower($s)] ?? $jerseyCounts[strtoupper($s)] ?? 0);
-                if ($s === '2XL') {
-                    $cnt += (int) ($jerseyCounts['XXL'] ?? $jerseyCounts['xxl'] ?? 0);
-                } elseif ($s === '3XL') {
-                    $cnt += (int) ($jerseyCounts['XXXL'] ?? $jerseyCounts['xxxl'] ?? 0);
-                }
-                $totalUsed += $cnt;
-            }
-            $totalQuota = !empty($jerseyStockQuotas) ? array_sum($jerseyStockQuotas) : null;
-            $totalSisa  = $totalQuota !== null ? max(0, $totalQuota - $totalUsed) : null;
-        @endphp
-        <div class="mt-3 pt-3 border-t border-slate-700 grid grid-cols-4 gap-2 px-2 items-center">
-            <span class="text-xs font-bold text-slate-400 uppercase">TOTAL</span>
-            <span id="stat-jersey-total-quota" class="text-right text-sm font-mono font-bold text-slate-300">{{ $totalQuota !== null ? number_format($totalQuota) : '∞' }}</span>
-            <span id="stat-jersey-total-used" class="text-right text-sm font-mono font-bold text-white">{{ number_format($totalUsed) }}</span>
-            <span id="stat-jersey-total-sisa" class="text-right text-sm font-mono font-bold text-emerald-400">{{ $totalSisa !== null ? $totalSisa : '∞' }}</span>
-        </div>
-    </div>
+                @endforeach
+            </div>
 
-    <div class="mt-6 space-y-6">
-        <div class="bg-card border border-slate-700 rounded-2xl p-4">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            @php
+                $totalUsed = 0;
+                foreach ($jerseyActiveSizes as $s) {
+                    $cnt = (int) ($jerseyCounts[$s] ?? $jerseyCounts[strtolower($s)] ?? $jerseyCounts[strtoupper($s)] ?? 0);
+                    if ($s === '2XL') {
+                        $cnt += (int) ($jerseyCounts['XXL'] ?? $jerseyCounts['xxl'] ?? 0);
+                    } elseif ($s === '3XL') {
+                        $cnt += (int) ($jerseyCounts['XXXL'] ?? $jerseyCounts['xxxl'] ?? 0);
+                    }
+                    $totalUsed += $cnt;
+                }
+                $totalQuota = !empty($jerseyStockQuotas) ? array_sum($jerseyStockQuotas) : null;
+                $totalSisa  = $totalQuota !== null ? max(0, $totalQuota - $totalUsed) : null;
+            @endphp
+            <div class="mt-3 pt-3 border-t border-slate-800 grid grid-cols-4 gap-2 px-3 items-center">
+                <span class="text-xs font-bold text-slate-400 uppercase">TOTAL</span>
+                <span id="stat-jersey-total-quota" class="text-right text-xs font-mono font-bold text-slate-300">{{ $totalQuota !== null ? number_format($totalQuota) : '∞' }}</span>
+                <span id="stat-jersey-total-used" class="text-right text-xs font-mono font-bold text-white">{{ number_format($totalUsed) }}</span>
+                <span id="stat-jersey-total-sisa" class="text-right text-xs font-mono font-bold text-emerald-400">{{ $totalSisa !== null ? $totalSisa : '∞' }}</span>
+            </div>
+        </div>
+
+        <!-- Participants Section -->
+        <div class="bg-card border border-slate-800 rounded-lg p-5">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
                 <div class="flex items-center gap-3">
                     <div>
-                        <div class="text-lg font-bold">Data Peserta</div>
-                        <div class="text-xs text-slate-400">Filter AJAX • Pagination server-side</div>
+                        <h2 class="font-brand-heading text-base font-bold text-white">Data Peserta</h2>
+                        <p class="text-xs text-slate-400 mt-0.5">Filter dinamis • Pagination server-side</p>
                     </div>
-                    <button type="button" id="toggle-filters-btn" onclick="toggleReportFilters()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-bold transition border border-slate-700">
-                        <i id="toggle-filters-icon" class="fa-solid fa-chevron-up text-xs text-white"></i>
+                    <button type="button" id="toggle-filters-btn" onclick="toggleReportFilters()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition border border-slate-800">
+                        <i id="toggle-filters-icon" class="fa-solid fa-chevron-up text-xs"></i>
                         <span id="toggle-filters-text">Sembunyikan Filter</span>
                     </button>
                 </div>
-                <div id="report-loading" class="hidden items-center gap-2 text-xs text-slate-300">
+                <div id="report-loading" class="hidden items-center gap-2 text-xs text-slate-400">
                     <span class="loader"></span>
-                    <span>Memuat...</span>
+                    <span>Memuat data...</span>
                 </div>
             </div>
 
-            <form id="report-filters" class="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+            <!-- Filter Form -->
+            <form id="report-filters" class="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 <div>
-                    <label class="text-xs text-slate-300">Search</label>
-                    <input name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Nama, email, HP, BIB, Category, ID Card"
-                        class="mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
+                    <label class="text-xs font-semibold text-slate-300">Pencarian</label>
+                    <input name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Nama, email, HP, BIB, ID..."
+                        class="mt-1 w-full rounded-md bg-slate-950 border border-slate-800 px-3 py-1.5 text-xs text-white outline-none focus:border-slate-600">
                 </div>
                 <div>
-                    <label class="text-xs text-slate-300">Status Pembayaran</label>
-                    <select name="payment_status"
-                        class="mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
+                    <label class="text-xs font-semibold text-slate-300">Status Pembayaran</label>
+                    <select name="payment_status" class="mt-1 w-full rounded-md bg-slate-950 border border-slate-800 px-3 py-1.5 text-xs text-white outline-none focus:border-slate-600">
                         @php
                             $paymentStatus = $filters['payment_status'] ?? 'all';
-                            $paymentOptions = ['all' => 'Semua', 'pending' => 'Pending', 'paid' => 'Paid', 'failed' => 'Failed', 'expired' => 'Expired', 'cod' => 'COD'];
+                            $paymentOptions = ['all' => 'Semua Status', 'pending' => 'Pending', 'paid' => 'Paid', 'failed' => 'Failed', 'expired' => 'Expired', 'cod' => 'COD'];
                         @endphp
                         @foreach($paymentOptions as $val => $label)
                             <option value="{{ $val }}" @selected($paymentStatus === $val)>{{ $label }}</option>
@@ -321,28 +485,25 @@
                     </select>
                 </div>
                 <div>
-                    <label class="text-xs text-slate-300">Status Pengambilan</label>
-                    <select name="is_picked_up"
-                        class="mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
-                        <option value="" @selected(($filters['is_picked_up'] ?? '') === '')>Semua Status</option>
+                    <label class="text-xs font-semibold text-slate-300">Status Pengambilan</label>
+                    <select name="is_picked_up" class="mt-1 w-full rounded-md bg-slate-950 border border-slate-800 px-3 py-1.5 text-xs text-white outline-none focus:border-slate-600">
+                        <option value="" @selected(($filters['is_picked_up'] ?? '') === '')>Semua Pickup</option>
                         <option value="0" @selected(($filters['is_picked_up'] ?? '') === '0')>Belum Diambil</option>
                         <option value="1" @selected(($filters['is_picked_up'] ?? '') === '1')>Sudah Diambil</option>
                     </select>
                 </div>
                 <div>
-                    <label class="text-xs text-slate-300">Jenis Kelamin</label>
-                    <select name="gender"
-                        class="mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
+                    <label class="text-xs font-semibold text-slate-300">Jenis Kelamin</label>
+                    <select name="gender" class="mt-1 w-full rounded-md bg-slate-950 border border-slate-800 px-3 py-1.5 text-xs text-white outline-none focus:border-slate-600">
                         <option value="" @selected(($filters['gender'] ?? '') === '')>Semua Gender</option>
                         <option value="male" @selected(($filters['gender'] ?? '') === 'male')>Laki-laki (Male)</option>
                         <option value="female" @selected(($filters['gender'] ?? '') === 'female')>Perempuan (Female)</option>
                     </select>
                 </div>
                 <div>
-                    <label class="text-xs text-slate-300">Kategori</label>
-                    <select name="category_id"
-                        class="mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
-                        <option value="">Semua</option>
+                    <label class="text-xs font-semibold text-slate-300">Kategori</label>
+                    <select name="category_id" class="mt-1 w-full rounded-md bg-slate-950 border border-slate-800 px-3 py-1.5 text-xs text-white outline-none focus:border-slate-600">
+                        <option value="">Semua Kategori</option>
                         @foreach($event->categories as $cat)
                             <option value="{{ $cat->id }}" @selected((int) ($filters['category_id'] ?? 0) === (int) $cat->id)>{{ $cat->name }}</option>
                         @endforeach
@@ -350,13 +511,12 @@
                 </div>
                 <div>
                     <div class="flex justify-between items-center">
-                        <label class="text-xs text-slate-300">Kupon</label>
-                        <button type="button" id="btn-show-coupon-report" class="text-[10px] text-neon hover:underline hidden" onclick="triggerManualCouponReport()">
+                        <label class="text-xs font-semibold text-slate-300">Kupon</label>
+                        <button type="button" id="btn-show-coupon-report" class="text-[10px] text-sky-400 hover:underline hidden" onclick="triggerManualCouponReport()">
                             Lihat Laporan
                         </button>
                     </div>
-                    <select name="coupon_id"
-                        class="mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
+                    <select name="coupon_id" class="mt-1 w-full rounded-md bg-slate-950 border border-slate-800 px-3 py-1.5 text-xs text-white outline-none focus:border-slate-600">
                         <option value="" @selected(($filters['coupon_id'] ?? '') === '')>Semua Kupon</option>
                         <option value="without" @selected(($filters['coupon_id'] ?? '') === 'without')>Tanpa Kupon</option>
                         <option value="with" @selected(($filters['coupon_id'] ?? '') === 'with')>Dengan Kupon (Apa Saja)</option>
@@ -366,11 +526,10 @@
                     </select>
                 </div>
                 <div>
-                    <label class="text-xs text-slate-300">Add-on</label>
-                    <select name="addon"
-                        class="mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
+                    <label class="text-xs font-semibold text-slate-300">Add-on</label>
+                    <select name="addon" class="mt-1 w-full rounded-md bg-slate-950 border border-slate-800 px-3 py-1.5 text-xs text-white outline-none focus:border-slate-600">
                         <option value="" @selected(($filters['addon'] ?? '') === '')>Semua Add-on</option>
-                        <option value="with" @selected(($filters['addon'] ?? '') === 'with')>Ada Add-on (Apa Saja)</option>
+                        <option value="with" @selected(($filters['addon'] ?? '') === 'with')>Ada Add-on</option>
                         <option value="without" @selected(($filters['addon'] ?? '') === 'without')>Tanpa Add-on</option>
                         @if(!empty($event->addons) && (is_array($event->addons) || is_object($event->addons)))
                             @foreach($event->addons as $addon)
@@ -378,16 +537,15 @@
                                     $addonName = is_array($addon) ? ($addon['name'] ?? null) : (is_object($addon) ? ($addon->name ?? ($addon['name'] ?? null)) : $addon); 
                                 @endphp
                                 @if($addonName)
-                                    <option value="{{ $addonName }}" @selected(($filters['addon'] ?? '') === $addonName)>Hanya: {{ $addonName }}</option>
+                                    <option value="{{ $addonName }}" @selected(($filters['addon'] ?? '') === $addonName)>{{ $addonName }}</option>
                                 @endif
                             @endforeach
                         @endif
                     </select>
                 </div>
                 <div>
-                    <label class="text-xs text-slate-300">Ukuran Jersey</label>
-                    <select name="jersey_size"
-                        class="mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
+                    <label class="text-xs font-semibold text-slate-300">Ukuran Jersey</label>
+                    <select name="jersey_size" class="mt-1 w-full rounded-md bg-slate-950 border border-slate-800 px-3 py-1.5 text-xs text-white outline-none focus:border-slate-600">
                         <option value="" @selected(($filters['jersey_size'] ?? '') === '')>Semua Ukuran</option>
                         @foreach(['XXS','XS','S','M','L','XL','2XL','3XL','4XL','5XL'] as $jsz)
                             <option value="{{ $jsz }}" @selected(($filters['jersey_size'] ?? '') === $jsz)>{{ $jsz }}</option>
@@ -395,9 +553,8 @@
                     </select>
                 </div>
                 <div>
-                    <label class="text-xs text-slate-300">Kelompok Umur</label>
-                    <select name="age_group"
-                        class="mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
+                    <label class="text-xs font-semibold text-slate-300">Kelompok Umur</label>
+                    <select name="age_group" class="mt-1 w-full rounded-md bg-slate-950 border border-slate-800 px-3 py-1.5 text-xs text-white outline-none focus:border-slate-600">
                         <option value="" @selected(($filters['age_group'] ?? '') === '')>Semua Kelompok</option>
                         <option value="Umum" @selected(($filters['age_group'] ?? '') === 'Umum')>Umum (&lt; 40)</option>
                         <option value="Master" @selected(($filters['age_group'] ?? '') === 'Master')>Master (40-44)</option>
@@ -406,102 +563,100 @@
                     </select>
                 </div>
                 <div>
-                    <label class="text-xs text-slate-300">Umur Minimum</label>
-                    <input type="number" name="min_age" value="{{ $filters['min_age'] ?? '' }}" placeholder="Min" min="1" max="150"
-                        class="mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
+                    <label class="text-xs font-semibold text-slate-300">Umur Min / Max</label>
+                    <div class="flex gap-2">
+                        <input type="number" name="min_age" value="{{ $filters['min_age'] ?? '' }}" placeholder="Min" min="1" max="150" class="mt-1 w-1/2 rounded-md bg-slate-950 border border-slate-800 px-2 py-1.5 text-xs text-white outline-none focus:border-slate-600">
+                        <input type="number" name="max_age" value="{{ $filters['max_age'] ?? '' }}" placeholder="Max" min="1" max="150" class="mt-1 w-1/2 rounded-md bg-slate-950 border border-slate-800 px-2 py-1.5 text-xs text-white outline-none focus:border-slate-600">
+                    </div>
                 </div>
                 <div>
-                    <label class="text-xs text-slate-300">Umur Maksimum</label>
-                    <input type="number" name="max_age" value="{{ $filters['max_age'] ?? '' }}" placeholder="Max" min="1" max="150"
-                        class="mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
+                    <label class="text-xs font-semibold text-slate-300">Rentang Tanggal</label>
+                    <div class="flex gap-2">
+                        <input type="date" name="start_date" value="{{ $filters['start_date'] ?? '' }}" class="mt-1 w-1/2 rounded-md bg-slate-950 border border-slate-800 px-2 py-1.5 text-xs text-white outline-none focus:border-slate-600">
+                        <input type="date" name="end_date" value="{{ $filters['end_date'] ?? '' }}" class="mt-1 w-1/2 rounded-md bg-slate-950 border border-slate-800 px-2 py-1.5 text-xs text-white outline-none focus:border-slate-600">
+                    </div>
                 </div>
                 <div>
-                    <label class="text-xs text-slate-300">Tanggal Mulai</label>
-                    <input type="date" name="start_date" value="{{ $filters['start_date'] ?? '' }}"
-                        class="mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
-                </div>
-                <div>
-                    <label class="text-xs text-slate-300">Tanggal Akhir</label>
-                    <input type="date" name="end_date" value="{{ $filters['end_date'] ?? '' }}"
-                        class="mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
-                </div>
-                <div>
-                    <label class="text-xs text-slate-300">Per Halaman</label>
-                    <select name="per_page"
-                        class="mt-1 w-full rounded-xl bg-slate-900 border border-slate-700 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-neon/40">
+                    <label class="text-xs font-semibold text-slate-300">Per Halaman</label>
+                    <select name="per_page" class="mt-1 w-full rounded-md bg-slate-950 border border-slate-800 px-3 py-1.5 text-xs text-white outline-none focus:border-slate-600">
                         @foreach([10,25,50,100] as $pp)
-                            <option value="{{ $pp }}" @selected((int) ($filters['per_page'] ?? 25) === $pp)>{{ $pp }}</option>
+                            <option value="{{ $pp }}" @selected((int) ($filters['per_page'] ?? 25) === $pp)>{{ $pp }} data</option>
                         @endforeach
                     </select>
                 </div>
-                <div class="sm:col-span-2 md:col-span-3 flex flex-wrap items-center gap-1.5 mt-3 pt-3 border-t border-slate-800">
-                    <button type="submit" class="px-3 py-1.5 rounded-lg bg-neon text-dark font-mono text-xs font-bold hover:bg-lime-300 transition shadow-sm flex items-center gap-1.5">
-                        <i class="fa-solid fa-filter text-xs"></i>
-                        <span>Terapkan</span>
-                    </button>
-                    <button id="report-reset" type="button" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-xs font-bold transition border border-slate-700 flex items-center gap-1.5">
-                        <i class="fa-solid fa-rotate-left text-xs"></i>
-                        <span>Reset</span>
-                    </button>
 
-                    <div class="h-4 w-px bg-slate-700 mx-0.5 hidden sm:block"></div>
+                <!-- Action Buttons Row -->
+                <div class="sm:col-span-2 md:col-span-3 lg:col-span-4 flex flex-wrap items-center justify-between gap-2 mt-3 pt-3 border-t border-slate-800">
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button type="submit" class="px-3.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs border border-slate-700 transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-filter text-xs"></i>
+                            <span>Terapkan Filter</span>
+                        </button>
+                        <button id="report-reset" type="button" class="px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-slate-300 font-semibold text-xs transition border border-slate-800 flex items-center gap-1.5">
+                            <i class="fa-solid fa-rotate-left text-xs"></i>
+                            <span>Reset</span>
+                        </button>
+                    </div>
 
-                    <button type="button" onclick="openQrScanModal()" class="px-3 py-1.5 rounded-lg bg-purple-600/90 hover:bg-purple-500 text-white font-mono text-xs font-bold flex items-center gap-1.5 transition border border-purple-400/30 shadow-sm">
-                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h3v3H7V7zm7 0h3v3h-3V7zM7 14h3v3H7v-3zm7 0h3v3h-3v-3z" /></svg>
-                        <span>Scan QR</span>
-                    </button>
-                    <button type="button" onclick="openActivityLogModal()" class="px-3 py-1.5 rounded-lg bg-sky-600/90 hover:bg-sky-500 text-white font-mono text-xs font-bold flex items-center gap-1.5 transition border border-sky-400/30 shadow-sm relative">
-                        <i class="fa-solid fa-clock-rotate-left text-xs"></i>
-                        <span>Log Aktivitas</span>
-                        <span id="activity-log-badge" class="px-1.5 py-0.2 rounded-full bg-sky-950 text-sky-200 border border-sky-400/40 text-[9px] font-black">0</span>
-                    </button>
-                    <button type="button" onclick="openDoorprizeModal()" class="px-3 py-1.5 rounded-lg bg-pink-600/90 hover:bg-pink-500 text-white font-mono text-xs font-bold flex items-center gap-1.5 transition border border-pink-400/30 shadow-sm">
-                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5a2 2 0 10-2 2h2zm0 0H4m8 0h8m-8 0a2 2 0 102 2h-2zm0 0a2 2 0 11-2 2h2z" /></svg>
-                        <span>Doorprize</span>
-                    </button>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button type="button" onclick="openQrScanModal()" class="px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 text-xs font-semibold flex items-center gap-1.5 transition">
+                            <i class="fa-solid fa-qrcode text-xs text-slate-300"></i>
+                            <span>Scan QR</span>
+                        </button>
+                        <button type="button" onclick="openActivityLogModal()" class="px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 text-xs font-semibold flex items-center gap-1.5 transition">
+                            <i class="fa-solid fa-clock-rotate-left text-xs text-slate-300"></i>
+                            <span>Log Aktivitas</span>
+                            <span id="activity-log-badge" class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-200 text-[10px] font-mono font-bold">0</span>
+                        </button>
+                        <button type="button" onclick="openDoorprizeModal()" class="px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 text-xs font-semibold flex items-center gap-1.5 transition">
+                            <i class="fa-solid fa-gift text-xs text-slate-300"></i>
+                            <span>Doorprize</span>
+                        </button>
 
-                    <div class="h-4 w-px bg-slate-700 mx-0.5 hidden sm:block"></div>
+                        <div class="h-4 w-px bg-slate-800 mx-1 hidden sm:block"></div>
 
-                    <a id="export-csv-btn" href="#" onclick="window.location.href=getExportUrl('csv'); return false;" class="px-3 py-1.5 rounded-lg bg-emerald-700/90 text-white font-mono text-xs font-bold hover:bg-emerald-600 transition flex items-center gap-1.5 border border-emerald-500/30 shadow-sm">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                        <span>CSV</span>
-                    </a>
-                    <a id="export-xlsx-btn" href="#" onclick="window.location.href=getExportUrl('xlsx'); return false;" class="px-3 py-1.5 rounded-lg bg-emerald-700/90 text-white font-mono text-xs font-bold hover:bg-emerald-600 transition flex items-center gap-1.5 border border-emerald-500/30 shadow-sm">
-                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                        <span>XLSX</span>
-                    </a>
+                        <a id="export-csv-btn" href="#" onclick="window.location.href=getExportUrl('csv'); return false;" class="px-3 py-1.5 rounded-md bg-emerald-700 hover:bg-emerald-600 text-white font-semibold text-xs transition flex items-center gap-1.5 border border-emerald-600">
+                            <i class="fa-solid fa-file-csv text-xs"></i>
+                            <span>CSV</span>
+                        </a>
+                        <a id="export-xlsx-btn" href="#" onclick="window.location.href=getExportUrl('xlsx'); return false;" class="px-3 py-1.5 rounded-md bg-emerald-700 hover:bg-emerald-600 text-white font-semibold text-xs transition flex items-center gap-1.5 border border-emerald-600">
+                            <i class="fa-solid fa-file-excel text-xs"></i>
+                            <span>XLSX</span>
+                        </a>
+                    </div>
                 </div>
             </form>
 
-            <!-- Sticky Quick-Search & View Mode Switcher Bar -->
-            <div class="mt-4 sticky top-2 z-20 bg-slate-900/90 backdrop-blur-md p-2.5 rounded-2xl border border-slate-700/80 shadow-xl flex flex-wrap sm:flex-nowrap items-center gap-2">
+            <!-- Sticky Quick Search & View Mode Switcher -->
+            <div class="mt-4 sticky top-2 z-20 bg-slate-900 border border-slate-800 p-2.5 rounded-lg shadow-md flex flex-wrap sm:flex-nowrap items-center gap-2">
                 <div class="relative flex-1 min-w-[200px]">
                     <svg class="w-4 h-4 absolute left-3 top-2.5 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                     </svg>
                     <input type="text" id="quick-search-input" value="{{ $filters['search'] ?? '' }}" placeholder="Cari cepat (Nama, BIB, Email, Telp, ID)..." 
-                        class="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-8 py-2 text-xs font-semibold text-white placeholder-slate-500 outline-none focus:border-neon focus:ring-1 focus:ring-neon/40 transition-colors">
-                    <button type="button" id="quick-search-clear" onclick="clearQuickSearch()" class="{{ !empty($filters['search']) ? '' : 'hidden' }} absolute right-2.5 top-2.5 text-slate-400 hover:text-white text-[10px] font-bold bg-slate-800 hover:bg-slate-700 rounded-full w-4 h-4 flex items-center justify-center transition">
-                        ✕
+                        class="w-full bg-slate-950 border border-slate-800 rounded-md pl-9 pr-8 py-2 text-xs font-medium text-white placeholder-slate-500 outline-none focus:border-slate-600 transition-colors">
+                    <button type="button" id="quick-search-clear" onclick="clearQuickSearch()" class="{{ !empty($filters['search']) ? '' : 'hidden' }} absolute right-2.5 top-2.5 text-slate-400 hover:text-white text-[10px] font-bold bg-slate-800 rounded w-4 h-4 flex items-center justify-center transition">
+                        <i class="fa-solid fa-xmark text-[10px]"></i>
                     </button>
                 </div>
 
-                <!-- View Mode Switcher Buttons -->
-                <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-xl border border-slate-800 shrink-0">
-                    <button type="button" id="btn-view-mode-list" onclick="setTableViewMode('list')" class="px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-neon text-dark shadow-sm" title="Tampilan List Ringkas (Hemat Scroll)">
+                <!-- View Mode Switcher -->
+                <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-md border border-slate-800 shrink-0">
+                    <button type="button" id="btn-view-mode-list" onclick="setTableViewMode('list')" class="px-2.5 py-1 rounded-md text-xs font-semibold transition flex items-center gap-1.5 bg-slate-800 text-white" title="Tampilan List Ringkas">
                         <i class="fa-solid fa-list-ul text-xs"></i>
-                        <span class="text-[11px] font-mono uppercase">List</span>
+                        <span class="text-[11px] uppercase tracking-wider">List</span>
                     </button>
-                    <button type="button" id="btn-view-mode-stacked" onclick="setTableViewMode('stacked')" class="px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 text-slate-400 hover:text-white" title="Tampilan Kartu Detailed">
+                    <button type="button" id="btn-view-mode-stacked" onclick="setTableViewMode('stacked')" class="px-2.5 py-1 rounded-md text-xs font-semibold transition flex items-center gap-1.5 text-slate-400 hover:text-white" title="Tampilan Kartu">
                         <i class="fa-solid fa-table-cells-large text-xs"></i>
-                        <span class="text-[11px] font-mono uppercase">Stacked</span>
+                        <span class="text-[11px] uppercase tracking-wider">Kartu</span>
                     </button>
                 </div>
             </div>
 
-            <div id="participants-table-wrapper" class="mt-4 overflow-x-auto border border-slate-700 rounded-2xl view-mode-list">
-                <table class="min-w-full text-sm">
-                    <thead class="bg-slate-900/60 text-slate-300">
+            <!-- Participants Table -->
+            <div id="participants-table-wrapper" class="mt-4 overflow-x-auto border border-slate-800 rounded-lg view-mode-list">
+                <table class="min-w-full text-xs">
+                    <thead class="bg-slate-900 text-slate-300 border-b border-slate-800">
                         <tr>
                             <th class="text-left font-semibold px-3 py-2.5">Nama</th>
                             <th class="text-left font-semibold px-3 py-2.5">Email</th>
@@ -519,23 +674,23 @@
                         @foreach($participants as $p)
                             <tr class="participant-row hover:bg-slate-900/40 cursor-pointer" onclick="if(!event.target.closest('button') && !event.target.closest('a') && !event.target.closest('select') && !event.target.closest('.no-click')) openDetailModalFromRow(this)" data-json="{{ json_encode($p) }}">
                                 <td class="px-3 py-2 font-semibold text-white">
-                                    <span class="mobile-label text-slate-500 font-bold text-xs uppercase">Nama</span>
+                                    <span class="mobile-label text-slate-400 font-bold text-xs uppercase">Nama</span>
                                     <span class="cell-value text-right md:text-left font-bold text-white text-xs sm:text-sm">{{ $p->name }}</span>
                                 </td>
                                 <td class="px-3 py-2 text-slate-200">
-                                    <span class="mobile-label text-slate-500 font-bold text-xs uppercase">Email</span>
+                                    <span class="mobile-label text-slate-400 font-bold text-xs uppercase">Email</span>
                                     <span class="cell-value text-right md:text-left break-all text-xs text-slate-300">{{ $p->email }}</span>
                                 </td>
                                 <td class="px-3 py-2 text-slate-300">
-                                    <span class="mobile-label text-slate-500 font-bold text-xs uppercase">No Telp</span>
+                                    <span class="mobile-label text-slate-400 font-bold text-xs uppercase">No Telp</span>
                                     <span class="cell-value text-right md:text-left font-mono text-xs">{{ $p->phone ?? '-' }}</span>
                                 </td>
                                 <td class="px-3 py-2 text-slate-300">
-                                    <span class="mobile-label text-slate-500 font-bold text-xs uppercase">Jersey</span>
+                                    <span class="mobile-label text-slate-400 font-bold text-xs uppercase">Jersey</span>
                                     <span class="cell-value text-right md:text-left font-mono font-bold text-xs text-slate-200">{{ $p->jersey_size ?? '-' }}</span>
                                 </td>
                                 <td class="px-3 py-2 text-slate-300">
-                                    <span class="mobile-label text-slate-500 font-bold text-xs uppercase">No BIB</span>
+                                    <span class="mobile-label text-slate-400 font-bold text-xs uppercase">No BIB</span>
                                     @php
                                         $bib = $p->bib_number;
                                         if ($bib && strpos($bib, '-') !== false) {
@@ -543,16 +698,16 @@
                                             $bib = end($parts);
                                         }
                                     @endphp
-                                    <span class="cell-value text-right md:text-left font-mono font-bold text-xs text-neon">#{{ $bib ?? '-' }}</span>
+                                    <span class="cell-value text-right md:text-left font-mono font-bold text-xs text-white">#{{ $bib ?? '-' }}</span>
                                 </td>
                                 <td class="px-3 py-2 text-slate-200">
-                                    <span class="mobile-label text-slate-500 font-bold text-xs uppercase">Addons</span>
+                                    <span class="mobile-label text-slate-400 font-bold text-xs uppercase">Addons</span>
                                     @php $addons = is_array($p->addons) ? $p->addons : []; @endphp
                                     <span class="cell-value text-right md:text-left">
                                         @if(count($addons) > 0)
                                             <span class="inline-flex flex-wrap gap-1 justify-end md:justify-start">
                                                 @foreach($addons as $a)
-                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-200">
+                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-200">
                                                         {{ is_array($a) ? ($a['name'] ?? '-') : ($a->name ?? '-') }}
                                                     </span>
                                                 @endforeach
@@ -563,13 +718,13 @@
                                     </span>
                                 </td>
                                 <td class="px-3 py-2 text-slate-300">
-                                    <span class="mobile-label text-slate-500 font-bold text-xs uppercase">Tgl Reg</span>
+                                    <span class="mobile-label text-slate-400 font-bold text-xs uppercase">Tgl Reg</span>
                                     <span class="cell-value text-right md:text-left text-xs font-mono text-slate-400">{{ \Illuminate\Support\Carbon::parse($p->created_at)->format('d/m/y H:i') }}</span>
                                 </td>
                                 <td class="px-3 py-2 no-click">
-                                    <span class="mobile-label text-slate-500 font-bold text-xs uppercase">Status</span>
+                                    <span class="mobile-label text-slate-400 font-bold text-xs uppercase">Status</span>
                                     <div class="cell-value text-right md:text-left">
-                                        <select onchange="updatePaymentStatus(this, {{ $p->id }}, this.value)" class="bg-slate-900 border border-slate-700 text-xs font-bold rounded-lg px-2 py-1 text-white focus:outline-none focus:border-neon cursor-pointer">
+                                        <select onchange="updatePaymentStatus(this, {{ $p->id }}, this.value)" class="bg-slate-950 border border-slate-800 text-xs font-semibold rounded-md px-2 py-1 text-white focus:outline-none focus:border-slate-600 cursor-pointer">
                                             <option value="paid" @selected($p->payment_status === 'paid')>PAID</option>
                                             <option value="pending" @selected($p->payment_status === 'pending')>PENDING</option>
                                             <option value="cod" @selected($p->payment_status === 'cod')>COD</option>
@@ -578,28 +733,28 @@
                                             <option value="cancelled" @selected($p->payment_status === 'cancelled')>CANCELLED</option>
                                         </select>
                                         @if($p->coupon_code)
-                                            <div class="mt-0.5 text-[10px] text-yellow-400 font-mono" title="Kupon dipakai">
-                                                🏷️ {{ $p->coupon_code }}
+                                            <div class="mt-0.5 text-[10px] font-mono text-amber-400" title="Kupon dipakai">
+                                                Kupon: {{ $p->coupon_code }}
                                             </div>
                                         @endif
                                     </div>
                                 </td>
                                 <td class="px-3 py-2 text-center no-click">
-                                    <span class="mobile-label text-slate-500 font-bold text-xs uppercase">Picked Up</span>
+                                    <span class="mobile-label text-slate-400 font-bold text-xs uppercase">Picked Up</span>
                                     <div class="cell-value text-right md:text-center">
                                         <button type="button" 
                                             onclick="togglePickup(this, {{ $p->id }}, {{ $p->is_picked_up ? 'true' : 'false' }})"
-                                            class="px-2 py-1 text-xs rounded-lg font-bold border transition duration-200 {{ $p->is_picked_up ? 'bg-emerald-950/40 text-emerald-400 border-emerald-500/30 hover:bg-emerald-900/60' : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700' }}">
+                                            class="px-2 py-1 text-xs rounded-md font-semibold border transition duration-150 {{ $p->is_picked_up ? 'bg-emerald-950/40 text-emerald-400 border-emerald-500/30 hover:bg-emerald-900/50' : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700' }}">
                                             {{ $p->is_picked_up ? 'Picked Up' : 'Not Picked' }}
                                         </button>
                                     </div>
                                 </td>
                                 <td class="px-3 py-2 no-click">
-                                    <span class="mobile-label text-slate-500 font-bold text-xs uppercase">Aksi</span>
+                                    <span class="mobile-label text-slate-400 font-bold text-xs uppercase">Aksi</span>
                                     <div class="cell-value text-right md:text-left">
                                         <button type="button" 
                                             onclick="openDetailModalFromRow(this.closest('tr'))"
-                                            class="px-2.5 py-1 text-xs rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold transition">
+                                            class="px-2.5 py-1 text-xs rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold transition">
                                             Detail
                                         </button>
                                     </div>
@@ -608,179 +763,177 @@
                         @endforeach
                         @if($participants->isEmpty())
                             <tr>
-                                <td colspan="10" class="px-4 py-6 text-center text-slate-400">Tidak ada data.</td>
+                                <td colspan="10" class="px-4 py-8 text-center text-slate-400">Tidak ada data peserta yang cocok.</td>
                             </tr>
                         @endif
                     </tbody>
                 </table>
             </div>
 
-            <div class="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <!-- Pagination & Meta -->
+            <div class="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-3 border-t border-slate-800">
                 <div id="participants-meta" class="text-xs text-slate-400">
-                    Menampilkan <span class="font-mono">{{ $participants->count() }}</span> dari <span class="font-mono">{{ $participants->total() }}</span>
+                    Menampilkan <span class="font-mono">{{ $participants->count() }}</span> dari <span class="font-mono">{{ $participants->total() }}</span> peserta
                 </div>
-                <div id="participants-pagination" class="flex flex-wrap gap-2 justify-start sm:justify-end"></div>
+                <div id="participants-pagination" class="flex flex-wrap gap-1.5 justify-start sm:justify-end"></div>
             </div>
         </div>
 
-        <div class="bg-card border border-slate-700 rounded-2xl p-4">
-            <div class="text-lg font-bold">Kupon Terpakai</div>
-            <div class="text-xs text-slate-400">Berdasarkan transaksi paid/pending</div>
+        <!-- Coupon Usage Card -->
+        <div class="bg-card border border-slate-800 rounded-lg p-5">
+            <div class="pb-3 border-b border-slate-800">
+                <h2 class="font-brand-heading text-base font-bold text-white">Kupon Terpakai</h2>
+                <p class="text-xs text-slate-400 mt-0.5">Berdasarkan transaksi paid dan pending</p>
+            </div>
 
-            <div class="mt-4 overflow-x-auto border border-slate-700 rounded-2xl">
-                <table class="min-w-full text-sm">
-                    <thead class="bg-slate-900/60 text-slate-300 hidden md:table-header-group">
+            <div class="mt-4 overflow-x-auto border border-slate-800 rounded-lg">
+                <table class="min-w-full text-xs">
+                    <thead class="bg-slate-900 text-slate-300 border-b border-slate-800 hidden md:table-header-group">
                         <tr>
-                            <th class="text-left font-semibold px-4 py-3">Kode</th>
-                            <th class="text-right font-semibold px-4 py-3">Dipakai</th>
-                            <th class="text-right font-semibold px-4 py-3">Total Diskon</th>
+                            <th class="text-left font-semibold px-4 py-2.5">Kode Kupon</th>
+                            <th class="text-right font-semibold px-4 py-2.5">Jumlah Digunakan</th>
+                            <th class="text-right font-semibold px-4 py-2.5">Total Diskon</th>
                         </tr>
                     </thead>
                     <tbody id="coupon-tbody" class="divide-y divide-slate-800">
                         @foreach($couponUsage as $c)
-                            <tr class="hover:bg-slate-900/40 block md:table-row border-b border-slate-800 md:border-none mb-4 md:mb-0 bg-slate-900/20 md:bg-transparent rounded-xl md:rounded-none p-4 md:p-0">
-                                <td class="px-4 py-2 md:py-3 font-mono font-bold text-white block md:table-cell flex justify-between items-center md:block">
-                                    <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Kode</span>
+                            <tr class="hover:bg-slate-900/40 block md:table-row border-b border-slate-800 md:border-none mb-3 md:mb-0 bg-slate-950/20 md:bg-transparent rounded-md md:rounded-none p-3 md:p-0">
+                                <td class="px-4 py-2 md:py-2.5 font-mono font-bold text-white block md:table-cell flex justify-between items-center md:block">
+                                    <span class="md:hidden text-slate-400 font-bold text-xs uppercase">Kode</span>
                                     <span class="text-right md:text-left">{{ $c->code }}</span>
                                 </td>
-                                <td class="px-4 py-2 md:py-3 text-slate-200 block md:table-cell flex justify-between items-center md:block text-right">
-                                    <span class="md:hidden text-slate-500 font-bold text-xs uppercase text-left">Dipakai</span>
-                                    <span>{{ number_format((int) $c->total_transactions) }}</span>
+                                <td class="px-4 py-2 md:py-2.5 text-slate-200 block md:table-cell flex justify-between items-center md:block text-right">
+                                    <span class="md:hidden text-slate-400 font-bold text-xs uppercase text-left">Dipakai</span>
+                                    <span>{{ number_format((int) $c->total_transactions) }} kali</span>
                                 </td>
-                                <td class="px-4 py-2 md:py-3 text-slate-200 block md:table-cell flex justify-between items-center md:block text-right">
-                                    <span class="md:hidden text-slate-500 font-bold text-xs uppercase text-left">Total Diskon</span>
-                                    <span>{{ number_format((float) $c->total_discount, 0, ',', '.') }}</span>
+                                <td class="px-4 py-2 md:py-2.5 text-slate-200 block md:table-cell flex justify-between items-center md:block text-right">
+                                    <span class="md:hidden text-slate-400 font-bold text-xs uppercase text-left">Total Diskon</span>
+                                    <span>Rp {{ number_format((float) $c->total_discount, 0, ',', '.') }}</span>
                                 </td>
                             </tr>
                         @endforeach
                         @if($couponUsage->isEmpty())
                             <tr>
-                                <td colspan="3" class="px-4 py-6 text-center text-slate-400">Belum ada kupon terpakai.</td>
+                                <td colspan="3" class="px-4 py-6 text-center text-slate-400">Belum ada kupon yang terpakai.</td>
                             </tr>
                         @endif
                     </tbody>
                 </table>
             </div>
         </div>
+
     </div>
 </div>
 
 <!-- Doorprize Modal -->
 <div id="doorprizeModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
-    <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-md transition-opacity duration-300" onclick="closeDoorprizeModal()"></div>
+    <div class="fixed inset-0 bg-slate-950/80 transition-opacity" onclick="closeDoorprizeModal()"></div>
     <div class="fixed inset-0 z-10 overflow-y-auto">
-        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-            <div id="doorprizeModalCard" class="relative transform overflow-hidden rounded-3xl bg-slate-900 border border-slate-700/80 text-left shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-4xl p-6 sm:p-8">
+        <div class="flex min-h-full items-center justify-center p-4 text-center">
+            <div id="doorprizeModalCard" class="relative transform overflow-hidden rounded-lg bg-slate-900 border border-slate-800 text-left shadow-2xl transition-all w-full max-w-4xl p-6">
                 
                 <!-- Action Controls -->
-                <div class="absolute top-4 right-4 flex items-center gap-3 z-30">
-                    <!-- Fullscreen Toggle Button -->
-                    <button type="button" onclick="toggleDoorprizeFullscreen()" class="text-slate-400 hover:text-white transition-colors" title="Toggle Fullscreen">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" id="fullscreenIcon">
+                <div class="absolute top-4 right-4 flex items-center gap-2 z-30">
+                    <button type="button" onclick="toggleDoorprizeFullscreen()" class="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-white transition" title="Toggle Fullscreen">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" id="fullscreenIcon">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4" />
                         </svg>
                     </button>
-                    <!-- Close Button -->
-                    <button type="button" onclick="closeDoorprizeModal()" class="text-slate-400 hover:text-white transition-colors" title="Close">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <button type="button" onclick="closeDoorprizeModal()" class="p-1.5 rounded-md hover:bg-slate-800 text-slate-400 hover:text-white transition" title="Tutup">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                         </svg>
                     </button>
                 </div>
 
                 <!-- Modal Header -->
-                <div class="mb-6">
-                    <h3 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-indigo-200 to-white flex items-center gap-2">
-                        🎉 DOORPRIZE RANDOM DRAW
+                <div class="mb-5 pb-3 border-b border-slate-800">
+                    <h3 class="font-brand-heading text-xl font-bold text-white flex items-center gap-2">
+                        <span>Undian Doorprize Peserta</span>
                     </h3>
-                    <p class="text-sm text-slate-400 mt-1">Mengundi pemenang secara acak dari semua peserta yang berstatus lunas (Paid) untuk event <strong>{{ $event->name }}</strong>.</p>
+                    <p class="text-xs text-slate-400 mt-1">Mengundi pemenang secara acak dari peserta berstatus lunas (Paid) untuk event <strong>{{ $event->name }}</strong>.</p>
                 </div>
 
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
                     <!-- Main Draw Screen (2 Cols) -->
-                    <div class="lg:col-span-2 flex flex-col justify-between bg-slate-950/50 rounded-2xl border border-slate-800 p-6 relative overflow-hidden">
+                    <div class="lg:col-span-2 flex flex-col justify-between bg-slate-950 border border-slate-800 rounded-lg p-5">
                         
-                        <!-- Decorative Neon Glows -->
-                        <div class="absolute -top-12 -left-12 w-32 h-32 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
-                        <div class="absolute -bottom-12 -right-12 w-32 h-32 bg-indigo-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
                         <!-- Draw Name Input -->
-                        <div class="mb-4 relative z-10">
-                            <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">Nama Undian / Hadiah</label>
-                            <input type="text" id="doorprizeDrawName" placeholder="Masukkan nama undian (misal: Sepeda Lipat, Helm, Voucher)" class="w-full px-4 py-2.5 rounded-xl border border-slate-700 bg-slate-950 text-white text-sm focus:outline-none focus:border-blue-500 placeholder-slate-500 transition-colors">
+                        <div class="mb-4">
+                            <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider mb-1.5">Nama Undian / Hadiah</label>
+                            <input type="text" id="doorprizeDrawName" placeholder="Masukkan nama undian (misal: Sepeda Lipat, Smartwatch, Voucher)" class="w-full px-3 py-2 rounded-md border border-slate-800 bg-slate-900 text-white text-xs focus:outline-none focus:border-slate-600 placeholder-slate-500 transition">
                         </div>
 
                         <!-- Draw Display Board -->
-                        <div class="flex flex-col items-center justify-center min-h-[260px] text-center relative z-10">
-                            <!-- Spinning Box -->
-                            <div id="doorprizeDrawBoard" class="w-full flex flex-col items-center justify-center p-6 rounded-2xl border border-slate-800 transition-all duration-300">
+                        <div class="flex flex-col items-center justify-center min-h-[220px] text-center">
+                            <div id="doorprizeDrawBoard" class="w-full flex flex-col items-center justify-center p-6 rounded-lg border border-slate-800 transition-colors">
                                 
-                                <!-- Placeholder / Init State -->
-                                <div id="doorprizePlaceholder" class="text-slate-500 flex flex-col items-center gap-3">
-                                    <span class="text-5xl">🎁</span>
-                                    <p class="text-sm font-semibold tracking-wide uppercase">Siap untuk memutar doorprize</p>
+                                <!-- Placeholder -->
+                                <div id="doorprizePlaceholder" class="text-slate-500 flex flex-col items-center gap-2">
+                                    <i class="fa-solid fa-gift text-4xl text-slate-600 mb-1"></i>
+                                    <p class="text-xs font-semibold tracking-wide uppercase">Siap untuk memutar undian doorprize</p>
                                 </div>
 
                                 <!-- Live Spin State -->
-                                <div id="doorprizeLiveSpin" class="hidden w-full space-y-4">
-                                    <div class="text-xs font-bold uppercase tracking-wider text-blue-400" id="liveDrawName"></div>
-                                    <div class="text-7xl font-black text-white tracking-widest font-mono select-none" id="liveBib">0</div>
-                                    <div class="text-sm text-slate-500 font-medium" id="liveStatus">Memutar data...</div>
+                                <div id="doorprizeLiveSpin" class="hidden w-full space-y-3">
+                                    <div class="text-xs font-bold uppercase tracking-wider text-sky-400" id="liveDrawName"></div>
+                                    <div class="text-6xl font-extrabold text-white tracking-widest font-mono select-none" id="liveBib">0</div>
+                                    <div class="text-xs text-slate-400 font-medium" id="liveStatus">Memutar acak nomor peserta...</div>
                                 </div>
 
                                 <!-- Winner State -->
-                                <div id="doorprizeWinner" class="hidden w-full space-y-6">
-                                    <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-green-500/20 border border-green-500/30 rounded-full text-xs font-bold text-green-400 uppercase tracking-widest animate-pulse">
-                                        ✨ Pemenang Terpilih ✨
+                                <div id="doorprizeWinner" class="hidden w-full space-y-4">
+                                    <div class="inline-flex items-center gap-1.5 px-3 py-1 bg-emerald-500/10 border border-emerald-500/30 rounded text-xs font-bold text-emerald-400 uppercase tracking-wider">
+                                        Pemenang Terpilih
                                     </div>
-                                    <div class="text-lg font-black text-yellow-400 uppercase tracking-wider" id="winnerDrawName"></div>
-                                    <div class="space-y-2">
-                                        <div class="text-8xl font-black text-white tracking-widest font-mono" id="winnerBib">0</div>
+                                    <div class="text-sm font-bold text-amber-400 uppercase tracking-wider" id="winnerDrawName"></div>
+                                    <div>
+                                        <div class="text-7xl font-extrabold text-white tracking-widest font-mono" id="winnerBib">0</div>
                                     </div>
                                 </div>
 
                             </div>
                         </div>
 
-                        <!-- Checkbox option and statistics info -->
+                        <!-- Exclude winners checkbox -->
                         <div class="mt-4 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 px-1">
                             <label class="inline-flex items-center gap-2 text-xs text-slate-400 cursor-pointer hover:text-slate-200 transition">
-                                <input type="checkbox" id="doorprizeExcludeWinners" checked class="rounded border-slate-700 bg-slate-900 text-blue-500 focus:ring-blue-500/50 cursor-pointer">
+                                <input type="checkbox" id="doorprizeExcludeWinners" checked class="rounded border-slate-700 bg-slate-900 text-sky-500 focus:ring-0 cursor-pointer">
                                 Saring pemenang yang sudah terpilih sebelumnya
                             </label>
-                            <div class="text-xs text-slate-500 hidden">
-                                Total Paid: <span id="doorprizeTotalPaid" class="font-bold text-slate-300">-</span>
+                            <div class="text-xs text-slate-500">
+                                Total Peserta Paid: <span id="doorprizeTotalPaid" class="font-bold text-slate-300">-</span>
                             </div>
                         </div>
 
                         <!-- Action Controls -->
-                        <div class="mt-6 flex gap-3 relative z-10">
-                            <button type="button" id="btnStartDoorprize" onclick="startDoorprizeDraw()" class="flex-1 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white rounded-xl font-black text-sm tracking-wider uppercase transition-all duration-300 shadow-lg shadow-blue-600/25 flex items-center justify-center gap-2">
-                                <span class="text-base">▶</span> Start Draw
+                        <div class="mt-5 flex gap-2.5">
+                            <button type="button" id="btnStartDoorprize" onclick="startDoorprizeDraw()" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-500 text-white rounded-md font-bold text-xs tracking-wider uppercase transition flex items-center justify-center gap-1.5">
+                                <span>Mulai Undian</span>
                             </button>
-                            <button type="button" id="btnStopDoorprize" onclick="stopDoorprizeDraw()" disabled class="flex-1 py-4 bg-slate-800 text-slate-500 rounded-xl font-black text-sm tracking-wider uppercase transition-all duration-300 cursor-not-allowed flex items-center justify-center gap-2">
-                                <span class="text-base">⏹</span> Stop Draw
+                            <button type="button" id="btnStopDoorprize" onclick="stopDoorprizeDraw()" disabled class="flex-1 py-3 bg-slate-800 text-slate-500 rounded-md font-bold text-xs tracking-wider uppercase transition cursor-not-allowed flex items-center justify-center gap-1.5">
+                                <span>Hentikan Undian</span>
                             </button>
                         </div>
 
                     </div>
 
-                    <!-- Winner History Sidebar (1 Col) -->
-                    <div id="doorprizeHistorySidebar" class="flex flex-col bg-slate-950/30 rounded-2xl border border-slate-800 p-4 overflow-hidden h-[380px] lg:h-auto">
-                        <div class="flex justify-between items-center mb-3">
-                            <h4 class="text-xs font-black uppercase text-slate-400 tracking-wider">🏆 History Pemenang</h4>
-                            <button type="button" onclick="clearDoorprizeWinners()" class="text-[10px] text-red-400 hover:text-red-300 font-bold hover:underline transition">Reset</button>
+                    <!-- Winner History Sidebar -->
+                    <div id="doorprizeHistorySidebar" class="flex flex-col bg-slate-950 border border-slate-800 rounded-lg p-4 h-[380px] lg:h-auto">
+                        <div class="flex justify-between items-center mb-3 pb-2 border-b border-slate-800">
+                            <h4 class="text-xs font-bold uppercase text-slate-400 tracking-wider">Daftar Pemenang Terpilih</h4>
+                            <button type="button" onclick="clearDoorprizeWinners()" class="text-[10px] text-rose-400 hover:underline font-bold transition">Reset</button>
                         </div>
 
                         <!-- Scrollable Winner List -->
-                        <div id="doorprizeWinnerList" class="flex-1 overflow-y-auto space-y-2 pr-1 text-left">
+                        <div id="doorprizeWinnerList" class="flex-1 overflow-y-auto space-y-2 pr-1 text-left text-xs">
                             <div class="text-xs text-slate-500 text-center py-8">Belum ada pemenang yang ditarik.</div>
                         </div>
 
                         <!-- Export Button -->
-                        <button type="button" onclick="exportDoorprizeWinners()" class="mt-3 w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5 border border-slate-700">
-                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                            Export Pemenang (CSV)
+                        <button type="button" onclick="exportDoorprizeWinners()" class="mt-3 w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-md text-xs font-semibold transition flex items-center justify-center gap-1.5 border border-slate-700">
+                            <i class="fa-solid fa-download text-xs"></i>
+                            <span>Unduh Pemenang (CSV)</span>
                         </button>
                     </div>
                 </div>
@@ -791,238 +944,255 @@
 </div>
 
 <!-- Edit Modal -->
-<div id="edit-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-    <div class="bg-card w-full max-w-lg rounded-2xl border border-slate-700 shadow-2xl overflow-hidden">
-        <div class="flex items-center justify-between p-4 border-b border-slate-700 bg-slate-900/50">
-            <h3 class="text-lg font-bold text-white">Edit Peserta</h3>
+<div id="edit-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-950/80 p-4">
+    <div class="bg-card w-full max-w-lg rounded-lg border border-slate-800 shadow-2xl overflow-hidden">
+        <div class="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-900/50">
+            <h3 class="text-base font-bold text-white">Edit Peserta</h3>
             <button type="button" onclick="closeEditModal()" class="text-slate-400 hover:text-white transition">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
         </div>
-        <form id="edit-form" method="POST" enctype="multipart/form-data" class="p-6 space-y-4">
+        <form id="edit-form" method="POST" enctype="multipart/form-data" class="p-5 space-y-4 text-xs">
             @csrf
             <input type="hidden" name="participant_id" id="edit-participant-id">
             
             <div>
-                <label class="block text-xs text-slate-400 mb-1">Nama</label>
-                <div id="edit-name" class="text-sm font-semibold text-white"></div>
+                <label class="block text-slate-400 mb-1 font-semibold">Nama Peserta</label>
+                <div id="edit-name" class="text-sm font-bold text-white"></div>
             </div>
 
             <div>
-                <label class="block text-xs text-slate-400 mb-1">Status Approved</label>
-                <select name="isApproved" id="edit-isApproved" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-neon">
+                <label class="block text-slate-400 mb-1 font-semibold">Status Approved</label>
+                <select name="isApproved" id="edit-isApproved" class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-xs text-white focus:outline-none focus:border-slate-600">
                     <option value="1">Yes (Approved)</option>
                     <option value="0">No (Not Approved)</option>
                 </select>
             </div>
 
             <div>
-                <label class="block text-xs text-slate-400 mb-1">Target Time</label>
-                <input type="text" name="target_time" id="edit-target-time" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:border-neon" placeholder="HH:MM:SS">
+                <label class="block text-slate-400 mb-1 font-semibold">Target Time</label>
+                <input type="text" name="target_time" id="edit-target-time" class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-xs text-white focus:outline-none focus:border-slate-600" placeholder="HH:MM:SS">
             </div>
 
             <div>
-                <label class="block text-xs text-slate-400 mb-1">Photo</label>
-                <div class="flex items-center gap-4">
-                    <img id="edit-photo-preview" src="" class="w-16 h-16 object-cover rounded-lg bg-slate-800 hidden">
-                    <input type="file" name="photo" id="edit-photo" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-300 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-neon hover:file:bg-slate-700">
+                <label class="block text-slate-400 mb-1 font-semibold">Foto</label>
+                <div class="flex items-center gap-3">
+                    <img id="edit-photo-preview" src="" class="w-14 h-14 object-cover rounded-md bg-slate-800 border border-slate-700 hidden">
+                    <input type="file" name="photo" id="edit-photo" class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-1.5 text-xs text-slate-300">
                 </div>
             </div>
 
-            <div class="pt-4 flex justify-end gap-2">
-                <button type="button" onclick="closeEditModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 transition text-sm font-bold">Batal</button>
-                <button type="submit" class="px-4 py-2 rounded-xl bg-neon text-dark hover:bg-lime-300 transition text-sm font-bold">Simpan Perubahan</button>
+            <div class="pt-3 border-t border-slate-800 flex justify-end gap-2">
+                <button type="button" onclick="closeEditModal()" class="px-3.5 py-2 rounded-md bg-slate-800 text-slate-300 hover:bg-slate-700 transition font-semibold">Batal</button>
+                <button type="submit" class="px-3.5 py-2 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white transition font-semibold">Simpan Perubahan</button>
             </div>
         </form>
     </div>
 </div>
 
 <!-- Detail Modal -->
-<div id="detail-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-    <div class="bg-card w-full max-w-2xl rounded-2xl border border-slate-700 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+<div id="detail-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-950/80 p-4">
+    <div class="bg-card w-full max-w-2xl rounded-lg border border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         <!-- Header -->
-        <div class="flex items-center justify-between p-4 border-b border-slate-700 bg-slate-900/50">
-            <h3 class="text-lg font-bold text-white">Detail Peserta</h3>
+        <div class="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-900/50">
+            <h3 class="text-base font-bold text-white">Detail Lengkap Peserta</h3>
             <button type="button" onclick="closeDetailModal()" class="text-slate-400 hover:text-white transition">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
         </div>
         
         <!-- Content -->
-        <div class="p-6 overflow-y-auto space-y-6 text-sm text-slate-300">
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="p-5 overflow-y-auto space-y-5 text-xs text-slate-300">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                 <!-- Personal Info -->
-                <div>
-                    <h4 class="text-xs font-bold text-yellow-400 uppercase tracking-wider mb-3">Informasi Pribadi</h4>
-                    <div class="space-y-3">
-                        <div>
-                            <div class="text-xs text-slate-500">Nama Lengkap</div>
-                            <div class="text-white font-medium" id="dm-name">-</div>
-                        </div>
-                        <div>
-                            <div class="text-xs text-slate-500">ID Card (KTP/SIM)</div>
-                            <div class="text-white" id="dm-id-card">-</div>
-                        </div>
-                        <div>
-                            <div class="text-xs text-slate-500">Gender</div>
-                            <div class="text-white capitalize" id="dm-gender">-</div>
-                        </div>
-                        <div>
-                            <div class="text-xs text-slate-500">Tanggal Lahir</div>
-                            <div class="text-white" id="dm-dob">-</div>
-                        </div>
-                        <div>
-                            <div class="text-xs text-slate-500">Email</div>
-                            <div class="text-white break-all" id="dm-email">-</div>
-                        </div>
-                        <div>
-                            <div class="text-xs text-slate-500">No. Telp</div>
-                            <div class="text-white font-mono" id="dm-phone">-</div>
-                        </div>
-                        <div>
-                            <div class="text-xs text-slate-500">Kontak Darurat</div>
-                            <div class="text-white" id="dm-emergency">-</div>
-                        </div>
-                        <div>
-                            <div class="text-xs text-slate-500">Alamat Lengkap</div>
-                            <div class="text-white" id="dm-address">-</div>
-                        </div>
+                <div class="space-y-3">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 pb-1.5 border-b border-slate-800">Informasi Pribadi</h4>
+                    <div>
+                        <div class="text-[11px] text-slate-400">Nama Lengkap</div>
+                        <div class="text-white font-semibold text-sm mt-0.5" id="dm-name">-</div>
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-slate-400">ID Card (KTP/SIM)</div>
+                        <div class="text-white font-mono mt-0.5" id="dm-id-card">-</div>
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-slate-400">Gender & Tanggal Lahir</div>
+                        <div class="text-white capitalize mt-0.5" id="dm-gender">-</div>
+                        <div class="text-slate-400 text-[11px]" id="dm-dob">-</div>
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-slate-400">Email & No. Telp</div>
+                        <div class="text-white break-all mt-0.5" id="dm-email">-</div>
+                        <div class="text-white font-mono" id="dm-phone">-</div>
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-slate-400">Kontak Darurat</div>
+                        <div class="text-white mt-0.5" id="dm-emergency">-</div>
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-slate-400">Alamat Lengkap</div>
+                        <div class="text-white mt-0.5" id="dm-address">-</div>
                     </div>
                 </div>
 
                 <!-- Race Info -->
-                <div>
-                    <h4 class="text-xs font-bold text-cyan-400 uppercase tracking-wider mb-3">Informasi Lomba</h4>
-                    <div class="space-y-3">
-                        <div>
-                            <div class="text-xs text-slate-500">Kategori Lomba</div>
-                            <div class="text-white font-bold" id="dm-category">-</div>
-                        </div>
-                        <div>
-                            <div class="text-xs text-slate-500">Nomor BIB</div>
-                            <div class="text-yellow-400 font-mono text-lg font-bold" id="dm-bib">-</div>
-                        </div>
-                        <div>
-                            <div class="text-xs text-slate-500">Ukuran Jersey</div>
-                            <div class="text-white font-bold" id="dm-jersey">-</div>
-                        </div>
-                        <div>
-                            <div class="text-xs text-slate-500">Golongan Darah</div>
-                            <div class="text-white font-bold" id="dm-blood-type">-</div>
-                        </div>
-                        <div>
-                            <div class="text-xs text-slate-500">Kategori Umur</div>
-                            <div class="text-white font-bold" id="dm-age-group">-</div>
-                        </div>
-                        <div>
-                            <div class="text-xs text-slate-500">Target Time</div>
-                            <div class="text-white font-mono" id="dm-target-time">-</div>
-                        </div>
-                        <div>
-                            <div class="text-xs text-slate-500">Status Pengambilan Race Pack</div>
-                            <div class="flex items-center gap-2 mt-1">
-                                <div id="dm-pickup-status">-</div>
-                                <button type="button" id="dm-pickup-toggle-btn" class="px-2 py-0.5 text-[10px] rounded-lg font-bold bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 transition">
-                                    Toggle
-                                </button>
-                            </div>
+                <div class="space-y-3">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 pb-1.5 border-b border-slate-800">Informasi Lomba</h4>
+                    <div>
+                        <div class="text-[11px] text-slate-400">Kategori Lomba</div>
+                        <div class="text-white font-bold mt-0.5" id="dm-category">-</div>
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-slate-400">Nomor BIB</div>
+                        <div class="text-white font-mono text-base font-bold mt-0.5" id="dm-bib">-</div>
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-slate-400">Ukuran Jersey & Gol. Darah</div>
+                        <div class="text-white font-bold mt-0.5" id="dm-jersey">-</div>
+                        <div class="text-slate-400 text-[11px]" id="dm-blood-type">-</div>
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-slate-400">Kelompok Umur</div>
+                        <div class="text-white font-medium mt-0.5" id="dm-age-group">-</div>
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-slate-400">Target Waktu</div>
+                        <div class="text-white font-mono mt-0.5" id="dm-target-time">-</div>
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-slate-400">Status Pengambilan Race Pack</div>
+                        <div class="flex items-center gap-2 mt-1">
+                            <div id="dm-pickup-status">-</div>
+                            <button type="button" id="dm-pickup-toggle-btn" class="px-2 py-0.5 text-[10px] rounded-md font-bold bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 transition">
+                                Ubah Status
+                            </button>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- PIC & Transaction Info -->
-            <div class="pt-6 border-t border-slate-700 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="pt-4 border-t border-slate-800 grid grid-cols-1 md:grid-cols-2 gap-5">
                 <!-- PIC Info -->
-                <div>
-                    <h4 class="text-xs font-bold text-purple-400 uppercase tracking-wider mb-3">Informasi PIC Pemesan</h4>
-                    <div class="space-y-3">
-                        <div>
-                            <div class="text-xs text-slate-500">Nama PIC</div>
-                            <div class="text-white" id="dm-pic-name">-</div>
-                        </div>
-                        <div>
-                            <div class="text-xs text-slate-500">Email PIC</div>
-                            <div class="text-white break-all" id="dm-pic-email">-</div>
-                        </div>
-                        <div>
-                            <div class="text-xs text-slate-500">No. Telp PIC</div>
-                            <div class="text-white font-mono" id="dm-pic-phone">-</div>
-                        </div>
+                <div class="space-y-2">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 pb-1.5 border-b border-slate-800">Informasi Pemesan (PIC)</h4>
+                    <div>
+                        <div class="text-[11px] text-slate-400">Nama PIC</div>
+                        <div class="text-white font-medium mt-0.5" id="dm-pic-name">-</div>
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-slate-400">Email & Telepon PIC</div>
+                        <div class="text-white break-all mt-0.5" id="dm-pic-email">-</div>
+                        <div class="text-white font-mono" id="dm-pic-phone">-</div>
                     </div>
                 </div>
 
                 <!-- Transaction Info -->
-                <div>
-                    <h4 class="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-3">Detail Transaksi</h4>
-                    <div class="space-y-3">
-                        <div>
-                            <div class="text-xs text-slate-500">Tanggal Transaksi</div>
-                            <div class="text-white" id="dm-trx-date">-</div>
-                        </div>
-                        <div>
-                            <div class="text-xs text-slate-500">Metode Pembayaran</div>
-                            <div class="text-white uppercase font-mono" id="dm-payment-method">-</div>
-                        </div>
-                        <div>
-                            <div class="text-xs text-slate-500">Kupon Diskon</div>
-                            <div class="text-yellow-400 font-bold font-mono" id="dm-coupon">-</div>
-                        </div>
-                        <div>
-                            <div class="text-xs text-slate-500">Status Pembayaran</div>
-                            <div class="inline-flex mt-1" id="dm-payment-status">-</div>
-                        </div>
+                <div class="space-y-2">
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 pb-1.5 border-b border-slate-800">Detail Transaksi</h4>
+                    <div>
+                        <div class="text-[11px] text-slate-400">Tanggal Transaksi</div>
+                        <div class="text-white font-mono mt-0.5" id="dm-trx-date">-</div>
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-slate-400">Metode & Kupon</div>
+                        <div class="text-white uppercase font-mono mt-0.5" id="dm-payment-method">-</div>
+                        <div class="text-amber-400 font-mono text-[11px]" id="dm-coupon">-</div>
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-slate-400">Status Pembayaran</div>
+                        <div class="inline-flex mt-1" id="dm-payment-status">-</div>
                     </div>
                 </div>
             </div>
 
             <!-- Addons Info -->
-            <div class="pt-6 border-t border-slate-700">
-                <h4 class="text-xs font-bold text-amber-500 uppercase tracking-wider mb-3">Addons / Tambahan</h4>
-                <div id="dm-addons" class="grid grid-cols-1 gap-2 bg-slate-900/40 p-3 rounded-xl border border-slate-800">
+            <div class="pt-4 border-t border-slate-800">
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Add-on Terpilih</h4>
+                <div id="dm-addons" class="bg-slate-950/60 p-3 rounded-md border border-slate-800 space-y-1">
                     -
                 </div>
             </div>
         </div>
 
         <!-- Footer -->
-        <div class="bg-slate-900/50 px-6 py-4 flex justify-end border-t border-slate-700">
-            <button type="button" onclick="closeDetailModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 transition text-sm font-bold">Tutup</button>
+        <div class="bg-slate-900/50 px-5 py-3 flex justify-end border-t border-slate-800">
+            <button type="button" onclick="closeDetailModal()" class="px-4 py-1.5 rounded-md bg-slate-800 text-slate-300 hover:bg-slate-700 transition text-xs font-semibold">Tutup</button>
         </div>
     </div>
 </div>
 
 <!-- QR Scan Modal -->
 <div id="qrScanModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" onclick="closeQrScanModal()"></div>
+    <div class="fixed inset-0 bg-slate-950/80 transition-opacity" onclick="closeQrScanModal()"></div>
     <div class="fixed inset-0 z-10 overflow-y-auto">
-        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-            <div class="relative transform overflow-hidden rounded-2xl bg-slate-800 border border-slate-700 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-lg">
+        <div class="flex min-h-full items-center justify-center p-4 text-center">
+            <div class="relative transform overflow-hidden rounded-lg bg-slate-900 border border-slate-800 text-left shadow-2xl transition-all w-full max-w-lg">
                 <div class="p-6">
-                    <div class="flex items-center justify-between mb-4">
-                        <h3 class="text-lg font-bold text-white">Scan QR Pickup</h3>
-                        <button type="button" onclick="closeQrScanModal()" class="text-slate-400 hover:text-white">
-                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    <div class="flex items-center justify-between pb-4 border-b border-slate-800">
+                        <div>
+                            <h3 class="text-base font-bold text-white">Verifikasi & Scan QR Pickup</h3>
+                            <p class="text-xs text-slate-400 mt-0.5">Scan tiket atau masukkan nomor BIB/ID peserta untuk mencatat pengambilan race pack.</p>
+                        </div>
+                        <button type="button" onclick="closeQrScanModal()" class="text-slate-400 hover:text-white p-1 rounded-md hover:bg-slate-800 transition">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                         </button>
                     </div>
 
-                    <div class="rounded-2xl overflow-hidden border border-slate-700 bg-black relative">
-                        <video id="qrVideo" class="w-full h-72 object-cover" playsinline muted></video>
-                        <div class="absolute inset-0 pointer-events-none">
-                            <div class="absolute inset-0 flex items-center justify-center">
-                                <div class="w-48 h-48 border-2 border-yellow-400/70 rounded-2xl"></div>
+                    <!-- Mode Tabs -->
+                    <div class="flex gap-1.5 mt-4 p-1 bg-slate-950 rounded-md border border-slate-800">
+                        <button type="button" id="tab-qr-camera" onclick="switchQrMode('camera')" class="flex-1 py-1.5 text-xs font-semibold rounded-md bg-slate-800 text-white transition">Kamera Langsung</button>
+                        <button type="button" id="tab-qr-file" onclick="switchQrMode('file')" class="flex-1 py-1.5 text-xs font-semibold rounded-md text-slate-400 hover:text-white transition">Upload Foto QR</button>
+                        <button type="button" id="tab-qr-manual" onclick="switchQrMode('manual')" class="flex-1 py-1.5 text-xs font-semibold rounded-md text-slate-400 hover:text-white transition">Input Manual</button>
+                    </div>
+
+                    <!-- Mode 1: Camera Scanner -->
+                    <div id="panel-qr-camera" class="mt-4">
+                        <div class="rounded-lg overflow-hidden border border-slate-800 bg-black relative">
+                            <div id="html5-qr-reader" class="w-full"></div>
+                            <video id="qrVideo" class="w-full h-64 object-cover hidden" playsinline muted></video>
+                        </div>
+                        <div class="flex items-center justify-between mt-2.5">
+                            <span class="text-[11px] text-slate-400">Arahkan kamera ke QR tiket dari email pelari</span>
+                            <div class="flex items-center gap-2">
+                                <button type="button" id="btnQrStart" onclick="startQrScan()" class="px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700">Mulai Ulang</button>
+                                <button type="button" id="btnQrStop" onclick="stopQrScan()" class="px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700">Hentikan</button>
                             </div>
                         </div>
                     </div>
 
-                    <div class="mt-4 space-y-2">
-                        <div id="qrScanMsg" class="text-sm text-slate-300"></div>
-                        <div class="text-xs text-slate-500">Arahkan kamera ke QR dari email tiket (format: TICKET-...)</div>
+                    <!-- Mode 2: File Upload Scanner -->
+                    <div id="panel-qr-file" class="mt-4 hidden">
+                        <div class="border-2 border-dashed border-slate-800 hover:border-slate-600 rounded-lg p-6 text-center cursor-pointer bg-slate-950/60 transition" onclick="document.getElementById('qr-file-input').click()">
+                            <input type="file" id="qr-file-input" accept="image/*" class="hidden" onchange="handleQrFileScan(this)">
+                            <div class="w-10 h-10 rounded-md bg-slate-800 text-slate-300 flex items-center justify-center mx-auto mb-2">
+                                <i class="fa-solid fa-image text-sm"></i>
+                            </div>
+                            <p class="text-xs font-semibold text-white">Klik untuk memilih gambar atau screenshot QR</p>
+                            <p class="text-[11px] text-slate-400 mt-1">Mendukung format JPG, PNG, atau WebP</p>
+                        </div>
                     </div>
+
+                    <!-- Mode 3: Manual Input -->
+                    <div id="panel-qr-manual" class="mt-4 hidden">
+                        <form onsubmit="handleQrManualSubmit(event)" class="space-y-3">
+                            <div>
+                                <label class="block text-xs font-medium text-slate-300 mb-1.5">Nomor BIB / ID Tiket / Nama / No. HP</label>
+                                <div class="flex gap-2">
+                                    <input type="text" id="qr-manual-input" placeholder="Contoh: 1001, TICKET-12, atau Budi" class="flex-1 bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-xs text-white focus:outline-none focus:border-slate-600">
+                                    <button type="submit" class="px-4 py-2 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs transition">Verifikasi</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- Feedback & Verification Result Card -->
+                    <div id="qrScanResultCard" class="mt-4 hidden p-3 rounded-lg border text-xs"></div>
+                    <div id="qrScanMsg" class="mt-3 text-xs text-slate-400"></div>
                 </div>
-                <div class="bg-slate-900/50 px-6 py-4 flex justify-end gap-3">
-                    <button type="button" id="btnQrStart" onclick="startQrScan()" class="px-4 py-2 rounded-lg bg-purple-600 hover:bg-purple-500 text-white text-sm font-bold">Start</button>
-                    <button type="button" id="btnQrStop" onclick="stopQrScan()" class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-white text-sm font-bold">Stop</button>
+
+                <div class="bg-slate-950 px-6 py-3 border-t border-slate-800 flex justify-end">
+                    <button type="button" onclick="closeQrScanModal()" class="px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold border border-slate-700 transition">Tutup</button>
                 </div>
             </div>
         </div>
@@ -1030,109 +1200,102 @@
 </div>
 
 <!-- Coupon Report Modal -->
-<div id="coupon-report-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-    <div class="bg-card w-full max-w-2xl rounded-2xl border border-slate-700 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
-        <!-- Header -->
-        <div class="flex items-center justify-between p-4 border-b border-slate-700 bg-slate-900/50">
+<div id="coupon-report-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-slate-950/80 p-4">
+    <div class="bg-card w-full max-w-2xl rounded-lg border border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+        <div class="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-900/50">
             <div>
-                <h3 class="text-lg font-bold text-white">Laporan Filter Kupon</h3>
+                <h3 class="text-base font-bold text-white">Laporan Filter Kupon</h3>
                 <div class="text-xs text-slate-400" id="coupon-modal-subtitle"></div>
             </div>
             <button type="button" onclick="closeCouponReportModal()" class="text-slate-400 hover:text-white transition">
-                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
         </div>
         
-        <!-- Content -->
-        <div class="p-6 overflow-y-auto space-y-6 text-sm text-slate-300">
-            <!-- Jersey Size Summary (misal S = 3 XL = 4) -->
+        <div class="p-5 overflow-y-auto space-y-5 text-xs text-slate-300">
             <div>
-                <h4 class="text-xs font-bold text-yellow-400 uppercase tracking-wider mb-3">Ringkasan Ukuran Jersey</h4>
-                <div id="coupon-jersey-summary" class="flex flex-wrap gap-2">
-                    <!-- Dynamic badges -->
-                </div>
+                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 mb-2">Ringkasan Ukuran Jersey</h4>
+                <div id="coupon-jersey-summary" class="flex flex-wrap gap-2"></div>
             </div>
 
-            <!-- List of BIB & Jersey Sizes -->
             <div>
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 mb-3">
-                    <h4 class="text-xs font-bold text-cyan-400 uppercase tracking-wider">Daftar Nomor BIB dan Jersey</h4>
+                    <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400">Daftar Nomor BIB dan Jersey</h4>
                     <div class="flex items-center gap-2">
-                        <label for="couponModalFilterPickup" class="text-xs text-slate-400 font-bold uppercase tracking-wider">Filter Picked:</label>
-                        <select id="couponModalFilterPickup" onchange="filterCouponModalTable()" class="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-blue-500 transition-colors">
+                        <label for="couponModalFilterPickup" class="text-xs text-slate-400 font-semibold uppercase">Filter Picked:</label>
+                        <select id="couponModalFilterPickup" onchange="filterCouponModalTable()" class="bg-slate-950 border border-slate-800 rounded-md px-2.5 py-1 text-xs text-white focus:outline-none">
                             <option value="all">Semua Status</option>
                             <option value="1">Picked Up</option>
                             <option value="0">Not Picked</option>
                         </select>
                     </div>
                 </div>
-                <div class="overflow-x-auto border border-slate-700 rounded-xl">
+                <div class="overflow-x-auto border border-slate-800 rounded-lg">
                     <table class="min-w-full text-xs">
-                        <thead class="bg-slate-900/60 text-slate-300">
+                        <thead class="bg-slate-900 text-slate-300 border-b border-slate-800">
                             <tr>
-                                <th class="text-left font-semibold px-4 py-2">Nama</th>
-                                <th class="text-left font-semibold px-4 py-2">Nomor BIB</th>
-                                <th class="text-left font-semibold px-4 py-2">Ukuran Jersey</th>
-                                <th class="text-left font-semibold px-4 py-2">Status Picked</th>
+                                <th class="text-left font-semibold px-3 py-2">Nama</th>
+                                <th class="text-left font-semibold px-3 py-2">Nomor BIB</th>
+                                <th class="text-left font-semibold px-3 py-2">Ukuran Jersey</th>
+                                <th class="text-left font-semibold px-3 py-2">Status Picked</th>
                             </tr>
                         </thead>
-                        <tbody id="coupon-participants-tbody" class="divide-y divide-slate-800">
-                            <!-- Dynamic rows -->
-                        </tbody>
+                        <tbody id="coupon-participants-tbody" class="divide-y divide-slate-800"></tbody>
                     </table>
                 </div>
             </div>
         </div>
 
-        <!-- Footer -->
-        <div class="bg-slate-900/50 px-6 py-4 flex justify-end border-t border-slate-700">
-            <button type="button" onclick="closeCouponReportModal()" class="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 hover:bg-slate-700 transition text-sm font-bold">Tutup</button>
+        <div class="bg-slate-900/50 px-5 py-3 flex justify-end border-t border-slate-800">
+            <button type="button" onclick="closeCouponReportModal()" class="px-4 py-1.5 rounded-md bg-slate-800 text-slate-300 hover:bg-slate-700 transition text-xs font-semibold">Tutup</button>
+        </div>
+    </div>
+</div>
+
 <!-- Activity Log Modal -->
 <div id="activityLogModal" class="fixed inset-0 z-[100] hidden overflow-y-auto p-3 sm:p-4">
-    <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm" onclick="closeActivityLogModal()"></div>
+    <div class="fixed inset-0 bg-slate-950/80" onclick="closeActivityLogModal()"></div>
     <div class="flex min-h-full items-center justify-center relative pointer-events-none">
-        <div class="pointer-events-auto relative bg-slate-900 border border-slate-700/80 rounded-2xl w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] text-slate-200">
+        <div class="pointer-events-auto relative bg-slate-900 border border-slate-800 rounded-lg w-full max-w-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh] text-slate-200">
             <!-- Header -->
-            <div class="p-4 sm:p-5 border-b border-slate-800 bg-slate-900 flex justify-between items-center shrink-0">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-sky-500/10 border border-sky-500/30 text-sky-400 flex items-center justify-center font-bold">
-                        <i class="fa-solid fa-clock-rotate-left text-base"></i>
+            <div class="p-4 border-b border-slate-800 bg-slate-900 flex justify-between items-center shrink-0">
+                <div class="flex items-center gap-2.5">
+                    <div class="w-8 h-8 rounded-md bg-slate-800 text-slate-300 flex items-center justify-center font-bold">
+                        <i class="fa-solid fa-clock-rotate-left text-sm"></i>
                     </div>
                     <div>
-                        <h3 class="text-white font-extrabold text-base sm:text-lg uppercase tracking-tight flex items-center gap-2">
-                            <span>Log Aktivitas Operator</span>
+                        <h3 class="text-white font-bold text-sm sm:text-base">
+                            Log Aktivitas Operator
                         </h3>
-                        <p class="text-xs text-slate-400">Histori scan QR, pengubahan status & approval sesi ini</p>
+                        <p class="text-[11px] text-slate-400">Histori scan QR, pengubahan status & approval sesi ini</p>
                     </div>
                 </div>
-                <button type="button" onclick="closeActivityLogModal()" class="w-8 h-8 rounded-xl bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition">
-                    <i class="fa-solid fa-xmark text-sm"></i>
+                <button type="button" onclick="closeActivityLogModal()" class="w-7 h-7 rounded-md bg-slate-800 text-slate-400 hover:text-white flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark text-xs"></i>
                 </button>
             </div>
 
-            <!-- Modal Sub-Header & Controls -->
-            <div class="p-3 sm:p-4 bg-slate-900/50 border-b border-slate-800 flex flex-col sm:flex-row gap-2 justify-between items-center shrink-0">
+            <!-- Sub Header -->
+            <div class="p-3 bg-slate-950/50 border-b border-slate-800 flex flex-col sm:flex-row gap-2 justify-between items-center shrink-0">
                 <div class="relative w-full sm:w-64">
                     <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-xs"></i>
-                    <input type="text" id="activity-log-search" oninput="renderActivityLogs(this.value)" placeholder="Cari BIB / Nama di log..." class="w-full bg-slate-950 border border-slate-700 rounded-xl pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:border-sky-400 transition">
+                    <input type="text" id="activity-log-search" oninput="renderActivityLogs(this.value)" placeholder="Cari BIB / Nama di log..." class="w-full bg-slate-950 border border-slate-800 rounded-md pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:border-slate-600 transition">
                 </div>
                 <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
                     <span id="activity-log-count-summary" class="text-xs text-slate-400 font-mono">0 Log tercatat</span>
-                    <button type="button" onclick="clearActivityLogs()" class="px-2.5 py-1 text-xs rounded-lg bg-red-950/40 hover:bg-red-900/60 text-red-400 border border-red-500/30 font-bold transition flex items-center gap-1">
+                    <button type="button" onclick="clearActivityLogs()" class="px-2.5 py-1 text-xs rounded-md bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 border border-rose-500/30 font-semibold transition flex items-center gap-1">
                         <i class="fa-solid fa-trash-can text-[10px]"></i>
                         <span>Hapus Log</span>
                     </button>
                 </div>
             </div>
 
-            <!-- Modal Content (Scrollable List) -->
-            <div class="flex-1 overflow-y-auto p-4 space-y-2 custom-scrollbar" id="activity-log-list-container">
-                <!-- Log entries inserted here dynamically -->
-            </div>
+            <!-- Content -->
+            <div class="flex-1 overflow-y-auto p-4 space-y-2" id="activity-log-list-container"></div>
 
             <!-- Footer -->
             <div class="p-3 border-t border-slate-800 bg-slate-900 flex justify-end shrink-0">
-                <button type="button" onclick="closeActivityLogModal()" class="px-4 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold text-xs transition">
+                <button type="button" onclick="closeActivityLogModal()" class="px-4 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-xs transition">
                     Tutup
                 </button>
             </div>
@@ -1143,528 +1306,555 @@
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script>
-        // Activity Log State & Helper Functions
-        const activityLogStorageKey = "report_activity_logs_{{ $event->id }}";
+    // Theme Management (Dark / Light)
+    function applyReportTheme(theme) {
+        const isLight = theme === 'light';
+        const body = document.body;
+        const icon = document.getElementById('theme-toggle-icon');
+        const label = document.getElementById('theme-toggle-label');
 
-        function getActivityLogs() {
-            try {
-                return JSON.parse(localStorage.getItem(activityLogStorageKey) || '[]');
-            } catch(e) {
-                return [];
+        if (isLight) {
+            body.classList.add('theme-light');
+            if (icon) icon.className = 'fa-solid fa-moon text-slate-600';
+            if (label) label.textContent = 'Mode Gelap';
+            try { localStorage.setItem('ruanglari_report_theme', 'light'); } catch(e) {}
+        } else {
+            body.classList.remove('theme-light');
+            if (icon) icon.className = 'fa-solid fa-sun text-amber-400';
+            if (label) label.textContent = 'Mode Terang';
+            try { localStorage.setItem('ruanglari_report_theme', 'dark'); } catch(e) {}
+        }
+
+        if (typeof salesChart !== 'undefined' && salesChart) {
+            updateSalesChartTheme(isLight);
+        }
+    }
+
+    function toggleReportTheme() {
+        const isLight = document.body.classList.contains('theme-light');
+        applyReportTheme(isLight ? 'dark' : 'light');
+    }
+
+    function updateSalesChartTheme(isLight) {
+        if (!salesChart) return;
+        const textColor = isLight ? '#475569' : '#94a3b8';
+        const gridColor = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(148, 163, 184, 0.15)';
+
+        if (salesChart.options && salesChart.options.scales) {
+            if (salesChart.options.scales.x) {
+                salesChart.options.scales.x.ticks.color = textColor;
+                salesChart.options.scales.x.grid.color = gridColor;
+            }
+            if (salesChart.options.scales.y) {
+                salesChart.options.scales.y.ticks.color = textColor;
+                salesChart.options.scales.y.grid.color = gridColor;
             }
         }
-
-        function updateActivityLogBadge() {
-            const logs = getActivityLogs();
-            const badge = document.getElementById('activity-log-badge');
-            const summary = document.getElementById('activity-log-count-summary');
-            if (badge) badge.textContent = logs.length;
-            if (summary) summary.textContent = `${logs.length} Log tercatat`;
+        if (salesChart.options && salesChart.options.plugins && salesChart.options.plugins.legend) {
+            salesChart.options.plugins.legend.labels.color = isLight ? '#0f172a' : '#e2e8f0';
         }
+        salesChart.update();
+    }
 
-        function addActivityLog(type, participant, extra = '') {
-            if (!participant) return;
-            const logs = getActivityLogs();
-            
-            const now = new Date();
-            const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-            const dateStr = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
-
-            const newLog = {
-                id: Date.now() + '_' + Math.random().toString(36).substr(2, 4),
-                timestamp: timeStr,
-                date: dateStr,
-                type: type, // 'pickup_on', 'pickup_off', 'qr_scan', 'status_update'
-                participant_id: participant.id || participant.participant_id || '-',
-                name: participant.name || participant.participant_name || '-',
-                bib: participant.bib_number || participant.bib || '-',
-                category: participant.category_name || participant.category?.name || '-',
-                email: participant.email || '-',
-                phone: participant.phone || '-',
-                extra: extra
-            };
-
-            logs.unshift(newLog);
-            if (logs.length > 100) logs.splice(100);
-
-            try {
-                localStorage.setItem(activityLogStorageKey, JSON.stringify(logs));
-            } catch(e) {}
-
-            updateActivityLogBadge();
-        }
-
-        function clearActivityLogs() {
-            if (!confirm('Apakah Anda yakin ingin menghapus seluruh riwayat log aktivitas scan/pickup?')) return;
-            localStorage.removeItem(activityLogStorageKey);
-            updateActivityLogBadge();
-            renderActivityLogs();
-        }
-
-        function openActivityLogModal() {
-            renderActivityLogs();
-            const modal = document.getElementById('activityLogModal');
-            if (modal) modal.classList.remove('hidden');
-        }
-
-        function closeActivityLogModal() {
-            const modal = document.getElementById('activityLogModal');
-            if (modal) modal.classList.add('hidden');
-        }
-
-        function renderActivityLogs(searchQuery = '') {
-            const container = document.getElementById('activity-log-list-container');
-            if (!container) return;
-
-            const logs = getActivityLogs();
-            const query = (searchQuery || '').toLowerCase().trim();
-
-            const filtered = logs.filter(log => {
-                if (!query) return true;
-                return (log.name || '').toLowerCase().includes(query) ||
-                       (log.bib || '').toLowerCase().includes(query) ||
-                       (log.type || '').toLowerCase().includes(query) ||
-                       (log.category || '').toLowerCase().includes(query);
-            });
-
-            if (filtered.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-10 text-slate-500">
-                        <i class="fa-solid fa-list-check text-3xl mb-2 text-slate-600 block"></i>
-                        <p class="text-xs font-semibold">Belum ada log aktivitas ${query ? 'yang cocok dengan pencarian' : 'tercatat'}.</p>
-                        <p class="text-[10px] text-slate-600 mt-1">Setiap kali Anda melakukan scan QR atau merubah status Picked Up, histori akan otomatis muncul di sini.</p>
-                    </div>
-                `;
-                return;
-            }
-
-            container.innerHTML = filtered.map(log => {
-                let badgeClass = 'bg-slate-800 text-slate-300 border-slate-700';
-                let badgeText = 'ACTIVITY';
-                let iconClass = 'fa-info-circle';
-
-                if (log.type === 'pickup_on') {
-                    badgeClass = 'bg-emerald-950/60 text-emerald-400 border-emerald-500/30';
-                    badgeText = 'PICKED UP (Sudah Diambil)';
-                    iconClass = 'fa-circle-check';
-                } else if (log.type === 'pickup_off') {
-                    badgeClass = 'bg-amber-950/60 text-amber-400 border-amber-500/30';
-                    badgeText = 'NOT PICKED (Batal Picked)';
-                    iconClass = 'fa-rotate-left';
-                } else if (log.type === 'qr_scan') {
-                    badgeClass = 'bg-purple-950/60 text-purple-300 border-purple-500/30';
-                    badgeText = 'SCAN QR SUCCESS';
-                    iconClass = 'fa-qrcode';
-                } else if (log.type === 'status_update') {
-                    badgeClass = 'bg-sky-950/60 text-sky-300 border-sky-500/30';
-                    badgeText = 'STATUS UPDATE';
-                    iconClass = 'fa-pen-to-square';
-                }
-
-                return `
-                    <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 hover:border-slate-700 transition">
-                        <div class="flex items-start gap-3">
-                            <div class="px-2 py-1 rounded-lg border text-[10px] font-mono font-bold uppercase ${badgeClass} shrink-0 mt-0.5 sm:mt-0 flex items-center gap-1">
-                                <i class="fa-solid ${iconClass} text-[9px]"></i>
-                                <span>${badgeText}</span>
-                            </div>
-                            <div>
-                                <div class="text-xs font-bold text-white flex items-center gap-2">
-                                    <span>${log.name}</span>
-                                    <span class="px-1.5 py-0.2 bg-slate-800 text-neon rounded text-[10px] font-mono font-bold">BIB #${log.bib}</span>
-                                </div>
-                                <div class="text-[11px] text-slate-400 flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
-                                    <span>${log.category}</span>
-                                    <span>•</span>
-                                    <span class="text-slate-500">${log.email !== '-' ? log.email : log.phone}</span>
-                                    ${log.extra ? `<span class="text-slate-500">• ${log.extra}</span>` : ''}
-                                </div>
-                            </div>
-                        </div>
-                        <div class="text-[10px] font-mono text-slate-500 self-end sm:self-center shrink-0">
-                            ${log.date} ${log.timestamp}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        const viewModeStorageKey = 'report_table_view_mode';
-
-        function setTableViewMode(mode) {
-            const wrapper = document.getElementById('participants-table-wrapper');
-            const btnList = document.getElementById('btn-view-mode-list');
-            const btnStacked = document.getElementById('btn-view-mode-stacked');
-
-            if (!wrapper) return;
-
-            if (mode === 'stacked') {
-                wrapper.classList.remove('view-mode-list');
-                wrapper.classList.add('view-mode-stacked');
-
-                if (btnList) {
-                    btnList.className = 'px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 text-slate-400 hover:text-white';
-                }
-                if (btnStacked) {
-                    btnStacked.className = 'px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-neon text-dark shadow-sm';
-                }
+    // Auto-init theme preference
+    (function() {
+        let savedTheme = 'dark';
+        try {
+            const urlParam = new URLSearchParams(window.location.search).get('theme');
+            if (urlParam === 'light' || urlParam === 'dark') {
+                savedTheme = urlParam;
             } else {
-                mode = 'list';
-                wrapper.classList.remove('view-mode-stacked');
-                wrapper.classList.add('view-mode-list');
-
-                if (btnList) {
-                    btnList.className = 'px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 bg-neon text-dark shadow-sm';
-                }
-                if (btnStacked) {
-                    btnStacked.className = 'px-2.5 py-1 rounded-lg text-xs font-bold transition flex items-center gap-1.5 text-slate-400 hover:text-white';
-                }
+                savedTheme = localStorage.getItem('ruanglari_report_theme') || 'dark';
             }
+        } catch(e) {}
 
-            try {
-                localStorage.setItem(viewModeStorageKey, mode);
-            } catch(e) {}
+        if (savedTheme === 'light') {
+            applyReportTheme('light');
         }
+    })();
 
-        function initTableViewMode() {
-            let savedMode = 'list';
-            try {
-                savedMode = localStorage.getItem(viewModeStorageKey) || 'list';
-            } catch(e) {}
+    // Activity Log System
+    const activityLogStorageKey = 'report_activity_logs_' + '{{ $event->id }}';
 
-            setTableViewMode(savedMode);
+    function getActivityLogs() {
+        try {
+            const data = localStorage.getItem(activityLogStorageKey);
+            return data ? JSON.parse(data) : [];
+        } catch(e) {
+            return [];
         }
+    }
 
-        document.addEventListener('DOMContentLoaded', function() {
-            updateActivityLogBadge();
-            initTableViewMode();
+    function updateActivityLogBadge() {
+        const logs = getActivityLogs();
+        const badge = document.getElementById('activity-log-badge');
+        const summary = document.getElementById('activity-log-count-summary');
+        if (badge) badge.textContent = logs.length;
+        if (summary) summary.textContent = `${logs.length} Log tercatat`;
+    }
+
+    function addActivityLog(type, participant, extra = '') {
+        if (!participant) return;
+        const logs = getActivityLogs();
+        
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+        const dateStr = now.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+
+        const newLog = {
+            id: Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+            timestamp: timeStr,
+            date: dateStr,
+            type: type,
+            participant_id: participant.id || participant.participant_id || '-',
+            name: participant.name || participant.participant_name || '-',
+            bib: participant.bib_number || participant.bib || '-',
+            category: participant.category_name || participant.category?.name || '-',
+            email: participant.email || '-',
+            phone: participant.phone || '-',
+            extra: extra
+        };
+
+        logs.unshift(newLog);
+        if (logs.length > 100) logs.splice(100);
+
+        try {
+            localStorage.setItem(activityLogStorageKey, JSON.stringify(logs));
+        } catch(e) {}
+
+        updateActivityLogBadge();
+    }
+
+    function clearActivityLogs() {
+        if (!confirm('Apakah Anda yakin ingin menghapus seluruh riwayat log aktivitas scan/pickup?')) return;
+        localStorage.removeItem(activityLogStorageKey);
+        updateActivityLogBadge();
+        renderActivityLogs();
+    }
+
+    function openActivityLogModal() {
+        renderActivityLogs();
+        const modal = document.getElementById('activityLogModal');
+        if (modal) modal.classList.remove('hidden');
+    }
+
+    function closeActivityLogModal() {
+        const modal = document.getElementById('activityLogModal');
+        if (modal) modal.classList.add('hidden');
+    }
+
+    function renderActivityLogs(searchQuery = '') {
+        const container = document.getElementById('activity-log-list-container');
+        if (!container) return;
+
+        const logs = getActivityLogs();
+        const query = (searchQuery || '').toLowerCase().trim();
+
+        const filtered = logs.filter(log => {
+            if (!query) return true;
+            return (log.name || '').toLowerCase().includes(query) ||
+                   (log.bib || '').toLowerCase().includes(query) ||
+                   (log.type || '').toLowerCase().includes(query) ||
+                   (log.category || '').toLowerCase().includes(query);
         });
 
-        const updateUrlBase = "{{ route('report.participant.update', ['event' => $event->id, 'participant' => ':id']) }}";
-        const csrfTokenVal = "{{ csrf_token() }}";
+        if (filtered.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-10 text-slate-500">
+                    <i class="fa-solid fa-list-check text-2xl mb-2 text-slate-600 block"></i>
+                    <p class="text-xs font-semibold">Belum ada log aktivitas ${query ? 'yang cocok' : 'tercatat'}.</p>
+                </div>
+            `;
+            return;
+        }
 
-        var qrStream = null;
-        var qrRunning = false;
-        var qrBusy = false;
-        var qrLastOkAt = 0;
-        var qrLoopTimer = null;
-        var qrCanvas = null;
-        var qrCtx = null;
-        var qrDetector = null;
+        container.innerHTML = filtered.map(log => {
+            let badgeClass = 'bg-slate-800 text-slate-300 border-slate-700';
+            let badgeText = 'ACTIVITY';
+            let iconClass = 'fa-info-circle';
 
-        window.getExportUrl = function (format) {
-            const baseUrl = format === 'xlsx' ? "{{ route('report.export.xlsx', $event->id) }}" : "{{ route('report.export', $event->id) }}";
-            const currentParams = new URLSearchParams(window.location.search);
-            currentParams.delete('page');
-            currentParams.delete('per_page');
-            const qs = currentParams.toString();
-            return baseUrl + (qs ? '?' + qs : '');
-        };
+            if (log.type === 'pickup_on') {
+                badgeClass = 'bg-emerald-950/60 text-emerald-400 border-emerald-500/30';
+                badgeText = 'PICKED UP (Sudah Diambil)';
+                iconClass = 'fa-circle-check';
+            } else if (log.type === 'pickup_off') {
+                badgeClass = 'bg-amber-950/60 text-amber-400 border-amber-500/30';
+                badgeText = 'NOT PICKED (Batal Picked)';
+                iconClass = 'fa-rotate-left';
+            } else if (log.type === 'qr_scan') {
+                badgeClass = 'bg-sky-950/60 text-sky-300 border-sky-500/30';
+                badgeText = 'SCAN QR SUCCESS';
+                iconClass = 'fa-qrcode';
+            } else if (log.type === 'status_update') {
+                badgeClass = 'bg-slate-800 text-slate-200 border-slate-700';
+                badgeText = 'STATUS UPDATE';
+                iconClass = 'fa-pen-to-square';
+            }
 
-        function setQrMsg(text, type) {
-            var el = document.getElementById('qrScanMsg');
-            if (!el) return;
-            el.textContent = text || '';
-            if (type === 'error') {
-                el.className = 'text-sm text-red-300';
-            } else if (type === 'success') {
-                el.className = 'text-sm text-green-300';
-            } else {
-                el.className = 'text-sm text-slate-300';
+            return `
+                <div class="bg-slate-950 border border-slate-800 rounded-md p-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 hover:border-slate-700 transition">
+                    <div class="flex items-start gap-2.5">
+                        <div class="px-2 py-0.5 rounded border text-[10px] font-mono font-bold uppercase ${badgeClass} shrink-0 mt-0.5 sm:mt-0 flex items-center gap-1">
+                            <i class="fa-solid ${iconClass} text-[9px]"></i>
+                            <span>${badgeText}</span>
+                        </div>
+                        <div>
+                            <div class="text-xs font-bold text-white flex items-center gap-2">
+                                <span>${log.name}</span>
+                                <span class="px-1.5 py-0.2 bg-slate-800 text-slate-200 rounded text-[10px] font-mono font-bold">BIB #${log.bib}</span>
+                            </div>
+                            <div class="text-[11px] text-slate-400 flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-0.5">
+                                <span>${log.category}</span>
+                                <span>•</span>
+                                <span class="text-slate-500">${log.email !== '-' ? log.email : log.phone}</span>
+                                ${log.extra ? `<span class="text-slate-500">• ${log.extra}</span>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-[10px] font-mono text-slate-500 self-end sm:self-center shrink-0">
+                        ${log.date} ${log.timestamp}
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // View Mode Switcher
+    const viewModeStorageKey = 'report_table_view_mode';
+
+    function setTableViewMode(mode) {
+        const wrapper = document.getElementById('participants-table-wrapper');
+        const btnList = document.getElementById('btn-view-mode-list');
+        const btnStacked = document.getElementById('btn-view-mode-stacked');
+
+        if (!wrapper) return;
+
+        if (mode === 'stacked') {
+            wrapper.classList.remove('view-mode-list');
+            wrapper.classList.add('view-mode-stacked');
+
+            if (btnList) {
+                btnList.className = 'px-2.5 py-1 rounded-md text-xs font-semibold transition flex items-center gap-1.5 text-slate-400 hover:text-white';
+            }
+            if (btnStacked) {
+                btnStacked.className = 'px-2.5 py-1 rounded-md text-xs font-semibold transition flex items-center gap-1.5 bg-slate-800 text-white';
+            }
+        } else {
+            mode = 'list';
+            wrapper.classList.remove('view-mode-stacked');
+            wrapper.classList.add('view-mode-list');
+
+            if (btnList) {
+                btnList.className = 'px-2.5 py-1 rounded-md text-xs font-semibold transition flex items-center gap-1.5 bg-slate-800 text-white';
+            }
+            if (btnStacked) {
+                btnStacked.className = 'px-2.5 py-1 rounded-md text-xs font-semibold transition flex items-center gap-1.5 text-slate-400 hover:text-white';
             }
         }
 
-        function parseParticipantIdFromQr(raw) {
-            var s = String(raw || '').trim();
-            if (!s) return null;
+        try {
+            localStorage.setItem(viewModeStorageKey, mode);
+        } catch(e) {}
+    }
 
-            try {
-                if (/^https?:\/\//i.test(s)) {
-                    var u = new URL(s);
-                    var d = u.searchParams.get('data') || u.searchParams.get('ticket') || u.searchParams.get('q') || '';
-                    if (d) s = String(d).trim();
+    function initTableViewMode() {
+        let savedMode = 'list';
+        try {
+            savedMode = localStorage.getItem(viewModeStorageKey) || 'list';
+        } catch(e) {}
+
+        setTableViewMode(savedMode);
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        updateActivityLogBadge();
+        initTableViewMode();
+    });
+
+    const updateUrlBase = "{{ route('report.participant.update', ['event' => $event->id, 'participant' => ':id']) }}";
+    const csrfTokenVal = "{{ csrf_token() }}";
+
+    var html5QrCode = null;
+    var qrRunning = false;
+    var qrBusy = false;
+    var qrLastOkAt = 0;
+    var activeQrMode = 'camera';
+
+    const scanQrEndpoint = "{{ route('report.scan-qr', $event->id) }}" + window.location.search;
+
+    window.switchQrMode = function(mode) {
+        activeQrMode = mode;
+        ['camera', 'file', 'manual'].forEach(m => {
+            const btn = document.getElementById('tab-qr-' + m);
+            const panel = document.getElementById('panel-qr-' + m);
+            if (btn) {
+                if (m === mode) {
+                    btn.className = 'flex-1 py-1.5 text-xs font-semibold rounded-md bg-slate-800 text-white transition';
+                } else {
+                    btn.className = 'flex-1 py-1.5 text-xs font-semibold rounded-md text-slate-400 hover:text-white transition';
                 }
-            } catch (e) {}
+            }
+            if (panel) {
+                if (m === mode) panel.classList.remove('hidden');
+                else panel.classList.add('hidden');
+            }
+        });
 
-            var m = s.match(/^TICKET-(\d+)-(\d+)$/);
-            if (m && m[1]) return parseInt(m[1], 10);
+        if (mode === 'camera') {
+            window.startQrScan();
+        } else {
+            window.stopQrScan();
+            if (mode === 'manual') {
+                const inp = document.getElementById('qr-manual-input');
+                if (inp) inp.focus();
+            }
+        }
+    };
 
-            m = s.match(/TICKET-(\d+)-/);
-            if (m && m[1]) return parseInt(m[1], 10);
+    function setQrResult(data, isError, message) {
+        const card = document.getElementById('qrScanResultCard');
+        const msgEl = document.getElementById('qrScanMsg');
+        if (msgEl) msgEl.textContent = '';
 
-            return null;
+        if (!card) return;
+
+        if (isError) {
+            card.className = 'mt-4 p-3 rounded-md bg-rose-950/60 border border-rose-800/80 text-rose-200 text-xs block';
+            card.innerHTML = `<div class="font-bold mb-1">Gagal Verifikasi</div><p class="text-slate-300 leading-relaxed">${message || 'Kode QR tidak dikenali atau belum lunas.'}</p>`;
+            return;
         }
 
-        function updatePickupByParticipantId(participantId) {
-            var url = "{{ url('/reports/' . $event->id . '/participants') }}/" + participantId + "/status";
-            return fetch(url, {
+        const p = data.participant || {};
+        const isAlready = data.already_picked_up;
+
+        card.className = isAlready 
+            ? 'mt-4 p-3.5 rounded-md bg-amber-950/70 border border-amber-600/60 text-amber-200 text-xs block'
+            : 'mt-4 p-3.5 rounded-md bg-emerald-950/70 border border-emerald-600/60 text-emerald-200 text-xs block';
+
+        card.innerHTML = `
+            <div class="flex items-center justify-between mb-2 pb-2 border-b border-white/10">
+                <span class="font-bold text-sm text-white">${isAlready ? 'SUDAH PERNAH DIAMBIL' : 'VERIFIKASI SUKSES'}</span>
+                <span class="px-2 py-0.5 rounded text-[10px] font-bold ${isAlready ? 'bg-amber-500/20 text-amber-300' : 'bg-emerald-500/20 text-emerald-300'}">BIB: ${p.bib_number || '-'}</span>
+            </div>
+            <div class="space-y-1 text-slate-300">
+                <div class="flex justify-between"><span class="text-slate-400">Nama:</span> <strong class="text-white">${p.name || '-'}</strong></div>
+                <div class="flex justify-between"><span class="text-slate-400">Jersey:</span> <span class="font-bold text-white">${p.jersey_size || '-'}</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Kategori / Umur:</span> <span>${p.age_group || '-'}</span></div>
+                <div class="flex justify-between"><span class="text-slate-400">Pembayaran:</span> <span class="text-emerald-400 font-bold uppercase">${p.payment_status || 'PAID'}</span></div>
+                ${p.addons && p.addons.length ? `<div class="flex justify-between"><span class="text-slate-400">Addons:</span> <span>${p.addons.join(', ')}</span></div>` : ''}
+                ${isAlready && p.picked_up_at ? `<div class="text-[11px] text-amber-300/90 pt-1">Diambil pada: ${p.picked_up_at} (${p.picked_up_by || 'Staff'})</div>` : ''}
+            </div>
+        `;
+    }
+
+    function verifyQrCodePayload(code) {
+        if (!code || qrBusy) return;
+        const now = Date.now();
+        if (now - qrLastOkAt < 1200) return;
+
+        qrBusy = true;
+        const msgEl = document.getElementById('qrScanMsg');
+        if (msgEl) msgEl.textContent = 'Memverifikasi data tiket #' + code + '…';
+
+        fetch(scanQrEndpoint, {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': csrfTokenVal,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                code: String(code).trim(),
+                picked_up_by: 'Public Report Scanner'
+            })
+        })
+        .then(r => r.json())
+        .then(res => {
+            qrBusy = false;
+            if (res.success) {
+                qrLastOkAt = Date.now();
+                setQrResult(res, false, res.message);
+                if (typeof addActivityLog === 'function' && res.participant) {
+                    addActivityLog('qr_scan', res.participant, 'Scan QR Verified');
+                }
+                const filterForm = document.getElementById('report-filters');
+                if (filterForm && typeof fetchReport === 'function') {
+                    const fd = new FormData(filterForm);
+                    const payloadObj = {};
+                    for (const [k, v] of fd.entries()) {
+                        payloadObj[k] = typeof v === 'string' ? v.trim() : v;
+                    }
+                    payloadObj.page = 1;
+                    fetchReport(payloadObj);
+                }
+            } else {
+                setQrResult(res, true, res.message || 'Verifikasi gagal');
+            }
+        })
+        .catch(err => {
+            qrBusy = false;
+            setQrResult(null, true, err.message || 'Terjadi kesalahan jaringan atau sesi scanner kedaluwarsa.');
+        });
+    }
+
+    window.openQrScanModal = function() {
+        var modal = document.getElementById('qrScanModal');
+        if (modal) modal.classList.remove('hidden');
+        const card = document.getElementById('qrScanResultCard');
+        if (card) card.classList.add('hidden');
+        const msg = document.getElementById('qrScanMsg');
+        if (msg) msg.textContent = '';
+        window.switchQrMode('camera');
+    };
+
+    window.closeQrScanModal = function() {
+        window.stopQrScan();
+        var modal = document.getElementById('qrScanModal');
+        if (modal) modal.classList.add('hidden');
+    };
+
+    window.startQrScan = function() {
+        if (qrRunning) return;
+        const readerEl = document.getElementById('html5-qr-reader');
+        if (!readerEl) return;
+
+        const msgEl = document.getElementById('qrScanMsg');
+        if (msgEl) msgEl.textContent = 'Menyiapkan scanner kamera…';
+
+        if (typeof Html5Qrcode !== 'undefined') {
+            try {
+                if (!html5QrCode) {
+                    html5QrCode = new Html5Qrcode("html5-qr-reader");
+                }
+                qrRunning = true;
+                html5QrCode.start(
+                    { facingMode: "environment" },
+                    { fps: 12, qrbox: { width: 220, height: 220 } },
+                    (decodedText) => {
+                        verifyQrCodePayload(decodedText);
+                    },
+                    () => {}
+                ).then(() => {
+                    if (msgEl) msgEl.textContent = 'Kamera aktif. Arahkan ke barcode atau QR tiket.';
+                }).catch(err => {
+                    qrRunning = false;
+                    console.warn('html5QrCode start failed, fallback to file/manual', err);
+                    if (msgEl) msgEl.textContent = 'Tidak dapat membuka kamera (' + (err.message || 'Izin kamera ditolak') + '). Gunakan Upload Foto atau Input Manual.';
+                });
+                return;
+            } catch(e) {
+                console.error(e);
+            }
+        }
+        if (msgEl) msgEl.textContent = 'Pustaka scanner belum dimuat. Silakan gunakan Input Manual.';
+    };
+
+    window.stopQrScan = function() {
+        if (html5QrCode && qrRunning) {
+            html5QrCode.stop().then(() => {
+                qrRunning = false;
+            }).catch(() => {
+                qrRunning = false;
+            });
+        }
+    };
+
+    window.handleQrFileScan = function(input) {
+        if (!input.files || !input.files[0]) return;
+        const file = input.files[0];
+        const msgEl = document.getElementById('qrScanMsg');
+        if (msgEl) msgEl.textContent = 'Membaca gambar QR…';
+
+        if (typeof Html5Qrcode !== 'undefined') {
+            const scanner = new Html5Qrcode("html5-qr-reader");
+            scanner.scanFile(file, true)
+                .then(decodedText => {
+                    verifyQrCodePayload(decodedText);
+                })
+                .catch(err => {
+                    if (msgEl) msgEl.textContent = 'QR tidak ditemukan dalam foto tersebut. Coba foto lain atau gunakan Input Manual.';
+                });
+        }
+    };
+
+    window.handleQrManualSubmit = function(e) {
+        e.preventDefault();
+        const inp = document.getElementById('qr-manual-input');
+        if (!inp || !inp.value.trim()) return;
+        verifyQrCodePayload(inp.value.trim());
+    };
+
+    async function updateStatus(participantId, value, checkboxEl) {
+        const url = updateUrlBase.replace(':id', participantId);
+        const original = !value;
+        checkboxEl.disabled = true;
+
+        try {
+            const res = await fetch(url, {
                 method: 'POST',
                 headers: {
+                    'Content-Type': 'application/json',
                     'X-CSRF-TOKEN': csrfTokenVal,
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
+                    'Accept': 'application/json'
                 },
-                body: JSON.stringify({
-                    is_picked_up: true,
-                    picked_up_by: 'Public Report Scanner'
-                })
-            }).then(function(r) { return r.json(); }).then(function(res) {
-                if (res && res.success && res.participant) {
-                    if (typeof addActivityLog === 'function') {
-                        addActivityLog('qr_scan', res.participant, 'Scan QR Verified');
-                    }
-                }
-                return res;
+                body: JSON.stringify({ isApproved: value })
             });
-        }
 
-        function ensureQrDetector() {
-            if (qrDetector) return qrDetector;
-            try {
-                if (!('BarcodeDetector' in window)) return null;
-                qrDetector = new BarcodeDetector({ formats: ['qr_code'] });
-                return qrDetector;
-            } catch (e) {
-                return null;
-            }
-        }
-
-        function drawVideoToCanvas(video) {
-            var w = video.videoWidth;
-            var h = video.videoHeight;
-            if (!qrCanvas) qrCanvas = document.createElement('canvas');
-            if (qrCanvas.width !== w) qrCanvas.width = w;
-            if (qrCanvas.height !== h) qrCanvas.height = h;
-            if (!qrCtx) qrCtx = qrCanvas.getContext('2d', { willReadFrequently: true });
-            qrCtx.drawImage(video, 0, 0, w, h);
-            return { w: w, h: h };
-        }
-
-        function decodeWithJsQR(video) {
-            if (typeof jsQR !== 'function') return null;
-            if (!video || !video.videoWidth || !video.videoHeight) return null;
-            var dims = drawVideoToCanvas(video);
-            try {
-                var size = Math.floor(Math.min(dims.w, dims.h) * 0.75);
-                var x = Math.floor((dims.w - size) / 2);
-                var y = Math.floor((dims.h - size) / 2);
-                var img = qrCtx.getImageData(x, y, size, size);
-                var code = jsQR(img.data, img.width, img.height, { inversionAttempts: 'attemptBoth' });
-                if (code && code.data) return String(code.data).trim();
-            } catch (e) {}
-
-            try {
-                var full = qrCtx.getImageData(0, 0, dims.w, dims.h);
-                var code2 = jsQR(full.data, full.width, full.height, { inversionAttempts: 'attemptBoth' });
-                if (code2 && code2.data) return String(code2.data).trim();
-            } catch (e) {}
-
-            return null;
-        }
-
-        function decodeWithBarcodeDetector(video) {
-            var det = ensureQrDetector();
-            if (!det) return Promise.resolve(null);
-            if (!video || !video.videoWidth || !video.videoHeight) return Promise.resolve(null);
-            drawVideoToCanvas(video);
-            return det.detect(qrCanvas).then(function(dets){
-                if (!dets || !dets.length) return null;
-                var v = dets[0].rawValue || '';
-                v = String(v).trim();
-                return v || null;
-            }).catch(function(){ return null; });
-        }
-
-        function processQrPayload(payload) {
-            var participantId = parseParticipantIdFromQr(payload);
-            if (!participantId) {
-                setQrMsg('QR tidak dikenali. Pastikan QR dari email tiket.', 'error');
-                return Promise.resolve();
+            if (!res.ok) {
+                throw new Error('Gagal update status');
             }
 
-            setQrMsg('Memproses pickup…', null);
-            return updatePickupByParticipantId(participantId).then(function(res){
-                if (res && res.success) {
-                    var p = res.participant || null;
-                    var name = (p && p.name) ? String(p.name) : '';
-                    var bib = (p && p.bib_number) ? String(p.bib_number) : '-';
-                    var jersey = (p && p.jersey_size) ? String(p.jersey_size) : '-';
-                    var payment = (p && p.payment_status) ? String(p.payment_status).toUpperCase() : 'UNKNOWN';
-                    var ageGroup = (p && p.age_group) ? String(p.age_group) : '-';
-                    var addonsList = (p && Array.isArray(p.addons)) ? p.addons.map(function(a) { return (a && (a.name || a['name'])) || a; }).filter(Boolean) : [];
-                    var addonsText = addonsList.length ? addonsList.join(', ') : '-';
-                    var msg = name ? (`Berhasil pickup: ${name} • BIB ${bib} • Jersey ${jersey} • Kategori Umur ${ageGroup} • Addons: ${addonsText} • Payment ${payment}`) : (res.message || ('Berhasil update pickup #' + participantId));
-                    setQrMsg(msg, 'success');
-                    
-                    // Trigger AJAX reload to update the dashboard table and stats
-                    const filterForm = document.getElementById('report-filters');
-                    if (filterForm) {
-                        const fd = new FormData(filterForm);
-                        const payloadObj = {};
-                        for (const [k, v] of fd.entries()) {
-                            payloadObj[k] = typeof v === 'string' ? v.trim() : v;
-                        }
-                        payloadObj.page = 1;
-                        if (typeof fetchReport === 'function') {
-                            fetchReport(payloadObj);
-                        }
-                    }
-                    qrLastOkAt = Date.now();
-                } else {
-                    setQrMsg((res && res.message) ? res.message : 'Gagal update pickup', 'error');
-                }
-            }).catch(function(err){
-                setQrMsg((err && err.message) ? err.message : 'Gagal update pickup (network/server).', 'error');
-            });
-        }
-
-        function qrLoop() {
-            if (!qrRunning) return;
-            if (qrBusy) return;
-            var video = document.getElementById('qrVideo');
-            if (!video || !video.videoWidth) return;
-
-            var now = Date.now();
-            if (now - qrLastOkAt < 900) return;
-
-            qrBusy = true;
-            decodeWithBarcodeDetector(video).then(function(v){
-                if (v) return v;
-                return decodeWithJsQR(video);
-            }).then(function(val){
-                if (!val) return null;
-                return processQrPayload(val);
-            }).finally(function(){
-                qrBusy = false;
-            });
-        }
-
-        window.openQrScanModal = function() {
-            var modal = document.getElementById('qrScanModal');
-            if (modal) modal.classList.remove('hidden');
-            setQrMsg('', null);
-            window.startQrScan();
-        };
-
-        window.closeQrScanModal = function() {
-            window.stopQrScan();
-            var modal = document.getElementById('qrScanModal');
-            if (modal) modal.classList.add('hidden');
-        };
-
-        window.startQrScan = function() {
-            if (qrRunning) return;
-            var video = document.getElementById('qrVideo');
-            if (!video) return;
-
-            qrRunning = true;
-            setQrMsg('Meminta akses kamera…', null);
-
-            navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: 'environment' } }, audio: false })
-                .then(function(stream){
-                    qrStream = stream;
-                    video.srcObject = stream;
-                    return video.play();
-                })
-                .then(function(){
-                    setQrMsg('Arahkan kamera ke QR.', null);
-                    if (qrLoopTimer) clearInterval(qrLoopTimer);
-                    qrLoopTimer = setInterval(qrLoop, 220);
-                })
-                .catch(function(err){
-                    qrRunning = false;
-                    setQrMsg('Kamera tidak bisa diakses. Pastikan izin kamera diaktifkan.', 'error');
-                    if (err) console.error(err);
-                });
-        };
-
-        window.stopQrScan = function() {
-            qrRunning = false;
-            qrBusy = false;
-            if (qrLoopTimer) {
-                clearInterval(qrLoopTimer);
-                qrLoopTimer = null;
+            const data = await res.json();
+            if (!data.success) {
+                throw new Error(data.message || 'Gagal update status');
             }
-            var video = document.getElementById('qrVideo');
-            if (video) {
-                try { video.pause(); } catch (e) {}
-                video.srcObject = null;
-            }
-            if (qrStream) {
-                try {
-                    qrStream.getTracks().forEach(function(t){ t.stop(); });
-                } catch (e) {}
-                qrStream = null;
-            }
-        };
 
-        async function updateStatus(participantId, value, checkboxEl) {
-            try {
-                const url = updateUrlBase.replace(':id', participantId);
-                const formData = new FormData();
-                formData.append('_token', csrfTokenVal);
-                formData.append('isApproved', value);
-                
-                const res = await fetch(url, {
-                    method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                    },
-                    body: formData
-                });
-                
-                const data = await res.json();
-                
-                if (!res.ok) {
-                    throw new Error(data.message || 'Gagal update status');
-                }
-                
-                // Success - Toast or console
-            } catch (e) {
-                alert(e.message || 'Terjadi kesalahan saat update status');
-                // Revert checkbox state if failed
-                if (checkboxEl) {
-                    checkboxEl.checked = !checkboxEl.checked;
-                    toggleLabel(participantId, checkboxEl.checked);
-                }
-            }
+            checkboxEl.checked = value;
+            toggleLabel(participantId, value);
+        } catch (err) {
+            checkboxEl.checked = original;
+            toggleLabel(participantId, original);
+            alert(err.message || 'Terjadi kesalahan sistem');
+        } finally {
+            checkboxEl.disabled = false;
         }
+    }
 
-        function toggleLabel(id, isChecked) {
-            const label = document.getElementById('status-label-' + id);
-            if (label) {
-                label.innerText = isChecked ? 'Yes' : 'No';
-                label.className = isChecked ? 'ml-2 text-xs font-bold text-neon' : 'ml-2 text-xs font-bold text-slate-400';
-            }
+    function toggleLabel(id, isChecked) {
+        const textEl = document.getElementById('status-text-' + id);
+        if (textEl) {
+            textEl.textContent = isChecked ? 'Approved' : 'Pending';
         }
+    }
 
-        function handleToggle(id, el) {
-            const isChecked = el.checked;
-            toggleLabel(id, isChecked);
-            updateStatus(id, isChecked ? 1 : 0, el);
-        }
+    function handleToggle(id, el) {
+        const val = el.checked ? 1 : 0;
+        toggleLabel(id, el.checked);
+        updateStatus(id, val, el);
+    }
 
-        function openEditModal(p) {
-        const modal = document.getElementById('edit-modal');
-        const form = document.getElementById('edit-form');
-        
+    function openEditModal(p) {
         document.getElementById('edit-participant-id').value = p.id;
         document.getElementById('edit-name').textContent = p.name;
-        document.getElementById('edit-isApproved').value = p.isApproved ? 1 : 0;
+        document.getElementById('edit-isApproved').value = p.isApproved ? '1' : '0';
         document.getElementById('edit-target-time').value = p.target_time || '';
         
-        const photoPreview = document.getElementById('edit-photo-preview');
-        if (p.photo) {
-            photoPreview.src = '/storage/' + p.photo;
-            photoPreview.classList.remove('hidden');
+        const preview = document.getElementById('edit-photo-preview');
+        if (p.photo_url) {
+            preview.src = p.photo_url;
+            preview.classList.remove('hidden');
         } else {
-            photoPreview.classList.add('hidden');
+            preview.src = '';
+            preview.classList.add('hidden');
         }
 
-        form.action = updateUrlBase.replace(':id', p.id);
-        modal.classList.remove('hidden');
+        const editForm = document.getElementById('edit-form');
+        editForm.action = updateUrlBase.replace(':id', p.id);
+
+        document.getElementById('edit-modal').classList.remove('hidden');
     }
 
     function closeEditModal() {
@@ -1728,13 +1918,13 @@
         
         var pStatus = (data.payment_status || '').toLowerCase();
         var pStatusEl = document.getElementById('dm-payment-status');
-        pStatusEl.className = 'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold border';
+        pStatusEl.className = 'inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold border';
         if (pStatus === 'paid' || pStatus === 'settlement' || pStatus === 'capture' || pStatus === 'cod') {
-            pStatusEl.classList.add('bg-green-900/30', 'text-green-400', 'border-green-500/30');
+            pStatusEl.classList.add('bg-emerald-950/40', 'text-emerald-400', 'border-emerald-500/30');
         } else if (pStatus === 'pending') {
-            pStatusEl.classList.add('bg-yellow-900/30', 'text-yellow-400', 'border-yellow-500/30');
+            pStatusEl.classList.add('bg-amber-950/40', 'text-amber-400', 'border-amber-500/30');
         } else {
-            pStatusEl.classList.add('bg-red-900/30', 'text-red-400', 'border-red-500/30');
+            pStatusEl.classList.add('bg-rose-950/40', 'text-rose-400', 'border-rose-500/30');
         }
         pStatusEl.textContent = pStatus.toUpperCase();
         
@@ -1760,7 +1950,7 @@
         const eventId = "{{ $event->id }}";
         const url = `/reports/${eventId}/participants/${participantId}/status`;
         const token = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
-        
+
         fetch(url, {
             method: 'POST',
             headers: {
@@ -1769,180 +1959,150 @@
                 'X-Requested-With': 'XMLHttpRequest'
             },
             body: JSON.stringify({
-                is_picked_up: nextStatus ? 1 : 0,
-                picked_up_by: 'Public Report Dashboard'
+                is_picked_up: nextStatus ? 1 : 0
             })
         })
-        .then(response => {
-            if (!response.ok) {
-                return response.json().then(err => { throw err; });
-            }
-            return response.json();
+        .then(r => {
+            if (!r.ok) return r.json().then(err => { throw err; });
+            return r.json();
         })
         .then(data => {
             if (data.success) {
-                callback(null, data.participant);
+                adjustPickupStats(nextStatus);
                 if (typeof addActivityLog === 'function') {
-                    addActivityLog(data.participant.is_picked_up ? 'pickup_on' : 'pickup_off', data.participant);
+                    const row = document.querySelector(`tr[data-json*='"id":${participantId}']`) ||
+                                document.querySelector(`tr[data-json*='"id":"${participantId}"']`);
+                    let pObj = { id: participantId, name: 'Participant #' + participantId, bib: '-' };
+                    if (row && row.dataset.json) {
+                        try { pObj = JSON.parse(row.dataset.json); } catch(e){}
+                    }
+                    addActivityLog(nextStatus ? 'pickup_on' : 'pickup_off', pObj, nextStatus ? 'Racepack Picked Up' : 'Pickup Cancelled');
                 }
+                if (callback) callback(null, data);
             } else {
-                callback(data.message || 'Gagal mengubah status');
+                if (callback) callback(new Error(data.message || 'Gagal update status pickup'));
             }
         })
-        .catch(error => {
-            callback(error.message || 'Terjadi kesalahan sistem');
+        .catch(err => {
+            if (callback) callback(err);
         });
     }
 
     function adjustPickupStats(isPickedUp) {
-        const statPicked = document.getElementById('stat-picked');
-        const statUnpicked = document.getElementById('stat-unpicked');
-        if (statPicked && statUnpicked) {
-            let pickedVal = parseInt(statPicked.textContent.replace(/[^0-9]/g, '')) || 0;
-            let unpickedVal = parseInt(statUnpicked.textContent.replace(/[^0-9]/g, '')) || 0;
-            if (isPickedUp) {
-                statPicked.textContent = (pickedVal + 1).toLocaleString('id-ID');
-                statUnpicked.textContent = Math.max(0, unpickedVal - 1).toLocaleString('id-ID');
-            } else {
-                statPicked.textContent = Math.max(0, pickedVal - 1).toLocaleString('id-ID');
-                statUnpicked.textContent = (unpickedVal + 1).toLocaleString('id-ID');
-            }
+        const pickedEl = document.getElementById('stat-picked');
+        const unpickedEl = document.getElementById('stat-unpicked');
+        
+        if (pickedEl) {
+            let current = parseInt(pickedEl.textContent.replace(/\D/g, '')) || 0;
+            pickedEl.textContent = isPickedUp ? (current + 1).toLocaleString('id-ID') : Math.max(0, current - 1).toLocaleString('id-ID');
+        }
+        if (unpickedEl) {
+            let current = parseInt(unpickedEl.textContent.replace(/\D/g, '')) || 0;
+            unpickedEl.textContent = isPickedUp ? Math.max(0, current - 1).toLocaleString('id-ID') : (current + 1).toLocaleString('id-ID');
         }
     }
 
     function togglePickup(btn, participantId, isPickedUp) {
+        const nextStatus = !isPickedUp;
         btn.disabled = true;
-        performPickupToggle(participantId, !isPickedUp, function(err, p) {
+
+        performPickupToggle(participantId, nextStatus, function(err, data) {
             btn.disabled = false;
             if (err) {
-                alert(err);
+                alert(err.message || 'Gagal mengubah status pengambilan.');
                 return;
             }
-            adjustPickupStats(p.is_picked_up);
-            
-            // Update all toggle buttons for this participant on the page (main table, coupon modal, etc.)
-            const allToggles = document.querySelectorAll(`button[onclick*="togglePickup"]`);
-            allToggles.forEach(toggle => {
-                const onclickStr = toggle.getAttribute('onclick') || '';
-                const match = onclickStr.match(/togglePickup\s*\(\s*this\s*,\s*(\d+)/);
-                if (match && parseInt(match[1]) === p.id) {
-                    toggle.setAttribute('onclick', `togglePickup(this, ${p.id}, ${p.is_picked_up})`);
-                    if (p.is_picked_up) {
-                        toggle.className = toggle.classList.contains('text-[10px]')
-                            ? "px-2 py-1 text-[10px] rounded-lg font-bold border transition duration-200 bg-emerald-950/40 text-emerald-400 border-emerald-500/30 hover:bg-emerald-900/60"
-                            : "px-2 py-1 text-xs rounded-lg font-bold border transition duration-200 bg-emerald-950/40 text-emerald-400 border-emerald-500/30 hover:bg-emerald-900/60";
-                        toggle.textContent = "Picked Up";
-                    } else {
-                        toggle.className = toggle.classList.contains('text-[10px]')
-                            ? "px-2 py-1 text-[10px] rounded-lg font-bold border transition duration-200 bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700"
-                            : "px-2 py-1 text-xs rounded-lg font-bold border transition duration-200 bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700";
-                        toggle.textContent = "Not Picked";
-                    }
-                }
-            });
 
-            // Update in-memory coupon report cache
-            if (window.currentCouponReport && window.currentCouponReport.participants) {
-                const cp = window.currentCouponReport.participants.find(x => x.id === p.id);
-                if (cp) {
-                    cp.is_picked_up = p.is_picked_up;
-                }
-            }
-            if (window.currentCouponReportData && window.currentCouponReportData.participants) {
-                const cp = window.currentCouponReportData.participants.find(x => x.id === p.id);
-                if (cp) {
-                    cp.is_picked_up = p.is_picked_up;
-                }
-                if (typeof filterCouponModalTable === 'function') {
-                    filterCouponModalTable();
-                }
+            if (nextStatus) {
+                btn.className = "px-2 py-1 text-xs rounded-md font-semibold border transition duration-150 bg-emerald-950/40 text-emerald-400 border-emerald-500/30 hover:bg-emerald-900/50";
+                btn.textContent = 'Picked Up';
+                btn.setAttribute('onclick', `togglePickup(this, ${participantId}, true)`);
+            } else {
+                btn.className = "px-2 py-1 text-xs rounded-md font-semibold border transition duration-150 bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700";
+                btn.textContent = 'Not Picked';
+                btn.setAttribute('onclick', `togglePickup(this, ${participantId}, false)`);
             }
 
-            // Update row data-json attribute
-            const tr = btn.closest('tr');
-            if (tr) {
+            const row = btn.closest('tr');
+            if (row && row.dataset.json) {
                 try {
-                    const currentJson = JSON.parse(tr.dataset.json || '{}');
-                    currentJson.is_picked_up = p.is_picked_up;
-                    tr.dataset.json = JSON.stringify(currentJson);
+                    let obj = JSON.parse(row.dataset.json);
+                    obj.is_picked_up = nextStatus;
+                    row.dataset.json = JSON.stringify(obj);
                 } catch(e) {}
-            }
-
-            // Update detail modal if open for this participant
-            const activeId = document.getElementById('dm-pickup-status')?.dataset?.participantId;
-            if (activeId && parseInt(activeId) === p.id) {
-                updateModalPickupUi(p);
             }
         });
     }
 
-    function updateModalPickupUi(data) {
-        const pickupEl = document.getElementById('dm-pickup-status');
-        const toggleBtn = document.getElementById('dm-pickup-toggle-btn');
-        
-        if (data.is_picked_up) {
-            pickupEl.innerHTML = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-900/30 text-emerald-400 border border-emerald-500/30">Already Picked Up</span>';
-            toggleBtn.textContent = 'Mark as Not Picked';
-        } else {
-            pickupEl.innerHTML = '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-400 border border-slate-700">Not Picked Up</span>';
-            toggleBtn.textContent = 'Mark as Picked Up';
-        }
+    const dmPickupToggleBtn = document.getElementById('dm-pickup-toggle-btn');
+    if (dmPickupToggleBtn) {
+        dmPickupToggleBtn.addEventListener('click', function() {
+            const statusContainer = document.getElementById('dm-pickup-status');
+            const participantId = statusContainer.dataset.participantId;
+            if (!participantId) return;
 
-        toggleBtn.onclick = function() {
-            toggleBtn.disabled = true;
-            performPickupToggle(data.id, !data.is_picked_up, function(err, p) {
-                toggleBtn.disabled = false;
+            const isCurrentlyPicked = statusContainer.dataset.isPickedUp === 'true';
+            const nextStatus = !isCurrentlyPicked;
+
+            dmPickupToggleBtn.disabled = true;
+            performPickupToggle(participantId, nextStatus, function(err, data) {
+                dmPickupToggleBtn.disabled = false;
                 if (err) {
-                    alert(err);
+                    alert(err.message || 'Gagal mengubah status.');
                     return;
                 }
-                adjustPickupStats(p.is_picked_up);
-                
-                // Update modal UI
-                updateModalPickupUi(p);
-                
-                // Update all toggle buttons for this participant on the page (main table, coupon modal, etc.)
-                const allToggles = document.querySelectorAll(`button[onclick*="togglePickup"]`);
-                allToggles.forEach(toggle => {
-                    const onclickStr = toggle.getAttribute('onclick') || '';
-                    const match = onclickStr.match(/togglePickup\s*\(\s*this\s*,\s*(\d+)/);
-                    if (match && parseInt(match[1]) === p.id) {
-                        toggle.setAttribute('onclick', `togglePickup(this, ${p.id}, ${p.is_picked_up})`);
-                        if (p.is_picked_up) {
-                            toggle.className = toggle.classList.contains('text-[10px]')
-                                ? "px-2 py-1 text-[10px] rounded-lg font-bold border transition duration-200 bg-emerald-950/40 text-emerald-400 border-emerald-500/30 hover:bg-emerald-900/60"
-                                : "px-2 py-1 text-xs rounded-lg font-bold border transition duration-200 bg-emerald-950/40 text-emerald-400 border-emerald-500/30 hover:bg-emerald-900/60";
-                            toggle.textContent = "Picked Up";
-                        } else {
-                            toggle.className = toggle.classList.contains('text-[10px]')
-                                ? "px-2 py-1 text-[10px] rounded-lg font-bold border transition duration-200 bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700"
-                                : "px-2 py-1 text-xs rounded-lg font-bold border transition duration-200 bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700";
-                            toggle.textContent = "Not Picked";
-                        }
-                    }
-                });
 
-                // Update in-memory coupon report cache
-                if (window.currentCouponReport && window.currentCouponReport.participants) {
-                    const cp = window.currentCouponReport.participants.find(x => x.id === p.id);
-                    if (cp) {
-                        cp.is_picked_up = p.is_picked_up;
-                    }
-                }
-                
-                // Update table row data-json attribute if visible in the table
-                const rows = document.querySelectorAll('#participants-tbody tr[data-json]');
-                rows.forEach(tr => {
-                    try {
-                        const rowData = JSON.parse(tr.dataset.json || '{}');
-                        if (rowData.id === p.id) {
-                            rowData.is_picked_up = p.is_picked_up;
-                            tr.dataset.json = JSON.stringify(rowData);
+                updateModalPickupUi({ id: participantId, is_picked_up: nextStatus });
+
+                const row = document.querySelector(`tr[data-json*='"id":${participantId}']`) ||
+                            document.querySelector(`tr[data-json*='"id":"${participantId}"']`);
+                if (row) {
+                    const btnInRow = row.querySelector('button[onclick*="togglePickup"]');
+                    if (btnInRow) {
+                        if (nextStatus) {
+                            btnInRow.className = "px-2 py-1 text-xs rounded-md font-semibold border transition duration-150 bg-emerald-950/40 text-emerald-400 border-emerald-500/30 hover:bg-emerald-900/50";
+                            btnInRow.textContent = 'Picked Up';
+                            btnInRow.setAttribute('onclick', `togglePickup(this, ${participantId}, true)`);
+                        } else {
+                            btnInRow.className = "px-2 py-1 text-xs rounded-md font-semibold border transition duration-150 bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700";
+                            btnInRow.textContent = 'Not Picked';
+                            btnInRow.setAttribute('onclick', `togglePickup(this, ${participantId}, false)`);
                         }
+                    }
+                    try {
+                        let obj = JSON.parse(row.dataset.json);
+                        obj.is_picked_up = nextStatus;
+                        row.dataset.json = JSON.stringify(obj);
                     } catch(e) {}
-                });
+                }
             });
-        };
+        });
+    }
+
+    function updateModalPickupUi(data) {
+        const container = document.getElementById('dm-pickup-status');
+        const isPicked = !!data.is_picked_up;
+        container.dataset.isPickedUp = isPicked ? 'true' : 'false';
+
+        if (isPicked) {
+            container.innerHTML = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-emerald-950/40 text-emerald-400 border border-emerald-500/30">Sudah Diambil (Picked Up)</span>`;
+        } else {
+            container.innerHTML = `<span class="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-bold bg-slate-800 text-slate-400 border border-slate-700">Belum Diambil (Not Picked)</span>`;
+        }
+    }
+
+    function getExportUrl(format) {
+        const form = document.getElementById('report-filters');
+        if (!form) return '#';
+        const fd = new FormData(form);
+        const params = new URLSearchParams();
+        for (const [k, v] of fd.entries()) {
+            if (typeof v === 'string' && v.trim() !== '') {
+                params.set(k, v.trim());
+            }
+        }
+        params.set('format', format);
+        return "{{ route('report.export', $event->id) }}?" + params.toString();
     }
 
     (function () {
@@ -1968,7 +2128,6 @@
         const statPicked = document.getElementById('stat-picked');
         const statUnpicked = document.getElementById('stat-unpicked');
         
-        // Coupon Report Variables
         window.currentCouponReport = @json($couponReport ?? null);
         let currentCouponText = '';
         let shouldShowCouponModal = false;
@@ -2043,35 +2202,34 @@
             const total = Number(totals.total || 0);
             const conversion = total > 0 ? (paid / total) * 100 : 0;
 
-            const labels = sales && Array.isArray(sales.labels) ? sales.labels : [];
-            const paidSeries = sales && sales.series && Array.isArray(sales.series.paid) ? sales.series.paid : [];
-            const days = labels.length || 0;
-            const avgPaid = days > 0 ? paid / days : 0;
+            const days = (sales && Array.isArray(sales.labels)) ? sales.labels.length : 0;
+            const avgPaid = days > 0 ? (paid / days) : 0;
 
-            let bestIdx = -1;
             let bestVal = 0;
-            paidSeries.forEach((v, i) => {
-                const n = Number(v || 0);
-                if (n > bestVal) {
-                    bestVal = n;
-                    bestIdx = i;
-                }
-            });
-            const bestLabel = bestIdx >= 0 && labels[bestIdx] ? labels[bestIdx] : '-';
+            let bestLabel = '-';
+            if (sales && sales.series && Array.isArray(sales.series.paid) && Array.isArray(sales.labels)) {
+                sales.series.paid.forEach((v, idx) => {
+                    const num = Number(v || 0);
+                    if (num > bestVal) {
+                        bestVal = num;
+                        bestLabel = sales.labels[idx] || '-';
+                    }
+                });
+            }
 
             salesInsightsEl.innerHTML = [
-                `<div class="flex items-center justify-between"><span class="text-slate-400">Paid</span><span class="font-mono font-bold">${formatNumber(paid)}</span></div>`,
-                `<div class="flex items-center justify-between"><span class="text-slate-400">Pending</span><span class="font-mono font-bold">${formatNumber(pending)}</span></div>`,
-                `<div class="flex items-center justify-between"><span class="text-slate-400">Conversion</span><span class="font-mono font-bold">${conversion.toFixed(1)}%</span></div>`,
-                `<div class="flex items-center justify-between"><span class="text-slate-400">Avg/day</span><span class="font-mono font-bold">${avgPaid.toFixed(2)}</span></div>`,
-                `<div class="flex items-center justify-between"><span class="text-slate-400">Best</span><span class="font-mono font-bold">${bestVal ? formatNumber(bestVal) : '-'}</span></div>`,
-                `<div class="text-xs text-slate-500">${bestVal ? `Tanggal: ${bestLabel}` : ''}</div>`,
-            ].join('');
+                `<div class="flex items-center justify-between"><span class="text-slate-400">Paid</span><span class="font-mono font-bold text-emerald-400">${formatNumber(paid)}</span></div>`,
+                `<div class="flex items-center justify-between"><span class="text-slate-400">Pending</span><span class="font-mono font-bold text-amber-400">${formatNumber(pending)}</span></div>`,
+                `<div class="flex items-center justify-between"><span class="text-slate-400">Konversi</span><span class="font-mono font-bold text-white">${conversion.toFixed(1)}%</span></div>`,
+                `<div class="flex items-center justify-between"><span class="text-slate-400">Rata-rata/hari</span><span class="font-mono font-bold text-white">${avgPaid.toFixed(1)}</span></div>`,
+                bestVal ? `<div class="pt-2 border-t border-slate-800 text-[11px] text-slate-400">Puncak: <strong class="text-white">${formatNumber(bestVal)}</strong> (${bestLabel})</div>` : '',
+            ].filter(Boolean).join('');
         }
 
         function renderSalesChart(sales) {
             if (!salesChartCanvas || typeof Chart === 'undefined') return;
 
+            const isLight = document.body.classList.contains('theme-light');
             const labels = sales && Array.isArray(sales.labels) ? sales.labels : [];
             const series = sales && sales.series ? sales.series : {};
             const paid = Array.isArray(series.paid) ? series.paid : [];
@@ -2081,7 +2239,7 @@
                 label: 'Paid',
                 data: paid,
                 borderColor: '#22c55e',
-                backgroundColor: 'rgba(34, 197, 94, 0.25)',
+                backgroundColor: 'rgba(34, 197, 94, 0.15)',
                 tension: 0.25,
                 fill: true,
                 pointRadius: 2,
@@ -2090,8 +2248,8 @@
             const datasetPending = {
                 label: 'Pending',
                 data: pending,
-                borderColor: '#eab308',
-                backgroundColor: 'rgba(234, 179, 8, 0.18)',
+                borderColor: '#f59e0b',
+                backgroundColor: 'rgba(245, 158, 11, 0.12)',
                 tension: 0.25,
                 fill: true,
                 pointRadius: 2,
@@ -2109,7 +2267,7 @@
                         maintainAspectRatio: false,
                         plugins: {
                             legend: {
-                                labels: { color: '#e2e8f0' }
+                                labels: { color: isLight ? '#0f172a' : '#e2e8f0' }
                             },
                             tooltip: {
                                 mode: 'index',
@@ -2118,12 +2276,12 @@
                         },
                         scales: {
                             x: {
-                                ticks: { color: '#94a3b8', maxRotation: 0, autoSkip: true },
-                                grid: { color: 'rgba(148, 163, 184, 0.15)' },
+                                ticks: { color: isLight ? '#475569' : '#94a3b8', maxRotation: 0, autoSkip: true },
+                                grid: { color: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(148, 163, 184, 0.15)' },
                             },
                             y: {
-                                ticks: { color: '#94a3b8' },
-                                grid: { color: 'rgba(148, 163, 184, 0.15)' },
+                                ticks: { color: isLight ? '#475569' : '#94a3b8' },
+                                grid: { color: isLight ? 'rgba(0,0,0,0.06)' : 'rgba(148, 163, 184, 0.15)' },
                                 beginAtZero: true,
                             }
                         }
@@ -2132,7 +2290,7 @@
             } else {
                 salesChart.data.labels = labels;
                 salesChart.data.datasets = [datasetPaid, datasetPending];
-                salesChart.update();
+                updateSalesChartTheme(isLight);
             }
 
             setSalesInsights(sales);
@@ -2143,10 +2301,10 @@
             const statuses = ['paid', 'pending', 'cod', 'failed', 'expired', 'cancelled'];
             let options = statuses.map(s => `<option value="${s}" ${s === text ? 'selected' : ''}>${s.toUpperCase()}</option>`).join('');
             
-            let html = `<select onchange="updatePaymentStatus(this, ${participantId}, this.value)" class="bg-slate-900 border border-slate-700 text-xs font-bold rounded-lg px-2 py-1 text-white focus:outline-none focus:border-neon cursor-pointer">${options}</select>`;
+            let html = `<select onchange="updatePaymentStatus(this, ${participantId}, this.value)" class="bg-slate-950 border border-slate-800 text-xs font-semibold rounded-md px-2 py-1 text-white focus:outline-none focus:border-slate-600 cursor-pointer">${options}</select>`;
             if (couponCode) {
-                html += `<div class="mt-1 text-[10px] text-yellow-400 font-mono" title="Kupon dipakai">🏷️ ${couponCode}</div>`;
-                html += `<div class="text-[10px] text-slate-400 mt-0.5">Net: Rp ${formatCurrency(finalAmount)}</div>`;
+                html += `<div class="mt-0.5 text-[10px] text-amber-400 font-mono" title="Kupon dipakai">Kupon: ${couponCode}</div>`;
+                html += `<div class="text-[10px] text-slate-400">Rp ${formatCurrency(finalAmount)}</div>`;
             }
             return html;
         }
@@ -2154,7 +2312,7 @@
         function renderParticipants(paginator) {
             const rows = (paginator && paginator.data) ? paginator.data : [];
             if (!rows.length) {
-                tbody.innerHTML = `<tr><td colspan="10" class="px-4 py-6 text-center text-slate-400">Tidak ada data.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" class="px-4 py-8 text-center text-slate-400">Tidak ada data peserta yang cocok.</td></tr>`;
             } else {
                 tbody.innerHTML = rows.map((p) => {
                     const addons = Array.isArray(p.addons) ? p.addons : [];
@@ -2162,83 +2320,78 @@
                         ? `<span class="inline-flex flex-wrap gap-1 justify-end md:justify-start">${
                             addons.map((a) => {
                                 const name = (a && (a.name || a['name'])) || '-';
-                                return `<span class="inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold bg-slate-800 text-slate-200">${name}</span>`;
+                                return `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-200">${name}</span>`;
                             }).join('')
                         }</span>`
-                        : `<span class="text-slate-400">-</span>`;
+                        : `<span class="text-slate-500">-</span>`;
 
-                    // Escape JSON for onclick to avoid syntax errors with quotes
                     const jsonP = JSON.stringify(p).replace(/"/g, '&quot;');
+                    let bib = p.bib_number || '-';
+                    if (bib && bib.includes('-')) {
+                        const parts = bib.split('-');
+                        bib = parts[parts.length - 1];
+                    }
 
                     return `
-                        <tr class="hover:bg-slate-900/40 cursor-pointer block md:table-row border-b border-slate-800 md:border-none mb-4 md:mb-0 bg-slate-900/20 md:bg-transparent rounded-xl md:rounded-none p-4 md:p-0" onclick="if(!event.target.closest('button') && !event.target.closest('a') && !event.target.closest('.no-click')) openDetailModalFromRow(this)" data-json="${jsonP}">
-                            <td class="px-4 py-2 md:py-3 font-semibold text-white block md:table-cell flex justify-between items-center md:block">
-                                <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Nama</span>
-                                <span class="text-right md:text-left">${(p.name || '-')}</span>
+                        <tr class="participant-row hover:bg-slate-900/40 cursor-pointer" onclick="if(!event.target.closest('button') && !event.target.closest('a') && !event.target.closest('select') && !event.target.closest('.no-click')) openDetailModalFromRow(this)" data-json="${jsonP}">
+                            <td class="px-3 py-2 font-semibold text-white">
+                                <span class="mobile-label text-slate-400 font-bold text-xs uppercase">Nama</span>
+                                <span class="cell-value text-right md:text-left font-bold text-white text-xs sm:text-sm">${(p.name || '-')}</span>
                             </td>
-                            <td class="px-4 py-2 md:py-3 text-slate-200 block md:table-cell flex justify-between items-center md:block">
-                                <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Email</span>
-                                <span class="text-right md:text-left break-all">${(p.email || '-')}</span>
+                            <td class="px-3 py-2 text-slate-200">
+                                <span class="mobile-label text-slate-400 font-bold text-xs uppercase">Email</span>
+                                <span class="cell-value text-right md:text-left break-all text-xs text-slate-300">${(p.email || '-')}</span>
                             </td>
-                            <td class="px-4 py-2 md:py-3 text-slate-300 block md:table-cell flex justify-between items-center md:block">
-                                <span class="md:hidden text-slate-500 font-bold text-xs uppercase">No Telp</span>
-                                <span class="text-right md:text-left font-mono">${(p.phone || '-')}</span>
+                            <td class="px-3 py-2 text-slate-300">
+                                <span class="mobile-label text-slate-400 font-bold text-xs uppercase">No Telp</span>
+                                <span class="cell-value text-right md:text-left font-mono text-xs">${(p.phone || '-')}</span>
                             </td>
-                            <td class="px-4 py-2 md:py-3 text-slate-300 block md:table-cell flex justify-between items-center md:block">
-                                <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Jersey</span>
-                                <span class="text-right md:text-left font-mono">${(p.jersey_size || '-')}</span>
+                            <td class="px-3 py-2 text-slate-300">
+                                <span class="mobile-label text-slate-400 font-bold text-xs uppercase">Jersey</span>
+                                <span class="cell-value text-right md:text-left font-mono font-bold text-xs text-slate-200">${(p.jersey_size || '-')}</span>
                             </td>
-                            <td class="px-4 py-2 md:py-3 text-slate-300 block md:table-cell flex justify-between items-center md:block">
-                                <span class="md:hidden text-slate-500 font-bold text-xs uppercase">No BIB</span>
-                                <span class="text-right md:text-left font-mono">${
-                                    (() => {
-                                        let bib = p.bib_number;
-                                        if (bib && bib.includes('-')) {
-                                            const parts = bib.split('-');
-                                            return parts[parts.length - 1];
-                                        }
-                                        return bib || '-';
-                                    })()
-                                }</span>
+                            <td class="px-3 py-2 text-slate-300">
+                                <span class="mobile-label text-slate-400 font-bold text-xs uppercase">No BIB</span>
+                                <span class="cell-value text-right md:text-left font-mono font-bold text-xs text-white">#${bib}</span>
                             </td>
-                            <td class="px-4 py-2 md:py-3 text-slate-200 block md:table-cell flex justify-between items-center md:block">
-                                <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Addons</span>
-                                <span class="text-right md:text-left">${addonsHtml}</span>
+                            <td class="px-3 py-2 text-slate-200">
+                                <span class="mobile-label text-slate-400 font-bold text-xs uppercase">Addons</span>
+                                <span class="cell-value text-right md:text-left">${addonsHtml}</span>
                             </td>
-                            <td class="px-4 py-2 md:py-3 text-slate-300 block md:table-cell flex justify-between items-center md:block">
-                                <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Tgl Reg</span>
-                                <span class="text-right md:text-left">${formatDateTime(p.created_at)}</span>
+                            <td class="px-3 py-2 text-slate-300">
+                                <span class="mobile-label text-slate-400 font-bold text-xs uppercase">Tgl Reg</span>
+                                <span class="cell-value text-right md:text-left text-xs font-mono text-slate-400">${formatDateTime(p.created_at)}</span>
                             </td>
-                            <td class="px-4 py-2 md:py-3 block md:table-cell flex justify-between items-center md:block no-click">
-                                <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Status</span>
-                                <div class="text-right md:text-left">${paymentPill(p.payment_status, p.coupon_code, p.final_amount, p.id)}</div>
+                            <td class="px-3 py-2 no-click">
+                                <span class="mobile-label text-slate-400 font-bold text-xs uppercase">Status</span>
+                                <div class="cell-value text-right md:text-left">${paymentPill(p.payment_status, p.coupon_code, p.final_amount, p.id)}</div>
                             </td>
-                            <td class="px-4 py-2 md:py-3 block md:table-cell flex justify-between items-center md:block no-click">
-                                <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Picked Up</span>
-                                <span class="text-right md:text-left">
+                            <td class="px-3 py-2 text-center no-click">
+                                <span class="mobile-label text-slate-400 font-bold text-xs uppercase">Picked Up</span>
+                                <div class="cell-value text-right md:text-center">
                                     <button type="button" 
                                         onclick="togglePickup(this, ${p.id}, ${p.is_picked_up ? 'true' : 'false'})"
-                                        class="px-2 py-1 text-xs rounded-lg font-bold border transition duration-200 ${p.is_picked_up ? 'bg-emerald-950/40 text-emerald-400 border-emerald-500/30 hover:bg-emerald-900/60' : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'}">
+                                        class="px-2 py-1 text-xs rounded-md font-semibold border transition duration-150 ${p.is_picked_up ? 'bg-emerald-950/40 text-emerald-400 border-emerald-500/30 hover:bg-emerald-900/50' : 'bg-slate-800 text-slate-300 border-slate-700 hover:bg-slate-700'}">
                                         ${p.is_picked_up ? 'Picked Up' : 'Not Picked'}
                                     </button>
-                                </span>
+                                </div>
                             </td>
-                            <td class="px-4 py-2 md:py-3 block md:table-cell flex justify-between items-center md:block">
-                                <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Aksi</span>
-                                <span class="text-right md:text-left">
+                            <td class="px-3 py-2 no-click">
+                                <span class="mobile-label text-slate-400 font-bold text-xs uppercase">Aksi</span>
+                                <div class="cell-value text-right md:text-left">
                                     <button type="button" 
-                                        onclick="openEditModal(${jsonP})"
-                                        class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-white text-xs rounded-lg transition">
-                                        Edit
+                                        onclick="openDetailModalFromRow(this.closest('tr'))"
+                                        class="px-2.5 py-1 text-xs rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold transition">
+                                        Detail
                                     </button>
-                                </span>
+                                </div>
                             </td>
                         </tr>
                     `;
                 }).join('');
             }
 
-            metaEl.textContent = `Menampilkan ${formatNumber(paginator.to || 0)} dari ${formatNumber(paginator.total || 0)}`;
+            metaEl.textContent = `Menampilkan ${formatNumber(paginator.to || 0)} dari ${formatNumber(paginator.total || 0)} peserta`;
         }
 
         function renderPagination(paginator, currentPayload) {
@@ -2259,44 +2412,46 @@
             pushPage(last);
 
             paginationEl.innerHTML = pages.map((p) => {
-                if (p === '…') return `<span class="px-3 py-2 text-xs text-slate-500">…</span>`;
+                if (p === '…') return `<span class="px-2.5 py-1 text-xs text-slate-500">…</span>`;
                 const active = p === current;
                 const cls = active
-                    ? 'px-3 py-2 text-xs font-bold rounded-xl bg-neon text-dark'
-                    : 'px-3 py-2 text-xs font-bold rounded-xl bg-slate-800 text-slate-200 hover:bg-slate-700';
-                return `<button type="button" data-page="${p}" class="${cls}">${p}</button>`;
+                    ? 'px-2.5 py-1 text-xs font-bold rounded-md bg-slate-800 text-white border border-slate-700'
+                    : 'px-2.5 py-1 text-xs font-medium rounded-md bg-slate-900 text-slate-300 hover:bg-slate-800 border border-slate-800';
+                return `<button type="button" class="${cls}" data-page="${p}">${p}</button>`;
             }).join('');
 
-            Array.from(paginationEl.querySelectorAll('button[data-page]')).forEach((btn) => {
-                btn.addEventListener('click', function (e) {
-                    e.preventDefault();
-                    const page = Number(btn.getAttribute('data-page') || 1);
-                    fetchReport({ ...currentPayload, page });
+            paginationEl.querySelectorAll('button[data-page]').forEach((btn) => {
+                btn.addEventListener('click', () => {
+                    const page = Number(btn.getAttribute('data-page'));
+                    if (!page || page === current) return;
+                    const payload = Object.assign({}, currentPayload, { page });
+                    fetchReport(payload);
                 });
             });
         }
 
         function renderCoupons(coupons) {
-            const rows = Array.isArray(coupons) ? coupons : [];
-            if (!rows.length) {
-                couponTbody.innerHTML = `<tr><td colspan="3" class="px-4 py-6 text-center text-slate-400">Belum ada kupon terpakai.</td></tr>`;
+            if (!couponTbody) return;
+            const list = Array.isArray(coupons) ? coupons : [];
+            if (!list.length) {
+                couponTbody.innerHTML = `<tr><td colspan="3" class="px-4 py-6 text-center text-slate-400">Belum ada kupon yang terpakai.</td></tr>`;
                 return;
             }
 
-            couponTbody.innerHTML = rows.map((c) => {
+            couponTbody.innerHTML = list.map((c) => {
                 return `
-                    <tr class="hover:bg-slate-900/40 block md:table-row border-b border-slate-800 md:border-none mb-4 md:mb-0 bg-slate-900/20 md:bg-transparent rounded-xl md:rounded-none p-4 md:p-0">
-                        <td class="px-4 py-2 md:py-3 font-mono font-bold text-white block md:table-cell flex justify-between items-center md:block">
-                            <span class="md:hidden text-slate-500 font-bold text-xs uppercase">Kode</span>
-                            <span class="text-right md:text-left">${(c.code || '-')}</span>
+                    <tr class="hover:bg-slate-900/40 block md:table-row border-b border-slate-800 md:border-none mb-3 md:mb-0 bg-slate-950/20 md:bg-transparent rounded-md md:rounded-none p-3 md:p-0">
+                        <td class="px-4 py-2 md:py-2.5 font-mono font-bold text-white block md:table-cell flex justify-between items-center md:block">
+                            <span class="md:hidden text-slate-400 font-bold text-xs uppercase">Kode</span>
+                            <span class="text-right md:text-left">${c.code}</span>
                         </td>
-                        <td class="px-4 py-2 md:py-3 text-slate-200 block md:table-cell flex justify-between items-center md:block text-right">
-                            <span class="md:hidden text-slate-500 font-bold text-xs uppercase text-left">Dipakai</span>
-                            <span>${formatNumber(c.total_transactions)}</span>
+                        <td class="px-4 py-2 md:py-2.5 text-slate-200 block md:table-cell flex justify-between items-center md:block text-right">
+                            <span class="md:hidden text-slate-400 font-bold text-xs uppercase text-left">Dipakai</span>
+                            <span>${formatNumber(c.total_transactions)} kali</span>
                         </td>
-                        <td class="px-4 py-2 md:py-3 text-slate-200 block md:table-cell flex justify-between items-center md:block text-right">
-                            <span class="md:hidden text-slate-500 font-bold text-xs uppercase text-left">Total Diskon</span>
-                            <span>${formatCurrency(c.total_discount)}</span>
+                        <td class="px-4 py-2 md:py-2.5 text-slate-200 block md:table-cell flex justify-between items-center md:block text-right">
+                            <span class="md:hidden text-slate-400 font-bold text-xs uppercase text-left">Total Diskon</span>
+                            <span>Rp ${formatCurrency(c.total_discount)}</span>
                         </td>
                     </tr>
                 `;
@@ -2305,146 +2460,127 @@
 
         function renderStats(report) {
             if (!report) return;
-            statTotal.textContent = (typeof report.total_slots === 'string') ? report.total_slots : formatNumber(report.total_slots);
-            statSold.textContent = formatNumber(report.sold_slots);
-            statPending.textContent = formatNumber(report.pending_slots);
-            statRemaining.textContent = (typeof report.remaining_slots === 'string') ? report.remaining_slots : formatNumber(report.remaining_slots);
-            if (statPicked && report.pickup) {
-                statPicked.textContent = formatNumber(report.pickup.picked_up || 0);
+            if (statTotal && report.total_slots !== undefined) {
+                statTotal.textContent = (typeof report.total_slots === 'string') ? report.total_slots : formatNumber(report.total_slots);
             }
-            if (statUnpicked && report.pickup) {
-                statUnpicked.textContent = formatNumber(report.pickup.not_picked_up || 0);
+            if (statSold && report.sold_slots !== undefined) {
+                statSold.textContent = formatNumber(report.sold_slots);
+            }
+            if (statPending && report.pending_slots !== undefined) {
+                statPending.textContent = formatNumber(report.pending_slots);
+            }
+            if (statRemaining && report.remaining_slots !== undefined) {
+                statRemaining.textContent = (typeof report.remaining_slots === 'string') ? report.remaining_slots : formatNumber(report.remaining_slots);
+            }
+            if (report.pickup) {
+                if (statPicked && report.pickup.picked_up !== undefined) {
+                    statPicked.textContent = formatNumber(report.pickup.picked_up);
+                }
+                if (statUnpicked && report.pickup.not_picked_up !== undefined) {
+                    statUnpicked.textContent = formatNumber(report.pickup.not_picked_up);
+                }
             }
 
-            const jersey = report.jersey_sizes || {};
-            let totalUsed = 0;
-            ['XXS','XS','S','M','L','XL','2XL','3XL','4XL','5XL'].forEach((size) => {
-                const el = document.getElementById('stat-jersey-' + size);
-                if (!el) return;
-                let v = jersey[size];
-                if (v === undefined || v === null) v = jersey[String(size).toLowerCase()];
-                if (v === undefined || v === null) v = jersey[String(size).toUpperCase()];
-                if ((v === undefined || v === null) && size === '2XL') v = (jersey['XXL'] || jersey['xxl']);
-                if ((v === undefined || v === null) && size === '3XL') v = (jersey['XXXL'] || jersey['xxxl']);
-                const val = Number(v || 0);
-                el.textContent = formatNumber(val);
-                totalUsed += val;
+            if (report.jersey_sizes) {
+                const sizes = ['XXS','XS','S','M','L','XL','2XL','3XL','4XL','5XL'];
+                let totUsed = 0;
+                sizes.forEach(sz => {
+                    let u = Number(report.jersey_sizes[sz] || report.jersey_sizes[sz.toLowerCase()] || 0);
+                    if (sz === '2XL') u += Number(report.jersey_sizes['XXL'] || report.jersey_sizes['xxl'] || 0);
+                    if (sz === '3XL') u += Number(report.jersey_sizes['XXXL'] || report.jersey_sizes['xxxl'] || 0);
+                    totUsed += u;
 
-                // Recalculate remaining (sisa) dynamically
-                const quotaEl = document.getElementById('stat-jersey-quota-' + size);
-                const sisaEl = document.getElementById('stat-jersey-sisa-' + size);
-                if (quotaEl && sisaEl) {
-                    const quotaVal = quotaEl.textContent.trim();
-                    if (quotaVal !== '∞' && quotaVal !== '') {
-                        const quota = parseInt(quotaVal.replace(/,/g, '')) || 0;
-                        const sisa = Math.max(0, quota - val);
-                        sisaEl.textContent = formatNumber(sisa);
+                    const uEl = document.getElementById('stat-jersey-' + sz);
+                    if (uEl) uEl.textContent = formatNumber(u);
 
-                        // Update status colors on wrapper and text
-                        const parentEl = el.closest('.rounded-xl');
-                        if (parentEl) {
-                            parentEl.className = 'rounded-xl border px-3 py-2 ' + 
-                                (sisa === 0 ? 'border-red-500/40 bg-red-900/10' : (sisa <= 5 ? 'border-yellow-500/40 bg-yellow-900/10' : 'border-slate-700 bg-slate-900/30'));
-                            sisaEl.className = 'text-sm font-mono font-bold ' + 
-                                (sisa === 0 ? 'text-red-400' : (sisa <= 5 ? 'text-yellow-400' : 'text-emerald-400'));
+                    const qEl = document.getElementById('stat-jersey-quota-' + sz);
+                    const sEl = document.getElementById('stat-jersey-sisa-' + sz);
+                    if (qEl && sEl && report.jersey_stock_quotas && report.jersey_stock_quotas[sz] !== undefined) {
+                        const q = Number(report.jersey_stock_quotas[sz]);
+                        const s = Math.max(0, q - u);
+                        sEl.textContent = s;
+                        if (s === 0) {
+                            sEl.className = 'text-xs font-mono font-bold text-rose-400';
+                        } else if (s <= 5) {
+                            sEl.className = 'text-xs font-mono font-bold text-amber-400';
+                        } else {
+                            sEl.className = 'text-xs font-mono font-bold text-emerald-400';
                         }
                     }
-                }
-            });
-
-            // Update Totals row dynamically
-            const totalUsedEl = document.getElementById('stat-jersey-total-used');
-            const totalQuotaEl = document.getElementById('stat-jersey-total-quota');
-            const totalSisaEl = document.getElementById('stat-jersey-total-sisa');
-            if (totalUsedEl) {
-                totalUsedEl.textContent = formatNumber(totalUsed);
-            }
-            if (totalQuotaEl && totalSisaEl) {
-                const totalQuotaVal = totalQuotaEl.textContent.trim();
-                if (totalQuotaVal !== '∞' && totalQuotaVal !== '') {
-                    const totalQuota = parseInt(totalQuotaVal.replace(/,/g, '')) || 0;
-                    const totalSisa = Math.max(0, totalQuota - totalUsed);
-                    totalSisaEl.textContent = formatNumber(totalSisa);
-                }
+                });
+                const totUsedEl = document.getElementById('stat-jersey-total-used');
+                if (totUsedEl) totUsedEl.textContent = formatNumber(totUsed);
             }
         }
 
         async function fetchReport(payload) {
             setLoading(true);
-            try {
-                const url = new URL(window.location.href);
-                Object.keys(payload).forEach(key => {
-                    if (payload[key] !== null && payload[key] !== undefined && payload[key] !== '') {
-                        url.searchParams.set(key, payload[key]);
-                    } else {
-                        url.searchParams.delete(key);
-                    }
-                });
-                
-                // Update history
-                window.history.pushState({}, '', url);
+            const params = new URLSearchParams();
+            Object.keys(payload || {}).forEach((k) => {
+                const v = payload[k];
+                if (v !== null && v !== undefined && String(v) !== '') {
+                    params.set(k, String(v));
+                }
+            });
 
-                const res = await fetch(url, {
-                    method: 'GET',
+            try {
+                const res = await fetch("{{ route('report.show', $event) }}?" + params.toString(), {
                     headers: {
                         'Accept': 'application/json',
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken(),
-                    },
+                        'X-Requested-With': 'XMLHttpRequest',
+                    }
                 });
-
+                if (!res.ok) throw new Error('Gagal memuat laporan');
                 const data = await res.json();
-                if (!res.ok) {
-                    throw new Error(data.message || 'Request gagal');
-                }
-
                 renderStats(data.report);
-                renderCoupons(data.coupon_usage);
                 renderParticipants(data.participants);
                 renderPagination(data.participants, payload);
+                renderCoupons(data.coupon_usage);
                 renderSalesChart(data.sales);
 
-                window.currentCouponReport = data.coupon_report || null;
-                currentCouponText = couponSelect ? couponSelect.options[couponSelect.selectedIndex].text : '';
-
-                const btnShowCouponReport = document.getElementById('btn-show-coupon-report');
-                if (btnShowCouponReport) {
-                    if (window.currentCouponReport) {
-                        btnShowCouponReport.classList.remove('hidden');
-                    } else {
-                        btnShowCouponReport.classList.add('hidden');
+                if (data.coupon_report) {
+                    window.currentCouponReport = data.coupon_report;
+                    if (shouldShowCouponModal) {
+                        openCouponReportModal(currentCouponText, data.coupon_report);
+                        shouldShowCouponModal = false;
                     }
                 }
-
-                if (shouldShowCouponModal && currentCouponReport) {
-                    showCouponReportModal(currentCouponReport, currentCouponText);
-                    shouldShowCouponModal = false;
-                }
             } catch (e) {
-                alert(e.message || 'Terjadi kesalahan');
+                console.error(e);
             } finally {
                 setLoading(false);
             }
         }
 
         if (form) {
-            form.addEventListener('submit', function (e) {
+            form.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const payload = serializeAll();
                 payload.page = 1;
                 fetchReport(payload);
             });
 
-            form.querySelectorAll('select').forEach((sel) => {
-                sel.addEventListener('change', () => {
-                    const payload = serializeAll();
-                    payload.page = 1;
-                    fetchReport(payload);
-                });
-            });
+            form.querySelectorAll('select, input[type="date"]').forEach((el) => {
+                el.addEventListener('change', () => {
+                    const couponSelect = form.querySelector('select[name="coupon_id"]');
+                    const btnReport = document.getElementById('btn-show-coupon-report');
+                    if (couponSelect && btnReport) {
+                        const val = couponSelect.value;
+                        if (val && val !== 'without') {
+                            btnReport.classList.remove('hidden');
+                        } else {
+                            btnReport.classList.add('hidden');
+                        }
+                    }
 
-            form.querySelectorAll('input[type="date"], input[type="number"]').forEach((inp) => {
-                inp.addEventListener('change', () => {
+                    if (el.name === 'coupon_id') {
+                        const val = el.value;
+                        if (val && val !== 'without') {
+                            shouldShowCouponModal = true;
+                            currentCouponText = el.options[el.selectedIndex]?.text || val;
+                        }
+                    }
+
                     const payload = serializeAll();
                     payload.page = 1;
                     fetchReport(payload);
@@ -2457,20 +2593,17 @@
                     const payload = serializeAll();
                     payload.page = 1;
                     fetchReport(payload);
-                }, 400));
+                }, 350));
             }
         }
 
         if (resetBtn) {
-            resetBtn.addEventListener('click', function () {
-                Array.from(form.elements).forEach((el) => {
-                    if (!el.name) return;
-                    if (el.tagName === 'SELECT') {
-                        el.value = el.name === 'payment_status' ? 'all' : '';
-                        return;
-                    }
-                    el.value = '';
-                });
+            resetBtn.addEventListener('click', () => {
+                if (form) {
+                    form.reset();
+                    const btnReport = document.getElementById('btn-show-coupon-report');
+                    if (btnReport) btnReport.classList.add('hidden');
+                }
                 const payload = serializeAll();
                 payload.page = 1;
                 fetchReport(payload);
@@ -2478,132 +2611,56 @@
         }
 
         if (salesForm) {
-            salesForm.addEventListener('submit', function (e) {
+            salesForm.addEventListener('submit', (e) => {
                 e.preventDefault();
                 const payload = serializeAll();
-                payload.page = 1;
                 fetchReport(payload);
             });
         }
 
         if (salesResetBtn) {
-            salesResetBtn.addEventListener('click', function () {
+            salesResetBtn.addEventListener('click', () => {
                 if (salesGroupEl) salesGroupEl.value = 'day';
                 if (salesStartEl) salesStartEl.value = '';
                 if (salesEndEl) salesEndEl.value = '';
                 const payload = serializeAll();
-                payload.page = 1;
                 fetchReport(payload);
             });
         }
 
-        // Only initial render for pagination if needed, but the server already renders it.
-        // However, we want to hook up the events.
-        // The server renders #participants-pagination empty? 
-        // Let's check the view again.
-        // <div id="participants-pagination" ...></div> is empty in HTML.
-        // So line 394 in original calls renderPagination.
-        
-        // Coupon Report Modal Helpers
-        const couponSelect = document.querySelector('select[name="coupon_id"]');
-        if (couponSelect) {
-            couponSelect.addEventListener('change', function() {
-                const val = this.value;
-                if (val !== '' && val !== 'without') {
+        // Coupon Report Modal Logic
+        window.triggerManualCouponReport = function() {
+            const couponSelect = form ? form.querySelector('select[name="coupon_id"]') : null;
+            if (couponSelect && couponSelect.value && couponSelect.value !== 'without') {
+                const text = couponSelect.options[couponSelect.selectedIndex]?.text || couponSelect.value;
+                if (window.currentCouponReport) {
+                    openCouponReportModal(text, window.currentCouponReport);
+                } else {
                     shouldShowCouponModal = true;
+                    currentCouponText = text;
+                    const payload = serializeAll();
+                    payload.page = 1;
+                    fetchReport(payload);
                 }
-            });
-            currentCouponText = couponSelect.options[couponSelect.selectedIndex].text;
-        }
-
-        window.currentCouponReportData = null;
-
-        window.renderCouponReportModalContent = function(participants) {
-            const summaryEl = document.getElementById('coupon-jersey-summary');
-            summaryEl.innerHTML = '';
-            
-            const totals = {};
-            participants.forEach(p => {
-                const size = (p.jersey_size || '').toUpperCase().trim();
-                if (size) {
-                    totals[size] = (totals[size] || 0) + 1;
-                }
-            });
-            
-            if (Object.keys(totals).length > 0) {
-                const order = ['XXS','XS','S','M','L','XL','2XL','3XL','4XL','5XL'];
-                const sortedSizes = Object.keys(totals).sort((a, b) => {
-                    const idxA = order.indexOf(a);
-                    const idxB = order.indexOf(b);
-                    if (idxA !== -1 && idxB !== -1) return idxA - idxB;
-                    if (idxA !== -1) return -1;
-                    if (idxB !== -1) return 1;
-                    return a.localeCompare(b);
-                });
-                
-                sortedSizes.forEach(size => {
-                    const count = totals[size];
-                    const badge = document.createElement('span');
-                    badge.className = 'inline-flex items-center px-3 py-1 rounded-xl text-xs font-bold bg-neon text-dark border border-neon/30';
-                    badge.innerHTML = `${size} = <span class="font-mono ml-1">${count}</span>`;
-                    summaryEl.appendChild(badge);
-                });
-            } else {
-                summaryEl.innerHTML = '<span class="text-slate-500 italic text-xs">Tidak ada data ukuran jersey</span>';
-            }
-            
-            const tbody = document.getElementById('coupon-participants-tbody');
-            tbody.innerHTML = '';
-            if (participants && participants.length > 0) {
-                participants.forEach(p => {
-                    const statusHtml = `
-                        <button type="button" 
-                            onclick="togglePickup(this, ${p.id}, ${p.is_picked_up ? 'true' : 'false'})"
-                            class="px-2 py-1 text-[10px] rounded-lg font-bold border transition duration-200 ${p.is_picked_up ? 'bg-emerald-950/40 text-emerald-400 border-emerald-500/30 hover:bg-emerald-900/60' : 'bg-slate-800 text-slate-400 border-slate-700 hover:bg-slate-700'}">
-                            ${p.is_picked_up ? 'Picked Up' : 'Not Picked'}
-                        </button>
-                    `;
-
-                    const tr = document.createElement('tr');
-                    tr.className = 'hover:bg-slate-900/40';
-                    tr.innerHTML = `
-                        <td class="px-4 py-2 font-semibold text-white">${p.name}</td>
-                        <td class="px-4 py-2 font-mono text-yellow-400">${p.bib}</td>
-                        <td class="px-4 py-2 font-mono text-slate-300">${p.jersey_size || '-'}</td>
-                        <td class="px-4 py-2">${statusHtml}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } else {
-                tbody.innerHTML = `<tr><td colspan="4" class="px-4 py-4 text-center text-slate-500 italic">Tidak ada peserta untuk kupon ini</td></tr>`;
             }
         };
 
-        window.filterCouponModalTable = function() {
-            if (!window.currentCouponReportData) return;
-            const filterVal = document.getElementById('couponModalFilterPickup').value;
-            let participants = window.currentCouponReportData.participants || [];
-            
-            if (filterVal === '1') {
-                participants = participants.filter(p => p.is_picked_up == 1 || p.is_picked_up === true);
-            } else if (filterVal === '0') {
-                participants = participants.filter(p => p.is_picked_up == 0 || p.is_picked_up === false || p.is_picked_up === null);
-            }
-            
-            window.renderCouponReportModalContent(participants);
-        };
-
-        window.showCouponReportModal = function(report, couponCode) {
+        window.openCouponReportModal = function(couponName, reportData) {
             const modal = document.getElementById('coupon-report-modal');
+            const subtitle = document.getElementById('coupon-modal-subtitle');
+            const summaryContainer = document.getElementById('coupon-jersey-summary');
+            const tbody = document.getElementById('coupon-participants-tbody');
             if (!modal) return;
-            
-            window.currentCouponReportData = report;
-            document.getElementById('coupon-modal-subtitle').textContent = 'Kupon: ' + couponCode;
-            
-            const filterSelect = document.getElementById('couponModalFilterPickup');
-            if (filterSelect) filterSelect.value = 'all';
-            
-            window.renderCouponReportModalContent(report.participants || []);
+
+            if (subtitle) subtitle.textContent = 'Kupon: ' + couponName;
+
+            if (summaryContainer && reportData.jersey_totals) {
+                summaryContainer.innerHTML = Object.entries(reportData.jersey_totals).map(([size, count]) => {
+                    return `<span class="px-2 py-1 bg-slate-800 text-slate-200 border border-slate-700 rounded-md font-mono font-bold text-xs">${size}: ${count}</span>`;
+                }).join('');
+            }
+
+            renderCouponModalTable(reportData.participants || []);
             modal.classList.remove('hidden');
         };
 
@@ -2612,25 +2669,48 @@
             if (modal) modal.classList.add('hidden');
         };
 
-        window.triggerManualCouponReport = function() {
-            if (window.currentCouponReport) {
-                showCouponReportModal(window.currentCouponReport, currentCouponText);
+        window.filterCouponModalTable = function() {
+            if (!window.currentCouponReport || !window.currentCouponReport.participants) return;
+            const val = document.getElementById('couponModalFilterPickup')?.value || 'all';
+            let list = window.currentCouponReport.participants;
+            if (val === '1') {
+                list = list.filter(p => p.is_picked_up);
+            } else if (val === '0') {
+                list = list.filter(p => !p.is_picked_up);
             }
+            renderCouponModalTable(list);
         };
 
-        // Initialize coupon report button visibility
-        const btnShowCouponReport = document.getElementById('btn-show-coupon-report');
-        if (btnShowCouponReport && window.currentCouponReport) {
-            btnShowCouponReport.classList.remove('hidden');
+        function renderCouponModalTable(participants) {
+            const tbody = document.getElementById('coupon-participants-tbody');
+            if (!tbody) return;
+
+            if (!participants.length) {
+                tbody.innerHTML = `<tr><td colspan="4" class="px-3 py-4 text-center text-slate-500">Tidak ada data.</td></tr>`;
+                return;
+            }
+
+            tbody.innerHTML = participants.map(p => {
+                const pickedBadge = p.is_picked_up 
+                    ? `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-950/40 text-emerald-400 border border-emerald-500/30">Picked Up</span>`
+                    : `<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400 border border-slate-700">Not Picked</span>`;
+
+                return `
+                    <tr class="hover:bg-slate-900/30">
+                        <td class="px-3 py-2 font-medium text-white">${p.name}</td>
+                        <td class="px-3 py-2 font-mono text-white font-bold">#${p.bib}</td>
+                        <td class="px-3 py-2 font-mono">${p.jersey_size}</td>
+                        <td class="px-3 py-2">${pickedBadge}</td>
+                    </tr>
+                `;
+            }).join('');
         }
 
-        // DOORPRIZE DRAW SYSTEM
-        // ==========================================
+        // Doorprize Draw System
         window.doorprizeParticipants = [];
         window.doorprizeInterval = null;
         window.doorprizeIsSpinning = false;
         window.doorprizeWinners = [];
-        const eventIdForStorage = "{{ $event->id }}";
 
         window.toggleDoorprizeFullscreen = function() {
             const card = document.getElementById('doorprizeModalCard');
@@ -2664,9 +2744,9 @@
             if (btnStart) {
                 btnStart.disabled = true;
                 btnStart.classList.add('opacity-50', 'cursor-not-allowed');
-                btnStart.innerHTML = `<span>⏳ Loading Data...</span>`;
+                btnStart.innerHTML = `<span>Memuat Data...</span>`;
             }
-            if (totalPaidEl) totalPaidEl.textContent = 'Loading...';
+            if (totalPaidEl) totalPaidEl.textContent = 'Memuat...';
             
             const filters = typeof serializeAll === 'function' ? serializeAll() : {};
             const url = new URL("{{ route('report.doorprize-list', $event) }}", window.location.origin);
@@ -2687,7 +2767,7 @@
                             if (btnStart) {
                                 btnStart.disabled = false;
                                 btnStart.classList.remove('opacity-50', 'cursor-not-allowed');
-                                btnStart.innerHTML = `<span class="text-base">▶</span> Start Draw`;
+                                btnStart.innerHTML = `<span>Mulai Undian</span>`;
                             }
                         } else {
                             if (btnStart) {
@@ -2737,7 +2817,6 @@
             
             window.doorprizeIsSpinning = true;
             
-            // UI Adjustments
             document.getElementById('doorprizePlaceholder').classList.add('hidden');
             document.getElementById('doorprizeWinner').classList.add('hidden');
             document.getElementById('doorprizeLiveSpin').classList.remove('hidden');
@@ -2745,8 +2824,8 @@
             document.getElementById('liveDrawName').textContent = drawName;
             
             const board = document.getElementById('doorprizeDrawBoard');
-            board.classList.add('glow-blue');
-            board.classList.remove('glow-green');
+            board.classList.add('border-sky-500');
+            board.classList.remove('border-emerald-500');
             
             const btnStart = document.getElementById('btnStartDoorprize');
             const btnStop = document.getElementById('btnStopDoorprize');
@@ -2756,7 +2835,7 @@
             
             btnStop.disabled = false;
             btnStop.classList.remove('bg-slate-800', 'text-slate-500', 'cursor-not-allowed');
-            btnStop.classList.add('bg-red-600', 'hover:bg-red-500', 'text-white', 'shadow-lg', 'shadow-red-600/20');
+            btnStop.classList.add('bg-rose-600', 'hover:bg-rose-500', 'text-white');
             
             const liveBib = document.getElementById('liveBib');
             
@@ -2797,13 +2876,12 @@
             const finalWinner = pool[Math.floor(Math.random() * pool.length)];
             const drawName = (document.getElementById('doorprizeDrawName')?.value || 'Undian').trim();
             
-            // Show Winner Detail
             document.getElementById('doorprizeLiveSpin').classList.add('hidden');
             document.getElementById('doorprizeWinner').classList.remove('hidden');
             
             const board = document.getElementById('doorprizeDrawBoard');
-            board.classList.remove('glow-blue');
-            board.classList.add('glow-green');
+            board.classList.remove('border-sky-500');
+            board.classList.add('border-emerald-500');
             
             document.getElementById('winnerDrawName').textContent = drawName;
             
@@ -2816,86 +2894,74 @@
             }
             document.getElementById('winnerBib').textContent = processedBib;
             
-            // Action Controls Reset
             const btnStart = document.getElementById('btnStartDoorprize');
             const btnStop = document.getElementById('btnStopDoorprize');
             
             btnStart.disabled = false;
             btnStart.classList.remove('opacity-50', 'cursor-not-allowed');
+            btnStart.innerHTML = `<span>Mulai Undian</span>`;
             
             btnStop.disabled = true;
-            btnStop.classList.remove('bg-red-600', 'hover:bg-red-500', 'text-white', 'shadow-lg', 'shadow-red-600/20');
+            btnStop.classList.remove('bg-rose-600', 'hover:bg-rose-500', 'text-white');
             btnStop.classList.add('bg-slate-800', 'text-slate-500', 'cursor-not-allowed');
             
-            // Save Winner to Local Storage
             saveWinnerToStorage(finalWinner, drawName);
             renderDoorprizeWinnersList();
-            
-            // Celebration visual pulse
-            const winnerBlock = document.getElementById('doorprizeWinner');
-            winnerBlock.classList.remove('animate-bounce-short');
-            void winnerBlock.offsetWidth; // Trigger reflow
-            winnerBlock.classList.add('animate-bounce-short');
         };
 
         function getDoorprizeWinnersFromStorage() {
-            const key = 'doorprize_winners_' + eventIdForStorage;
-            const stored = localStorage.getItem(key);
-            return stored ? JSON.parse(stored) : [];
+            try {
+                return JSON.parse(localStorage.getItem('doorprize_winners_' + '{{ $event->id }}') || '[]');
+            } catch(e) {
+                return [];
+            }
         }
 
         function saveWinnerToStorage(winner, drawName) {
-            const key = 'doorprize_winners_' + eventIdForStorage;
             const list = getDoorprizeWinnersFromStorage();
-            
-            // Avoid duplicate entry if same ID somehow gets added
-            if (!list.some(w => w.id === winner.id)) {
-                list.push({
-                    id: winner.id,
-                    bib_number: winner.bib_number || '-',
-                    name: winner.name || '-',
-                    phone: winner.phone || '-',
-                    address: [winner.address, winner.city, winner.province]
-                        .filter(part => part && part.trim() !== '')
-                        .join(', ') || '-',
-                    draw_name: drawName,
-                    drawn_at: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })
-                });
-                localStorage.setItem(key, JSON.stringify(list));
-            }
+            list.push({
+                id: winner.id,
+                bib_number: winner.bib_number,
+                name: winner.name,
+                phone: winner.phone || '-',
+                address: winner.address || '-',
+                draw_name: drawName,
+                drawn_at: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
+            });
+            try {
+                localStorage.setItem('doorprize_winners_' + '{{ $event->id }}', JSON.stringify(list));
+            } catch(e) {}
         }
 
         window.clearDoorprizeWinners = function() {
-            if (confirm('Apakah Anda yakin ingin menghapus semua history pemenang doorprize untuk event ini?')) {
-                const key = 'doorprize_winners_' + eventIdForStorage;
-                localStorage.removeItem(key);
-                renderDoorprizeWinnersList();
-            }
+            if (!confirm('Apakah Anda yakin ingin menghapus seluruh daftar pemenang doorprize?')) return;
+            localStorage.removeItem('doorprize_winners_' + '{{ $event->id }}');
+            renderDoorprizeWinnersList();
         };
 
         function renderDoorprizeWinnersList() {
-            const list = getDoorprizeWinnersFromStorage();
             const container = document.getElementById('doorprizeWinnerList');
             if (!container) return;
+            const list = getDoorprizeWinnersFromStorage();
             
             if (list.length === 0) {
-                container.innerHTML = `<div class="text-xs text-slate-500 text-center py-8">Belum ada pemenang yang ditarik.</div>`;
+                container.innerHTML = '<div class="text-xs text-slate-500 text-center py-8">Belum ada pemenang yang ditarik.</div>';
                 return;
             }
             
             let html = '';
-            list.slice().reverse().forEach((w, index) => {
+            list.slice().reverse().forEach((w) => {
                 html += `
-                <div class="bg-slate-900 border border-slate-800 rounded-xl p-3 flex flex-col gap-1.5 transition hover:border-slate-700">
+                <div class="bg-slate-900 border border-slate-800 rounded-md p-2.5 flex flex-col gap-1 transition hover:border-slate-700">
                     <div class="flex justify-between items-center">
-                        <span class="text-[10px] bg-blue-500/10 text-blue-400 border border-blue-500/20 px-1.5 py-0.5 rounded font-bold">BIB ${w.bib_number}</span>
-                        <span class="text-[10px] text-slate-500 font-medium">${w.drawn_at}</span>
+                        <span class="text-[10px] bg-slate-800 text-slate-200 border border-slate-700 px-1.5 py-0.5 rounded font-bold font-mono">BIB ${w.bib_number}</span>
+                        <span class="text-[10px] text-slate-500 font-mono">${w.drawn_at}</span>
                     </div>
-                    ${w.draw_name ? `<div class="text-[10px] text-yellow-400/90 font-semibold tracking-wide uppercase">${w.draw_name}</div>` : ''}
-                    <div class="text-xs font-bold text-slate-200 truncate" title="${w.name}">${w.name}</div>
-                    <div class="text-[10px] text-slate-400 flex flex-col gap-0.5 mt-0.5 border-t border-slate-800/60 pt-1.5">
-                        <span class="truncate">📞 ${w.phone}</span>
-                        <span class="truncate" title="${w.address}">📍 ${w.address}</span>
+                    ${w.draw_name ? `<div class="text-[10px] text-amber-400 font-semibold tracking-wide uppercase">${w.draw_name}</div>` : ''}
+                    <div class="text-xs font-bold text-white truncate" title="${w.name}">${w.name}</div>
+                    <div class="text-[10px] text-slate-400 flex flex-col gap-0.5 border-t border-slate-800 pt-1">
+                        <span class="truncate">Telp: ${w.phone}</span>
+                        <span class="truncate" title="${w.address}">Alamat: ${w.address}</span>
                     </div>
                 </div>`;
             });
@@ -2905,7 +2971,7 @@
         window.exportDoorprizeWinners = function() {
             const list = getDoorprizeWinnersFromStorage();
             if (list.length === 0) {
-                alert('Belum ada pemenang untuk di-export.');
+                alert('Belum ada pemenang untuk diunduh.');
                 return;
             }
             
@@ -2942,12 +3008,12 @@
             const isHidden = form.classList.contains('hidden');
             if (isHidden) {
                 form.classList.remove('hidden');
-                if (icon) icon.className = 'fa-solid fa-chevron-up text-xs text-white';
+                if (icon) icon.className = 'fa-solid fa-chevron-up text-xs';
                 if (text) text.textContent = 'Sembunyikan Filter';
                 localStorage.setItem('reportFiltersCollapsed', '0');
             } else {
                 form.classList.add('hidden');
-                if (icon) icon.className = 'fa-solid fa-chevron-down text-xs text-white';
+                if (icon) icon.className = 'fa-solid fa-chevron-down text-xs';
                 if (text) text.textContent = 'Tampilkan Filter';
                 localStorage.setItem('reportFiltersCollapsed', '1');
             }
@@ -2971,9 +3037,7 @@
                 })
             })
             .then(r => {
-                if (!r.ok) {
-                    return r.json().then(err => { throw err; });
-                }
+                if (!r.ok) return r.json().then(err => { throw err; });
                 return r.json();
             })
             .then(data => {
@@ -2997,7 +3061,7 @@
             window.toggleReportFilters();
         }
 
-        // Two-way sync for Sticky Quick Search Input
+        // Quick Search Synchronization
         const quickSearchInp = document.getElementById('quick-search-input');
         const mainSearchInp = form ? form.querySelector('input[name="search"]') : null;
         const quickClearBtn = document.getElementById('quick-search-clear');

@@ -927,18 +927,21 @@
                                                     $allowed = $paymentConfig['allowed_methods'];
                                                     $showMidtrans = in_array('midtrans', $allowed) || in_array('all', $allowed);
                                                     $showMoota = in_array('moota', $allowed) || in_array('all', $allowed);
+                                                    $showManualTransfer = in_array('manual_transfer', $allowed) || in_array('all', $allowed);
                                                 } else {
                                                     $showMidtrans = $paymentConfig['midtrans'] ?? true;
                                                     $showMoota = $paymentConfig['moota'] ?? false;
+                                                    $showManualTransfer = $paymentConfig['manual_transfer'] ?? false;
                                                 }
 
-                                                if (!$showMidtrans && !$showMoota) {
+                                                if (!$showMidtrans && !$showMoota && !$showManualTransfer) {
                                                     $showMidtrans = true;
                                                 }
 
                                                 // Default selection logic
                                                 $defaultMidtrans = $showMidtrans ? 'checked' : '';
                                                 $defaultMoota = (!$showMidtrans && $showMoota) ? 'checked' : '';
+                                                $defaultManual = (!$showMidtrans && !$showMoota && $showManualTransfer) ? 'checked' : '';
                                             @endphp
 
                                             @if($showMidtrans)
@@ -960,6 +963,18 @@
                                                     <div class="flex flex-col">
                                                         <span class="text-white text-sm font-bold">Transfer Bank (Moota)</span>
                                                         <span class="text-xs text-slate-400">Verifikasi Otomatis</span>
+                                                    </div>
+                                                </div>
+                                            </label>
+                                            @endif
+
+                                            @if($showManualTransfer)
+                                            <label class="flex items-center justify-between p-4 bg-slate-800/50 border border-slate-700 rounded-xl cursor-pointer hover:border-slate-500 transition-colors group">
+                                                <div class="flex items-center gap-3">
+                                                    <input type="radio" name="payment_method" value="manual_transfer" {{ $defaultManual }} class="w-4 h-4 text-neon focus:ring-neon bg-slate-700 border-slate-600">
+                                                    <div class="flex flex-col">
+                                                        <span class="text-white text-sm font-bold">Transfer Rekening EO</span>
+                                                        <span class="text-xs text-slate-400">Transfer manual ke rekening EO dengan kode unik & upload bukti</span>
                                                     </div>
                                                 </div>
                                             </label>
@@ -1952,7 +1967,7 @@
                                     onError: function(result){ alert("Pembayaran gagal"); btn.disabled=false; btn.innerHTML=originalText; },
                                     onClose: function(){ btn.disabled=false; btn.innerHTML=originalText; }
                                 });
-                            } else if (data.payment_gateway === 'moota' || data.redirect_url) {
+                            } else if (data.payment_gateway === 'moota') {
                                 if (window.RuangLariMoota && typeof window.RuangLariMoota.open === 'function' && data.transaction_id) {
                                     btn.disabled = false;
                                     btn.innerHTML = originalText;
@@ -1971,6 +1986,8 @@
                                     alert('Registrasi berhasil, namun data pembayaran tidak lengkap.');
                                     btn.disabled=false; btn.innerHTML=originalText;
                                 }
+                            } else if (data.redirect_url) {
+                                window.location.href = data.redirect_url;
                             } else {
                                 // COD or Free - Show Success Message immediately
                                 const successDiv = document.createElement('div');

@@ -850,9 +850,14 @@
                                 </div>
                             </div>
                         </div>
-                        <button @click="removeParticipant(index)" class="w-8 h-8 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 flex items-center justify-center shrink-0 transition" title="Hapus">
-                            <i class="fa-solid fa-trash text-xs"></i>
-                        </button>
+                        <div class="flex items-center gap-1 shrink-0">
+                            <button type="button" @click="openEditRunnerModal(p)" class="w-8 h-8 rounded-md text-indigo-500 hover:bg-indigo-50 dark:hover:bg-slate-800 flex items-center justify-center transition" title="Edit Peserta">
+                                <i class="fa-solid fa-pen-to-square text-xs"></i>
+                            </button>
+                            <button @click="removeParticipant(index)" class="w-8 h-8 rounded-md text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40 flex items-center justify-center transition" title="Hapus">
+                                <i class="fa-solid fa-trash text-xs"></i>
+                            </button>
+                        </div>
                     </div>
                     <div v-if="participants.length === 0" class="p-8 text-center text-slate-400 text-xs">
                         Belum ada peserta terdaftar.
@@ -901,7 +906,10 @@
                                 <td class="p-3 font-bold text-slate-800 dark:text-slate-200">@{{ p.name }}</td>
                                 <td class="p-3 font-mono text-xs text-slate-600 dark:text-slate-400">@{{ p.predictedTimeMs ? formatTime(p.predictedTimeMs) : '-' }}</td>
                                 <td class="p-3 text-center">
-                                    <button @click="removeParticipant(index)" class="text-red-400 hover:text-red-600 transition-colors p-1" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+                                    <div class="flex items-center justify-center gap-1.5">
+                                        <button type="button" @click="openEditRunnerModal(p)" class="text-indigo-500 hover:text-indigo-400 dark:text-indigo-400 dark:hover:text-indigo-300 transition-colors p-1" title="Edit Data Pelari"><i class="fa-solid fa-pen-to-square"></i></button>
+                                        <button @click="removeParticipant(index)" class="text-red-400 hover:text-red-600 transition-colors p-1" title="Hapus"><i class="fa-solid fa-trash"></i></button>
+                                    </div>
                                 </td>
                             </tr>
                             <tr v-if="participants.length === 0">
@@ -2006,6 +2014,9 @@
                      :class="{'border-indigo-500 ring-2 ring-indigo-500/30': p.recentlyScanned}"
                      @click="recordLap(p.id, 'manual')">
                     
+                    <button @click.stop="openEditRunnerModal(p)" class="absolute top-2 left-2 text-slate-400 hover:text-indigo-400 p-1 z-10 dark:text-slate-500 dark:hover:text-indigo-300" title="Edit Nama & Waktu">
+                        <i class="fa-solid fa-pen-to-square text-sm"></i>
+                    </button>
                     <button @click.stop="markDNF(p.id)" class="absolute top-2 right-2 text-slate-400 hover:text-red-500 p-1 z-10 dark:text-slate-500 dark:hover:text-red-400" title="Tandai DNF (Did Not Finish)">
                         <i class="fa-solid fa-circle-xmark text-lg"></i>
                     </button>
@@ -2082,13 +2093,18 @@
                                 <td class="p-3 text-center">
                                     <div class="flex items-center justify-center gap-1.5">
                                         <button type="button" @click="recordLap(p.id, 'manual')" 
-                                            class="px-2.5 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition flex items-center gap-1 shadow-sm"
+                                            class="px-2.5 py-1 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs transition flex items-center gap-1 shadow-sm"
                                             title="Catat Lap / Finish">
                                             <i class="fa-solid fa-plus text-[10px]"></i>
                                             <span>Lap</span>
                                         </button>
+                                        <button type="button" @click="openEditRunnerModal(p)" 
+                                            class="px-2 py-1 rounded-md bg-slate-100 hover:bg-indigo-50 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 hover:text-indigo-600 dark:text-slate-300 dark:hover:text-white transition text-xs border border-slate-200 dark:border-slate-700"
+                                            title="Edit Nama & Waktu">
+                                            <i class="fa-solid fa-pen-to-square"></i>
+                                        </button>
                                         <button v-if="p.status !== 'dnf'" type="button" @click="markDNF(p.id)" 
-                                            class="px-2 py-1 rounded-lg bg-slate-100 hover:bg-red-50 dark:bg-slate-800 dark:hover:bg-red-950/40 text-slate-400 hover:text-red-500 transition text-xs"
+                                            class="px-2 py-1 rounded-md bg-slate-100 hover:bg-red-50 dark:bg-slate-800 dark:hover:bg-red-950/40 text-slate-400 hover:text-red-500 transition text-xs"
                                             title="Tandai DNF">
                                             <i class="fa-solid fa-circle-xmark"></i>
                                         </button>
@@ -2239,11 +2255,15 @@
                             </div>
                         </div>
 
-                        <!-- Action Buttons for 4:5 Sports Finisher Card -->
-                        <div v-if="p.status === 'finished'" class="pt-1 no-print">
-                            <button @click="openMediaModal('card', p)" class="w-full py-2.5 px-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm">
+                        <!-- Action Buttons for 4:5 Sports Finisher Card & Edit -->
+                        <div class="pt-1 no-print flex gap-2">
+                            <button v-if="p.status === 'finished'" @click="openMediaModal('card', p)" class="flex-1 py-2 px-3 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition shadow-sm">
                                 <i class="fa-solid fa-award text-amber-300"></i>
-                                <span>Kartu Finisher 4:5</span>
+                                <span>Kartu 4:5</span>
+                            </button>
+                            <button type="button" @click="openEditRunnerModal(p)" class="flex-1 py-2 px-3 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-medium text-xs flex items-center justify-center gap-1.5 transition border border-slate-700">
+                                <i class="fa-solid fa-pen-to-square text-xs"></i>
+                                <span>Edit Nama & Waktu</span>
                             </button>
                         </div>
                     </div>
@@ -2288,9 +2308,13 @@
                                 <span v-else class="text-slate-400 text-xs dark:text-slate-500 font-bold">RUNNING</span>
                             </td>
                             <td class="p-4 text-center no-print flex justify-center gap-2">
-                                <button v-if="p.status === 'finished'" @click="openMediaModal('card', p)" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 transition shadow-sm" title="Buka Kartu Finisher 4:5">
+                                <button v-if="p.status === 'finished'" @click="openMediaModal('card', p)" class="px-3 py-1.5 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 transition shadow-sm" title="Buka Kartu Finisher 4:5">
                                     <i class="fa-solid fa-award text-amber-300"></i>
                                     <span>Kartu 4:5</span>
+                                </button>
+                                <button type="button" @click="openEditRunnerModal(p)" class="px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white font-medium text-xs flex items-center gap-1.5 transition border border-slate-700 shadow-sm" title="Edit Nama & Waktu Pelari">
+                                    <i class="fa-solid fa-pen-to-square text-xs"></i>
+                                    <span>Edit</span>
                                 </button>
                             </td>
                         </tr>
@@ -2306,9 +2330,14 @@
                     <span>Did Not Finish (DNF) - @{{ dnfParticipants.length }} Peserta</span>
                 </h3>
                 <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2">
-                    <div v-for="p in dnfParticipants" :key="p.id" class="p-2.5 bg-white dark:bg-slate-900 rounded-xl border border-red-200 dark:border-red-800 flex items-center gap-2 text-xs">
-                        <span class="font-mono font-bold text-red-600 dark:text-red-400">#@{{ p.bib }}</span>
-                        <span class="font-bold text-slate-800 dark:text-slate-200 truncate">@{{ p.name }}</span>
+                    <div v-for="p in dnfParticipants" :key="p.id" class="p-2.5 bg-white dark:bg-slate-900 rounded-lg border border-red-200 dark:border-red-800 flex items-center justify-between gap-2 text-xs">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="font-mono font-bold text-red-600 dark:text-red-400">#@{{ p.bib }}</span>
+                            <span class="font-bold text-slate-800 dark:text-slate-200 truncate">@{{ p.name }}</span>
+                        </div>
+                        <button type="button" @click="openEditRunnerModal(p)" class="px-2 py-0.5 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 font-medium text-[11px] transition shrink-0" title="Koreksi Waktu / Batalkan DNF">
+                            <i class="fa-solid fa-pen-to-square text-[10px] mr-1"></i> Edit
+                        </button>
                     </div>
                 </div>
             </div>
@@ -2814,6 +2843,112 @@
         </div>
     </div>
 
+    <!-- Edit Runner Name & Result Time Modal -->
+    <div v-if="editRunnerModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm" @click.self="closeEditRunnerModal">
+        <div class="bg-slate-900 border border-slate-700 rounded-lg p-5 sm:p-6 w-full max-w-lg shadow-2xl relative text-white space-y-5">
+            <!-- Modal Header -->
+            <div class="flex justify-between items-start pb-3 border-b border-slate-800">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-md bg-indigo-600/20 border border-indigo-500/40 flex items-center justify-center text-indigo-400 shrink-0">
+                        <i class="fa-solid fa-user-pen text-base"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-base font-bold text-white">Edit Data Peserta: BIB #@{{ editRunnerForm.bib }}</h3>
+                        <p class="text-xs text-slate-400 mt-0.5">Ubah nama pelari atau koreksi catatan waktu finish.</p>
+                    </div>
+                </div>
+                <button type="button" @click="closeEditRunnerModal" class="text-slate-400 hover:text-white p-1 text-lg"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Error Banner -->
+            <div v-if="editRunnerError" class="p-3 bg-red-950/80 border border-red-600 rounded-md text-red-200 text-xs font-medium">
+                @{{ editRunnerError }}
+            </div>
+
+            <!-- Form Body -->
+            <div class="space-y-4 text-left">
+                <!-- Nama Pelari -->
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-300 mb-1.5">Nama Lengkap Pelari</label>
+                    <input v-model="editRunnerForm.name" type="text" placeholder="Contoh: Budi Santoso"
+                        class="w-full p-2.5 bg-slate-950 border border-slate-700 rounded-md text-sm text-white placeholder-slate-500 focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">
+                </div>
+
+                <!-- Status Finish / On Track / DNF -->
+                <div>
+                    <label class="block text-xs font-bold uppercase text-slate-300 mb-1.5">Status Perlombaan</label>
+                    <div class="grid grid-cols-3 gap-2 bg-slate-950 p-1 rounded-md border border-slate-800">
+                        <button type="button" @click="editRunnerForm.status = 'finished'"
+                            :class="editRunnerForm.status === 'finished' ? 'bg-emerald-600 text-white font-bold' : 'text-slate-400 hover:text-white font-medium'"
+                            class="py-1.5 px-2 rounded-md text-xs transition flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-flag-checkered text-[10px]"></i>
+                            <span>Finish</span>
+                        </button>
+                        <button type="button" @click="editRunnerForm.status = 'running'"
+                            :class="editRunnerForm.status === 'running' ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:text-white font-medium'"
+                            class="py-1.5 px-2 rounded-md text-xs transition flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-person-running text-[10px]"></i>
+                            <span>On Track</span>
+                        </button>
+                        <button type="button" @click="editRunnerForm.status = 'dnf'"
+                            :class="editRunnerForm.status === 'dnf' ? 'bg-red-700 text-white font-bold' : 'text-slate-400 hover:text-white font-medium'"
+                            class="py-1.5 px-2 rounded-md text-xs transition flex items-center justify-center gap-1.5">
+                            <i class="fa-solid fa-circle-xmark text-[10px]"></i>
+                            <span>DNF</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Catatan Waktu (Finish Time) -->
+                <div v-show="editRunnerForm.status !== 'dnf'">
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label class="block text-xs font-bold uppercase text-slate-300">Catatan Waktu</label>
+                        <span class="text-[11px] font-mono font-bold text-indigo-400">Total: @{{ formatTime(editRunnerCalculatedMs) }}</span>
+                    </div>
+                    <div class="grid grid-cols-4 gap-2">
+                        <div>
+                            <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Jam (HH)</label>
+                            <input v-model="editRunnerForm.timeHH" type="number" min="0" max="99" placeholder="00"
+                                class="w-full p-2 bg-slate-950 border border-slate-700 rounded-md font-mono text-center text-sm text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Menit (MM)</label>
+                            <input v-model="editRunnerForm.timeMM" type="number" min="0" max="59" placeholder="00"
+                                class="w-full p-2 bg-slate-950 border border-slate-700 rounded-md font-mono text-center text-sm text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Detik (SS)</label>
+                            <input v-model="editRunnerForm.timeSS" type="number" min="0" max="59" placeholder="00"
+                                class="w-full p-2 bg-slate-950 border border-slate-700 rounded-md font-mono text-center text-sm text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] text-slate-400 uppercase font-bold mb-1">Centidetik</label>
+                            <input v-model="editRunnerForm.timeCS" type="number" min="0" max="99" placeholder="00"
+                                class="w-full p-2 bg-slate-950 border border-slate-700 rounded-md font-mono text-center text-sm text-white focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 outline-none">
+                        </div>
+                    </div>
+                    <p class="text-[11px] text-slate-400 mt-1.5">
+                        Waktu resmi peserta di papan peringkat, sertifikat, dan kartu finisher.
+                    </p>
+                </div>
+            </div>
+
+            <!-- Modal Footer Actions -->
+            <div class="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-800">
+                <button type="button" @click="closeEditRunnerModal"
+                    class="px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-xs font-semibold transition border border-slate-700">
+                    Batal
+                </button>
+                <button type="button" @click="saveRunnerEdit" :disabled="editRunnerSaving"
+                    class="px-5 py-2 rounded-md bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                    <i v-if="editRunnerSaving" class="fa-solid fa-spinner fa-spin text-xs"></i>
+                    <i v-else class="fa-solid fa-check text-xs"></i>
+                    <span>@{{ editRunnerSaving ? 'Menyimpan...' : 'Simpan Perubahan' }}</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Edit Start Date & Time Modal (Koreksi Human Error Start Timer Terlambat) -->
     <div v-if="editTimingModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm" @click.self="closeEditTimingModal">
         <div class="bg-slate-900 border border-slate-700 rounded-2xl p-5 sm:p-6 w-full max-w-lg shadow-2xl relative text-white space-y-5">
@@ -3074,6 +3209,21 @@
             const editTimingOffsetMin = ref(0);
             const editTimingOffsetSec = ref(0);
             const editTimingRecalculateLaps = ref(true);
+
+            // Edit Runner Name & Result Time Modal
+            const editRunnerModalOpen = ref(false);
+            const editRunnerSaving = ref(false);
+            const editRunnerError = ref('');
+            const editRunnerForm = ref({
+                id: '',
+                bib: '',
+                name: '',
+                status: 'finished',
+                timeHH: '00',
+                timeMM: '00',
+                timeSS: '00',
+                timeCS: '00',
+            });
 
             // Camera & AI Vision State
             let cocoModel = null;
@@ -5213,6 +5363,156 @@
                     editTimingError.value = e.message || 'Gagal memperbarui waktu start sesi.';
                 } finally {
                     editTimingSaving.value = false;
+                }
+            };
+
+            // Edit Runner Name & Result Time Logic
+            const editRunnerCalculatedMs = computed(() => {
+                const h = parseInt(editRunnerForm.value.timeHH, 10) || 0;
+                const m = parseInt(editRunnerForm.value.timeMM, 10) || 0;
+                const s = parseInt(editRunnerForm.value.timeSS, 10) || 0;
+                const cs = parseInt(editRunnerForm.value.timeCS, 10) || 0;
+                return (h * 3600 + m * 60 + s) * 1000 + (cs * 10);
+            });
+
+            const openEditRunnerModal = (p) => {
+                if (!p) return;
+                editRunnerError.value = '';
+                const currentMs = (typeof p.totalTime === 'number' && p.totalTime > 0)
+                    ? p.totalTime
+                    : ((typeof p.predictedTimeMs === 'number' && p.predictedTimeMs > 0) ? p.predictedTimeMs : 0);
+
+                let hh = 0, mm = 0, ss = 0, cs = 0;
+                if (currentMs > 0) {
+                    const totalSec = Math.floor(currentMs / 1000);
+                    hh = Math.floor(totalSec / 3600);
+                    mm = Math.floor((totalSec % 3600) / 60);
+                    ss = totalSec % 60;
+                    cs = Math.floor((currentMs % 1000) / 10);
+                }
+
+                let currentStatus = p.status;
+                if (!currentStatus) {
+                    currentStatus = currentMs > 0 ? 'finished' : 'running';
+                }
+
+                editRunnerForm.value = {
+                    id: p.id,
+                    bib: p.bib,
+                    name: p.name || '',
+                    status: currentStatus,
+                    timeHH: String(hh).padStart(2, '0'),
+                    timeMM: String(mm).padStart(2, '0'),
+                    timeSS: String(ss).padStart(2, '0'),
+                    timeCS: String(cs).padStart(2, '0'),
+                };
+                editRunnerModalOpen.value = true;
+            };
+
+            const closeEditRunnerModal = () => {
+                editRunnerModalOpen.value = false;
+                editRunnerError.value = '';
+            };
+
+            const saveRunnerEdit = async () => {
+                if (editRunnerSaving.value) return;
+                const trimmedName = String(editRunnerForm.value.name || '').trim();
+                if (!trimmedName) {
+                    editRunnerError.value = 'Nama pelari tidak boleh kosong.';
+                    return;
+                }
+
+                editRunnerSaving.value = true;
+                editRunnerError.value = '';
+
+                const bib = editRunnerForm.value.bib;
+                const pId = editRunnerForm.value.id;
+                const newStatus = editRunnerForm.value.status;
+                const newMs = editRunnerCalculatedMs.value;
+
+                // 1. Update local reactive participant state immediately
+                const localP = participants.value.find(item => item.id === pId || String(item.bib) === String(bib));
+                if (localP) {
+                    localP.name = trimmedName;
+                    if (newStatus === 'dnf') {
+                        localP.status = 'dnf';
+                    } else if (newStatus === 'ready') {
+                        localP.status = 'ready';
+                        localP.totalTime = 0;
+                    } else {
+                        localP.totalTime = newMs;
+                        localP.status = newMs > 0 ? 'finished' : (newStatus || 'running');
+                        if (!Array.isArray(localP.laps)) localP.laps = [];
+                        if (localP.laps.length === 0 && newMs > 0) {
+                            localP.laps.push({ lap: 1, time: newMs, totalTime: newMs });
+                        } else if (localP.laps.length > 0 && newMs > 0) {
+                            const lastIdx = localP.laps.length - 1;
+                            if (typeof localP.laps[lastIdx] === 'object' && localP.laps[lastIdx] !== null) {
+                                localP.laps[lastIdx].totalTime = newMs;
+                            } else {
+                                localP.laps[lastIdx] = newMs;
+                            }
+                        }
+                    }
+                    saveState();
+                }
+
+                // 2. Sync to backend API if session or race is active
+                const targetSession = sessionSlug.value || currentSessionId.value;
+                if (targetSession) {
+                    const payload = {
+                        name: trimmedName,
+                        total_time_ms: newMs,
+                        status: newStatus,
+                    };
+
+                    try {
+                        let endpoint = `${apiBase}/sessions/${encodeURIComponent(String(targetSession))}/participants/${encodeURIComponent(String(bib))}/edit-result`;
+                        let resData;
+                        try {
+                            resData = await apiFetchJson(endpoint, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(payload)
+                            });
+                        } catch (errAuth) {
+                            endpoint = `${apiBase}/public/${encodeURIComponent(String(targetSession))}/participants/${encodeURIComponent(String(bib))}/edit-result`;
+                            resData = await apiFetchJson(endpoint, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify(payload)
+                            });
+                        }
+
+                        if (resData && resData.participant) {
+                            if (localP && resData.participant.rank) {
+                                localP.rank = resData.participant.rank;
+                            }
+                        }
+                    } catch (e) {
+                        console.warn('Backend sync edit participant error:', e);
+                    }
+                } else if (currentRaceId.value) {
+                    try {
+                        const payload = {
+                            name: trimmedName,
+                            predicted_time_ms: newMs > 0 ? newMs : null,
+                        };
+                        await apiFetchJson(`${apiBase}/races/${currentRaceId.value}/participants/${encodeURIComponent(String(bib))}/update`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                    } catch (e) {
+                        console.warn('Backend race participant update error:', e);
+                    }
+                }
+
+                editRunnerSaving.value = false;
+                closeEditRunnerModal();
+
+                if (typeof pollLiveSync === 'function') {
+                    pollLiveSync();
                 }
             };
 
@@ -8543,6 +8843,8 @@
                 editTimingDate, editTimingTime, editTimingOffsetSign, editTimingOffsetMin, editTimingOffsetSec,
                 editTimingRecalculateLaps, openEditTimingModal, closeEditTimingModal,
                 computeCalculatedTargetDate, previewTargetStartTime, previewRecalculatedElapsed, saveTimingAdjustment,
+                editRunnerModalOpen, editRunnerSaving, editRunnerError, editRunnerForm,
+                editRunnerCalculatedMs, openEditRunnerModal, closeEditRunnerModal, saveRunnerEdit,
             };
 
 

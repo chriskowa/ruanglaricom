@@ -463,6 +463,250 @@ class RaceMasterApiController extends Controller
         return $this->deleteParticipant($request, $session->race, $bib);
     }
 
+    public function parseTimeToMs($timeInput): ?int
+    {
+        if ($timeInput === null || $timeInput === '') {
+            return null;
+        }
+        if (is_numeric($timeInput) && strpos((string) $timeInput, ':') === false) {
+            return max(0, (int) $timeInput);
+        }
+        $str = trim((string) $timeInput);
+        $parts = explode('.', str_replace(',', '.', $str));
+        $timePart = $parts[0];
+        $fractionMs = 0;
+        if (isset($parts[1])) {
+            $f = substr($parts[1], 0, 3);
+            $fractionMs = (int) str_pad($f, 3, '0');
+        }
+        $t = explode(':', $timePart);
+        if (count($t) === 3) {
+            return ((int) $t[0] * 3600 + (int) $t[1] * 60 + (int) $t[2]) * 1000 + $fractionMs;
+        }
+        if (count($t) === 2) {
+            return ((int) $t[0] * 60 + (int) $t[1]) * 1000 + $fractionMs;
+        }
+        return null;
+    }
+
+    public function updateParticipantResult(Request $request, $session, $bib)
+    {
+        $session = $this->resolveRaceSession($session);
+
+        $user = Auth::user();
+        if ($user && $user->role !== 'admin' && $session->created_by && (int) $session->created_by !== (int) $user->id && (int) $session->race?->created_by !== (int) $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: Hanya Host pembuat sesi yang dapat mengedit data peserta.',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'name' => 'nullable|string|max:255',
+            'time' => 'nullable',
+            'time_string' => 'nullable',
+            'total_time_ms' => 'nullable|integer|min:0|max:86400000',
+            'status' => 'nullable|in:finished,running,dnf,ready',
+        ]);
+
+        $rsp = RaceSessionParticipant::query()
+            ->where('race_id', $session->race_id)
+            ->where('bib_number', (string) $bib)
+            ->first();
+
+        if (! $rsp) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Peserta dengan BIB '.$bib.' tidak ditemukan pada sesi ini.',
+            ], 404);
+        }
+
+        $newName = isset($validated['name']) && trim($validated['name']) !== '' ? trim($validated['name']) : $rsp->name;
+
+        $totalTimeMs = null;
+        if (isset($validated['total_time_ms']) && is_numeric($validated['total_time_ms'])) {
+            $totalTimeMs = max(0, (int) $validated['total_time_ms']);
+        } elseif (! empty($validated['time'])) {
+            $totalTimeMs = $this->parseTimeToMs($validated['time']);
+        } elseif (! empty($validated['time_string'])) {
+            $totalTimeMs = $this->parseTimeToMs($validated['time_string']);
+        }
+
+        $status = $validated['status'] ?? null;
+
+        DB::transaction(function () use ($session, $rsp, $newName, $totalTimeMs, $status) {
+            $rsp->name = $newName;
+
+            if ($rsp->participant_id) {
+                DB::table('participants')->where('id', $rsp->participant_id)->update(['name' => $newName]);
+            }
+
+            if ($status === 'dnf') {
+                $rsp->result_time_ms = null;
+                $rsp->finished_at = null;
+                RaceSessionLap::where('race_session_id', $session->id)
+                    ->where('race_session_participant_id', $rsp->id)
+                    ->delete();
+            } elseif ($totalTimeMs !== null && $totalTimeMs > 0) {
+                $rsp->result_time_ms = $totalTimeMs;
+                $startedAt = $session->started_at ? Carbon::parse($session->started_at) : null;
+                $finishTimestamp = $startedAt ? (clone $startedAt)->addMilliseconds($totalTimeMs) : now();
+                $rsp->finished_at = $finishTimestamp;
+
+                $lastLap = RaceSessionLap::query()
+                    ->where('race_session_id', $session->id)
+                    ->where('race_session_participant_id', $rsp->id)
+                    ->orderByDesc('lap_number')
+                    ->first();
+
+                if ($lastLap) {
+                    $prevLap = RaceSessionLap::query()
+                        ->where('race_session_id', $session->id)
+                        ->where('race_session_participant_id', $rsp->id)
+                        ->where('lap_number', '<', $lastLap->lap_number)
+                        ->orderByDesc('lap_number')
+                        ->first();
+                    $prevTotal = $prevLap ? (int) $prevLap->total_time_ms : 0;
+                    $lastLap->total_time_ms = $totalTimeMs;
+                    $lastLap->lap_time_ms = max(0, $totalTimeMs - $prevTotal);
+                    $lastLap->recorded_at = $finishTimestamp;
+                    $lastLap->save();
+                } else {
+                    RaceSessionLap::create([
+                        'race_id' => $session->race_id,
+                        'race_session_id' => $session->id,
+                        'race_session_participant_id' => $rsp->id,
+                        'participant_id' => $rsp->participant_id,
+                        'lap_number' => 1,
+                        'lap_time_ms' => $totalTimeMs,
+                        'total_time_ms' => $totalTimeMs,
+                        'delta_ms' => null,
+                        'position' => 1,
+                        'recorded_at' => $finishTimestamp,
+                    ]);
+                }
+            } elseif ($status === 'ready' || ($totalTimeMs === 0 && $status !== 'finished')) {
+                $rsp->result_time_ms = null;
+                $rsp->finished_at = null;
+                RaceSessionLap::where('race_session_id', $session->id)
+                    ->where('race_session_participant_id', $rsp->id)
+                    ->delete();
+            }
+
+            $rsp->save();
+
+            if ($totalTimeMs !== null) {
+                $laps = RaceSessionLap::where('race_session_id', $session->id)->orderBy('total_time_ms', 'asc')->get();
+                $pos = 1;
+                foreach ($laps as $l) {
+                    $l->position = $pos++;
+                    $l->save();
+                }
+            }
+        });
+
+        $standings = $this->computeStandings($session);
+
+        $currentRank = null;
+        foreach ($standings as $idx => $st) {
+            if ((int) $st['race_session_participant_id'] === (int) $rsp->id) {
+                $currentRank = $idx + 1;
+                break;
+            }
+        }
+
+        $existingCert = RaceCertificate::where('race_session_id', $session->id)
+            ->where('race_session_participant_id', $rsp->id)
+            ->first();
+
+        if ($existingCert && $currentRank !== null && $totalTimeMs !== null) {
+            try {
+                $this->generateCertificateForParticipant($session, $rsp, $currentRank, $totalTimeMs);
+            } catch (\Throwable $e) {
+                // Non-blocking
+            }
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Data pelari BIB #'.$bib.' (Nama & Waktu) berhasil diperbarui!',
+            'participant' => [
+                'id' => $rsp->id,
+                'bib' => $rsp->bib_number,
+                'name' => $rsp->name,
+                'total_time_ms' => $totalTimeMs,
+                'total_time' => $totalTimeMs !== null ? $this->formatMs($totalTimeMs) : null,
+                'status' => $status ?? ($totalTimeMs !== null && $totalTimeMs > 0 ? 'finished' : 'running'),
+                'rank' => $currentRank,
+            ],
+            'standings' => $standings,
+        ]);
+    }
+
+    public function publicUpdateParticipantResult(Request $request, $slug, $bib)
+    {
+        return $this->updateParticipantResult($request, $slug, $bib);
+    }
+
+    public function updateRaceParticipant(Request $request, Race $race, $bib)
+    {
+        $user = Auth::user();
+        if ($user && $user->role !== 'admin' && (int) $race->created_by !== (int) $user->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized: Hanya Host pembuat race yang dapat mengedit peserta.',
+            ], 403);
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'bib_number' => 'nullable|string|max:32',
+            'predicted_time_ms' => 'nullable|integer|min:0|max:86400000',
+        ]);
+
+        $rsp = RaceSessionParticipant::where('race_id', $race->id)
+            ->where('bib_number', (string) $bib)
+            ->first();
+
+        if (! $rsp) {
+            return response()->json(['success' => false, 'message' => 'Peserta tidak ditemukan.'], 404);
+        }
+
+        $rsp->name = trim($validated['name']);
+        if (!empty($validated['bib_number'])) {
+            $rsp->bib_number = trim($validated['bib_number']);
+        }
+        if (array_key_exists('predicted_time_ms', $validated)) {
+            $rsp->predicted_time_ms = $validated['predicted_time_ms'];
+        }
+        $rsp->save();
+
+        if ($rsp->participant_id) {
+            DB::table('participants')->where('id', $rsp->participant_id)->update(['name' => $rsp->name]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Data peserta berhasil diperbarui.',
+            'participant' => [
+                'id' => $rsp->id,
+                'bib' => $rsp->bib_number,
+                'name' => $rsp->name,
+                'predicted_time_ms' => $rsp->predicted_time_ms,
+            ],
+        ]);
+    }
+
+    public function publicUpdateRaceParticipant(Request $request, $slug, $bib)
+    {
+        $session = $this->resolveRaceSession($slug);
+        if (! $session->race) {
+            return response()->json(['success' => false, 'message' => 'Race tidak ditemukan.'], 404);
+        }
+
+        return $this->updateRaceParticipant($request, $session->race, $bib);
+    }
+
     public function startSession(Request $request, Race $race)
     {
         $validated = $request->validate([

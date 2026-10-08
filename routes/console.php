@@ -23,3 +23,9 @@ Schedule::command('programs:schedule-reminders')
 Schedule::command('queue:work --stop-when-empty')
     ->everyMinute()
     ->withoutOverlapping();
+
+// Auto-purge physical payment proofs H+7 after event ends (daily at 3 AM WIB)
+Schedule::command('events:purge-payment-proofs --days=7')
+    ->dailyAt('03:00')
+    ->timezone('Asia/Jakarta');
+

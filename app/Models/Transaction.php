@@ -37,6 +37,10 @@ class Transaction extends Model
         'pending_reminder_last_sent_at',
         'pending_reminder_count',
         'pending_reminder_last_channel',
+        'payment_proof',
+        'payment_proof_uploaded_at',
+        'proof_notes',
+        'proof_archived_at',
     ];
 
     protected $casts = [
@@ -47,7 +51,24 @@ class Transaction extends Model
         'final_amount' => 'decimal:2',
         'paid_at' => 'datetime',
         'pending_reminder_last_sent_at' => 'datetime',
+        'payment_proof_uploaded_at' => 'datetime',
+        'proof_archived_at' => 'datetime',
     ];
+
+    public function isManualTransfer(): bool
+    {
+        return $this->payment_gateway === 'manual_transfer';
+    }
+
+    public function hasPaymentProof(): bool
+    {
+        return ! empty($this->payment_proof);
+    }
+
+    public function getProofUrlAttribute(): ?string
+    {
+        return $this->payment_proof ? asset('storage/'.$this->payment_proof) : null;
+    }
 
     public function event(): BelongsTo
     {

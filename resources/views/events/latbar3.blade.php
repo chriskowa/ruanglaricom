@@ -2253,6 +2253,10 @@
                             return;
                         }
                     } else {
+                        if (data.redirect_url) {
+                            window.location.href = data.redirect_url;
+                            return;
+                        }
                         window.location.reload();
                     }
                 } catch (e) {

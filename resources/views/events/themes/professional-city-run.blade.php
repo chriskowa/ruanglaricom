@@ -971,7 +971,7 @@
                                 onError: function(result){ alert("Pembayaran gagal"); btn.disabled=false; btn.innerHTML=originalText; },
                                 onClose: function(){ btn.disabled=false; btn.innerHTML=originalText; }
                             });
-                        } else if (data.success && (data.payment_gateway === 'moota' || data.redirect_url)) {
+                        } else if (data.success && data.payment_gateway === 'moota') {
                             if (window.RuangLariMoota && typeof window.RuangLariMoota.open === 'function' && data.transaction_id) {
                                 btn.disabled = false;
                                 btn.innerHTML = originalText;
@@ -990,6 +990,8 @@
                                 alert('Registrasi berhasil, namun data pembayaran tidak lengkap.');
                                 btn.disabled=false; btn.innerHTML=originalText;
                             }
+                        } else if (data.success && data.redirect_url) {
+                            window.location.href = data.redirect_url;
                         } else if(data.success) {
                              window.location.href = `{{ route("events.show", $event->slug) }}?success=true`;
                         } else {

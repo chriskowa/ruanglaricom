@@ -117,6 +117,17 @@ class ProcessPaidEventTransaction implements ShouldQueue
      */
     protected function depositToEOWallet(): void
     {
+        // Direct transfer to EO's account or COD means the EO already received cash/funds directly.
+        // Do not deposit to platform wallet to prevent unwithdrawable or duplicate platform funds.
+        if (in_array($this->transaction->payment_gateway, ['manual_transfer', 'cod'], true)) {
+            Log::info('ProcessPaidEventTransaction: Skipped EO wallet deposit for direct transfer / COD', [
+                'transaction_id' => $this->transaction->id,
+                'payment_gateway' => $this->transaction->payment_gateway,
+            ]);
+
+            return;
+        }
+
         $organizer = $this->transaction->event->user;
 
         if (! $organizer) {

@@ -268,6 +268,10 @@ Route::prefix('/api/tools/race-master')->middleware(['auth', 'role:admin|eo'])->
     Route::post('/races/{race}/participants/bulk', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'upsertParticipants'])->name('tools.race-master.api.races.participants.bulk');
     Route::delete('/races/{race}/participants', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'clearParticipants'])->name('tools.race-master.api.races.participants.clear');
     Route::delete('/races/{race}/participants/{bib}', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'deleteParticipant'])->name('tools.race-master.api.races.participants.destroy');
+    Route::post('/races/{race}/participants/{bib}/update', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'updateRaceParticipant'])->name('tools.race-master.api.races.participants.update-post');
+    Route::put('/races/{race}/participants/{bib}', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'updateRaceParticipant'])->name('tools.race-master.api.races.participants.update');
+    Route::post('/sessions/{session}/participants/{bib}/edit-result', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'updateParticipantResult'])->name('tools.race-master.api.sessions.participants.edit-result');
+    Route::put('/sessions/{session}/participants/{bib}', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'updateParticipantResult'])->name('tools.race-master.api.sessions.participants.update');
     Route::post('/races/{race}/sessions', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'startSession'])->name('tools.race-master.api.races.sessions.start');
     Route::post('/sessions/{session}/laps', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'storeLap'])->name('tools.race-master.api.sessions.laps.store');
     Route::post('/sessions/{session}/laps/bulk', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'storeLapsBulk'])->name('tools.race-master.api.sessions.laps.bulk');
@@ -291,6 +295,8 @@ Route::prefix('/api/tools/race-master/public')->group(function () {
     Route::post('/{slug}/participants/{bib}/certificate', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicParticipantCertificate'])->name('tools.race-master.api.public.certificate');
     Route::delete('/{slug}/participants', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicClearParticipants'])->name('tools.race-master.api.public.participants.clear');
     Route::delete('/{slug}/participants/{bib}', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicDeleteParticipant'])->name('tools.race-master.api.public.participants.destroy');
+    Route::post('/{slug}/participants/{bib}/edit-result', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicUpdateParticipantResult'])->name('tools.race-master.api.public.participants.edit-result');
+    Route::post('/{slug}/participants/{bib}/update', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicUpdateRaceParticipant'])->name('tools.race-master.api.public.participants.update');
     Route::post('/{slug}/reset', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicResetSession'])->name('tools.race-master.api.public.reset');
 });
 
@@ -522,6 +528,7 @@ Route::post('/reports/{event}/participants/{participant}', [App\Http\Controllers
 Route::get('/reports/{event}/export', [App\Http\Controllers\PublicEventReportController::class, 'exportParticipants'])->name('report.export');
 Route::get('/reports/{event}/export-xlsx', [App\Http\Controllers\PublicEventReportController::class, 'exportParticipantsXlsx'])->name('report.export.xlsx');
 Route::post('/reports/{event}/participants/{participant}/status', [App\Http\Controllers\PublicEventReportController::class, 'updateParticipantStatus'])->name('report.participant.status');
+Route::post('/reports/{event}/scan-qr', [App\Http\Controllers\PublicEventReportController::class, 'scanQr'])->name('report.scan-qr');
 Route::get('/reports/{event}/doorprize-list', [App\Http\Controllers\PublicEventReportController::class, 'doorprizeList'])->name('report.doorprize-list');
 
 
@@ -692,6 +699,7 @@ Route::get('/event/{slug}', [App\Http\Controllers\PublicEventController::class, 
 
 Route::get('/event/{slug}/register', [App\Http\Controllers\EventRegistrationController::class, 'show'])->name('events.register');
 Route::get('/event/{slug}/payment/{transaction}', [App\Http\Controllers\EventRegistrationController::class, 'payment'])->name('events.payment');
+Route::post('/event/{slug}/payment/{transaction}/upload-proof', [App\Http\Controllers\EventRegistrationController::class, 'uploadProof'])->middleware('throttle:30,1')->name('events.payment.upload-proof');
 Route::get('/event/{slug}/prediction', [App\Http\Controllers\EventPredictionController::class, 'show'])->name('events.prediction');
 Route::post('/event/{slug}/prediction/predict', [App\Http\Controllers\EventPredictionController::class, 'predict'])->middleware('throttle:30,1')->name('events.prediction.predict');
 Route::get('/event/{slug}/lanjutkan-pembayaran', [App\Http\Controllers\EventPaymentRecoveryController::class, 'show'])->name('events.payments.continue');

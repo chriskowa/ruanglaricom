@@ -101,12 +101,7 @@
                 </button>
                 @endif
 
-                <!-- Dedicated Dashboard Button for Logged-In Users -->
-                @auth
-                <a href="{{ route(auth()->user()->role . '.dashboard') }}" class="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-neon/10 border border-neon/30 text-neon hover:bg-neon hover:text-dark text-xs font-black uppercase tracking-wider transition-all" title="Ke Dashboard Saya">                    
-                    <span>Dashboard</span>
-                </a>
-                @endauth
+                <!-- Dashboard & Chat are housed in the User Profile Dropdown to keep the navbar clean -->
 
                 <!-- Cart Icon -->
                 @auth
@@ -116,15 +111,8 @@
                 </a>
                 @endauth
 
-                <!-- Chat / Messages -->
-                @auth
-                @if(auth()->user()->role !== 'eo')
-                <a href="{{ route('chat.index') }}" class="hidden md:block p-1 rounded-lg {{ $lightMode ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-slate-800 text-slate-200' }} transition-colors relative" title="Messages">
-                    @include('layouts.components.svg-chat')
-                </a>
-                @endif
-                @endauth
-                
+                <!-- Chat / Messages (Hidden from top navbar to declutter; available in user dropdown menu) -->
+
                 <!-- Notifications -->
                 @auth
                 <div class="relative" id="notification-container">
@@ -178,6 +166,12 @@
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                                 Profile
                             </a>
+                            @if(auth()->user()->role !== 'eo')
+                            <a href="{{ route('chat.index') }}" class="flex items-center gap-3 px-3 py-2 text-sm {{ $lightMode ? 'text-slate-700 hover:bg-slate-50 hover:text-slate-900' : 'text-slate-200 hover:bg-slate-800 hover:text-white' }} rounded-lg transition-colors">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                                Chat
+                            </a>
+                            @endif
                             <a href="{{ route('notifications.index') }}" class="flex items-center gap-1 px-3 py-2 text-sm {{ $lightMode ? 'text-slate-700 hover:bg-slate-50 hover:text-slate-900' : 'text-slate-200 hover:bg-slate-800 hover:text-white' }} rounded-lg transition-colors">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
                                 Notifications

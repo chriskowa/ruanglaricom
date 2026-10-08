@@ -8,6 +8,8 @@ use App\Models\Coupon;
 use App\Models\Event;
 use App\Services\EventCacheService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class EventRegistrationController extends Controller
 {
@@ -161,16 +163,43 @@ class EventRegistrationController extends Controller
             abort(404);
         }
 
-        // Ensure transaction is moota and pending
-        if ($transaction->payment_gateway !== 'moota' || $transaction->payment_status !== 'pending') {
+        // Ensure transaction is moota or manual_transfer and pending
+        if (! in_array($transaction->payment_gateway, ['moota', 'manual_transfer'], true) || $transaction->payment_status !== 'pending') {
             return redirect()->route('events.show', $slug)->with('info', 'Transaksi tidak valid atau sudah dibayar.');
+        }
+
+        $isManualTransfer = $transaction->payment_gateway === 'manual_transfer';
+        $bankAccounts = [];
+        $instructions = '';
+
+        if ($isManualTransfer) {
+            $manualBank = $event->payment_config['manual_bank'] ?? [];
+            if (! empty($manualBank['bank_name']) && ! empty($manualBank['account_number'])) {
+                $bankAccounts = [[
+                    'bank_type' => $manualBank['bank_name'],
+                    'account_number' => $manualBank['account_number'],
+                    'name' => $manualBank['account_name'] ?? 'Panitia Event',
+                ]];
+            } else {
+                $eoUser = $event->user;
+                $bankAccounts = [[
+                    'bank_type' => $eoUser?->bank_account['bank_name'] ?? 'BCA',
+                    'account_number' => $eoUser?->bank_account_number ?? ($eoUser?->bank_account['account_number'] ?? '-'),
+                    'name' => $eoUser?->bank_account_name ?? ($eoUser?->bank_account['account_name'] ?? ($eoUser?->name ?? 'Panitia Event')),
+                ]];
+            }
+            $instructions = $manualBank['instructions'] ?? 'Silakan transfer tepat sesuai nominal yang tertera (termasuk 3 digit kode unik). Setelah transfer berhasil, silakan unggah foto bukti transfer di bawah ini agar panitia dapat memverifikasi pendaftaran Anda.';
+        } else {
+            $bankAccounts = config('moota.bank_accounts');
+            $instructions = AppSettings::get('moota_instructions');
         }
 
         return view('events.payment', [
             'event' => $event,
             'transaction' => $transaction,
-            'bankAccounts' => config('moota.bank_accounts'),
-            'instructions' => AppSettings::get('moota_instructions'),
+            'bankAccounts' => $bankAccounts,
+            'instructions' => $instructions,
+            'isManualTransfer' => $isManualTransfer,
         ]);
     }
 
@@ -246,13 +275,13 @@ class EventRegistrationController extends Controller
                 ])->with('success', 'Pendaftaran berhasil dikonfirmasi!');
             }
 
-            // Handle Moota Redirect
-            if ($transaction->payment_gateway === 'moota' && $transaction->payment_status === 'pending') {
+            // Handle Moota & Manual Transfer Redirect
+            if (in_array($transaction->payment_gateway, ['moota', 'manual_transfer'], true) && $transaction->payment_status === 'pending') {
                 if ($wantsJson) {
                     return response()->json([
                         'success' => true,
-                        'message' => 'Registrasi berhasil! Silakan lakukan pembayaran.',
-                        'payment_gateway' => 'moota',
+                        'message' => 'Registrasi berhasil! Silakan lakukan transfer pembayaran.',
+                        'payment_gateway' => $transaction->payment_gateway,
                         'payment_status' => $transaction->payment_status,
                         'transaction_id' => $transaction->id,
                         'registration_id' => $transaction->public_ref,
@@ -336,5 +365,73 @@ class EventRegistrationController extends Controller
                 ->withErrors(['error' => $e->getMessage()])
                 ->withInput();
         }
+    }
+
+    /**
+     * Upload payment proof for manual transfer
+     */
+    public function uploadProof(Request $request, $slug, \App\Models\Transaction $transaction)
+    {
+        $event = Event::where('slug', $slug)->firstOrFail();
+
+        if ((int) $transaction->event_id !== (int) $event->id) {
+            abort(404);
+        }
+
+        $request->validate([
+            'notes' => 'nullable|string|max:500',
+        ]);
+
+        $path = null;
+
+        if ($request->hasFile('payment_proof')) {
+            $file = $request->file('payment_proof');
+            $ext = strtolower($file->getClientOriginalExtension());
+            if (! in_array($ext, ['jpg', 'jpeg', 'png', 'webp', 'pdf'], true)) {
+                $ext = 'jpg';
+            }
+            $filename = 'proof_' . $transaction->id . '_' . time() . '_' . Str::random(8) . '.' . $ext;
+            $path = $file->storeAs('payment_proofs/' . $event->id, $filename, 'public');
+        } elseif ($request->filled('payment_proof_base64')) {
+            // Base64 compressed image from HTML5 canvas
+            $image = $request->input('payment_proof_base64');
+            if (preg_match('/^data:image\/(\w+);base64,/', $image, $type)) {
+                $image = substr($image, strpos($image, ',') + 1);
+                $type = strtolower($type[1]);
+                if (in_array($type, ['jpg', 'jpeg', 'png', 'webp'], true)) {
+                    $image = str_replace(' ', '+', $image);
+                    $filename = 'proof_' . $transaction->id . '_' . time() . '_' . Str::random(8) . '.' . $type;
+                    Storage::disk('public')->put('payment_proofs/' . $event->id . '/' . $filename, base64_decode($image));
+                    $path = 'payment_proofs/' . $event->id . '/' . $filename;
+                }
+            }
+        }
+
+        if (! $path) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Silakan pilih berkas bukti transfer (foto resi atau screenshot m-banking).',
+            ], 422);
+        }
+
+        // Delete previous proof if re-uploading
+        if ($transaction->payment_proof && Storage::disk('public')->exists($transaction->payment_proof)) {
+            try {
+                Storage::disk('public')->delete($transaction->payment_proof);
+            } catch (\Throwable $e) {}
+        }
+
+        $transaction->update([
+            'payment_proof' => $path,
+            'payment_proof_uploaded_at' => now(),
+            'proof_notes' => $request->input('notes'),
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Bukti pembayaran berhasil diunggah! Panitia sedang memverifikasi pembayaran Anda.',
+            'proof_url' => asset('storage/' . $path),
+            'uploaded_at' => $transaction->payment_proof_uploaded_at ? $transaction->payment_proof_uploaded_at->format('d M Y H:i') : now()->format('d M Y H:i'),
+        ]);
     }
 }

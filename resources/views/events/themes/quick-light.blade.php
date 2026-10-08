@@ -5,17 +5,20 @@
         $showMidtrans = in_array('midtrans', $allowed) || in_array('all', $allowed);
         $showMoota = in_array('moota', $allowed) || in_array('all', $allowed);
         $showCOD = in_array('cod', $allowed) || in_array('all', $allowed);
+        $showManualTransfer = in_array('manual_transfer', $allowed) || in_array('all', $allowed);
     } elseif (isset($paymentConfig['allowed_gateways']) && is_array($paymentConfig['allowed_gateways'])) {
         $allowed = $paymentConfig['allowed_gateways'];
         $showMidtrans = in_array('midtrans', $allowed) || in_array('all', $allowed);
         $showMoota = in_array('moota', $allowed) || in_array('all', $allowed);
         $showCOD = in_array('cod', $allowed) || in_array('all', $allowed);
+        $showManualTransfer = in_array('manual_transfer', $allowed) || in_array('all', $allowed);
     } else {
         $showMidtrans = $paymentConfig['midtrans'] ?? true;
         $showMoota = $paymentConfig['moota'] ?? false;
         $showCOD = $paymentConfig['cod'] ?? true;
+        $showManualTransfer = $paymentConfig['manual_transfer'] ?? false;
     }
-    if (!$showMidtrans && !$showMoota && !$showCOD) {
+    if (!$showMidtrans && !$showMoota && !$showCOD && !$showManualTransfer) {
         $showMidtrans = true;
     }
     $midtransDemoMode = filter_var($paymentConfig['midtrans_demo_mode'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
@@ -1194,6 +1197,20 @@
                                                     </div>
                                                     <span class="w-7 h-7 rounded-lg bg-slate-900 text-white inline-flex items-center justify-center text-xs shrink-0">
                                                         <i class="fa-solid fa-money-bill-wave text-white"></i>
+                                                    </span>
+                                                </div>
+                                            </label>
+                                        @endif
+                                        @if($showManualTransfer)
+                                            <label class="choice relative block cursor-pointer">
+                                                <input type="radio" name="payment_method" value="manual_transfer" {{ !$showMidtrans && !$showMoota && !$showCOD && $showManualTransfer ? 'checked' : '' }} required>
+                                                <div class="choice-box flex items-center justify-between gap-2">
+                                                    <div class="min-w-0">
+                                                        <div class="text-xs font-bold text-slate-900 truncate">Transfer Rekening EO</div>
+                                                        <div class="mt-0.5 text-[10px] text-slate-500 truncate">Transfer langsung dengan kode unik & unggah bukti</div>
+                                                    </div>
+                                                    <span class="w-7 h-7 rounded-lg bg-slate-900 text-white inline-flex items-center justify-center text-xs shrink-0">
+                                                        <i class="fa-solid fa-receipt text-white"></i>
                                                     </span>
                                                 </div>
                                             </label>

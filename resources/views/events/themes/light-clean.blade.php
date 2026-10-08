@@ -156,13 +156,15 @@
             $showMidtrans = in_array('midtrans', $allowed) || in_array('all', $allowed);
             $showMoota = in_array('moota', $allowed) || in_array('all', $allowed);
             $showCOD = in_array('cod', $allowed) || in_array('all', $allowed);
+            $showManualTransfer = in_array('manual_transfer', $allowed) || in_array('all', $allowed);
         } else {
             $showMidtrans = $paymentConfig['midtrans'] ?? true;
             $showMoota = $paymentConfig['moota'] ?? false;
             $showCOD = $paymentConfig['cod'] ?? false;
+            $showManualTransfer = $paymentConfig['manual_transfer'] ?? false;
         }
 
-        if (!$showMidtrans && !$showMoota && !$showCOD) {
+        if (!$showMidtrans && !$showMoota && !$showCOD && !$showManualTransfer) {
             $showMidtrans = true;
         }
 
@@ -468,10 +470,7 @@
                 </nav>
 
                 <!-- Actions -->
-                <div class="hidden sm:flex items-center gap-2 xl:gap-3 shrink-0">
-                    <a href="{{ route('community.register.index', ['slug' => $event->slug]) }}" class="px-3 xl:px-4 py-2 rounded-md border border-slate-300 hover:border-theme-primary bg-slate-50 hover:bg-theme-light text-slate-700 hover-text-theme-primary text-xs font-bold transition whitespace-nowrap shadow-2xs">
-                        Daftar Komunitas
-                    </a>
+                <div class="hidden sm:flex items-center gap-2 xl:gap-3 shrink-0">                    
                     @if($isRegOpen)
                         <a href="#register" class="px-4 xl:px-5 py-2 xl:py-2.5 rounded-md bg-theme-primary hover-bg-theme-primary text-white text-xs font-bold transition shadow-sm whitespace-nowrap">
                             Daftar Sekarang
@@ -1463,6 +1462,16 @@
                                             </div>
                                         </label>
                                         @endif
+
+                                        @if($showManualTransfer)
+                                        <label class="flex items-center gap-3 p-3 rounded-md border border-slate-200 hover:border-theme-primary cursor-pointer transition bg-slate-50">
+                                            <input type="radio" name="payment_method" value="manual_transfer" class="w-4 h-4 text-theme-primary" {{ !$showMidtrans && !$showMoota && !$showCOD && $showManualTransfer ? 'checked' : '' }} required>
+                                            <div class="flex-1">
+                                                <span class="block text-xs font-bold text-slate-900">Transfer Rekening EO</span>
+                                                <span class="text-[11px] text-slate-500">Transfer langsung ke rekening EO dengan 3 digit kode unik verifikasi</span>
+                                            </div>
+                                        </label>
+                                        @endif
                                     </div>
 
                                     @if($event->terms_and_conditions)
@@ -2248,7 +2257,7 @@
                         }
 
                         // 2. Moota Payment
-                        if (data.success && (data.payment_gateway === 'moota' || data.redirect_url)) {
+                        if (data.success && data.payment_gateway === 'moota') {
                             if (window.RuangLariMoota && typeof window.RuangLariMoota.open === 'function' && data.transaction_id) {
                                 if (btn) { btn.disabled = false; btn.innerHTML = originalText; isConfirmed = false; }
                                 window.RuangLariMoota.open({

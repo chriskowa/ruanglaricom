@@ -676,6 +676,11 @@
                             'photo' => $participant->photo ? asset('storage/' . $participant->photo) : null,
                             'photo_path' => $participant->photo,
                             'notes' => $participant->notes,
+                            'unique_code' => $participant->transaction->unique_code ?? null,
+                            'final_amount' => (float)($participant->transaction->final_amount ?? $participant->transaction->total_amount ?? 0),
+                            'payment_proof' => $participant->transaction->payment_proof ? asset('storage/' . $participant->transaction->payment_proof) : null,
+                            'payment_proof_uploaded_at' => $participant->transaction->payment_proof_uploaded_at ? $participant->transaction->payment_proof_uploaded_at->format('d M Y H:i') : null,
+                            'proof_notes' => $participant->transaction->proof_notes ?? null,
                         ]) }}">
                         <td class="px-6 py-4" onclick="event.stopPropagation()">
                             <input type="checkbox" class="participant-checkbox rounded border-slate-600 bg-slate-800 text-yellow-500 focus:ring-yellow-500/50 cursor-pointer" value="{{ $participant->id }}">
@@ -756,29 +761,57 @@
                             @endif
                         </td>
                         <td class="px-6 py-4 col-payment">
-                            @php $status = $participant->transaction->payment_status ?? 'pending'; @endphp
-                            <div class="relative inline-block">
-                                <button type="button" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border"
-                                        data-dropdown="payment-{{ $participant->transaction->id }}"
-                                        data-status="{{ $status }}"
-                                        data-id="{{ $participant->transaction->id }}"
-                                        onclick="togglePaymentDropdown(this)">
-                                    <span class="status-label">{{ ucfirst($status) }}</span>
-                                    <svg class="w-3 h-3 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                                </button>
-                                <div id="payment-{{ $participant->transaction->id }}" class="absolute mt-2 w-36 bg-slate-900 border border-slate-700 rounded-lg shadow-xl hidden z-20">
-                                    <button class="w-full text-left px-3 py-2 text-xs hover:bg-slate-800" onclick="updatePaymentStatus('{{ route('eo.events.transactions.payment-status', [$event, $participant->transaction->id]) }}', 'pending', this)">Pending</button>
-                                    <button class="w-full text-left px-3 py-2 text-xs hover:bg-slate-800" onclick="updatePaymentStatus('{{ route('eo.events.transactions.payment-status', [$event, $participant->transaction->id]) }}', 'paid', this)">Paid</button>
-                                    <button class="w-full text-left px-3 py-2 text-xs hover:bg-slate-800" onclick="updatePaymentStatus('{{ route('eo.events.transactions.payment-status', [$event, $participant->transaction->id]) }}', 'failed', this)">Failed</button>
-                                    <button class="w-full text-left px-3 py-2 text-xs hover:bg-slate-800" onclick="updatePaymentStatus('{{ route('eo.events.transactions.payment-status', [$event, $participant->transaction->id]) }}', 'expired', this)">Expired</button>
-                                    <button class="w-full text-left px-3 py-2 text-xs hover:bg-slate-800" onclick="updatePaymentStatus('{{ route('eo.events.transactions.payment-status', [$event, $participant->transaction->id]) }}', 'cod', this)">COD</button>
+                            @php 
+                                $status = $participant->transaction->payment_status ?? 'pending';
+                                $gateway = $participant->transaction->payment_gateway ?? '';
+                                $uCode = $participant->transaction->unique_code ?? null;
+                                $hasProof = !empty($participant->transaction->payment_proof);
+                            @endphp
+                            <div class="flex flex-col gap-1.5">
+                                <div class="flex items-center gap-1.5 flex-wrap">
+                                    <div class="relative inline-block">
+                                        <button type="button" class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium border"
+                                                data-dropdown="payment-{{ $participant->transaction->id }}"
+                                                data-status="{{ $status }}"
+                                                data-id="{{ $participant->transaction->id }}"
+                                                onclick="togglePaymentDropdown(this)">
+                                            <span class="status-label">{{ ucfirst($status) }}</span>
+                                            <svg class="w-3 h-3 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                                        </button>
+                                        <div id="payment-{{ $participant->transaction->id }}" class="absolute mt-2 w-36 bg-slate-900 border border-slate-700 rounded-lg shadow-xl hidden z-20">
+                                            <button class="w-full text-left px-3 py-2 text-xs hover:bg-slate-800" onclick="updatePaymentStatus('{{ route('eo.events.transactions.payment-status', [$event, $participant->transaction->id]) }}', 'pending', this)">Pending</button>
+                                            <button class="w-full text-left px-3 py-2 text-xs hover:bg-slate-800" onclick="updatePaymentStatus('{{ route('eo.events.transactions.payment-status', [$event, $participant->transaction->id]) }}', 'paid', this)">Paid</button>
+                                            <button class="w-full text-left px-3 py-2 text-xs hover:bg-slate-800" onclick="updatePaymentStatus('{{ route('eo.events.transactions.payment-status', [$event, $participant->transaction->id]) }}', 'failed', this)">Failed</button>
+                                            <button class="w-full text-left px-3 py-2 text-xs hover:bg-slate-800" onclick="updatePaymentStatus('{{ route('eo.events.transactions.payment-status', [$event, $participant->transaction->id]) }}', 'expired', this)">Expired</button>
+                                            <button class="w-full text-left px-3 py-2 text-xs hover:bg-slate-800" onclick="updatePaymentStatus('{{ route('eo.events.transactions.payment-status', [$event, $participant->transaction->id]) }}', 'cod', this)">COD</button>
+                                        </div>
+                                    </div>
+
+                                    @if($gateway === 'manual_transfer' && $uCode)
+                                        <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-mono font-bold bg-amber-950/80 text-amber-300 border border-amber-600/40" title="Kode Unik Transfer: {{ $uCode }}">
+                                            +{{ $uCode }}
+                                        </span>
+                                    @endif
+
+                                    @if($hasProof)
+                                        <button type="button" onclick="event.stopPropagation(); openPhotoViewer('{{ asset('storage/' . $participant->transaction->payment_proof) }}')" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-950/80 text-emerald-300 border border-emerald-600/40 hover:bg-emerald-900 transition" title="Lihat Bukti Transfer">
+                                            <svg class="w-3 h-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Bukti
+                                        </button>
+                                    @endif
                                 </div>
+
+                                @if($gateway === 'manual_transfer')
+                                    <div class="text-[10px] text-slate-400 font-mono">
+                                        Rp {{ number_format($participant->transaction->final_amount ?? $participant->transaction->total_amount, 0, ',', '.') }}
+                                    </div>
+                                @endif
+
+                                @if($status == 'pending' && $participant->transaction->created_at->diffInDays(now()) >= 1)
+                                    <div class="text-xs text-red-400 font-bold mt-0.5">
+                                        Pending > 1 Hari
+                                    </div>
+                                @endif
                             </div>
-                            @if($status == 'pending' && $participant->transaction->created_at->diffInDays(now()) >= 1)
-                                <div class="text-xs text-red-400 font-bold mt-1">
-                                    Pending > 1 Hari
-                                </div>
-                            @endif
                         </td>
                         <td class="px-6 py-4 col-approval" onclick="event.stopPropagation()">
                             @if($participant->isApproved)
@@ -2078,6 +2111,16 @@
                                             @endforeach
                                         </select>
                                     </div>
+                                    <div id="dm_manual_transfer_info" class="hidden p-3 rounded-lg bg-amber-950/40 border border-amber-600/30 space-y-1.5 mt-2">
+                                        <div class="flex items-center justify-between text-xs">
+                                            <span class="text-amber-300 font-semibold">Kode Unik Transfer</span>
+                                            <span class="font-mono font-bold text-amber-200 text-sm px-2 py-0.5 rounded bg-amber-900/60 border border-amber-500/30" id="dm_unique_code">-</span>
+                                        </div>
+                                        <div class="flex items-center justify-between text-xs">
+                                            <span class="text-slate-400">Total Tagihan Transfer</span>
+                                            <span class="font-mono font-bold text-white text-sm" id="dm_final_amount">-</span>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="space-y-3">
                                     <div>
@@ -2115,6 +2158,24 @@
                                         <div class="text-xs text-slate-500">Addons</div>
                                         <div id="dm_addons" class="view-mode space-y-1"></div>
                                         <textarea name="addons" id="edit_addons_json" rows="6" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs focus:border-blue-500 focus:outline-none font-mono placeholder-slate-500" placeholder='[{"name":"Jersey Extra","value":"M"}]'></textarea>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Bukti Transfer / Pembayaran Section -->
+                            <div id="dm_proof_section" class="hidden mt-4 p-3.5 rounded-lg bg-slate-900/90 border border-slate-700">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span class="text-xs font-bold text-slate-300 uppercase tracking-wider">Bukti Transfer</span>
+                                    <span id="dm_proof_uploaded_at" class="text-[11px] text-slate-400 font-mono"></span>
+                                </div>
+                                <div class="flex items-start gap-3">
+                                    <img id="dm_proof_img" src="" alt="Bukti Transfer" class="w-20 h-20 rounded-md object-cover border border-slate-700 shrink-0 cursor-pointer hover:opacity-80 transition" onclick="openPhotoViewer(this.src)">
+                                    <div class="min-w-0 flex-1 space-y-1.5">
+                                        <p id="dm_proof_notes" class="text-xs text-slate-300 italic"></p>
+                                        <button type="button" onclick="openPhotoViewer(document.getElementById('dm_proof_img').src)" class="text-xs text-emerald-400 hover:underline flex items-center gap-1 font-semibold">
+                                            <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                            Lihat Bukti Resolusi Penuh
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -2611,7 +2672,12 @@
                     addons: p.addons,
                     photo: p.photo,
                     photo_path: p.photo_path,
-                    notes: p.notes
+                    notes: p.notes,
+                    unique_code: p.unique_code,
+                    final_amount: p.final_amount,
+                    payment_proof: p.payment_proof,
+                    payment_proof_uploaded_at: p.payment_proof_uploaded_at,
+                    proof_notes: p.proof_notes
                 }).replace(/'/g, "&#39;");
 
                 var approvalBadge = '';
@@ -2630,6 +2696,19 @@
                 }
 
                 var photoThumbHtml = p.photo ? '<img src="'+ p.photo +'" alt="Foto" class="w-9 h-9 rounded-lg object-cover border border-slate-700 shrink-0 cursor-pointer hover:opacity-80 transition" onclick="event.stopPropagation(); openPhotoViewer(\''+ p.photo +'\')" title="Klik untuk lihat foto COD">' : '';
+
+                var uniqueCodeBadge = '';
+                if (p.payment_method === 'manual_transfer' && p.unique_code) {
+                    uniqueCodeBadge = '<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-mono font-bold bg-amber-950/80 text-amber-300 border border-amber-600/40" title="Kode Unik Transfer: '+ p.unique_code +'">+' + p.unique_code + '</span>';
+                }
+                var proofBtn = '';
+                if (p.payment_proof) {
+                    proofBtn = '<button type="button" onclick="event.stopPropagation(); openPhotoViewer(\''+ p.payment_proof +'\')" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-950/80 text-emerald-300 border border-emerald-600/40 hover:bg-emerald-900 transition" title="Lihat Bukti Transfer"><svg class="w-3 h-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Bukti</button>';
+                }
+                var amountText = '';
+                if (p.payment_method === 'manual_transfer' && p.final_amount) {
+                    amountText = '<div class="text-[10px] text-slate-400 font-mono">Rp '+ Number(p.final_amount).toLocaleString('id-ID') +'</div>';
+                }
 
                 html += '<tr class="hover:bg-slate-800/50 transition-colors cursor-pointer" onclick="if(!event.target.closest(\'button\') && !event.target.closest(\'a\') && !event.target.closest(\'.no-click\')) openDetailModalFromRow(this)" data-json=\''+ dataJson +'\'>'+
                     '<td class="px-6 py-4" onclick="event.stopPropagation()">'+
@@ -2655,7 +2734,7 @@
                     '<td class="px-6 py-4 col-category_bib"><div class="flex flex-col gap-1"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-200 w-fit">'+ (p.category || '-') +'</span><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-bold bg-yellow-900/30 text-yellow-400 border border-yellow-500/30 w-fit">BIB: '+ (p.bib_number || 'N/A') +'</span></div></td>'+
                     '<td class="px-6 py-4 col-age_group"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-slate-700 text-slate-200">'+ (p.age_group || '-') +'</span></td>'+
                     '<td class="px-6 py-4 col-coupon">'+ couponHtml +'</td>'+
-                    '<td class="px-6 py-4 col-payment"><div class="relative inline-block">'+ paymentBtn + paymentDd +'</div></td>'+
+                    '<td class="px-6 py-4 col-payment"><div class="flex flex-col gap-1.5"><div class="flex items-center gap-1.5 flex-wrap"><div class="relative inline-block">'+ paymentBtn + paymentDd +'</div>'+ uniqueCodeBadge + proofBtn +'</div>'+ amountText +'</div></td>'+
                     '<td class="px-6 py-4 col-approval" onclick="event.stopPropagation()">'+ approvalBadge +'</td>'+
                     '<td class="px-6 py-4 col-pickup">'+ pickedBadge +'</td>'+
                     '<td class="px-6 py-4 text-right col-actions"><div class="flex items-center justify-end gap-2">'+
@@ -3929,6 +4008,37 @@
         document.getElementById('dm_trx_date').textContent = data.transaction_date;
         document.getElementById('dm_payment_method').textContent = data.payment_method;
         
+        // Manual Transfer Unique Code & Total Amount
+        var manualBox = document.getElementById('dm_manual_transfer_info');
+        var uniqueCodeEl = document.getElementById('dm_unique_code');
+        var finalAmountEl = document.getElementById('dm_final_amount');
+        if (manualBox && uniqueCodeEl && finalAmountEl) {
+            if (data.payment_method === 'manual_transfer' || data.unique_code) {
+                uniqueCodeEl.textContent = data.unique_code ? ('+' + data.unique_code) : '-';
+                finalAmountEl.textContent = data.final_amount ? ('Rp ' + Number(data.final_amount).toLocaleString('id-ID')) : '-';
+                manualBox.classList.remove('hidden');
+            } else {
+                manualBox.classList.add('hidden');
+            }
+        }
+
+        // Bukti Transfer Section
+        var proofSection = document.getElementById('dm_proof_section');
+        var proofImg = document.getElementById('dm_proof_img');
+        var proofTime = document.getElementById('dm_proof_uploaded_at');
+        var proofNotes = document.getElementById('dm_proof_notes');
+        if (proofSection && proofImg) {
+            if (data.payment_proof) {
+                proofImg.src = data.payment_proof;
+                if (proofTime) proofTime.textContent = data.payment_proof_uploaded_at ? ('Diunggah: ' + data.payment_proof_uploaded_at) : '';
+                if (proofNotes) proofNotes.textContent = data.proof_notes ? ('Catatan: ' + data.proof_notes) : 'Tidak ada catatan tambahan.';
+                proofSection.classList.remove('hidden');
+            } else {
+                proofImg.src = '';
+                proofSection.classList.add('hidden');
+            }
+        }
+
         var couponEl = document.getElementById('dm_coupon');
         if (data.coupon_code) {
             couponEl.innerHTML = '<span class="text-yellow-400 font-bold">' + data.coupon_code + '</span>';

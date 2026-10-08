@@ -153,7 +153,7 @@ class StoreRegistrationAction
             'participants.*.strava_url' => 'nullable|string|max:500',
             'participants.*.strava_activity' => 'nullable|string|max:500',
             'coupon_code' => 'nullable|string|exists:coupons,code',
-            'payment_method' => 'nullable|in:midtrans,cod,moota',
+            'payment_method' => 'nullable|in:midtrans,cod,moota,manual_transfer',
             'participants.*.addons' => 'nullable|array',
             'participants.*.addons.*.name' => 'nullable|string',
             'participants.*.addons.*.selected' => 'nullable',
@@ -510,6 +510,16 @@ class StoreRegistrationAction
             if ($paymentMethod === 'moota' && ! $isZeroAmount) {
                 $uniqueCode = $this->mootaService->generateUniqueCode($finalAmount);
                 $finalAmount += $uniqueCode;
+            } elseif ($paymentMethod === 'manual_transfer' && ! $isZeroAmount) {
+                $usedCodes = Transaction::where('event_id', $event->id)
+                    ->where('payment_status', 'pending')
+                    ->where('unique_code', '>', 0)
+                    ->pluck('unique_code')
+                    ->toArray();
+                do {
+                    $uniqueCode = rand(101, 999);
+                } while (in_array($uniqueCode, $usedCodes) && count($usedCodes) < 890);
+                $finalAmount += $uniqueCode;
             }
 
             $requiresApproval = ! empty($event->premium_amenities['requires_approval']) || ($paymentMethod === 'cod');
@@ -533,7 +543,7 @@ class StoreRegistrationAction
                 'final_amount' => $finalAmount,
                 'payment_status' => ($isZeroAmount && ! $isZeroAmountPending) ? 'paid' : 'pending',
                 'paid_at' => ($isZeroAmount && ! $isZeroAmountPending) ? now() : null,
-                'payment_gateway' => $isZeroAmount ? 'free' : ($paymentMethod === 'moota' ? 'moota' : ($paymentMethod === 'cod' ? 'cod' : 'midtrans')),
+                'payment_gateway' => $isZeroAmount ? 'free' : ($paymentMethod === 'moota' ? 'moota' : ($paymentMethod === 'cod' ? 'cod' : ($paymentMethod === 'manual_transfer' ? 'manual_transfer' : 'midtrans'))),
                 'unique_code' => $uniqueCode > 0 ? $uniqueCode : 0,
             ]);
 
@@ -645,10 +655,9 @@ class StoreRegistrationAction
                 }
 
                 return $transaction;
-            } elseif ($paymentMethod === 'moota') {
+            } elseif ($paymentMethod === 'moota' || $paymentMethod === 'manual_transfer') {
                 Cache::put($idKey, $transaction->id, now()->addMinutes(10));
 
-                // Notification/Email can be sent here if needed
                 return $transaction;
             } else {
                 $snapResult = $this->midtransService->createEventTransaction($transaction);

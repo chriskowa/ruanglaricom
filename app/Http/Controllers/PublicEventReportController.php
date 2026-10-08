@@ -16,45 +16,31 @@ class PublicEventReportController extends Controller
 {
     public function show(Request $request, EventReportService $reportService, $event)
     {
-        $sessionKey = 'report_access_' . $event;
-
-        // 1. Check strict signature (validates full URL)
-        if ($request->hasValidSignature()) {
-            session([$sessionKey => true]);
-        } 
-        // 2. Check lenient signature (validates base URL without extra params)
-        elseif ($request->has('signature')) {
-            $queryParams = $request->query();
-            $allowedParams = ['signature', 'expires'];
-            $filteredParams = array_intersect_key($queryParams, array_flip($allowedParams));
-            
-            // Reconstruct the URL properly
-            $checkUrl = $request->url();
-            if (!empty($filteredParams)) {
-                $checkUrl .= '?' . http_build_query($filteredParams);
-            }
-            
-            // Create a temporary request to validate the signature
-            $tempRequest = Request::create($checkUrl);
-            
-            if ($tempRequest->hasValidSignature()) {
-                session([$sessionKey => true]);
-            }
-        }
-
-        // 3. Final session check
-        if (! session($sessionKey)) {
+        if (! $this->validateReportAccess($request, $event)) {
             abort(403, 'Invalid signature or session expired.');
         }
 
         $eventModel = Event::query()
-            ->whereKey($event)
+            ->where(function($q) use ($event) {
+                if (is_numeric($event)) {
+                    $q->where('id', (int) $event);
+                } else {
+                    $q->where('slug', $event);
+                }
+            })
             ->where('is_active', true)
             ->where('status', 'published')
             ->with(['categories' => function ($q) {
                 $q->where('is_active', true);
             }])
             ->firstOrFail();
+
+        // Ensure session covers both event ID and slug
+        session([
+            'report_access_' . $event => true,
+            'report_access_' . $eventModel->id => true,
+            'report_access_' . $eventModel->slug => true,
+        ]);
 
         $validated = $request->validate([
             'search' => ['nullable', 'string', 'max:100'],
@@ -832,12 +818,18 @@ class PublicEventReportController extends Controller
 
     public function updateParticipantStatus(Request $request, $event, Participant $participant)
     {
-        if (! session('report_access_' . $event)) {
+        if (! $this->validateReportAccess($request, $event)) {
             abort(403, 'Unauthorized action.');
         }
 
         $eventModel = Event::query()
-            ->whereKey($event)
+            ->where(function($q) use ($event) {
+                if (is_numeric($event)) {
+                    $q->where('id', (int) $event);
+                } else {
+                    $q->where('slug', $event);
+                }
+            })
             ->firstOrFail();
 
         // Verify participant belongs to this event
@@ -916,6 +908,184 @@ class PublicEventReportController extends Controller
         }
 
         return back()->with('success', 'Status pengambilan berhasil diperbarui');
+    }
+
+    public function scanQr(Request $request, $event)
+    {
+        if (! $this->validateReportAccess($request, $event)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sesi scanner kedaluwarsa atau signature tidak valid. Silakan muat ulang halaman laporan.',
+            ], 403);
+        }
+
+        $eventModel = Event::query()
+            ->where(function($q) use ($event) {
+                if (is_numeric($event)) {
+                    $q->where('id', (int) $event);
+                } else {
+                    $q->where('slug', $event);
+                }
+            })
+            ->first();
+
+        if (! $eventModel) {
+            return response()->json(['success' => false, 'message' => 'Event tidak ditemukan.'], 404);
+        }
+
+        $code = trim((string) $request->input('code', ''));
+        if ($code === '') {
+            return response()->json(['success' => false, 'message' => 'Kode QR kosong.'], 422);
+        }
+
+        // Try match TICKET-{participantId}-{txId} or TICKET-{participantId}
+        $participantId = null;
+        $bib = null;
+
+        if (preg_match('/ticket-(\d+)(?:-(\d+))?/i', $code, $matches)) {
+            $participantId = (int) $matches[1];
+        } elseif (preg_match('/bib[:\s-]?([a-z0-9\-]+)/i', $code, $matches)) {
+            $bib = trim($matches[1]);
+        } elseif (is_numeric($code) && (int) $code > 0) {
+            $numericVal = (int) $code;
+            $checkPart = Participant::where('id', $numericVal)
+                ->whereHas('transaction', fn($q) => $q->where('event_id', $eventModel->id))
+                ->first();
+            if ($checkPart) {
+                $participantId = $checkPart->id;
+            } else {
+                $bib = $code;
+            }
+        }
+
+        $query = Participant::query()
+            ->whereHas('transaction', fn($q) => $q->where('event_id', $eventModel->id));
+
+        if ($participantId) {
+            $participant = $query->where('id', $participantId)->first();
+        } elseif ($bib) {
+            $participant = $query->where('bib_number', $bib)->first();
+        } else {
+            $participant = $query->where(function($q) use ($code) {
+                $q->where('phone', $code)
+                  ->orWhere('id_card', $code)
+                  ->orWhere('email', $code)
+                  ->orWhere('name', 'like', "%{$code}%");
+            })->first();
+        }
+
+        if (! $participant) {
+            return response()->json([
+                'success' => false,
+                'message' => "Peserta dengan kode/BIB/identitas '{$code}' tidak ditemukan pada event ini.",
+            ], 404);
+        }
+
+        $paymentStatus = (string) ($participant->transaction?->payment_status ?? 'pending');
+        if (! in_array($paymentStatus, ['paid', 'cod'], true)) {
+            return response()->json([
+                'success' => false,
+                'message' => "Tidak bisa pickup: pembayaran atas nama {$participant->name} belum lunas (Status: " . strtoupper($paymentStatus) . ").",
+                'participant' => [
+                    'id' => $participant->id,
+                    'name' => $participant->name,
+                    'bib_number' => $participant->bib_number ?: '-',
+                    'payment_status' => $paymentStatus,
+                ]
+            ], 422);
+        }
+
+        $wasPickedUp = (bool) $participant->is_picked_up;
+
+        $participant->update([
+            'is_picked_up' => true,
+            'picked_up_at' => now(),
+            'picked_up_by' => $request->input('picked_up_by') ?: 'Public QR Scanner',
+        ]);
+
+        $participant->refresh();
+
+        return response()->json([
+            'success' => true,
+            'already_picked_up' => $wasPickedUp,
+            'message' => $wasPickedUp 
+                ? "PERINGATAN: {$participant->name} (BIB: {$participant->bib_number}) SUDAH diambil sebelumnya pada " . ($participant->picked_up_at ? $participant->picked_up_at->format('d/m/Y H:i') : '') 
+                : "Berhasil verifikasi pickup untuk {$participant->name} (BIB: {$participant->bib_number})!",
+            'participant' => [
+                'id' => $participant->id,
+                'name' => $participant->name,
+                'bib_number' => $participant->bib_number ?: '-',
+                'jersey_size' => $participant->jersey_size ?: '-',
+                'is_picked_up' => true,
+                'picked_up_at' => $participant->picked_up_at ? $participant->picked_up_at->format('Y-m-d H:i:s') : null,
+                'picked_up_by' => $participant->picked_up_by,
+                'payment_status' => $paymentStatus,
+                'age_group' => $participant->getAgeGroup($eventModel->start_at),
+                'addons' => $participant->addons ?? [],
+            ],
+            'jersey_sizes_pending_pickup' => $this->getJerseyPendingPickupCounts($eventModel),
+        ]);
+    }
+
+    protected function validateReportAccess(Request $request, $event): bool
+    {
+        $sessionKey = 'report_access_' . $event;
+
+        if (session($sessionKey)) {
+            return true;
+        }
+
+        if ($request->hasValidSignature()) {
+            session([$sessionKey => true]);
+            return true;
+        }
+
+        if ($request->has('signature')) {
+            $queryParams = $request->query();
+            $allowedParams = ['signature', 'expires'];
+            $filteredParams = array_intersect_key($queryParams, array_flip($allowedParams));
+            
+            $checkUrl = $request->url();
+            if (!empty($filteredParams)) {
+                $checkUrl .= '?' . http_build_query($filteredParams);
+            }
+            
+            $tempRequest = Request::create($checkUrl);
+            if ($tempRequest->hasValidSignature()) {
+                session([$sessionKey => true]);
+                return true;
+            }
+        }
+
+        $referer = $request->headers->get('referer');
+        if ($referer && str_contains($referer, 'signature=')) {
+            $refererReq = Request::create($referer);
+            if ($refererReq->hasValidSignature()) {
+                session([$sessionKey => true]);
+                return true;
+            }
+
+            $refererQuery = [];
+            parse_str(parse_url($referer, PHP_URL_QUERY) ?? '', $refererQuery);
+            if (!empty($refererQuery['signature'])) {
+                $filtered = array_intersect_key($refererQuery, array_flip(['signature', 'expires']));
+                $reconstructed = strtok($referer, '?');
+                if (!empty($filtered)) {
+                    $reconstructed .= '?' . http_build_query($filtered);
+                }
+                $tempRef = Request::create($reconstructed);
+                if ($tempRef->hasValidSignature()) {
+                    session([$sessionKey => true]);
+                    return true;
+                }
+            }
+        }
+
+        if (auth()->check()) {
+            return true;
+        }
+
+        return false;
     }
 
     private function getJerseyPendingPickupCounts(Event $event): array

@@ -3511,7 +3511,7 @@
                                     window.location.href = `{{ route("events.show", $event->slug) }}?payment=pending&` + qs.toString(); 
                                 }
                             });
-                        } else if (data.payment_gateway === 'moota' || data.redirect_url) {
+                        } else if (data.payment_gateway === 'moota') {
                             if (window.RuangLariMoota && typeof window.RuangLariMoota.open === 'function' && data.transaction_id) {
                                 btn.disabled = false;
                                 btn.innerHTML = originalText;
@@ -3533,6 +3533,8 @@
                                 btn.disabled = false;
                                 btn.innerHTML = originalText;
                             }
+                        } else if (data.redirect_url) {
+                            window.location.href = data.redirect_url;
                         } else {
                             // Free Event / Success direct
                             window.location.href = `{{ route("events.show", $event->slug) }}?payment=success`;

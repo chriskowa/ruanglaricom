@@ -334,12 +334,14 @@
                     $allowed = $paymentConfig['allowed_methods'];
                     $showMidtrans = in_array('midtrans', $allowed) || in_array('all', $allowed);
                     $showMoota = in_array('moota', $allowed) || in_array('all', $allowed);
+                    $showManualTransfer = in_array('manual_transfer', $allowed) || in_array('all', $allowed);
                 } else {
                     $showMidtrans = $paymentConfig['midtrans'] ?? true;
                     $showMoota = $paymentConfig['moota'] ?? false;
+                    $showManualTransfer = $paymentConfig['manual_transfer'] ?? false;
                 }
 
-                if (!$showMidtrans && !$showMoota) {
+                if (!$showMidtrans && !$showMoota && !$showManualTransfer) {
                     $showMidtrans = true;
                 }
 
@@ -2054,6 +2056,16 @@
                                         </div>
                                     </label>
                                     @endif
+
+                                    @if($showManualTransfer)
+                                    <label class="flex items-center gap-3 p-3 bg-white/5 border border-white/10 rounded-xl cursor-pointer hover:bg-white/10 transition">
+                                        <input type="radio" name="payment_method" value="manual_transfer" class="w-4 h-4 text-brand-600 focus:ring-brand-500 bg-slate-800 border-slate-500" {{ !$showMidtrans && !$showMoota && $showManualTransfer ? 'checked' : '' }} required>
+                                        <div class="flex-1">
+                                            <span class="block text-sm font-bold text-white">Transfer Rekening EO</span>
+                                            <span class="text-xs text-slate-400">Transfer manual dengan kode unik & unggah bukti</span>
+                                        </div>
+                                    </label>
+                                    @endif
                                 </div>
 
                                 @if(env('RECAPTCHA_SITE_KEY'))
@@ -3461,7 +3473,7 @@
                                     window.location.href = `{{ route("events.show", $event->slug) }}?payment=pending&` + qs.toString(); 
                                 }
                             });
-                        } else if (data.payment_gateway === 'moota' || data.redirect_url) {
+                        } else if (data.payment_gateway === 'moota') {
                             if (window.RuangLariMoota && typeof window.RuangLariMoota.open === 'function' && data.transaction_id) {
                                 btn.disabled = false;
                                 btn.innerHTML = originalText;
@@ -3483,6 +3495,8 @@
                                 btn.disabled = false;
                                 btn.innerHTML = originalText;
                             }
+                        } else if (data.redirect_url) {
+                            window.location.href = data.redirect_url;
                         } else {
                             // Free Event / Success direct
                             window.location.href = `{{ route("events.show", $event->slug) }}?payment=success`;
