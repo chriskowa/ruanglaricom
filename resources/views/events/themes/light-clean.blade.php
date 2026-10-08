@@ -570,10 +570,7 @@
                                     Pendaftaran Ditutup
                                 </button>
                             @endif
-
-                            <a href="{{ route('community.register.index', ['slug' => $event->slug]) }}" class="px-6 py-3.5 rounded-md border border-slate-300 hover:border-theme-primary bg-slate-50 hover:bg-theme-light text-slate-700 hover-text-theme-primary font-bold text-sm transition">
-                                Daftar Komunitas
-                            </a>
+                         
                             <a href="#about" class="px-5 py-3.5 rounded-md text-slate-600 hover:text-slate-900 font-semibold text-sm transition">
                                 Pelajari Acara
                             </a>
