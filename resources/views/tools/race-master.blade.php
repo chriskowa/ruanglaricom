@@ -5133,33 +5133,72 @@
                 
                 pauseRace(); // Stop timer first
 
-                queueFlush();
+                await queueFlush();
 
-                if (currentSessionId.value) {
-                    apiFetchJson(`${apiBase}/sessions/${encodeURIComponent(String(currentSessionId.value))}/finish`, { method: 'POST' })
-                        .then((data) => {
-                            publicResultsUrl.value = data?.session?.public_results_url || publicResultsUrl.value;
-                            sessionSlug.value = data?.session?.slug || sessionSlug.value;
-                            if (data && Array.isArray(data.certificates)) {
-                                const map = {};
-                                data.certificates.forEach((c) => {
-                                    if (c && c.bib_number && c.download_url) map[String(c.bib_number)] = c.download_url;
-                                });
-                                certificatesByBib.value = map;
-                            }
-
-                            participants.value.forEach(p => {
-                                if (p.status === 'dnf') return;
-                                if (Array.isArray(p.laps) && p.laps.length > 0) p.status = 'finished';
-                                else p.status = 'dnf';
-                            });
-                            // Move to results
-                            currentView.value = 'results';
-                            saveState();
-                        })
-                        .catch((e) => alert('Gagal finish session: ' + (e.message || 'Unknown error')));
-                } else {
+                const target = sessionSlug.value || currentSessionId.value;
+                if (!target) {
                     alert('Session belum tersimpan. Tekan Start lagi lalu coba Finish.');
+                    return;
+                }
+
+                // Update participant statuses in Vue state
+                participants.value.forEach(p => {
+                    if (p.status === 'dnf') return;
+                    if ((Array.isArray(p.laps) && p.laps.length > 0) || (p.totalTime && p.totalTime > 0)) {
+                        p.status = 'finished';
+                    } else {
+                        p.status = 'dnf';
+                    }
+                });
+
+                const payload = {
+                    participants: participants.value.map(p => {
+                        let finalTime = p.totalTime || null;
+                        if (Array.isArray(p.laps) && p.laps.length > 0) {
+                            const lastLap = p.laps[p.laps.length - 1];
+                            finalTime = (typeof lastLap === 'object' && lastLap !== null && lastLap.totalTime) ? lastLap.totalTime : (typeof lastLap === 'number' ? lastLap : finalTime);
+                        }
+                        return {
+                            bib: p.bib,
+                            name: p.name,
+                            status: p.status,
+                            totalTime: finalTime,
+                            lapsCount: Array.isArray(p.laps) ? p.laps.length : 0,
+                        };
+                    })
+                };
+
+                try {
+                    let data = null;
+                    try {
+                        data = await apiFetchJson(`${apiBase}/sessions/${encodeURIComponent(String(target))}/finish`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                    } catch (err) {
+                        data = await apiFetchJson(`${apiBase}/public/${encodeURIComponent(String(target))}/finish`, {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify(payload)
+                        });
+                    }
+
+                    publicResultsUrl.value = data?.session?.public_results_url || publicResultsUrl.value;
+                    sessionSlug.value = data?.session?.slug || sessionSlug.value;
+                    if (data && Array.isArray(data.certificates)) {
+                        const map = {};
+                        data.certificates.forEach((c) => {
+                            if (c && c.bib_number && c.download_url) map[String(c.bib_number)] = c.download_url;
+                        });
+                        certificatesByBib.value = map;
+                    }
+
+                    // Move to results
+                    currentView.value = 'results';
+                    saveState();
+                } catch (e) {
+                    alert('Gagal finish session: ' + (e.message || 'Unknown error'));
                 }
             };
 
@@ -8426,6 +8465,7 @@
                     return;
                 }
                 publicResultsUrl.value = url;
+                queueFlush();
                 try {
                     await navigator.clipboard.writeText(url);
                     alert('Link results disalin.');

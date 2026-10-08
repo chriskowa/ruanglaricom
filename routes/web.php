@@ -298,6 +298,7 @@ Route::prefix('/api/tools/race-master/public')->group(function () {
     Route::post('/{slug}/participants/{bib}/edit-result', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicUpdateParticipantResult'])->name('tools.race-master.api.public.participants.edit-result');
     Route::post('/{slug}/participants/{bib}/update', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicUpdateRaceParticipant'])->name('tools.race-master.api.public.participants.update');
     Route::post('/{slug}/reset', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicResetSession'])->name('tools.race-master.api.public.reset');
+    Route::post('/{slug}/finish', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'publicFinishSession'])->name('tools.race-master.api.public.finish');
 });
 
 Route::get('/races/{slug}', function (string $slug) {

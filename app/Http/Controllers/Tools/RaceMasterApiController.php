@@ -1092,6 +1092,69 @@ class RaceMasterApiController extends Controller
             $session->save();
         }
 
+        // Persist participants payload if sent from Race Master UI
+        $inputParticipants = $request->input('participants');
+        if (is_array($inputParticipants)) {
+            foreach ($inputParticipants as $inp) {
+                $bib = isset($inp['bib']) ? (string) $inp['bib'] : (isset($inp['bib_number']) ? (string) $inp['bib_number'] : null);
+                if (! $bib) continue;
+                $rsp = RaceSessionParticipant::where('race_id', $session->race_id)->where('bib_number', $bib)->first();
+                if (! $rsp) continue;
+
+                if (! empty($inp['name'])) {
+                    $rsp->name = trim((string) $inp['name']);
+                }
+
+                $timeMs = isset($inp['totalTime']) ? (int) $inp['totalTime'] : (isset($inp['total_time_ms']) ? (int) $inp['total_time_ms'] : null);
+                $status = $inp['status'] ?? null;
+
+                if ($status === 'dnf') {
+                    $rsp->result_time_ms = null;
+                    $rsp->finished_at = null;
+                    RaceSessionLap::where('race_session_id', $session->id)->where('race_session_participant_id', $rsp->id)->delete();
+                } elseif ($timeMs !== null && $timeMs > 0) {
+                    $rsp->result_time_ms = $timeMs;
+                    $rsp->finished_at = $session->started_at ? Carbon::parse($session->started_at)->addMilliseconds($timeMs) : now();
+
+                    $lastLap = RaceSessionLap::where('race_session_id', $session->id)->where('race_session_participant_id', $rsp->id)->orderByDesc('lap_number')->first();
+                    if ($lastLap) {
+                        $lastLap->total_time_ms = $timeMs;
+                        $lastLap->recorded_at = $rsp->finished_at;
+                        $lastLap->save();
+                    } else {
+                        RaceSessionLap::create([
+                            'race_id' => $session->race_id,
+                            'race_session_id' => $session->id,
+                            'race_session_participant_id' => $rsp->id,
+                            'participant_id' => $rsp->participant_id,
+                            'lap_number' => 1,
+                            'lap_time_ms' => $timeMs,
+                            'total_time_ms' => $timeMs,
+                            'position' => 1,
+                            'recorded_at' => $rsp->finished_at,
+                        ]);
+                    }
+                }
+                $rsp->save();
+            }
+        } else {
+            // Auto-populate finished participants from laps if participants array was not explicitly supplied
+            $lapsSummary = RaceSessionLap::where('race_session_id', $session->id)
+                ->select('race_session_participant_id', DB::raw('MAX(total_time_ms) as max_time'))
+                ->groupBy('race_session_participant_id')
+                ->get();
+            foreach ($lapsSummary as $row) {
+                if ($row->max_time > 0) {
+                    $p = RaceSessionParticipant::find($row->race_session_participant_id);
+                    if ($p && ! $p->result_time_ms) {
+                        $p->result_time_ms = (int) $row->max_time;
+                        $p->finished_at = $session->started_at ? Carbon::parse($session->started_at)->addMilliseconds((int) $row->max_time) : now();
+                        $p->save();
+                    }
+                }
+            }
+        }
+
         $final = $this->computeStandings($session);
         $generated = $this->generateCertificatesInternal($session, $final);
         $certificates = RaceCertificate::query()
@@ -1121,6 +1184,11 @@ class RaceMasterApiController extends Controller
             'certificates_generated' => $generated,
             'certificates' => $certificates,
         ]);
+    }
+
+    public function publicFinishSession(Request $request, $slug)
+    {
+        return $this->finishSession($request, $slug);
     }
 
     public function resetSession(Request $request, $session)
@@ -1613,24 +1681,55 @@ class RaceMasterApiController extends Controller
             ->get()
             ->keyBy('id');
 
-        $rows = [];
+        $lapsByParticipant = RaceSessionLap::query()
+            ->select('race_session_participant_id', DB::raw('MAX(lap_number) as laps'), DB::raw('MAX(total_time_ms) as total_time_ms'))
+            ->where('race_session_id', $session->id)
+            ->groupBy('race_session_participant_id')
+            ->get()
+            ->keyBy('race_session_participant_id');
+
         $rankById = [];
+        $timeById = [];
         foreach ($standings as $idx => $row) {
             $rankById[$row['race_session_participant_id']] = $idx + 1;
+            $timeById[$row['race_session_participant_id']] = $row['total_time_ms'];
         }
 
+        $distanceKm = $session->distance_km !== null ? (float) $session->distance_km : null;
+
+        $rows = [];
+        $finishedCount = 0;
+        $dnfCount = 0;
+        $runningCount = 0;
+
         foreach ($participants as $id => $p) {
-            $stat = null;
-            foreach ($standings as $s) {
-                if ((int) $s['race_session_participant_id'] === (int) $id) {
-                    $stat = $s;
-                    break;
-                }
+            $rank = $rankById[$id] ?? null;
+            $totalTimeMs = $timeById[$id] ?? ($p->result_time_ms ? (int) $p->result_time_ms : null);
+
+            $lapRow = $lapsByParticipant->get($id);
+            $laps = $lapRow ? (int) $lapRow->laps : ($totalTimeMs ? 1 : 0);
+
+            // Determine status
+            if ($totalTimeMs !== null && $totalTimeMs > 0) {
+                $status = 'finished';
+                $finishedCount++;
+            } elseif ($session->ended_at) {
+                $status = 'dnf';
+                $dnfCount++;
+            } else {
+                $status = ($laps > 0) ? 'running' : 'ready';
+                $runningCount++;
             }
 
-            $rank = $rankById[$id] ?? null;
-            $totalTimeMs = $stat ? (int) $stat['total_time_ms'] : null;
-            $laps = $stat ? (int) $stat['laps'] : 0;
+            // Pace calculation
+            $pace = null;
+            if ($distanceKm && $distanceKm > 0 && $totalTimeMs && $totalTimeMs > 0) {
+                $sec = max(1, (int) floor($totalTimeMs / 1000));
+                $paceSec = (int) round($sec / $distanceKm);
+                $pMin = intdiv($paceSec, 60);
+                $pSec = $paceSec % 60;
+                $pace = sprintf("%d'%02d\" /km", $pMin, $pSec);
+            }
 
             $certificate = RaceCertificate::query()
                 ->where('race_session_id', $session->id)
@@ -1649,19 +1748,37 @@ class RaceMasterApiController extends Controller
                 'laps' => $laps,
                 'total_time_ms' => $totalTimeMs,
                 'total_time' => $totalTimeMs !== null ? $this->formatMs($totalTimeMs) : null,
-                'status' => $totalTimeMs !== null ? 'finished' : ($session->ended_at ? 'dnf' : 'running'),
+                'pace' => $pace,
+                'status' => $status,
                 'certificate_url' => $certificateUrl,
             ];
         }
 
+        // Sort: finished (by rank ASC) first, then running (by laps DESC, time ASC), then DNF (by bib ASC)
         usort($rows, function ($a, $b) {
-            $ra = $a['rank'] ?? PHP_INT_MAX;
-            $rb = $b['rank'] ?? PHP_INT_MAX;
-            if ($ra === $rb) {
-                return strcmp((string) $a['bib'], (string) $b['bib']);
+            $statusWeight = [
+                'finished' => 1,
+                'running' => 2,
+                'ready' => 3,
+                'dnf' => 4,
+            ];
+            $wa = $statusWeight[$a['status']] ?? 99;
+            $wb = $statusWeight[$b['status']] ?? 99;
+
+            if ($wa !== $wb) {
+                return $wa <=> $wb;
             }
 
-            return $ra <=> $rb;
+            if ($a['status'] === 'finished') {
+                $ra = $a['rank'] ?? PHP_INT_MAX;
+                $rb = $b['rank'] ?? PHP_INT_MAX;
+                if ($ra !== $rb) {
+                    return $ra <=> $rb;
+                }
+                return ($a['total_time_ms'] ?? 0) <=> ($b['total_time_ms'] ?? 0);
+            }
+
+            return strcmp((string) $a['bib'], (string) $b['bib']);
         });
 
         $sessionSlug = $session->slug ?: (string) $session->id;
@@ -1677,10 +1794,17 @@ class RaceMasterApiController extends Controller
                 'id' => $session->id,
                 'slug' => $session->slug,
                 'category' => $session->category,
-                'distance_km' => $session->distance_km !== null ? (float) $session->distance_km : null,
+                'distance_km' => $distanceKm,
                 'started_at' => $session->started_at?->toISOString(),
                 'ended_at' => $session->ended_at?->toISOString(),
+                'is_finished' => ! empty($session->ended_at),
                 'public_results_url' => route('tools.race-master.results', ['slug' => $sessionSlug]),
+            ],
+            'summary' => [
+                'total_count' => count($rows),
+                'finished_count' => $finishedCount,
+                'dnf_count' => $dnfCount,
+                'running_count' => $runningCount,
             ],
             'results' => $rows,
         ]);
@@ -1782,24 +1906,74 @@ class RaceMasterApiController extends Controller
 
     private function computeStandings(RaceSession $session): array
     {
-        return RaceSessionLap::query()
+        $participants = RaceSessionParticipant::query()
+            ->where('race_id', $session->race_id)
+            ->get()
+            ->keyBy('id');
+
+        $lapsByParticipant = RaceSessionLap::query()
             ->select('race_session_participant_id', DB::raw('MAX(lap_number) as laps'), DB::raw('MAX(total_time_ms) as total_time_ms'))
             ->where('race_session_id', $session->id)
             ->groupBy('race_session_participant_id')
             ->get()
-            ->map(function ($row) {
-                return [
-                    'race_session_participant_id' => (int) $row->race_session_participant_id,
-                    'laps' => (int) $row->laps,
-                    'total_time_ms' => (int) $row->total_time_ms,
+            ->keyBy('race_session_participant_id');
+
+        $standings = [];
+
+        foreach ($participants as $id => $p) {
+            $lapRow = $lapsByParticipant->get($id);
+            $lapsCount = $lapRow ? (int) $lapRow->laps : 0;
+            $lapTotalMs = $lapRow ? (int) $lapRow->total_time_ms : null;
+
+            // Preferred finish time: result_time_ms if present and > 0, else max lap total_time_ms
+            $timeMs = null;
+            if ($p->result_time_ms !== null && (int) $p->result_time_ms > 0) {
+                $timeMs = (int) $p->result_time_ms;
+            } elseif ($lapTotalMs !== null && $lapTotalMs > 0) {
+                $timeMs = $lapTotalMs;
+            }
+
+            if ($timeMs !== null && $timeMs > 0) {
+                $standings[] = [
+                    'race_session_participant_id' => (int) $id,
+                    'laps' => max($lapsCount, 1),
+                    'total_time_ms' => $timeMs,
                 ];
-            })
-            ->sortBy([
-                ['laps', 'desc'],
-                ['total_time_ms', 'asc'],
-            ])
-            ->values()
-            ->all();
+            }
+        }
+
+        // Sort: Laps desc, then total_time_ms asc
+        usort($standings, function ($a, $b) {
+            if ($a['laps'] !== $b['laps']) {
+                return $b['laps'] <=> $a['laps'];
+            }
+            return $a['total_time_ms'] <=> $b['total_time_ms'];
+        });
+
+        // Sync rank in database
+        $rankedIds = [];
+        foreach ($standings as $rankIdx => $row) {
+            $pId = $row['race_session_participant_id'];
+            $rankedIds[] = $pId;
+            if (isset($participants[$pId])) {
+                $p = $participants[$pId];
+                $expectedRank = $rankIdx + 1;
+                if ($p->rank !== $expectedRank) {
+                    $p->rank = $expectedRank;
+                    $p->save();
+                }
+            }
+        }
+
+        // Clear rank for unranked participants
+        foreach ($participants as $id => $p) {
+            if (! in_array($id, $rankedIds, true) && $p->rank !== null) {
+                $p->rank = null;
+                $p->save();
+            }
+        }
+
+        return $standings;
     }
 
     private function generateCertificatesInternal(RaceSession $session, array $standings): int

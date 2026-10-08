@@ -99,6 +99,10 @@
                 --modal-bg: #ffffff;
                 --modal-border: #d2d9e1;
             }
+            .status.dnf { color: #dc2626 !important; }
+            .status.dnf::before { background: #dc2626 !important; }
+            .status.running { color: #0284c7 !important; }
+            .status.running::before { background: #0284c7 !important; }
         }
 
         * { box-sizing: border-box; }
@@ -212,8 +216,13 @@
         .pace { color: var(--muted); font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
         .status { display: inline-flex; align-items: center; gap: 7px; color: var(--success); font-size: 11px; font-weight: 600; }
         .status::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: var(--success); }
+        .status.dnf { color: #f87171; }
+        .status.dnf::before { background: #f87171; }
+        .status.running { color: #38bdf8; }
+        .status.running::before { background: #38bdf8; }
         .result-action { width: 34px; height: 34px; border: 1px solid var(--line); border-radius: 7px; background: transparent; color: var(--muted); cursor: pointer; transition: background-color .15s ease, border-color .15s ease, color .15s ease; }
         .result-action:hover { background: var(--surface-3); border-color: var(--line); color: var(--accent); }
+        .result-action:disabled { opacity: .3; cursor: not-allowed; pointer-events: none; }
 
         .mobile-results { display: none; }
         .mobile-row { padding: 17px 16px; border-bottom: 1px solid var(--line-soft); }
@@ -342,7 +351,7 @@
             <div class="race-summary" aria-label="Ringkasan lomba">
                 <div class="summary-item">
                     <div class="summary-label">Finisher</div>
-                    <div class="summary-value">@{{ results.length }}</div>
+                    <div class="summary-value">@{{ finishedCount }} <span style="font-size: 13px; color: var(--muted); font-weight: normal;">/ @{{ results.length }}</span></div>
                 </div>
                 <div class="summary-item">
                     <div class="summary-label">Jarak</div>
@@ -355,7 +364,7 @@
             <div class="section-heading">
                 <div>
                     <h2 id="leaderboard-title" class="section-title">Leaderboard</h2>
-                    <div class="section-count">@{{ filteredResults.length }} dari @{{ results.length }} peserta</div>
+                    <div class="section-count">@{{ filteredResults.length }} dari @{{ results.length }} peserta (@{{ finishedCount }} finish<span v-if="dnfCount > 0">, @{{ dnfCount }} DNF</span>)</div>
                 </div>
             </div>
 
@@ -366,8 +375,10 @@
                 </label>
 
                 <div class="filter-group" aria-label="Filter leaderboard">
-                    <button type="button" @click="statusFilter = 'all'" class="filter-btn" :class="{ active: statusFilter === 'all' }">Semua</button>
+                    <button type="button" @click="statusFilter = 'all'" class="filter-btn" :class="{ active: statusFilter === 'all' }">Semua (@{{ results.length }})</button>
+                    <button type="button" @click="statusFilter = 'finished'" class="filter-btn" :class="{ active: statusFilter === 'finished' }">Finisher (@{{ finishedCount }})</button>
                     <button type="button" @click="statusFilter = 'top3'" class="filter-btn" :class="{ active: statusFilter === 'top3' }">Top 3</button>
+                    <button v-if="dnfCount > 0" type="button" @click="statusFilter = 'dnf'" class="filter-btn" :class="{ active: statusFilter === 'dnf' }">DNF (@{{ dnfCount }})</button>
                 </div>
             </div>
 
@@ -390,13 +401,18 @@
                                 <td><span class="rank" :class="{ p1: r.rank === 1, p2: r.rank === 2, p3: r.rank === 3 }">@{{ r.rank ? String(r.rank).padStart(2, '0') : '—' }}</span></td>
                                 <td><span class="bib">#@{{ r.bib }}</span></td>
                                 <td><span class="runner-name">@{{ r.name }}</span></td>
-                                <td class="align-right"><span class="finish-time">@{{ formatTimeHms(r.total_time_ms) }}</span></td>
-                                <td class="align-right"><span class="pace">@{{ paceFor(r) }}</span></td>
-                                <td class="align-center"><span class="status">Finish</span></td>
+                                <td class="align-right"><span class="finish-time">@{{ r.status === 'finished' ? (r.total_time || formatTime(r.total_time_ms)) : '—' }}</span></td>
+                                <td class="align-right"><span class="pace">@{{ r.pace || paceFor(r) }}</span></td>
                                 <td class="align-center">
-                                    <button type="button" @click="openFinisherCard(r)" class="result-action" title="Buka kartu finisher" :aria-label="'Buka kartu finisher ' + r.name">
+                                    <span v-if="r.status === 'finished'" class="status">Finish</span>
+                                    <span v-else-if="r.status === 'dnf'" class="status dnf">DNF</span>
+                                    <span v-else class="status running">On Track</span>
+                                </td>
+                                <td class="align-center">
+                                    <button v-if="r.status === 'finished' && r.total_time_ms" type="button" @click="openFinisherCard(r)" class="result-action" title="Buka kartu finisher" :aria-label="'Buka kartu finisher ' + r.name">
                                         <i class="fa-regular fa-image"></i>
                                     </button>
+                                    <span v-else style="color: var(--muted-2); font-size: 11px;">—</span>
                                 </td>
                             </tr>
                             <tr v-if="!loading && filteredResults.length === 0">
@@ -418,13 +434,15 @@
                                 <div class="mobile-sub">BIB #@{{ r.bib }} · @{{ r.laps || 1 }} lap</div>
                             </div>
                             <div class="mobile-time">
-                                <strong>@{{ formatTimeHms(r.total_time_ms) }}</strong>
-                                <span>@{{ paceFor(r) }}</span>
+                                <strong>@{{ r.status === 'finished' ? (r.total_time || formatTime(r.total_time_ms)) : '—' }}</strong>
+                                <span>@{{ r.pace || paceFor(r) }}</span>
                             </div>
                         </div>
                         <div class="mobile-foot">
-                            <span class="status">Finish</span>
-                            <button type="button" @click="openFinisherCard(r)" class="mobile-card-link">Kartu finisher <i class="fa-solid fa-arrow-right-long"></i></button>
+                            <span v-if="r.status === 'finished'" class="status">Finish</span>
+                            <span v-else-if="r.status === 'dnf'" class="status dnf">DNF</span>
+                            <span v-else class="status running">On Track</span>
+                            <button v-if="r.status === 'finished' && r.total_time_ms" type="button" @click="openFinisherCard(r)" class="mobile-card-link">Kartu finisher <i class="fa-solid fa-arrow-right-long"></i></button>
                         </div>
                     </article>
 
@@ -507,6 +525,8 @@ createApp({
         const session = ref({});
         const race = ref({});
         const results = ref([]);
+        const summary = ref({});
+        let pollInterval = null;
 
         // Card Modal State
         const cardModalOpen = ref(false);
@@ -516,9 +536,21 @@ createApp({
         const bgImage = ref(null);
         const generating = ref(false);
 
+        const finishedCount = computed(() => {
+            return results.value.filter(r => r.status === 'finished').length;
+        });
+
+        const dnfCount = computed(() => {
+            return results.value.filter(r => r.status === 'dnf').length;
+        });
+
+        const runningCount = computed(() => {
+            return results.value.filter(r => r.status === 'running' || r.status === 'ready').length;
+        });
+
         // Fetch Official Results Data
-        const fetchResults = async () => {
-            loading.value = true;
+        const fetchResults = async (silent = false) => {
+            if (!silent) loading.value = true;
             try {
                 const res = await fetch(`${apiBase}/public/${encodeURIComponent(slug)}/results`, {
                     headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
@@ -528,20 +560,42 @@ createApp({
                     session.value = data.session || {};
                     race.value = data.race || {};
                     results.value = Array.isArray(data.results) ? data.results : [];
+                    summary.value = data.summary || {};
+
+                    if (session.value.ended_at || session.value.is_finished) {
+                        if (pollInterval) {
+                            clearInterval(pollInterval);
+                            pollInterval = null;
+                        }
+                    }
                 }
             } catch (e) {
                 console.error('Error loading race results:', e);
             } finally {
-                loading.value = false;
+                if (!silent) loading.value = false;
             }
         };
 
         fetchResults();
 
+        // Polling every 5s if session is running
+        pollInterval = setInterval(() => {
+            if (!session.value.ended_at && !session.value.is_finished) {
+                fetchResults(true);
+            } else if (pollInterval) {
+                clearInterval(pollInterval);
+                pollInterval = null;
+            }
+        }, 5000);
+
         const filteredResults = computed(() => {
             let list = results.value;
-            if (statusFilter.value === 'top3') {
+            if (statusFilter.value === 'finished') {
+                list = list.filter(r => r.status === 'finished');
+            } else if (statusFilter.value === 'top3') {
                 list = list.filter(r => r.rank && r.rank <= 3);
+            } else if (statusFilter.value === 'dnf') {
+                list = list.filter(r => r.status === 'dnf');
             }
             const q = query.value.trim().toLowerCase();
             if (q) {
@@ -550,19 +604,25 @@ createApp({
             return list;
         });
 
-        // Time Formatter without Milliseconds (hh:mm:ss)
-        const formatTimeHms = (ms) => {
-            if (!ms || ms < 0 || isNaN(ms)) return '00:00:00';
+        // Time Formatter with Centiseconds (hh:mm:ss.cs) matching Race Master Pro
+        const formatTime = (ms) => {
+            if (!ms || ms <= 0 || isNaN(ms)) return '—';
             const totalSeconds = Math.floor(ms / 1000);
             const hours = Math.floor(totalSeconds / 3600);
             const minutes = Math.floor((totalSeconds % 3600) / 60);
             const seconds = totalSeconds % 60;
-            return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            const centiseconds = Math.floor((ms % 1000) / 10);
+            const hStr = hours.toString().padStart(2, '0');
+            const mStr = minutes.toString().padStart(2, '0');
+            const sStr = seconds.toString().padStart(2, '0');
+            const csStr = centiseconds.toString().padStart(2, '0');
+            return `${hStr}:${mStr}:${sStr}.${csStr}`;
         };
 
         const paceFor = (r) => {
+            if (r.pace) return r.pace;
             const dist = parseFloat(session.value.distance_km || defaultDistanceKm || 0);
-            if (!dist || !r.total_time_ms) return '-';
+            if (!dist || !r.total_time_ms) return '—';
             const sec = Math.max(1, Math.floor(r.total_time_ms / 1000));
             const paceSec = Math.round(sec / dist);
             const m = Math.floor(paceSec / 60);
@@ -702,7 +762,7 @@ createApp({
                 ctx.font = '600 18px "DM Sans", sans-serif';
                 ctx.fillText('FINISH TIME', 72, 575);
 
-                const timeHms = formatTimeHms(p.total_time_ms);
+                const timeHms = p.total_time || formatTime(p.total_time_ms);
                 ctx.fillStyle = '#ffffff';
                 ctx.font = '600 112px "IBM Plex Mono", monospace';
                 ctx.fillText(timeHms, 66, 700);
@@ -855,8 +915,8 @@ createApp({
 
         return {
             slug, session, race, results, filteredResults, loading, query, statusFilter, copied,
-            defaultCategory, defaultDistanceKm,
-            formatTimeHms, paceFor, copyLink,
+            defaultCategory, defaultDistanceKm, summary, finishedCount, dnfCount, runningCount,
+            formatTime, paceFor, copyLink,
             cardModalOpen, activeParticipant, previewUrl, cardFile, generating,
             openFinisherCard, closeCardModal, onBgChange, downloadCard, shareCard
         };

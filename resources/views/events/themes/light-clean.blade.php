@@ -450,8 +450,8 @@
                     <a href="#categories" class="px-2.5 lg:px-3 xl:px-3.5 py-1.5 xl:py-2 rounded-md text-xs xl:text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 hover-text-theme-primary transition duration-150 whitespace-nowrap">
                         Kategori
                     </a>
-                    <a href="#racepack" class="px-2.5 lg:px-3 xl:px-3.5 py-1.5 xl:py-2 rounded-md text-xs xl:text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 hover-text-theme-primary transition duration-150 whitespace-nowrap">
-                        Race Pack
+                    <a href="#benefits" class="px-2.5 lg:px-3 xl:px-3.5 py-1.5 xl:py-2 rounded-md text-xs xl:text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 hover-text-theme-primary transition duration-150 whitespace-nowrap">
+                        Benefit Peserta
                     </a>
                     <a href="#venue" class="px-2.5 lg:px-3 xl:px-3.5 py-1.5 xl:py-2 rounded-md text-xs xl:text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 hover-text-theme-primary transition duration-150 whitespace-nowrap">
                         Lokasi
@@ -497,7 +497,7 @@
         <div id="mobileMenu" class="hidden lg:hidden border-t border-slate-200 bg-white px-4 py-4 space-y-3 shadow-lg">
             <a href="#about" class="block text-sm font-semibold text-slate-700 p-2 hover:bg-slate-50 rounded-md">Tentang Event</a>
             <a href="#categories" class="block text-sm font-semibold text-slate-700 p-2 hover:bg-slate-50 rounded-md">Kategori Lomba</a>
-            <a href="#racepack" class="block text-sm font-semibold text-slate-700 p-2 hover:bg-slate-50 rounded-md">Race Pack & Jersey</a>
+            <a href="#benefits" class="block text-sm font-semibold text-slate-700 p-2 hover:bg-slate-50 rounded-md">Benefit Peserta</a>
             <a href="#venue" class="block text-sm font-semibold text-slate-700 p-2 hover:bg-slate-50 rounded-md">Lokasi & Rute</a>
             <a href="#info" class="block text-sm font-semibold text-slate-700 p-2 hover:bg-slate-50 rounded-md">Info & Jadwal</a>
             <a href="#faq" class="block text-sm font-semibold text-slate-700 p-2 hover:bg-slate-50 rounded-md">FAQ</a>
@@ -783,22 +783,107 @@
             </div>
         </section>
 
-        <!-- Section: Fasilitas & Race Pack -->
-        <section id="racepack" class="py-20 bg-slate-50 border-b border-slate-200">
+        <!-- Section: Benefit untuk Peserta -->
+        <section id="benefits" class="py-20 bg-slate-50 border-b border-slate-200 scroll-mt-16 relative">
+            <span id="racepack" class="absolute -top-16 sr-only"></span>
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center max-w-2xl mx-auto mb-14">
-                    <span class="text-xs font-bold uppercase tracking-wider text-theme-primary">Kelengkapan Lari</span>
-                    <h2 class="text-3xl sm:text-4xl font-heading text-slate-900 mt-1">Fasilitas & Race Pack</h2>
-                    <p class="text-slate-600 text-sm mt-2">Seluruh peserta terdaftar berhak atas fasilitas dan perlengkapan resmi lomba.</p>
+                <div class="text-center max-w-2xl mx-auto mb-12 sm:mb-14">
+                    <span class="text-xs font-bold uppercase tracking-wider text-theme-primary">Fasilitas & Kelengkapan Lari</span>
+                    <h2 class="text-3xl sm:text-4xl font-heading text-slate-900 mt-1">Benefit untuk Peserta</h2>
+                    <p class="text-slate-600 text-sm mt-2">Seluruh peserta resmi berhak mendapatkan paket benefit eksklusif perlombaan untuk mendukung kenyamanan dan performa terbaik.</p>
                 </div>
 
+                <!-- 5 Highlight Benefit Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5 mb-10">
+                    <!-- 1. Medali -->
+                    <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm hover:border-theme-primary transition duration-150 flex flex-col justify-between">
+                        <div>
+                            <div class="w-10 h-10 rounded-md bg-theme-light text-theme-primary flex items-center justify-center mb-3.5">
+                                <i class="fas fa-medal text-base"></i>
+                            </div>
+                            <h3 class="text-base font-heading text-slate-900 mb-1.5">Medali Finisher</h3>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Medali cetak logam cor eksklusif dengan pita bergradien warna untuk seluruh peserta yang menyelesaikan rute lomba dalam batas waktu Cut Off Time (COT).
+                            </p>
+                        </div>
+                        <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-theme-primary uppercase">All Finisher COT</span>
+                        </div>
+                    </div>
+
+                    <!-- 2. Jersey -->
+                    <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm hover:border-theme-primary transition duration-150 flex flex-col justify-between">
+                        <div>
+                            <div class="w-10 h-10 rounded-md bg-theme-light text-theme-primary flex items-center justify-center mb-3.5">
+                                <i class="fas fa-tshirt text-base"></i>
+                            </div>
+                            <h3 class="text-base font-heading text-slate-900 mb-1.5">Jersey Resmi</h3>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Jersey lari berbahan Dry-Fit premium berpori mikro yang ringan, sejuk di iklim tropis, dan dirancang khusus mengikuti pola gerak atletik.
+                            </p>
+                        </div>
+                        <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-theme-primary uppercase">Dry-Fit Atletik</span>
+                        </div>
+                    </div>
+
+                    <!-- 3. Refreshment -->
+                    <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm hover:border-theme-primary transition duration-150 flex flex-col justify-between">
+                        <div>
+                            <div class="w-10 h-10 rounded-md bg-theme-light text-theme-primary flex items-center justify-center mb-3.5">
+                                <i class="fas fa-tint text-base"></i>
+                            </div>
+                            <h3 class="text-base font-heading text-slate-900 mb-1.5">Refreshment</h3>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Pos hidrasi berkala berisi air mineral segar dan isotonik di sepanjang rute, serta camilan pemulihan nutrisi di tenda garis finish.
+                            </p>
+                        </div>
+                        <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-theme-primary uppercase">Rute & Garis Finish</span>
+                        </div>
+                    </div>
+
+                    <!-- 4. Nomor BIB -->
+                    <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm hover:border-theme-primary transition duration-150 flex flex-col justify-between">
+                        <div>
+                            <div class="w-10 h-10 rounded-md bg-theme-light text-theme-primary flex items-center justify-center mb-3.5">
+                                <i class="fas fa-id-card text-base"></i>
+                            </div>
+                            <h3 class="text-base font-heading text-slate-900 mb-1.5">Nomor BIB</h3>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Nomor dada cetak presisi tahan air sebagai identitas atlet resmi yang memuat nama pelari, kategori lomba, dan data darurat.
+                            </p>
+                        </div>
+                        <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-theme-primary uppercase">Nomor Dada Resmi</span>
+                        </div>
+                    </div>
+
+                    <!-- 5. Dokumentasi -->
+                    <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm hover:border-theme-primary transition duration-150 flex flex-col justify-between">
+                        <div>
+                            <div class="w-10 h-10 rounded-md bg-theme-light text-theme-primary flex items-center justify-center mb-3.5">
+                                <i class="fas fa-camera text-base"></i>
+                            </div>
+                            <h3 class="text-base font-heading text-slate-900 mb-1.5">Dokumentasi</h3>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Foto aksi lari dan momen berharga di sepanjang jalur serta garis finish oleh tim fotografer profesional, dapat diunduh gratis pasca-event.
+                            </p>
+                        </div>
+                        <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-theme-primary uppercase">Akses Foto Gratis</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Showcase Jersey & Dokumen Tambahan -->
                 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                     
                     <!-- Jersey Showcase Card -->
                     <div class="lg:col-span-5 bg-white border border-slate-200 rounded-lg p-6 shadow-sm">
                         <div class="flex items-center justify-between mb-4">
                             <div>
-                                <span class="text-xs font-bold text-theme-primary uppercase">Perlengkapan Utama</span>
+                                <span class="text-xs font-bold text-theme-primary uppercase">Desain Perlengkapan</span>
                                 <h3 class="text-xl font-heading text-slate-900">Official Running Jersey</h3>
                             </div>
                             <button type="button" onclick="openLightbox('https://ruanglari.com/storage/blog/media/SEIthtxRb1p8CPI9wjjYfkiWYzcuzFek7tTVbrqq.webp')" class="text-xs font-bold text-theme-primary hover:underline">
@@ -821,45 +906,25 @@
                         </div>
                     </div>
 
-                    <!-- Entitlements List -->
+                    <!-- Additional Entitlements & Documents -->
                     <div class="lg:col-span-7 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                        <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
-                            <div class="w-9 h-9 rounded-md bg-theme-light text-theme-primary flex items-center justify-center mb-3">
-                                <i class="fas fa-id-card text-sm"></i>
-                            </div>
-                            <h4 class="text-sm font-heading text-slate-900 mb-1">Nomor BIB Resmi</h4>
-                            <p class="text-xs text-slate-500 leading-relaxed">
-                                Nomor dada cetak presisi tahan air yang memuat nama pelari dan kategori perlombaan.
-                            </p>
-                        </div>
-
-                        <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
-                            <div class="w-9 h-9 rounded-md bg-theme-light text-theme-primary flex items-center justify-center mb-3">
-                                <i class="fas fa-medal text-sm"></i>
-                            </div>
-                            <h4 class="text-sm font-heading text-slate-900 mb-1">Finisher Medal</h4>
-                            <p class="text-xs text-slate-500 leading-relaxed">
-                                Medali cetak logam eksklusif dengan pita bergradien warna untuk peserta yang menyelesaikan lari dalam batas COT.
-                            </p>
-                        </div>
-
-                        <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
-                            <div class="w-9 h-9 rounded-md bg-theme-light text-theme-primary flex items-center justify-center mb-3">
-                                <i class="fas fa-apple-alt text-sm"></i>
-                            </div>
-                            <h4 class="text-sm font-heading text-slate-900 mb-1">Post-Race Refreshment</h4>
-                            <p class="text-xs text-slate-500 leading-relaxed">
-                                Minuman isotonik, air mineral, serta camilan pemulihan nutrisi di tenda refreshments garis finish.
-                            </p>
-                        </div>
-
                         <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
                             <div class="w-9 h-9 rounded-md bg-slate-100 text-slate-700 flex items-center justify-center mb-3">
                                 <i class="fas fa-file-invoice text-sm"></i>
                             </div>
                             <h4 class="text-sm font-heading text-slate-900 mb-1">E-Ticket & E-Certificate</h4>
                             <p class="text-xs text-slate-500 leading-relaxed">
-                                Tiket digital instan ber-QR code dan sertifikat catatan waktu yang dapat diunduh setelah event.
+                                Tiket digital instan ber-QR code dan sertifikat catatan waktu resmi yang dapat diunduh langsung setelah balapan berakhir.
+                            </p>
+                        </div>
+
+                        <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm">
+                            <div class="w-9 h-9 rounded-md bg-slate-100 text-slate-700 flex items-center justify-center mb-3">
+                                <i class="fas fa-box-open text-sm"></i>
+                            </div>
+                            <h4 class="text-sm font-heading text-slate-900 mb-1">Pengambilan Race Pack (RPC)</h4>
+                            <p class="text-xs text-slate-500 leading-relaxed">
+                                Pengambilan paket perlengkapan dilakukan sesuai jadwal dengan membawa identitas resmi (KTP/SIM) dan E-Ticket terdaftar.
                             </p>
                         </div>
 
@@ -977,27 +1042,30 @@
                             <h2 class="text-2xl sm:text-3xl font-heading text-slate-900 mt-1">Jadwal Race Day</h2>
                             <p class="text-slate-600 text-xs sm:text-sm mt-1">Waktu dapat disesuaikan dengan pengumuman panitia di area lomba.</p>
                         </div>
-
                         <div class="bg-white border border-slate-200 rounded-lg p-5 divide-y divide-slate-100 shadow-sm text-sm">
                             <div class="py-3 flex justify-between items-center">
-                                <span class="font-bold text-slate-900">05:00 WIB</span>
-                                <span class="text-slate-600 text-xs">Pintu Race Village Dibuka & Drop Bag</span>
+                                <span class="font-bold text-slate-900">04:30 WIB</span>
+                                <span class="text-slate-600 text-xs">Open Gate</span>
                             </div>
                             <div class="py-3 flex justify-between items-center">
-                                <span class="font-bold text-slate-900">05:30 WIB</span>
-                                <span class="text-slate-600 text-xs">Pemanasan & Doa Bersama</span>
+                                <span class="font-bold text-slate-900">05:00 WIB</span>
+                                <span class="text-slate-600 text-xs">Pemanasan</span>
                             </div>
                             <div class="py-3 flex justify-between items-center bg-theme-surface border border-theme-light -mx-5 px-5 rounded">
-                                <span class="font-bold text-theme-primary font-mono">{{ $event->start_at ? $event->start_at->format('H:i') : '06:00' }} WIB</span>
+                                <span class="font-bold text-theme-primary font-mono">{{ $event->start_at ? $event->start_at->format('H:i') : '05:30' }} WIB</span>
                                 <span class="font-bold text-slate-900 text-xs">Flag Off Start Lomba</span>
                             </div>
                             <div class="py-3 flex justify-between items-center">
-                                <span class="font-bold text-slate-900">08:00 WIB</span>
-                                <span class="text-slate-600 text-xs">Cut Off Time (COT) & Entertainment</span>
+                                <span class="font-bold text-slate-900">07:00 WIB</span>
+                                <span class="text-slate-600 text-xs">Cut Off Time (COT)</span>
                             </div>
                             <div class="py-3 flex justify-between items-center">
-                                <span class="font-bold text-slate-900">08:30 WIB</span>
-                                <span class="text-slate-600 text-xs">Pengumuman Pemenang & Podium</span>
+                                <span class="font-bold text-slate-900">07:00 WIB</span>
+                                <span class="text-slate-600 text-xs">Zumba</span>
+                            </div>
+                            <div class="py-3 flex justify-between items-center">
+                                <span class="font-bold text-slate-900">07:30 - 09:00 WIB</span>
+                                <span class="text-slate-600 text-xs">Hiburan, Doorprize dan Podium</span>
                             </div>
                         </div>
 
