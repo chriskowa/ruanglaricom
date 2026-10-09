@@ -1380,7 +1380,7 @@
                                                     <div>
                                                         <div class="flex justify-between items-center mb-1">
                                                             <label class="text-xs font-bold text-slate-700 uppercase">Ukuran Jersey</label>
-                                                            <button type="button" onclick="openLightbox('https://res.cloudinary.com/dqm0gzjmu/image/upload/v1791528436/840509273_1742990184498567_7683920102154243473_n_dzoinj.webp')" class="text-[11px] font-bold text-theme-primary hover:underline">
+                                                            <button type="button" onclick="openLightbox('https://res.cloudinary.com/dqm0gzjmu/image/upload/v1791534615/size_jersey_new_xlqovf.webp')" class="text-[11px] font-bold text-theme-primary hover:underline">
                                                                 Panduan Ukuran
                                                             </button>
                                                         </div>
