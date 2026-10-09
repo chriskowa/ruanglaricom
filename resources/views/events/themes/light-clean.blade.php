@@ -270,7 +270,10 @@
         }
 
         #termsModal:not(.hidden),
-        #imageLightbox:not(.hidden) {
+        #imageLightbox:not(.hidden),
+        #confirmationModal:not(.hidden),
+        #registrationFailureModal:not(.hidden),
+        #registrationSuccessModal:not(.hidden) {
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
@@ -793,8 +796,8 @@
                     <p class="text-slate-600 text-sm mt-2">Seluruh peserta resmi berhak mendapatkan paket benefit eksklusif perlombaan untuk mendukung kenyamanan dan performa terbaik.</p>
                 </div>
 
-                <!-- 5 Highlight Benefit Cards -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-5 mb-10">
+                <!-- 6 Highlight Benefit Cards -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-5 mb-10">
                     <!-- 1. Medali -->
                     <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm hover:border-theme-primary transition duration-150 flex flex-col justify-between">
                         <div>
@@ -872,6 +875,22 @@
                         </div>
                         <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
                             <span class="text-[11px] font-bold text-theme-primary uppercase">Akses Foto Gratis</span>
+                        </div>
+                    </div>
+
+                    <!-- 6. Race Pack -->
+                    <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm hover:border-theme-primary transition duration-150 flex flex-col justify-between">
+                        <div>
+                            <div class="w-10 h-10 rounded-md bg-theme-light text-theme-primary flex items-center justify-center mb-3.5">
+                                <i class="fas fa-box-open text-base"></i>
+                            </div>
+                            <h3 class="text-base font-heading text-slate-900 mb-1.5">Race Pack</h3>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                Paket perlengkapan lari eksklusif berupa tas serut (drawstring bag), produk suplemen, voucher mitra, dan merchandise pendukung dari sponsor.
+                            </p>
+                        </div>
+                        <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
+                            <span class="text-[11px] font-bold text-theme-primary uppercase">Paket Eksklusif RPC</span>
                         </div>
                     </div>
                 </div>
@@ -1611,7 +1630,7 @@
 
     <!-- MODAL: Confirmation Review Before Submit -->
     <div id="confirmationModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
-        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="closeConfirmationModal()"></div>
+        <div class="fixed inset-0 bg-slate-950/75 transition-opacity" onclick="closeConfirmationModal()"></div>
         <div class="relative bg-white rounded-lg w-full max-w-lg shadow-xl overflow-hidden z-10 border border-slate-200">
             <div class="bg-theme-primary text-white px-5 py-4 flex items-center justify-between">
                 <h3 class="font-heading text-sm uppercase">Konfirmasi Data Pendaftaran</h3>
@@ -1714,17 +1733,18 @@
     </div>
 
     <!-- MODAL: Failure Message -->
-    <div id="registrationFailureModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
-        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" id="registrationFailureModalBackdrop"></div>
+    <div id="registrationFailureModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="failureModalTitle">
+        <div class="fixed inset-0 bg-slate-950/75 transition-opacity" id="registrationFailureModalBackdrop" onclick="closeFailureModal()"></div>
         <div class="relative bg-white rounded-lg w-full max-w-md shadow-xl overflow-hidden z-10 border border-slate-200 p-6 text-center">
+            <button type="button" onclick="closeFailureModal()" class="absolute top-3 right-3 w-8 h-8 rounded-md hover:bg-slate-100 text-slate-400 hover:text-slate-700 text-lg flex items-center justify-center transition" aria-label="Tutup">&times;</button>
             <div class="w-12 h-12 rounded-md bg-red-100 text-red-600 flex items-center justify-center mx-auto mb-4">
                 <i class="fas fa-exclamation-triangle text-lg"></i>
             </div>
-            <h3 class="font-heading text-base text-slate-900 mb-2">Pendaftaran Belum Berhasil</h3>
-            <p id="registrationFailureMessage" class="text-xs text-slate-600 leading-relaxed mb-6">
-                Terjadi kendala saat memproses transaksi Anda.
-            </p>
-            <button type="button" id="closeFailureNowBtn" class="w-full py-2.5 rounded-md bg-theme-primary hover-bg-theme-primary text-white text-xs font-bold transition shadow-sm">
+            <h3 id="failureModalTitle" class="font-heading text-base text-slate-900 mb-2">Pendaftaran Belum Berhasil</h3>
+            <div id="registrationFailureMessage" class="text-xs text-slate-700 leading-relaxed mb-6 max-h-48 overflow-y-auto custom-scrollbar text-left bg-red-50/70 p-3 rounded border border-red-100">
+                Terjadi kendala saat memproses pendaftaran Anda.
+            </div>
+            <button type="button" id="closeFailureNowBtn" onclick="closeFailureModal()" class="w-full py-2.5 rounded-md bg-theme-primary hover-bg-theme-primary text-white text-xs font-bold transition shadow-sm">
                 Tutup dan Periksa Kembali
             </button>
         </div>
@@ -2296,51 +2316,326 @@
                 });
             }
 
-            // Modal Confirmation Interception
+            // Modal Helpers
             let isConfirmed = false;
 
             window.closeConfirmationModal = function() {
                 const modal = document.getElementById('confirmationModal');
-                if (modal) modal.classList.add('hidden');
+                if (modal) {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }
+                document.body.classList.remove('overflow-hidden');
             };
+
+            window.closeFailureModal = function() {
+                const failModal = document.getElementById('registrationFailureModal');
+                if (failModal) {
+                    failModal.classList.add('hidden');
+                    failModal.classList.remove('flex');
+                }
+                document.body.classList.remove('overflow-hidden');
+
+                // If any invalid input exists, focus it smoothly
+                const firstErr = form.querySelector('.input-error');
+                if (firstErr) {
+                    setTimeout(() => {
+                        firstErr.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        firstErr.focus();
+                    }, 60);
+                }
+            };
+
+            window.openFailureModal = function(contentHtml) {
+                const failModal = document.getElementById('registrationFailureModal');
+                const failMsg = document.getElementById('registrationFailureMessage');
+                if (failModal) {
+                    if (failMsg && contentHtml) {
+                        failMsg.innerHTML = contentHtml;
+                    }
+                    failModal.classList.remove('hidden');
+                    failModal.classList.add('flex');
+                    document.body.classList.add('overflow-hidden');
+                } else {
+                    alert((contentHtml || 'Terjadi kendala pada pendaftaran.').replace(/<[^>]*>?/gm, ' '));
+                }
+            };
+
+            // Event listeners for failure modal close
+            const failCloseBtn = document.getElementById('closeFailureNowBtn');
+            const failBackdropEl = document.getElementById('registrationFailureModalBackdrop');
+            if (failCloseBtn) failCloseBtn.addEventListener('click', window.closeFailureModal);
+            if (failBackdropEl) failBackdropEl.addEventListener('click', window.closeFailureModal);
+
+            // Escape key listener for all modals
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    window.closeConfirmationModal();
+                    window.closeFailureModal();
+                    if (typeof closeTermsModal === 'function') closeTermsModal();
+                    if (typeof closeLightbox === 'function') closeLightbox();
+                }
+            });
+
+            // Real-time error highlight removal on input
+            form.addEventListener('input', function(e) {
+                if (e.target && e.target.classList.contains('input-error')) {
+                    e.target.classList.remove('input-error');
+                }
+            });
+            form.addEventListener('change', function(e) {
+                if (e.target && e.target.classList.contains('input-error')) {
+                    e.target.classList.remove('input-error');
+                }
+            });
+
+            // Comprehensive Client-side Form Validation
+            function validateRegistrationForm() {
+                form.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+
+                let firstErrorInput = null;
+                let errorMessage = '';
+
+                function markError(input, msg) {
+                    if (input) {
+                        input.classList.add('input-error');
+                        if (!firstErrorInput) {
+                            firstErrorInput = input;
+                            errorMessage = msg;
+                        }
+                    }
+                }
+
+                const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+                // 1. Validate PIC Data
+                const picNameInput = form.querySelector('[name="pic_name"]');
+                const picEmailInput = form.querySelector('[name="pic_email"]');
+                const picPhoneInput = form.querySelector('[name="pic_phone"]');
+
+                if (picNameInput) {
+                    const val = picNameInput.value.trim();
+                    if (!val) {
+                        markError(picNameInput, 'Nama PIC wajib diisi.');
+                    } else if (val.length < 2) {
+                        markError(picNameInput, 'Nama PIC minimal 2 karakter.');
+                    }
+                }
+
+                if (picEmailInput) {
+                    const val = picEmailInput.value.trim();
+                    if (!val) {
+                        markError(picEmailInput, 'Email PIC wajib diisi.');
+                    } else if (!emailRegex.test(val)) {
+                        markError(picEmailInput, 'Format email PIC tidak valid.');
+                    }
+                }
+
+                if (picPhoneInput) {
+                    const rawVal = picPhoneInput.value.trim();
+                    const digits = rawVal.replace(/[^0-9]/g, '');
+                    if (!digits) {
+                        markError(picPhoneInput, 'Nomor WhatsApp PIC wajib diisi.');
+                    } else if (digits.length < 10) {
+                        markError(picPhoneInput, 'Nomor WhatsApp PIC minimal 10 digit angka.');
+                    } else if (digits.length > 15) {
+                        markError(picPhoneInput, 'Nomor WhatsApp PIC maksimal 15 digit angka.');
+                    }
+                }
+
+                // 2. Validate Participants Data
+                const participantItems = form.querySelectorAll('.participant-item');
+                if (participantItems.length === 0) {
+                    alert('Minimal harus ada 1 peserta lomba.');
+                    return false;
+                }
+
+                const participantEmails = [];
+                const participantNikList = [];
+
+                participantItems.forEach((item, index) => {
+                    const participantNum = index + 1;
+                    const labelPrefix = `Peserta #${participantNum}: `;
+
+                    // Category
+                    const catChecked = item.querySelector('input[type="radio"].cat-radio:checked');
+                    if (!catChecked) {
+                        const firstCatRadio = item.querySelector('input[type="radio"].cat-radio');
+                        markError(firstCatRadio, `${labelPrefix}Pilih salah satu kategori lomba.`);
+                    }
+
+                    // Name
+                    const nameInput = item.querySelector('input[name*="[name]"]');
+                    if (nameInput) {
+                        const val = nameInput.value.trim();
+                        if (!val) {
+                            markError(nameInput, `${labelPrefix}Nama lengkap wajib diisi.`);
+                        } else if (val.length < 2) {
+                            markError(nameInput, `${labelPrefix}Nama lengkap minimal 2 karakter.`);
+                        }
+                    }
+
+                    // Gender
+                    const genderSelect = item.querySelector('select[name*="[gender]"], input[name*="[gender]"]:checked');
+                    const genderVal = genderSelect ? genderSelect.value : '';
+                    if (!genderVal) {
+                        const selectEl = item.querySelector('select[name*="[gender]"]');
+                        markError(selectEl, `${labelPrefix}Jenis kelamin wajib dipilih.`);
+                    }
+
+                    // Email
+                    const emailInput = item.querySelector('input[name*="[email]"]');
+                    if (emailInput) {
+                        const val = emailInput.value.trim().toLowerCase();
+                        if (!val) {
+                            markError(emailInput, `${labelPrefix}Email peserta wajib diisi.`);
+                        } else if (!emailRegex.test(val)) {
+                            markError(emailInput, `${labelPrefix}Format email tidak valid.`);
+                        } else if (participantEmails.includes(val)) {
+                            markError(emailInput, `${labelPrefix}Email "${val}" sudah digunakan peserta lain. Email setiap peserta harus unik.`);
+                        } else {
+                            participantEmails.push(val);
+                        }
+                    }
+
+                    // Phone
+                    const phoneInput = item.querySelector('input[name*="[phone]"]');
+                    if (phoneInput) {
+                        const digits = phoneInput.value.trim().replace(/[^0-9]/g, '');
+                        if (!digits) {
+                            markError(phoneInput, `${labelPrefix}Nomor WhatsApp/HP wajib diisi.`);
+                        } else if (digits.length < 10) {
+                            markError(phoneInput, `${labelPrefix}Nomor WhatsApp/HP minimal 10 digit angka.`);
+                        } else if (digits.length > 15) {
+                            markError(phoneInput, `${labelPrefix}Nomor WhatsApp/HP maksimal 15 digit angka.`);
+                        }
+                    }
+
+                    // ID Card / NIK
+                    const idCardInput = item.querySelector('input[name*="[id_card]"]');
+                    if (idCardInput && (idCardInput.hasAttribute('required') || idCardInput.value.trim())) {
+                        const val = idCardInput.value.trim();
+                        if (!val) {
+                            markError(idCardInput, `${labelPrefix}Nomor identitas (NIK/KTP/SIM) wajib diisi.`);
+                        } else if (val.length < 5) {
+                            markError(idCardInput, `${labelPrefix}Nomor identitas minimal 5 karakter.`);
+                        } else if (participantNikList.includes(val)) {
+                            markError(idCardInput, `${labelPrefix}Nomor identitas "${val}" sudah digunakan peserta lain.`);
+                        } else {
+                            participantNikList.push(val);
+                        }
+                    }
+
+                    // Date of Birth
+                    const dobInput = item.querySelector('input[name*="[date_of_birth]"]');
+                    if (dobInput && (dobInput.hasAttribute('required') || dobInput.value.trim())) {
+                        const val = dobInput.value.trim();
+                        if (!val) {
+                            markError(dobInput, `${labelPrefix}Tanggal lahir wajib diisi.`);
+                        } else {
+                            const dobDate = new Date(val);
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            if (isNaN(dobDate.getTime()) || dobDate >= today) {
+                                markError(dobInput, `${labelPrefix}Tanggal lahir harus sebelum hari ini.`);
+                            }
+                        }
+                    }
+
+                    // Address
+                    const addressInput = item.querySelector('textarea[name*="[address]"], input[name*="[address]"]');
+                    if (addressInput && (addressInput.hasAttribute('required') || addressInput.value.trim())) {
+                        const val = addressInput.value.trim();
+                        if (!val) {
+                            markError(addressInput, `${labelPrefix}Alamat lengkap domisili wajib diisi.`);
+                        } else if (val.length < 5) {
+                            markError(addressInput, `${labelPrefix}Alamat lengkap minimal 5 karakter.`);
+                        }
+                    }
+
+                    // Emergency Contact Name
+                    const emNameInput = item.querySelector('input[name*="[emergency_contact_name]"]');
+                    if (emNameInput && (emNameInput.hasAttribute('required') || emNameInput.value.trim())) {
+                        const val = emNameInput.value.trim();
+                        if (!val) {
+                            markError(emNameInput, `${labelPrefix}Nama kontak darurat wajib diisi.`);
+                        } else if (val.length < 2) {
+                            markError(emNameInput, `${labelPrefix}Nama kontak darurat minimal 2 karakter.`);
+                        }
+                    }
+
+                    // Emergency Contact Number (Strict minimum 10 digits!)
+                    const emNumInput = item.querySelector('input[name*="[emergency_contact_number]"]');
+                    if (emNumInput && (emNumInput.hasAttribute('required') || emNumInput.value.trim())) {
+                        const rawVal = emNumInput.value.trim();
+                        const digits = rawVal.replace(/[^0-9]/g, '');
+                        if (!digits) {
+                            markError(emNumInput, `${labelPrefix}Nomor kontak darurat wajib diisi.`);
+                        } else if (digits.length < 10) {
+                            markError(emNumInput, `${labelPrefix}Nomor kontak darurat minimal 10 digit angka.`);
+                        } else if (digits.length > 15) {
+                            markError(emNumInput, `${labelPrefix}Nomor kontak darurat maksimal 15 digit angka.`);
+                        }
+                    }
+
+                    // Jersey Size
+                    const jerseySelect = item.querySelector('select[name*="[jersey_size]"]');
+                    if (jerseySelect && jerseySelect.hasAttribute('required')) {
+                        const val = jerseySelect.value.trim();
+                        if (!val) {
+                            markError(jerseySelect, `${labelPrefix}Ukuran jersey wajib dipilih.`);
+                        }
+                    }
+
+                    // Target Time
+                    const targetTimeInput = item.querySelector('input[name*="[target_time]"]');
+                    if (targetTimeInput && targetTimeInput.value.trim()) {
+                        const val = targetTimeInput.value.trim();
+                        if (!/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/.test(val)) {
+                            markError(targetTimeInput, `${labelPrefix}Format target waktu harus JJ:MM:DD (contoh: 01:30:00).`);
+                        }
+                    }
+                });
+
+                // 3. Payment Method
+                const paymentRadios = form.querySelectorAll('input[name="payment_method"]');
+                if (paymentRadios.length > 0) {
+                    const checkedPm = form.querySelector('input[name="payment_method"]:checked');
+                    if (!checkedPm) {
+                        markError(paymentRadios[0], 'Silakan pilih salah satu metode pembayaran.');
+                    }
+                }
+
+                // 4. Terms Agreement
+                const termsCheckbox = form.querySelector('input[name="terms_agreed"]');
+                if (termsCheckbox && termsCheckbox.hasAttribute('required') && !termsCheckbox.checked) {
+                    markError(termsCheckbox, 'Anda harus menyetujui Syarat & Ketentuan lomba untuk melanjutkan.');
+                }
+
+                if (firstErrorInput) {
+                    alert(errorMessage);
+                    firstErrorInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    firstErrorInput.focus();
+                    return false;
+                }
+
+                return true;
+            }
 
             form.addEventListener('submit', function(e) {
                 if (isConfirmed) return;
 
                 e.preventDefault();
 
-                // 1. Check Unique Emails among Participants
-                const emailList = [];
-                let hasDuplicate = false;
-                let dupInput = null;
-
-                document.querySelectorAll('.participant-email').forEach(inp => {
-                    inp.classList.remove('input-error');
-                    const em = inp.value.trim().toLowerCase();
-                    if (em) {
-                        if (emailList.includes(em)) {
-                            hasDuplicate = true;
-                            inp.classList.add('input-error');
-                            if (!dupInput) dupInput = inp;
-                        } else {
-                            emailList.push(em);
-                        }
-                    }
-                });
-
-                if (hasDuplicate) {
-                    alert('Email setiap peserta harus unik dalam satu pendaftaran.');
-                    if (dupInput) {
-                        dupInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        dupInput.focus();
-                    }
+                // Run Strict Pre-Submit Client-Side Validation
+                if (!validateRegistrationForm()) {
                     return;
                 }
 
-                // 2. Populate Confirmation Review
-                const picName = form.querySelector('[name="pic_name"]').value;
-                const picPhone = form.querySelector('[name="pic_phone"]').value;
-                const picEmail = form.querySelector('[name="pic_email"]').value;
+                // Populate Confirmation Review
+                const picName = form.querySelector('[name="pic_name"]')?.value || '';
+                const picPhone = form.querySelector('[name="pic_phone"]')?.value || '';
+                const picEmail = form.querySelector('[name="pic_email"]')?.value || '';
 
                 document.getElementById('confPicName').textContent = picName || '-';
                 document.getElementById('confPicPhone').textContent = picPhone || '-';
@@ -2381,6 +2676,7 @@
                 if (confModal) {
                     confModal.classList.remove('hidden');
                     confModal.classList.add('flex');
+                    document.body.classList.add('overflow-hidden');
                 }
             });
 
@@ -2417,8 +2713,51 @@
                         },
                         body: formData
                     })
-                    .then(r => r.json())
-                    .then(data => {
+                    .then(async r => {
+                        let data;
+                        try {
+                            data = await r.json();
+                        } catch(parseErr) {
+                            data = { success: false, message: 'Respon server tidak valid (' + r.status + ').' };
+                        }
+
+                        if (!r.ok || !data.success) {
+                            let errorList = [];
+                            if (data.errors && typeof data.errors === 'object') {
+                                Object.entries(data.errors).forEach(([field, msgs]) => {
+                                    const arr = Array.isArray(msgs) ? msgs : [msgs];
+                                    arr.forEach(msg => errorList.push(msg));
+
+                                    // Map Laravel dot notation to form input name
+                                    const parts = field.split('.');
+                                    let fieldName = parts[0];
+                                    for (let i = 1; i < parts.length; i++) {
+                                        fieldName += `[${parts[i]}]`;
+                                    }
+                                    const invalidEl = form.querySelector(`[name="${fieldName}"]`);
+                                    if (invalidEl) {
+                                        invalidEl.classList.add('input-error');
+                                    }
+                                });
+                            }
+
+                            let formattedMsg = '';
+                            if (errorList.length > 0) {
+                                formattedMsg = '<ul class="list-disc pl-4 space-y-1">' + errorList.map(e => `<li>${e}</li>`).join('') + '</ul>';
+                            } else {
+                                formattedMsg = data.message || 'Terjadi kesalahan pada proses registrasi.';
+                            }
+
+                            window.openFailureModal(formattedMsg);
+
+                            if (btn) {
+                                btn.disabled = false;
+                                btn.innerHTML = originalText;
+                                isConfirmed = false;
+                            }
+                            return;
+                        }
+
                         // Cache participant info for E-ticket
                         try {
                             const participantsData = [];
@@ -2498,19 +2837,6 @@
                             }
                             return;
                         }
-
-                        // Error feedback
-                        const failModal = document.getElementById('registrationFailureModal');
-                        const failMsg = document.getElementById('registrationFailureMessage');
-                        if (failModal && failMsg) {
-                            failMsg.textContent = data.message || 'Terjadi kesalahan pada data registrasi.';
-                            failModal.classList.remove('hidden');
-                            failModal.classList.add('flex');
-                        } else {
-                            alert(data.message || 'Terjadi kesalahan.');
-                        }
-
-                        if (btn) { btn.disabled = false; btn.innerHTML = originalText; isConfirmed = false; }
                     })
                     .catch(err => {
                         console.error(err);
