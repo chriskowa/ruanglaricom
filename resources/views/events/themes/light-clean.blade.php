@@ -269,7 +269,8 @@
             color: #ffffff !important;
         }
 
-        #termsModal:not(.hidden) {
+        #termsModal:not(.hidden),
+        #imageLightbox:not(.hidden) {
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
@@ -611,15 +612,18 @@
                     <!-- Right Hero Visual Card -->
                     <div class="lg:col-span-5">
                         <div class="bg-white border border-slate-200 rounded-lg p-3 shadow-sm relative">
-                            <div class="aspect-[4/3] rounded-md overflow-hidden bg-slate-100 border border-slate-100 relative">
+                            <div class="aspect-[4/3] rounded-md overflow-hidden bg-slate-100 border border-slate-100 relative {{ $event->hero_image ? 'cursor-pointer group' : '' }}" @if($event->hero_image) onclick="openLightbox('{{ asset('storage/' . $event->hero_image) }}')" title="Klik untuk memperbesar" @endif>
                                 @if($event->hero_image)
-                                    <img src="{{ asset('storage/' . $event->hero_image) }}" alt="{{ $event->name }}" class="w-full h-full object-cover">
+                                    <img src="{{ asset('storage/' . $event->hero_image) }}" alt="{{ $event->name }}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
+                                    <div class="absolute bottom-3 right-3 bg-slate-900/80 hover:bg-slate-900 text-white w-8 h-8 rounded-md flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition shadow-sm pointer-events-none">
+                                        <i class="fas fa-search-plus text-[11px]"></i>
+                                    </div>
                                 @else
                                     <div class="w-full h-full flex items-center justify-center text-slate-400 font-bold bg-slate-100">
                                         Foto Resmi Event
                                     </div>
                                 @endif
-                                <div class="absolute top-3 left-3 bg-white/95 border border-slate-200 px-3 py-1 rounded text-xs font-bold text-slate-800 shadow-sm">
+                                <div class="absolute top-3 left-3 bg-white/95 border border-slate-200 px-3 py-1 rounded text-xs font-bold text-slate-800 shadow-sm pointer-events-none">
                                     Official Race
                                 </div>
                             </div>
@@ -760,8 +764,7 @@
                                     <span class="font-bold text-slate-900 font-mono">{{ $cat->cot_hours ?? '-' }} Jam</span>
                                 </div>
                                 <div class="flex justify-between">
-                                    <span>Usia Minimal</span>
-                                    <span class="font-bold text-slate-900">{{ $cat->min_age ?? 'Umum' }} Tahun</span>
+                                    <span>Usia Minimal</span>                                    
                                 </div>                                
                             </div>
                         </div>
@@ -1092,7 +1095,7 @@
                             $faqs = $event->premium_amenities['faq']['items'] ?? [];
                             if(empty($faqs)) {
                                 $faqs = [
-                                    ['question' => 'Bagaimana cara konfirmasi pembayaran?', 'answer' => 'Pembayaran melalui Midtrans atau Moota terverifikasi secara otomatis. Setelah pembayaran berhasil, E-Ticket langsung dikirim ke email penanggung jawab.'],
+                                    ['question' => 'Bagaimana cara konfirmasi pembayaran?', 'answer' => 'Pembayaran melalui Payment Gateway terverifikasi secara otomatis. Setelah pembayaran berhasil, E-Ticket langsung dikirim ke email penanggung jawab.'],
                                     ['question' => 'Apakah satu orang bisa mendaftarkan beberapa peserta?', 'answer' => 'Bisa. Gunakan tombol Tambah Peserta di formulir pendaftaran untuk mendaftarkan teman, keluarga, atau komunitas dalam satu transaksi.'],
                                     ['question' => 'Apakah nomor dada (BIB) bisa dipindahtangankan?', 'answer' => 'Demi keselamatan dan keabsahan pencatatan waktu resmi, nomor BIB tidak dapat dipindahtangankan kepada pihak lain tanpa persetujuan panitia.'],
                                     ['question' => 'Bagaimana jika saya tidak sempat mengambil race pack di jadwal RPC?', 'answer' => 'Pengambilan dapat diwakilkan dengan membawa surat kuasa bertandatangan dan fotokopi E-Ticket serta KTP peserta yang bersangkutan.']
@@ -1797,6 +1800,7 @@
                 img.src = url;
                 lb.classList.remove('hidden');
                 lb.classList.add('flex');
+                document.body.classList.add('overflow-hidden');
             }
         };
         window.closeLightbox = function() {
@@ -1804,6 +1808,7 @@
             if(lb) {
                 lb.classList.add('hidden');
                 lb.classList.remove('flex');
+                document.body.classList.remove('overflow-hidden');
             }
         };
 
