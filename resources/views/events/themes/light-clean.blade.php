@@ -932,10 +932,10 @@
                         <div class="sm:col-span-2 bg-theme-light border border-theme-light rounded-lg p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div>
                                 <span class="text-xs font-bold text-theme-primary uppercase">Dokumen Peserta</span>
-                                <h4 class="text-sm font-heading text-slate-900 mt-0.5">Surat Izin Orang Tua & Waiver</h4>
-                                <p class="text-xs text-slate-600 mt-1">Bagi peserta di bawah 17 tahun atau yang membutuhkan formulir persetujuan wali.</p>
+                                <h4 class="text-sm font-heading text-slate-900 mt-0.5">Surat Kuasa</h4>
+                                <p class="text-xs text-slate-600 mt-1">Surat kuasa untuk pengambilan racepack oleh orang lain.</p>
                             </div>
-                            <a href="https://res.cloudinary.com/dqm0gzjmu/raw/upload/v1791523216/Surat-Izin-Orang-Tua_k4iavi_a6zfja.docx" class="shrink-0 px-4 py-2 rounded-md bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 text-xs font-bold transition flex items-center justify-center gap-2">
+                            <a href="https://res.cloudinary.com/dqm0gzjmu/raw/upload/v1791531281/Surat-Kuasa-Polkesma_myo1rz.docx" class="shrink-0 px-4 py-2 rounded-md bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 text-xs font-bold transition flex items-center justify-center gap-2">
                                 <i class="fas fa-download text-xs text-slate-500"></i>
                                 <span>Unduh Formulir</span>
                             </a>
@@ -1377,7 +1377,7 @@
                                                     <div>
                                                         <div class="flex justify-between items-center mb-1">
                                                             <label class="text-xs font-bold text-slate-700 uppercase">Ukuran Jersey</label>
-                                                            <button type="button" onclick="openLightbox('https://ruanglari.com/storage/blog/media/SEIthtxRb1p8CPI9wjjYfkiWYzcuzFek7tTVbrqq.webp')" class="text-[11px] font-bold text-theme-primary hover:underline">
+                                                            <button type="button" onclick="openLightbox('https://res.cloudinary.com/dqm0gzjmu/image/upload/v1791528436/840509273_1742990184498567_7683920102154243473_n_dzoinj.webp')" class="text-[11px] font-bold text-theme-primary hover:underline">
                                                                 Panduan Ukuran
                                                             </button>
                                                         </div>
