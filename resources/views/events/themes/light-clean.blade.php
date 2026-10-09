@@ -935,7 +935,7 @@
                                 <h4 class="text-sm font-heading text-slate-900 mt-0.5">Surat Kuasa</h4>
                                 <p class="text-xs text-slate-600 mt-1">Surat kuasa untuk pengambilan racepack oleh orang lain.</p>
                             </div>
-                            <a href="https://res.cloudinary.com/dqm0gzjmu/raw/upload/v1791531281/Surat-Kuasa-Polkesma_myo1rz.docx" class="shrink-0 px-4 py-2 rounded-md bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 text-xs font-bold transition flex items-center justify-center gap-2">
+                            <a href="https://res.cloudinary.com/dqm0gzjmu/raw/upload/v1791536264/Surat-Kuasa-Polkesma_hlyx7w.docx" class="shrink-0 px-4 py-2 rounded-md bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 text-xs font-bold transition flex items-center justify-center gap-2">
                                 <i class="fas fa-download text-xs text-slate-500"></i>
                                 <span>Unduh Formulir</span>
                             </a>
