@@ -762,10 +762,7 @@
                                 <div class="flex justify-between">
                                     <span>Cut Off Time (COT)</span>
                                     <span class="font-bold text-slate-900 font-mono">{{ $cat->cot_hours ?? '-' }} Jam</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span>Usia Minimal</span>                                    
-                                </div>                                
+                                </div>                                                            
                             </div>
                         </div>
 
