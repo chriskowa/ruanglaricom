@@ -213,6 +213,7 @@
         }
 
         $formFields = $event->premium_amenities['form_fields'] ?? [];
+        $showTargetTime = !empty($formFields['target_time']);
         $showStravaField = !empty($formFields['strava_activity']) || !empty($formFields['strava_url']);
 
         $ticketDate = $event->start_at
@@ -1372,7 +1373,7 @@
                                                 </div>
 
                                                 <!-- Jersey Size & Target Time -->
-                                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-start">
+                                                <div class="grid grid-cols-1 {{ $showTargetTime ? 'sm:grid-cols-2' : '' }} gap-3 items-start">
                                                     <div>
                                                         <div class="flex justify-between items-center mb-1">
                                                             <label class="text-xs font-bold text-slate-700 uppercase">Ukuran Jersey</label>
@@ -1399,10 +1400,12 @@
                                                         </select>
                                                     </div>
 
+                                                    @if($showTargetTime)
                                                     <div>
                                                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Target Waktu (Opsional)</label>
                                                         <input type="text" name="participants[0][target_time]" placeholder="01:30:00 (JJ:MM:DD)" class="input-light w-full px-3 py-2 text-sm font-mono">
                                                     </div>
+                                                    @endif
                                                 </div>
 
                                                 @if($showStravaField)

@@ -529,12 +529,14 @@
                                             <input type="text" name="participants[0][emergency_contact_number]" placeholder="No. Kontak Darurat" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:border-brand-500 outline-none" required minlength="10" maxlength="15" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                         </div>
 
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div class="grid grid-cols-1 {{ !empty($event->premium_amenities['form_fields']['target_time']) ? 'md:grid-cols-2' : '' }} gap-4">
                                              <select name="participants[0][jersey_size]" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:border-brand-500 outline-none" required>
                                                 <option value="">Ukuran Jersey</option>
                                                 @foreach(['S','M','L','XL','XXL'] as $s) <option value="{{ $s }}">{{ $s }}</option> @endforeach
                                             </select>
+                                            @if(!empty($event->premium_amenities['form_fields']['target_time']))
                                             <input type="text" name="participants[0][target_time]" placeholder="Target Waktu (Opsional)" class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:border-brand-500 outline-none">
+                                            @endif
                                         </div>
 
                                         @if(!empty($event->premium_amenities['form_fields']['strava_activity']))
