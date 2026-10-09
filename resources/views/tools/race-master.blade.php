@@ -5124,7 +5124,7 @@
                 }
             };
 
-            const finishRace = () => {
+            const finishRace = async () => {
                 if (!isSessionHost.value) {
                     alert('Hanya Host pembuat sesi yang berhak menyelesaikan sesi balapan.');
                     return;
