@@ -262,13 +262,16 @@
         .border-theme-light { border-color: var(--theme-primary-border) !important; }
 
         /* Dynamic Overrides for Included Partials */
-        #prizes-section .prize-tab-btn.bg-blue-600,
-        #prizes-section .prize-tab-btn[data-active-class*="bg-blue-600"],
-        #prizes-section .bg-blue-600 {
+        #prizes-section .prize-tab-btn[aria-selected="true"] {
             background-color: var(--theme-primary) !important;
             border-color: var(--theme-primary) !important;
             color: #ffffff !important;
-            box-shadow: 0 4px 14px var(--theme-primary-ring) !important;
+        }
+
+        #termsModal:not(.hidden) {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
         }
 
         #vue-participants-app .bg-blue-600 {
@@ -551,7 +554,7 @@
 
                         <!-- Description -->
                         <p class="text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl">
-                            {!! $event->short_description ?: 'Bergabunglah dalam event lari resmi yang kompetitif, aman, dan berstandar profesional di rute terbaik.' !!}
+                            {!! $event->short_description ?: 'Bergabunglah dalam event lari resmi yang kompetitif, dan aman di rute terbaik.' !!}
                         </p>
 
                         <!-- CTA Row -->
@@ -758,11 +761,7 @@
                                 <div class="flex justify-between">
                                     <span>Usia Minimal</span>
                                     <span class="font-bold text-slate-900">{{ $cat->min_age ?? 'Umum' }} Tahun</span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span>Tipe Kategori</span>
-                                    <span class="font-bold text-slate-900">Umum / Master</span>
-                                </div>
+                                </div>                                
                             </div>
                         </div>
 
@@ -935,7 +934,7 @@
                                 <h4 class="text-sm font-heading text-slate-900 mt-0.5">Surat Izin Orang Tua & Waiver</h4>
                                 <p class="text-xs text-slate-600 mt-1">Bagi peserta di bawah 17 tahun atau yang membutuhkan formulir persetujuan wali.</p>
                             </div>
-                            <a href="https://res.cloudinary.com/dslfarxct/raw/upload/v1769990790/Surat-Izin-Orang-Tua_k4iavi.docx" class="shrink-0 px-4 py-2 rounded-md bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 text-xs font-bold transition flex items-center justify-center gap-2">
+                            <a href="https://res.cloudinary.com/dqm0gzjmu/raw/upload/v1791523216/Surat-Izin-Orang-Tua_k4iavi_a6zfja.docx" class="shrink-0 px-4 py-2 rounded-md bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 text-xs font-bold transition flex items-center justify-center gap-2">
                                 <i class="fas fa-download text-xs text-slate-500"></i>
                                 <span>Unduh Formulir</span>
                             </a>
@@ -1028,7 +1027,7 @@
         </section>
 
         <!-- Section: Hadiah Pemenang -->
-        @include('events.partials.prizes-section', ['categories' => $categories])
+        @include('events.partials.prizes-section', ['categories' => $categories, 'isDark' => false, 'variant' => 'light-clean'])
 
         <!-- Section: Info, Rundown & FAQ -->
         <section id="info" class="py-20 bg-slate-50 border-b border-slate-200">
@@ -1072,7 +1071,7 @@
                         <!-- Race Rules Button -->
                         @if($event->terms_and_conditions)
                         <div>
-                            <button type="button" onclick="document.getElementById('termsModal').classList.remove('hidden')" class="w-full py-3 rounded-md border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold transition flex items-center justify-center gap-2">
+                            <button type="button" onclick="openTermsModal()" class="w-full py-3 rounded-md border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold transition flex items-center justify-center gap-2">
                                 <i class="fas fa-file-shield text-slate-500"></i>
                                 <span>Lihat Peraturan & Syarat Ketentuan Lomba</span>
                             </button>
@@ -1544,7 +1543,7 @@
                                         <label class="flex items-start gap-2.5 cursor-pointer">
                                             <input type="checkbox" name="terms_agreed" required class="mt-0.5 w-4 h-4 rounded text-theme-primary border-slate-300">
                                             <span class="text-xs text-slate-600 leading-tight">
-                                                Saya menyetujui seluruh <button type="button" onclick="document.getElementById('termsModal').classList.remove('hidden')" class="text-theme-primary underline font-semibold">Syarat & Ketentuan</button> yang berlaku pada event ini.
+                                                Saya menyetujui seluruh <button type="button" onclick="openTermsModal()" class="text-theme-primary underline font-semibold">Syarat & Ketentuan</button> yang berlaku pada event ini.
                                             </span>
                                         </label>
                                     </div>
@@ -1596,7 +1595,7 @@
                     <a href="#venue" class="hover-text-theme-primary transition">Lokasi</a>
                     <a href="#register" class="hover-text-theme-primary transition">Pendaftaran</a>
                     @if($event->terms_and_conditions)
-                    <button type="button" onclick="document.getElementById('termsModal').classList.remove('hidden')" class="hover-text-theme-primary transition">Syarat & Ketentuan</button>
+                    <button type="button" onclick="openTermsModal()" class="hover-text-theme-primary transition">Syarat & Ketentuan</button>
                     @endif
                 </div>
             </div>
@@ -1730,18 +1729,18 @@
 
     <!-- MODAL: Terms and Conditions -->
     @if($event->terms_and_conditions)
-    <div id="termsModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
-        <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" onclick="document.getElementById('termsModal').classList.add('hidden')"></div>
-        <div class="relative bg-white rounded-lg w-full max-w-2xl shadow-xl overflow-hidden z-10 border border-slate-200">
-            <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
-                <h3 class="font-heading text-sm text-slate-900 uppercase">Syarat & Ketentuan Lomba</h3>
-                <button type="button" onclick="document.getElementById('termsModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-600 text-lg">&times;</button>
+    <div id="termsModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4 sm:p-6 overflow-y-auto" role="dialog" aria-modal="true" aria-labelledby="termsModalTitle">
+        <div class="fixed inset-0 bg-slate-950/75 transition-opacity" onclick="closeTermsModal()"></div>
+        <div class="relative bg-white rounded-lg w-full max-w-2xl shadow-lg overflow-hidden z-10 border border-slate-200 my-auto mx-auto flex flex-col max-h-[90vh]">
+            <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50 shrink-0">
+                <h3 id="termsModalTitle" class="font-heading text-sm font-bold text-slate-900 uppercase">Syarat & Ketentuan Lomba</h3>
+                <button type="button" onclick="closeTermsModal()" class="w-8 h-8 rounded-md hover:bg-slate-200 text-slate-500 hover:text-slate-800 text-lg flex items-center justify-center transition" aria-label="Tutup">&times;</button>
             </div>
-            <div class="p-6 max-h-[65vh] overflow-y-auto text-xs text-slate-600 space-y-3 leading-relaxed custom-scrollbar prose prose-sm max-w-none">
+            <div class="p-6 overflow-y-auto text-xs text-slate-600 space-y-3 leading-relaxed custom-scrollbar prose prose-sm max-w-none">
                 {!! $event->terms_and_conditions !!}
             </div>
-            <div class="p-4 bg-slate-50 border-t border-slate-200 text-right">
-                <button type="button" onclick="document.getElementById('termsModal').classList.add('hidden')" class="px-5 py-2 rounded-md bg-theme-primary hover-bg-theme-primary text-white text-xs font-bold transition shadow-sm">
+            <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-end shrink-0">
+                <button type="button" onclick="closeTermsModal()" class="px-5 py-2.5 rounded-md bg-theme-primary hover-bg-theme-primary text-white text-xs font-bold transition shadow-sm">
                     Saya Mengerti
                 </button>
             </div>
@@ -1804,6 +1803,32 @@
                 lb.classList.remove('flex');
             }
         };
+
+        // Global Terms Modal
+        window.openTermsModal = function() {
+            const modal = document.getElementById('termsModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                document.body.classList.add('overflow-hidden');
+            }
+        };
+        window.closeTermsModal = function() {
+            const modal = document.getElementById('termsModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                document.body.classList.remove('overflow-hidden');
+            }
+        };
+
+        // Close Modals on ESC Key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                if (typeof window.closeTermsModal === 'function') window.closeTermsModal();
+                if (typeof window.closeLightbox === 'function') window.closeLightbox();
+            }
+        });
 
         // Navigation Scroll Behavior
         window.addEventListener('scroll', function() {
