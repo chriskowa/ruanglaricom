@@ -1874,21 +1874,37 @@
         // Copy Helpers
         window.copyFromPic = function(btn) {
             const item = btn.closest('.participant-item');
-            const picName = document.querySelector('input[name="pic_name"]').value;
-            const picEmail = document.querySelector('input[name="pic_email"]').value;
-            const picPhone = document.querySelector('input[name="pic_phone"]').value;
+            if (!item) return;
+
+            const isFirst = item.getAttribute('data-index') === '0';
+            if (isFirst && typeof window.resetP1Customized === 'function') {
+                window.resetP1Customized();
+            }
+
+            const picName = document.querySelector('input[name="pic_name"]')?.value || '';
+            const picEmail = document.querySelector('input[name="pic_email"]')?.value || '';
+            const picPhone = document.querySelector('input[name="pic_phone"]')?.value || '';
 
             if (picName) {
                 const nameInp = item.querySelector('input[name*="[name]"]');
-                if (nameInp) nameInp.value = picName;
+                if (nameInp) {
+                    nameInp.value = picName;
+                    nameInp.dispatchEvent(new Event('input', { bubbles: true }));
+                }
             }
             if (picEmail) {
                 const emailInp = item.querySelector('input[name*="[email]"]');
-                if (emailInp) emailInp.value = picEmail;
+                if (emailInp) {
+                    emailInp.value = picEmail;
+                    emailInp.dispatchEvent(new Event('input', { bubbles: true }));
+                }
             }
             if (picPhone) {
                 const phoneInp = item.querySelector('input[name*="[phone]"]');
-                if (phoneInp) phoneInp.value = picPhone;
+                if (phoneInp) {
+                    phoneInp.value = picPhone.replace(/[^0-9]/g, '');
+                    phoneInp.dispatchEvent(new Event('input', { bubbles: true }));
+                }
             }
         };
 
@@ -1909,6 +1925,108 @@
                 }
             }
         };
+
+        // Realtime Mirroring: Data PIC ke Peserta #1
+        (function() {
+            function initPicMirroring() {
+                const picName = document.querySelector('input[name="pic_name"]');
+                const picEmail = document.querySelector('input[name="pic_email"]');
+                const picPhone = document.querySelector('input[name="pic_phone"]');
+
+                const p1Item = document.querySelector('.participant-item[data-index="0"]');
+                if (!p1Item || !picName || !picEmail || !picPhone) return;
+
+                const p1Name = p1Item.querySelector('input[name="participants[0][name]"]');
+                const p1Email = p1Item.querySelector('input[name="participants[0][email]"]');
+                const p1Phone = p1Item.querySelector('input[name="participants[0][phone]"]');
+
+                if (!p1Name || !p1Email || !p1Phone) return;
+
+                const isCustomized = {
+                    name: false,
+                    email: false,
+                    phone: false
+                };
+
+                let isSyncing = false;
+
+                // Cek nilai awal (misalnya dari old() atau autofill)
+                if (p1Name.value.trim() !== '' && p1Name.value !== picName.value) {
+                    isCustomized.name = true;
+                }
+                if (p1Email.value.trim() !== '' && p1Email.value !== picEmail.value) {
+                    isCustomized.email = true;
+                }
+                if (p1Phone.value.trim() !== '' && p1Phone.value !== picPhone.value) {
+                    isCustomized.phone = true;
+                }
+
+                function mirror(fieldKey, sourceEl, targetEl) {
+                    if (isSyncing) return;
+                    // Jangan timpa jika user sudah mengubah manual dan tidak kosong
+                    if (isCustomized[fieldKey] && targetEl.value.trim() !== '') return;
+
+                    isSyncing = true;
+                    targetEl.value = sourceEl.value;
+                    if (fieldKey === 'phone') {
+                        targetEl.value = targetEl.value.replace(/[^0-9]/g, '');
+                    }
+                    targetEl.dispatchEvent(new Event('input', { bubbles: true }));
+                    isSyncing = false;
+                }
+
+                function bindPicSource(fieldKey, sourceEl, targetEl) {
+                    const handleSync = function() {
+                        mirror(fieldKey, sourceEl, targetEl);
+                    };
+                    sourceEl.addEventListener('input', handleSync);
+                    sourceEl.addEventListener('change', handleSync);
+                    sourceEl.addEventListener('paste', function() {
+                        setTimeout(handleSync, 10);
+                    });
+                }
+
+                function bindP1Target(fieldKey, sourceEl, targetEl) {
+                    const handleManualEdit = function() {
+                        if (isSyncing) return;
+                        if (targetEl.value.trim() === '') {
+                            // Jika dikosongkan, reset agar mirroring aktif kembali
+                            isCustomized[fieldKey] = false;
+                        } else if (targetEl.value !== sourceEl.value) {
+                            // User mengetik manual nilai yang berbeda dari PIC
+                            isCustomized[fieldKey] = true;
+                        }
+                    };
+                    targetEl.addEventListener('input', handleManualEdit);
+                    targetEl.addEventListener('change', handleManualEdit);
+                }
+
+                bindPicSource('name', picName, p1Name);
+                bindPicSource('email', picEmail, p1Email);
+                bindPicSource('phone', picPhone, p1Phone);
+
+                bindP1Target('name', picName, p1Name);
+                bindP1Target('email', picEmail, p1Email);
+                bindP1Target('phone', picPhone, p1Phone);
+
+                window.resetP1Customized = function() {
+                    isCustomized.name = false;
+                    isCustomized.email = false;
+                    isCustomized.phone = false;
+                };
+
+                // Sinkronisasi awal saat muat halaman jika PIC sudah terisi namun Peserta 1 kosong
+                if (picName.value && !p1Name.value) mirror('name', picName, p1Name);
+                if (picEmail.value && !p1Email.value) mirror('email', picEmail, p1Email);
+                if (picPhone.value && !p1Phone.value) mirror('phone', picPhone, p1Phone);
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initPicMirroring);
+            } else {
+                initPicMirroring();
+            }
+        })();
 
         window.resetRegistrationForm = function() {
             if (!confirm('Kosongkan semua data yang telah diisi pada formulir?')) return;
