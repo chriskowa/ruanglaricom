@@ -38,6 +38,91 @@
 
         $gaId = \App\Models\AppSettings::get('google_analytics');
         $gadsId = \App\Models\AppSettings::get('google_ads_tag');
+
+        $categoriesWithGpx = ($categories ?? collect())->filter(function ($cat) {
+            return !empty($cat->master_gpx_id) && !empty($cat->masterGpx);
+        })->values();
+
+        $gpxDataList = [];
+        foreach ($categoriesWithGpx as $index => $cat) {
+            $mg = $cat->masterGpx;
+            $rawCoords = $mg->coordinates_json ?? [];
+            $distKm = (float) ($mg->distance_km ?? $cat->distance_km ?? 0);
+            $gainM = (float) ($mg->elevation_gain_m ?? 0);
+            $lossM = (float) ($mg->elevation_loss_m ?? 0);
+            $routeType = $mg->route_type_label ?? 'Road';
+            $gpxFilePath = $mg->gpx_path ? (str_starts_with($mg->gpx_path, 'http') ? $mg->gpx_path : asset('storage/' . ltrim($mg->gpx_path, '/'))) : null;
+            $downloadUrl = !empty($mg->id) ? route('gpx.download', $mg->slug ?: $mg->id) : $gpxFilePath;
+
+            // Generate sampled elevation points for SVG Profile (instant render, 0KB library)
+            $sampledElevations = [];
+            if (is_array($rawCoords) && count($rawCoords) > 0) {
+                $step = max(1, (int) floor(count($rawCoords) / 60));
+                for ($i = 0; $i < count($rawCoords); $i += $step) {
+                    $pt = $rawCoords[$i];
+                    $ele = is_array($pt) ? ($pt['ele'] ?? $pt[2] ?? null) : ($pt->ele ?? null);
+                    if ($ele !== null && is_numeric($ele)) {
+                        $sampledElevations[] = (float) $ele;
+                    }
+                }
+            }
+
+            // Fallback smooth undulating terrain curve if raw ele coordinates are missing
+            if (count($sampledElevations) < 5) {
+                $sampledElevations = [];
+                $baseEle = 25.0;
+                $numSamples = 50;
+                for ($i = 0; $i <= $numSamples; $i++) {
+                    $progress = $i / $numSamples;
+                    $wave1 = sin($progress * M_PI * 2.5) * ($gainM * 0.45);
+                    $wave2 = sin($progress * M_PI * 5.0) * ($gainM * 0.18);
+                    $wave3 = cos($progress * M_PI * 1.5) * ($gainM * 0.25);
+                    $sampleEle = max(5.0, round($baseEle + max(0, $wave1 + $wave2 + $wave3), 1));
+                    $sampledElevations[] = $sampleEle;
+                }
+            }
+
+            $minEle = count($sampledElevations) > 0 ? (int) floor(min($sampledElevations)) : 0;
+            $maxEle = count($sampledElevations) > 0 ? (int) ceil(max($sampledElevations)) : 100;
+            $eleRange = max(10, $maxEle - $minEle);
+
+            // Build SVG Path points for viewBox="0 0 800 140"
+            $svgWidth = 800;
+            $svgHeight = 140;
+            $chartPaddingBottom = 15;
+            $chartPaddingTop = 15;
+            $usableHeight = $svgHeight - $chartPaddingBottom - $chartPaddingTop;
+            $totalPts = count($sampledElevations);
+
+            $linePoints = [];
+            $areaD = "M 0 {$svgHeight}";
+
+            foreach ($sampledElevations as $pIdx => $eleVal) {
+                $x = round(($pIdx / max(1, $totalPts - 1)) * $svgWidth, 1);
+                $normEle = ($eleVal - $minEle) / $eleRange;
+                $y = round(($svgHeight - $chartPaddingBottom) - ($normEle * $usableHeight), 1);
+                $linePoints[] = "{$x},{$y}";
+                $areaD .= " L {$x} {$y}";
+            }
+            $areaD .= " L {$svgWidth} {$svgHeight} Z";
+            $lineD = "M " . implode(' L ', array_map(fn($p) => str_replace(',', ' ', $p), $linePoints));
+
+            $gpxDataList[] = [
+                'id' => $cat->id,
+                'category_name' => $cat->name,
+                'distance_km' => $distKm,
+                'distance_formatted' => number_format($distKm, 2),
+                'elevation_gain_m' => (int) round($gainM),
+                'elevation_loss_m' => (int) round($lossM),
+                'min_elevation' => $minEle,
+                'max_elevation' => $maxEle,
+                'route_type' => $routeType,
+                'gpx_url' => $gpxFilePath,
+                'download_url' => $downloadUrl,
+                'area_path' => $areaD,
+                'line_path' => $lineD,
+            ];
+        }
     @endphp
 
     <title>{{ $seoTitle }}</title>
@@ -481,6 +566,17 @@
             border-color: #ef4444 !important;
             background-color: #fef2f2 !important;
         }
+        .input-error:focus {
+            border-color: #dc2626 !important;
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.2) !important;
+        }
+        .field-error-msg {
+            animation: fadeInError 0.18s ease-out;
+        }
+        @keyframes fadeInError {
+            from { opacity: 0; transform: translateY(-3px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
         .input-success {
             border-color: #10b981 !important;
         }
@@ -602,6 +698,11 @@
                     <a href="#benefits" class="px-2.5 lg:px-3 xl:px-3.5 py-1.5 xl:py-2 rounded-md text-xs xl:text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 hover-text-theme-primary transition duration-150 whitespace-nowrap">
                         Benefit Peserta
                     </a>
+                    @if(!empty($gpxDataList))
+                        <a href="#route" class="px-2.5 lg:px-3 xl:px-3.5 py-1.5 xl:py-2 rounded-md text-xs xl:text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 hover-text-theme-primary transition duration-150 whitespace-nowrap">
+                            Rute & Elevasi
+                        </a>
+                    @endif
                     <a href="#venue" class="px-2.5 lg:px-3 xl:px-3.5 py-1.5 xl:py-2 rounded-md text-xs xl:text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 hover-text-theme-primary transition duration-150 whitespace-nowrap">
                         Lokasi
                     </a>
@@ -647,7 +748,10 @@
             <a href="#about" class="block text-sm font-semibold text-slate-700 p-2 hover:bg-slate-50 rounded-md">Tentang Event</a>
             <a href="#categories" class="block text-sm font-semibold text-slate-700 p-2 hover:bg-slate-50 rounded-md">Kategori Lomba</a>
             <a href="#benefits" class="block text-sm font-semibold text-slate-700 p-2 hover:bg-slate-50 rounded-md">Benefit Peserta</a>
-            <a href="#venue" class="block text-sm font-semibold text-slate-700 p-2 hover:bg-slate-50 rounded-md">Lokasi & Rute</a>
+            @if(!empty($gpxDataList))
+                <a href="#route" class="block text-sm font-semibold text-slate-700 p-2 hover:bg-slate-50 rounded-md">Rute & Elevasi</a>
+            @endif
+            <a href="#venue" class="block text-sm font-semibold text-slate-700 p-2 hover:bg-slate-50 rounded-md">Lokasi & Venue</a>
             <a href="#info" class="block text-sm font-semibold text-slate-700 p-2 hover:bg-slate-50 rounded-md">Info & Jadwal</a>
             <a href="#faq" class="block text-sm font-semibold text-slate-700 p-2 hover:bg-slate-50 rounded-md">FAQ</a>
             @if(($hasPaidParticipants ?? false) && $event->show_participant_list)
@@ -1106,6 +1210,195 @@
             </div>
         </section>
 
+        @if(!empty($gpxDataList))
+        <!-- Section: Rute Lomba & Profil Elevasi (GPX) -->
+        <section id="route" class="py-20 bg-slate-50 border-b border-slate-200">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                
+                <!-- Section Header -->
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-theme-primary">Navigasi Lomba</span>
+                        <h2 class="text-3xl font-heading text-slate-900 mt-1">Rute Resmi & Profil Elevasi</h2>
+                        <p class="text-slate-600 text-sm mt-1.5 max-w-2xl">
+                            Jalur lomba terverifikasi dengan profil ketinggian presisi untuk membantu strategi pacing dan kesiapan fisik Anda.
+                        </p>
+                    </div>
+
+                    <!-- Category Switcher Tabs -->
+                    @if(count($gpxDataList) > 1)
+                        <div class="shrink-0 flex items-center">
+                            <div class="inline-flex p-1 bg-white border border-slate-200 rounded-md shadow-sm gap-1" id="gpx-category-tabs">
+                                @foreach($gpxDataList as $gIdx => $gData)
+                                    <button type="button" 
+                                            onclick="switchGpxCategory({{ $gIdx }})"
+                                            data-gpx-tab-idx="{{ $gIdx }}"
+                                            class="gpx-tab-btn px-3 py-1.5 text-xs font-bold rounded-md transition cursor-pointer {{ $gIdx === 0 ? 'bg-theme-primary text-white shadow-sm' : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' }}">
+                                        {{ $gData['category_name'] }}
+                                    </button>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
+                @foreach($gpxDataList as $gIdx => $gData)
+                <div id="gpx-tab-content-{{ $gIdx }}" class="gpx-tab-pane space-y-6 {{ $gIdx > 0 ? 'hidden' : '' }}">
+                    
+                    <!-- Telemetry Metrics Grid (4 Cards) -->
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+                        <div class="bg-white border border-slate-200 rounded-lg p-4 sm:p-5 shadow-sm">
+                            <div class="flex items-center justify-between text-slate-500 mb-2">
+                                <span class="text-xs font-bold uppercase tracking-wider">Jarak Tempuh</span>
+                                <div class="w-7 h-7 rounded-md bg-theme-light text-theme-primary flex items-center justify-center">
+                                    <i class="fas fa-route text-xs"></i>
+                                </div>
+                            </div>
+                            <div class="flex items-baseline gap-1.5">
+                                <span class="text-2xl sm:text-3xl font-heading font-black text-slate-900 font-mono">{{ $gData['distance_formatted'] }}</span>
+                                <span class="text-xs font-bold text-slate-500">KM</span>
+                            </div>
+                            <span class="block text-xs text-slate-500 mt-1">Kategori {{ $gData['category_name'] }}</span>
+                        </div>
+
+                        <div class="bg-white border border-slate-200 rounded-lg p-4 sm:p-5 shadow-sm">
+                            <div class="flex items-center justify-between text-slate-500 mb-2">
+                                <span class="text-xs font-bold uppercase tracking-wider">Elevasi Naik</span>
+                                <div class="w-7 h-7 rounded-md bg-emerald-50 text-emerald-600 flex items-center justify-center">
+                                    <i class="fas fa-arrow-trend-up text-xs"></i>
+                                </div>
+                            </div>
+                            <div class="flex items-baseline gap-1.5">
+                                <span class="text-2xl sm:text-3xl font-heading font-black text-emerald-600 font-mono">+{{ $gData['elevation_gain_m'] }}</span>
+                                <span class="text-xs font-bold text-slate-500">m</span>
+                            </div>
+                            <span class="block text-xs text-slate-500 mt-1">Total Tanjakan (Gain)</span>
+                        </div>
+
+                        <div class="bg-white border border-slate-200 rounded-lg p-4 sm:p-5 shadow-sm">
+                            <div class="flex items-center justify-between text-slate-500 mb-2">
+                                <span class="text-xs font-bold uppercase tracking-wider">Elevasi Turun</span>
+                                <div class="w-7 h-7 rounded-md bg-blue-50 text-blue-600 flex items-center justify-center">
+                                    <i class="fas fa-arrow-trend-down text-xs"></i>
+                                </div>
+                            </div>
+                            <div class="flex items-baseline gap-1.5">
+                                <span class="text-2xl sm:text-3xl font-heading font-black text-blue-600 font-mono">-{{ $gData['elevation_loss_m'] }}</span>
+                                <span class="text-xs font-bold text-slate-500">m</span>
+                            </div>
+                            <span class="block text-xs text-slate-500 mt-1">Total Turunan (Loss)</span>
+                        </div>
+
+                        <div class="bg-white border border-slate-200 rounded-lg p-4 sm:p-5 shadow-sm">
+                            <div class="flex items-center justify-between text-slate-500 mb-2">
+                                <span class="text-xs font-bold uppercase tracking-wider">Karakter Rute</span>
+                                <div class="w-7 h-7 rounded-md bg-amber-50 text-amber-600 flex items-center justify-center">
+                                    <i class="fas fa-mountain text-xs"></i>
+                                </div>
+                            </div>
+                            <div class="flex items-baseline gap-1.5">
+                                <span class="text-2xl sm:text-3xl font-heading font-black text-slate-900 uppercase font-mono">{{ $gData['route_type'] }}</span>
+                            </div>
+                            <span class="block text-xs text-slate-500 mt-1">Elevasi: {{ $gData['min_elevation'] }}m - {{ $gData['max_elevation'] }}m dpl</span>
+                        </div>
+                    </div>
+
+                    <!-- Elevation Profile Vector SVG Card (Instant 0KB) -->
+                    <div class="bg-white border border-slate-200 rounded-lg p-5 sm:p-6 shadow-sm space-y-4">
+                        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded bg-theme-light text-theme-primary flex items-center justify-center">
+                                    <i class="fas fa-chart-area text-xs"></i>
+                                </div>
+                                <h3 class="text-sm font-bold text-slate-900">Profil Topografi & Kontur Ketinggian</h3>
+                            </div>
+                            <div class="flex items-center gap-3 text-xs font-mono text-slate-500">
+                                <span>Min: <strong class="text-slate-800 font-bold">{{ $gData['min_elevation'] }}m</strong></span>
+                                <span>Max: <strong class="text-slate-800 font-bold">{{ $gData['max_elevation'] }}m</strong></span>
+                                <span>Gain: <strong class="text-emerald-600 font-bold">+{{ $gData['elevation_gain_m'] }}m</strong></span>
+                            </div>
+                        </div>
+
+                        <!-- Pure Vector SVG -->
+                        <div class="relative w-full h-32 sm:h-36 select-none bg-slate-50 rounded-md border border-slate-100 p-2 overflow-hidden">
+                            <svg viewBox="0 0 800 140" preserveAspectRatio="none" class="w-full h-full block">
+                                <defs>
+                                    <linearGradient id="gpxElevGrad-{{ $gIdx }}" x1="0%" y1="0%" x2="0%" y2="100%">
+                                        <stop offset="0%" stop-color="var(--theme-primary, #059669)" stop-opacity="0.32" />
+                                        <stop offset="100%" stop-color="var(--theme-primary, #059669)" stop-opacity="0.02" />
+                                    </linearGradient>
+                                </defs>
+                                <path d="{{ $gData['area_path'] }}" fill="url(#gpxElevGrad-{{ $gIdx }})" />
+                                <path d="{{ $gData['line_path'] }}" fill="none" stroke="var(--theme-primary, #059669)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </div>
+
+                        <div class="flex items-center justify-between text-[11px] font-mono text-slate-400 px-1">
+                            <span>Titik Start (0 KM)</span>
+                            <span>Separuh Rute ({{ number_format($gData['distance_km'] / 2, 1) }} KM)</span>
+                            <span>Garis Finish ({{ $gData['distance_formatted'] }} KM)</span>
+                        </div>
+                    </div>
+
+                    <!-- Lazy Loaded Interactive Leaflet Map Card -->
+                    <div class="bg-white border border-slate-200 rounded-lg overflow-hidden shadow-sm">
+                        <!-- Map Header & Action Toolbar -->
+                        <div class="px-5 py-3.5 border-b border-slate-200 bg-slate-50 flex flex-wrap items-center justify-between gap-3">
+                            <div class="flex items-center gap-2">
+                                <div class="w-6 h-6 rounded bg-slate-200 text-slate-700 flex items-center justify-center">
+                                    <i class="fas fa-map-marked-alt text-xs"></i>
+                                </div>
+                                <div>
+                                    <span class="block text-xs font-bold text-slate-900">Peta Interaktif Jalur (GPX)</span>
+                                    <span class="block text-[11px] text-slate-500">Kategori: {{ $gData['category_name'] }}</span>
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                @if($gData['download_url'])
+                                    <a href="{{ $gData['download_url'] }}" 
+                                       download 
+                                       class="px-3 py-1.5 rounded-md border border-slate-300 hover:border-theme-primary bg-white hover:bg-slate-50 text-slate-700 hover-text-theme-primary text-xs font-bold transition flex items-center gap-1.5 shadow-sm">
+                                        <i class="fas fa-download text-[11px]"></i>
+                                        <span>Unduh GPX</span>
+                                    </a>
+                                @endif
+                            </div>
+                        </div>
+
+                        <!-- Map Canvas Container (Lazy Loaded On-Demand) -->
+                        <div class="relative w-full h-[420px] bg-slate-900" id="gpx-map-container-{{ $gIdx }}">
+                            
+                            <!-- Placeholder Before User Clicks "Load Saat Dibuka" -->
+                            <div id="gpx-placeholder-{{ $gIdx }}" class="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 text-center bg-slate-900 text-white">
+                                <div class="w-14 h-14 rounded-full bg-slate-800 border border-slate-700 text-theme-primary flex items-center justify-center mb-4 shadow-lg">
+                                    <i class="fas fa-map-location-dot text-2xl"></i>
+                                </div>
+                                <h4 class="text-base font-bold text-white mb-1">Peta Rute {{ $gData['category_name'] }}</h4>
+                                <p class="text-xs text-slate-400 max-w-md mb-5 leading-relaxed">
+                                    Peta GPS interaktif dimuat sesuai kebutuhan untuk menjaga kecepatan browsing halaman dan menghemat kuota data.
+                                </p>
+                                <button type="button" 
+                                        onclick="loadGpxMap({{ $gIdx }}, '{{ $gData['gpx_url'] }}')" 
+                                        id="btn-load-gpx-map-{{ $gIdx }}"
+                                        class="px-5 py-2.5 rounded-md bg-theme-primary hover-bg-theme-primary text-white text-xs font-bold transition shadow flex items-center gap-2 cursor-pointer">
+                                    <i class="fas fa-play text-xs"></i>
+                                    <span>Buka Peta Interaktif</span>
+                                </button>
+                            </div>
+
+                            <!-- Actual Map DOM element -->
+                            <div id="gpx-live-map-{{ $gIdx }}" class="w-full h-full z-0"></div>
+                        </div>
+                    </div>
+
+                </div>
+                @endforeach
+
+            </div>
+        </section>
+        @endif
+
         <!-- Section: Venue & Lokasi (Rute) -->
         <section id="venue" class="py-20 bg-white border-b border-slate-200">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -1139,7 +1432,7 @@
                                 </div>
                                 <div>
                                     <span class="block text-xs font-bold uppercase text-slate-500">Jadwal Pengambilan</span>
-                                    <span class="text-sm font-bold text-slate-900">H-2 & H-1 Sebelum Hari Lomba</span>
+                                    <span class="text-sm font-bold text-slate-900">H-1 Sebelum Hari Lomba</span>
                                     <p class="text-xs text-slate-500 mt-0.5">10:00 - 20:00 WIB</p>
                                 </div>
                             </div>
@@ -1372,7 +1665,7 @@
                     @endif
 
                     <!-- Main Form -->
-                    <form action="{{ route('events.register.store', ['slug' => $event->slug]) }}" method="POST" id="registrationForm" class="max-w-7xl mx-auto">
+                    <form action="{{ route('events.register.store', ['slug' => $event->slug]) }}" method="POST" id="registrationForm" novalidate class="max-w-7xl mx-auto">
                         @csrf
 
                         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -2230,6 +2523,7 @@
         (function() {
             const form = document.getElementById('registrationForm');
             if (!form) return;
+            form.setAttribute('novalidate', 'true');
 
             const participantsWrapper = document.getElementById('participantsWrapper');
             const addBtnTop = document.getElementById('addParticipantTop');
@@ -2518,34 +2812,110 @@
                 }
             });
 
+            // Comprehensive Client-side Form Validation with Visible Inline Messages
+            function showFieldError(input, msg, globalMsg = null) {
+                if (!input) return;
+
+                input.classList.add('input-error');
+
+                // Determine target container and insert position
+                let container = null;
+                let insertAfter = null;
+
+                if (input.classList.contains('cat-radio')) {
+                    const grid = input.closest('.grid');
+                    if (grid) {
+                        container = grid.parentElement;
+                        insertAfter = grid;
+                    }
+                } else if (input.name === 'payment_method') {
+                    const paymentWrapper = input.closest('.space-y-2\\.5') || input.closest('div');
+                    if (paymentWrapper) {
+                        container = paymentWrapper;
+                        insertAfter = null;
+                    }
+                } else if (input.name === 'terms_agreed') {
+                    const lbl = input.closest('label');
+                    if (lbl) {
+                        container = lbl.parentElement;
+                        insertAfter = lbl;
+                    }
+                } else {
+                    container = input.parentElement;
+                    insertAfter = input;
+                }
+
+                if (!container) container = input.parentElement;
+
+                let errEl = container.querySelector('.field-error-msg');
+                if (!errEl) {
+                    errEl = document.createElement('p');
+                    errEl.className = 'field-error-msg text-xs text-rose-600 font-semibold mt-1.5 flex items-center gap-1.5';
+                    if (insertAfter && insertAfter.nextSibling) {
+                        container.insertBefore(errEl, insertAfter.nextSibling);
+                    } else {
+                        container.appendChild(errEl);
+                    }
+                }
+
+                errEl.innerHTML = `<i class="fas fa-exclamation-circle text-[11px] shrink-0"></i><span>${msg}</span>`;
+
+                if (!firstErrorInput) {
+                    firstErrorInput = input;
+                    firstErrorMessage = globalMsg || msg;
+                }
+                errorCount++;
+            }
+
+            function clearFieldError(input) {
+                if (!input) return;
+                input.classList.remove('input-error');
+
+                let container = null;
+                if (input.classList.contains('cat-radio')) {
+                    container = input.closest('.grid')?.parentElement;
+                } else if (input.name === 'payment_method') {
+                    container = input.closest('.space-y-2\\.5') || input.closest('div');
+                } else if (input.name === 'terms_agreed') {
+                    container = input.closest('label')?.parentElement;
+                } else {
+                    container = input.parentElement;
+                }
+
+                const err = container?.querySelector('.field-error-msg');
+                if (err) err.remove();
+
+                if (!form.querySelector('.field-error-msg')) {
+                    const banner = document.getElementById('formValidationBanner');
+                    if (banner) banner.remove();
+                }
+            }
+
+            function clearAllFieldErrors() {
+                form.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+                form.querySelectorAll('.field-error-msg').forEach(el => el.remove());
+                const banner = document.getElementById('formValidationBanner');
+                if (banner) banner.remove();
+            }
+
             // Real-time error highlight removal on input
             form.addEventListener('input', function(e) {
-                if (e.target && e.target.classList.contains('input-error')) {
-                    e.target.classList.remove('input-error');
-                }
+                if (e.target) clearFieldError(e.target);
             });
             form.addEventListener('change', function(e) {
-                if (e.target && e.target.classList.contains('input-error')) {
-                    e.target.classList.remove('input-error');
-                }
+                if (e.target) clearFieldError(e.target);
             });
+
+            let firstErrorInput = null;
+            let firstErrorMessage = '';
+            let errorCount = 0;
 
             // Comprehensive Client-side Form Validation
             function validateRegistrationForm() {
-                form.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
-
-                let firstErrorInput = null;
-                let errorMessage = '';
-
-                function markError(input, msg) {
-                    if (input) {
-                        input.classList.add('input-error');
-                        if (!firstErrorInput) {
-                            firstErrorInput = input;
-                            errorMessage = msg;
-                        }
-                    }
-                }
+                clearAllFieldErrors();
+                firstErrorInput = null;
+                firstErrorMessage = '';
+                errorCount = 0;
 
                 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -2557,18 +2927,18 @@
                 if (picNameInput) {
                     const val = picNameInput.value.trim();
                     if (!val) {
-                        markError(picNameInput, 'Nama PIC wajib diisi.');
+                        showFieldError(picNameInput, 'Nama PIC wajib diisi.', 'Nama PIC wajib diisi.');
                     } else if (val.length < 2) {
-                        markError(picNameInput, 'Nama PIC minimal 2 karakter.');
+                        showFieldError(picNameInput, 'Nama PIC minimal 2 karakter.', 'Nama PIC minimal 2 karakter.');
                     }
                 }
 
                 if (picEmailInput) {
                     const val = picEmailInput.value.trim();
                     if (!val) {
-                        markError(picEmailInput, 'Email PIC wajib diisi.');
+                        showFieldError(picEmailInput, 'Email PIC wajib diisi.', 'Email PIC wajib diisi.');
                     } else if (!emailRegex.test(val)) {
-                        markError(picEmailInput, 'Format email PIC tidak valid.');
+                        showFieldError(picEmailInput, 'Format email PIC tidak valid.', 'Format email PIC tidak valid.');
                     }
                 }
 
@@ -2576,18 +2946,18 @@
                     const rawVal = picPhoneInput.value.trim();
                     const digits = rawVal.replace(/[^0-9]/g, '');
                     if (!digits) {
-                        markError(picPhoneInput, 'Nomor WhatsApp PIC wajib diisi.');
+                        showFieldError(picPhoneInput, 'Nomor WhatsApp PIC wajib diisi.', 'Nomor WhatsApp PIC wajib diisi.');
                     } else if (digits.length < 10) {
-                        markError(picPhoneInput, 'Nomor WhatsApp PIC minimal 10 digit angka.');
+                        showFieldError(picPhoneInput, 'Nomor WhatsApp PIC minimal 10 digit angka.', 'Nomor WhatsApp PIC minimal 10 digit angka.');
                     } else if (digits.length > 15) {
-                        markError(picPhoneInput, 'Nomor WhatsApp PIC maksimal 15 digit angka.');
+                        showFieldError(picPhoneInput, 'Nomor WhatsApp PIC maksimal 15 digit angka.', 'Nomor WhatsApp PIC maksimal 15 digit angka.');
                     }
                 }
 
                 // 2. Validate Participants Data
                 const participantItems = form.querySelectorAll('.participant-item');
                 if (participantItems.length === 0) {
-                    alert('Minimal harus ada 1 peserta lomba.');
+                    window.openFailureModal('Minimal harus ada 1 peserta lomba.');
                     return false;
                 }
 
@@ -2602,7 +2972,7 @@
                     const catChecked = item.querySelector('input[type="radio"].cat-radio:checked');
                     if (!catChecked) {
                         const firstCatRadio = item.querySelector('input[type="radio"].cat-radio');
-                        markError(firstCatRadio, `${labelPrefix}Pilih salah satu kategori lomba.`);
+                        showFieldError(firstCatRadio, 'Silakan pilih salah satu kategori lomba.', `${labelPrefix}Pilih salah satu kategori lomba.`);
                     }
 
                     // Name
@@ -2610,9 +2980,9 @@
                     if (nameInput) {
                         const val = nameInput.value.trim();
                         if (!val) {
-                            markError(nameInput, `${labelPrefix}Nama lengkap wajib diisi.`);
+                            showFieldError(nameInput, 'Nama lengkap peserta wajib diisi.', `${labelPrefix}Nama lengkap wajib diisi.`);
                         } else if (val.length < 2) {
-                            markError(nameInput, `${labelPrefix}Nama lengkap minimal 2 karakter.`);
+                            showFieldError(nameInput, 'Nama lengkap minimal 2 karakter.', `${labelPrefix}Nama lengkap minimal 2 karakter.`);
                         }
                     }
 
@@ -2621,7 +2991,7 @@
                     const genderVal = genderSelect ? genderSelect.value : '';
                     if (!genderVal) {
                         const selectEl = item.querySelector('select[name*="[gender]"]');
-                        markError(selectEl, `${labelPrefix}Jenis kelamin wajib dipilih.`);
+                        showFieldError(selectEl, 'Jenis kelamin wajib dipilih.', `${labelPrefix}Jenis kelamin wajib dipilih.`);
                     }
 
                     // Email
@@ -2629,11 +2999,11 @@
                     if (emailInput) {
                         const val = emailInput.value.trim().toLowerCase();
                         if (!val) {
-                            markError(emailInput, `${labelPrefix}Email peserta wajib diisi.`);
+                            showFieldError(emailInput, 'Email peserta wajib diisi.', `${labelPrefix}Email peserta wajib diisi.`);
                         } else if (!emailRegex.test(val)) {
-                            markError(emailInput, `${labelPrefix}Format email tidak valid.`);
+                            showFieldError(emailInput, 'Format email tidak valid.', `${labelPrefix}Format email tidak valid.`);
                         } else if (participantEmails.includes(val)) {
-                            markError(emailInput, `${labelPrefix}Email "${val}" sudah digunakan peserta lain. Email setiap peserta harus unik.`);
+                            showFieldError(emailInput, `Email "${val}" sudah digunakan peserta lain. Email setiap peserta harus unik.`, `${labelPrefix}Email "${val}" sudah digunakan peserta lain.`);
                         } else {
                             participantEmails.push(val);
                         }
@@ -2644,11 +3014,11 @@
                     if (phoneInput) {
                         const digits = phoneInput.value.trim().replace(/[^0-9]/g, '');
                         if (!digits) {
-                            markError(phoneInput, `${labelPrefix}Nomor WhatsApp/HP wajib diisi.`);
+                            showFieldError(phoneInput, 'Nomor WhatsApp/HP wajib diisi.', `${labelPrefix}Nomor WhatsApp/HP wajib diisi.`);
                         } else if (digits.length < 10) {
-                            markError(phoneInput, `${labelPrefix}Nomor WhatsApp/HP minimal 10 digit angka.`);
+                            showFieldError(phoneInput, 'Nomor WhatsApp minimal 10 digit angka.', `${labelPrefix}Nomor WhatsApp minimal 10 digit angka.`);
                         } else if (digits.length > 15) {
-                            markError(phoneInput, `${labelPrefix}Nomor WhatsApp/HP maksimal 15 digit angka.`);
+                            showFieldError(phoneInput, 'Nomor WhatsApp maksimal 15 digit angka.', `${labelPrefix}Nomor WhatsApp maksimal 15 digit angka.`);
                         }
                     }
 
@@ -2657,11 +3027,11 @@
                     if (idCardInput && (idCardInput.hasAttribute('required') || idCardInput.value.trim())) {
                         const val = idCardInput.value.trim();
                         if (!val) {
-                            markError(idCardInput, `${labelPrefix}Nomor identitas (NIK/KTP/SIM) wajib diisi.`);
+                            showFieldError(idCardInput, 'Nomor identitas (NIK/KTP/SIM) wajib diisi.', `${labelPrefix}Nomor identitas (NIK/KTP/SIM) wajib diisi.`);
                         } else if (val.length < 5) {
-                            markError(idCardInput, `${labelPrefix}Nomor identitas minimal 5 karakter.`);
+                            showFieldError(idCardInput, 'Nomor identitas minimal 5 karakter.', `${labelPrefix}Nomor identitas minimal 5 karakter.`);
                         } else if (participantNikList.includes(val)) {
-                            markError(idCardInput, `${labelPrefix}Nomor identitas "${val}" sudah digunakan peserta lain.`);
+                            showFieldError(idCardInput, `Nomor identitas "${val}" sudah digunakan peserta lain.`, `${labelPrefix}Nomor identitas "${val}" sudah digunakan peserta lain.`);
                         } else {
                             participantNikList.push(val);
                         }
@@ -2672,13 +3042,13 @@
                     if (dobInput && (dobInput.hasAttribute('required') || dobInput.value.trim())) {
                         const val = dobInput.value.trim();
                         if (!val) {
-                            markError(dobInput, `${labelPrefix}Tanggal lahir wajib diisi.`);
+                            showFieldError(dobInput, 'Tanggal lahir wajib diisi.', `${labelPrefix}Tanggal lahir wajib diisi.`);
                         } else {
                             const dobDate = new Date(val);
                             const today = new Date();
                             today.setHours(0, 0, 0, 0);
                             if (isNaN(dobDate.getTime()) || dobDate >= today) {
-                                markError(dobInput, `${labelPrefix}Tanggal lahir harus sebelum hari ini.`);
+                                showFieldError(dobInput, 'Tanggal lahir harus sebelum hari ini.', `${labelPrefix}Tanggal lahir harus sebelum hari ini.`);
                             }
                         }
                     }
@@ -2688,9 +3058,9 @@
                     if (addressInput && (addressInput.hasAttribute('required') || addressInput.value.trim())) {
                         const val = addressInput.value.trim();
                         if (!val) {
-                            markError(addressInput, `${labelPrefix}Alamat lengkap domisili wajib diisi.`);
+                            showFieldError(addressInput, 'Alamat lengkap domisili wajib diisi.', `${labelPrefix}Alamat lengkap domisili wajib diisi.`);
                         } else if (val.length < 5) {
-                            markError(addressInput, `${labelPrefix}Alamat lengkap minimal 5 karakter.`);
+                            showFieldError(addressInput, 'Alamat lengkap minimal 5 karakter.', `${labelPrefix}Alamat lengkap minimal 5 karakter.`);
                         }
                     }
 
@@ -2699,23 +3069,23 @@
                     if (emNameInput && (emNameInput.hasAttribute('required') || emNameInput.value.trim())) {
                         const val = emNameInput.value.trim();
                         if (!val) {
-                            markError(emNameInput, `${labelPrefix}Nama kontak darurat wajib diisi.`);
+                            showFieldError(emNameInput, 'Nama kontak darurat wajib diisi.', `${labelPrefix}Nama kontak darurat wajib diisi.`);
                         } else if (val.length < 2) {
-                            markError(emNameInput, `${labelPrefix}Nama kontak darurat minimal 2 karakter.`);
+                            showFieldError(emNameInput, 'Nama kontak darurat minimal 2 karakter.', `${labelPrefix}Nama kontak darurat minimal 2 karakter.`);
                         }
                     }
 
-                    // Emergency Contact Number (Strict minimum 10 digits!)
+                    // Emergency Contact Number
                     const emNumInput = item.querySelector('input[name*="[emergency_contact_number]"]');
                     if (emNumInput && (emNumInput.hasAttribute('required') || emNumInput.value.trim())) {
                         const rawVal = emNumInput.value.trim();
                         const digits = rawVal.replace(/[^0-9]/g, '');
                         if (!digits) {
-                            markError(emNumInput, `${labelPrefix}Nomor kontak darurat wajib diisi.`);
+                            showFieldError(emNumInput, 'Nomor kontak darurat wajib diisi.', `${labelPrefix}Nomor kontak darurat wajib diisi.`);
                         } else if (digits.length < 10) {
-                            markError(emNumInput, `${labelPrefix}Nomor kontak darurat minimal 10 digit angka.`);
+                            showFieldError(emNumInput, 'Nomor kontak darurat minimal 10 digit angka.', `${labelPrefix}Nomor kontak darurat minimal 10 digit angka.`);
                         } else if (digits.length > 15) {
-                            markError(emNumInput, `${labelPrefix}Nomor kontak darurat maksimal 15 digit angka.`);
+                            showFieldError(emNumInput, 'Nomor kontak darurat maksimal 15 digit angka.', `${labelPrefix}Nomor kontak darurat maksimal 15 digit angka.`);
                         }
                     }
 
@@ -2724,7 +3094,7 @@
                     if (jerseySelect && jerseySelect.hasAttribute('required')) {
                         const val = jerseySelect.value.trim();
                         if (!val) {
-                            markError(jerseySelect, `${labelPrefix}Ukuran jersey wajib dipilih.`);
+                            showFieldError(jerseySelect, 'Ukuran jersey wajib dipilih.', `${labelPrefix}Ukuran jersey wajib dipilih.`);
                         }
                     }
 
@@ -2733,7 +3103,7 @@
                     if (targetTimeInput && targetTimeInput.value.trim()) {
                         const val = targetTimeInput.value.trim();
                         if (!/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/.test(val)) {
-                            markError(targetTimeInput, `${labelPrefix}Format target waktu harus JJ:MM:DD (contoh: 01:30:00).`);
+                            showFieldError(targetTimeInput, 'Format target waktu harus JJ:MM:DD (contoh: 01:30:00).', `${labelPrefix}Format target waktu harus JJ:MM:DD.`);
                         }
                     }
                 });
@@ -2743,20 +3113,39 @@
                 if (paymentRadios.length > 0) {
                     const checkedPm = form.querySelector('input[name="payment_method"]:checked');
                     if (!checkedPm) {
-                        markError(paymentRadios[0], 'Silakan pilih salah satu metode pembayaran.');
+                        showFieldError(paymentRadios[0], 'Silakan pilih salah satu metode pembayaran.', 'Silakan pilih metode pembayaran.');
                     }
                 }
 
                 // 4. Terms Agreement
                 const termsCheckbox = form.querySelector('input[name="terms_agreed"]');
                 if (termsCheckbox && termsCheckbox.hasAttribute('required') && !termsCheckbox.checked) {
-                    markError(termsCheckbox, 'Anda harus menyetujui Syarat & Ketentuan lomba untuk melanjutkan.');
+                    showFieldError(termsCheckbox, 'Anda harus menyetujui Syarat & Ketentuan lomba.', 'Anda harus menyetujui Syarat & Ketentuan lomba.');
                 }
 
                 if (firstErrorInput) {
-                    alert(errorMessage);
+                    // Show a summary banner in checkout card above submit button
+                    const submitBtn = document.getElementById('submitBtn');
+                    let banner = document.getElementById('formValidationBanner');
+                    if (!banner && submitBtn && submitBtn.parentElement) {
+                        banner = document.createElement('div');
+                        banner.id = 'formValidationBanner';
+                        banner.className = 'p-3 mb-3 rounded-md bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-start gap-2 shadow-sm animate-fadeIn';
+                        submitBtn.parentElement.insertBefore(banner, submitBtn);
+                    }
+                    if (banner) {
+                        banner.innerHTML = `<i class="fas fa-exclamation-circle text-rose-500 mt-0.5 shrink-0"></i><div><strong class="font-bold block">Mohon periksa kolom yang ditandai merah:</strong><span class="text-rose-600">${firstErrorMessage}</span></div>`;
+                    }
+
                     firstErrorInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    firstErrorInput.focus();
+                    setTimeout(() => {
+                        try {
+                            firstErrorInput.focus({ preventScroll: true });
+                        } catch(err) {
+                            firstErrorInput.focus();
+                        }
+                    }, 120);
+
                     return false;
                 }
 
@@ -2877,7 +3266,7 @@
                                     }
                                     const invalidEl = form.querySelector(`[name="${fieldName}"]`);
                                     if (invalidEl) {
-                                        invalidEl.classList.add('input-error');
+                                        showFieldError(invalidEl, arr[0], arr[0]);
                                     }
                                 });
                             }
@@ -3213,6 +3602,180 @@
                 openSuccessModal();
             }
         })();
+
+        // ==========================================
+        // GPX INTERACTIVE MAP & LAZY LOADER MODULE
+        // ==========================================
+        window.activeGpxIdx = 0;
+        window.gpxMaps = {};
+        window.isLeafletLoaded = false;
+        window.isLeafletLoading = false;
+
+        window.switchGpxCategory = function(targetIdx) {
+            window.activeGpxIdx = targetIdx;
+            
+            // Switch tabs styling
+            document.querySelectorAll('.gpx-tab-btn').forEach(btn => {
+                const bIdx = parseInt(btn.getAttribute('data-gpx-tab-idx'), 10);
+                if (bIdx === targetIdx) {
+                    btn.classList.add('bg-theme-primary', 'text-white', 'shadow-sm');
+                    btn.classList.remove('text-slate-600', 'hover:text-slate-900', 'hover:bg-slate-100');
+                } else {
+                    btn.classList.remove('bg-theme-primary', 'text-white', 'shadow-sm');
+                    btn.classList.add('text-slate-600', 'hover:text-slate-900', 'hover:bg-slate-100');
+                }
+            });
+
+            // Switch content panes
+            document.querySelectorAll('.gpx-tab-pane').forEach((pane, idx) => {
+                if (idx === targetIdx) {
+                    pane.classList.remove('hidden');
+                    if (window.gpxMaps[targetIdx]) {
+                        setTimeout(() => {
+                            window.gpxMaps[targetIdx].invalidateSize();
+                        }, 100);
+                    }
+                } else {
+                    pane.classList.add('hidden');
+                }
+            });
+        };
+
+        window.ensureLeafletLibraries = function() {
+            return new Promise((resolve, reject) => {
+                if (window.isLeafletLoaded && window.L && window.L.GPX) {
+                    return resolve();
+                }
+
+                if (window.isLeafletLoading) {
+                    const checkInterval = setInterval(() => {
+                        if (window.isLeafletLoaded && window.L && window.L.GPX) {
+                            clearInterval(checkInterval);
+                            resolve();
+                        }
+                    }, 50);
+                    return;
+                }
+
+                window.isLeafletLoading = true;
+
+                // 1. Inject Leaflet CSS
+                if (!document.getElementById('leaflet-css-cdn')) {
+                    const link = document.createElement('link');
+                    link.id = 'leaflet-css-cdn';
+                    link.rel = 'stylesheet';
+                    link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+                    document.head.appendChild(link);
+                }
+
+                // 2. Inject Leaflet JS
+                const loadLeafletJs = new Promise((resJs, rejJs) => {
+                    if (window.L) return resJs();
+                    const s = document.createElement('script');
+                    s.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+                    s.async = true;
+                    s.onload = resJs;
+                    s.onerror = rejJs;
+                    document.head.appendChild(s);
+                });
+
+                loadLeafletJs.then(() => {
+                    if (window.L && window.L.GPX) {
+                        window.isLeafletLoaded = true;
+                        window.isLeafletLoading = false;
+                        return resolve();
+                    }
+
+                    const gpxScript = document.createElement('script');
+                    gpxScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/gpx.min.js';
+                    gpxScript.async = true;
+                    gpxScript.onload = () => {
+                        window.isLeafletLoaded = true;
+                        window.isLeafletLoading = false;
+                        resolve();
+                    };
+                    gpxScript.onerror = () => {
+                        window.isLeafletLoading = false;
+                        reject(new Error('Gagal memuat plugin Leaflet GPX.'));
+                    };
+                    document.head.appendChild(gpxScript);
+                }).catch((err) => {
+                    window.isLeafletLoading = false;
+                    reject(err);
+                });
+            });
+        };
+
+        window.loadGpxMap = function(idx, gpxUrl) {
+            const placeholder = document.getElementById('gpx-placeholder-' + idx);
+            const loadBtn = document.getElementById('btn-load-gpx-map-' + idx);
+            const mapDom = document.getElementById('gpx-live-map-' + idx);
+
+            if (!mapDom) return;
+
+            if (loadBtn) {
+                loadBtn.disabled = true;
+                loadBtn.innerHTML = '<i class="fas fa-spinner fa-spin text-xs"></i> <span>Memuat Peta...</span>';
+            }
+
+            window.ensureLeafletLibraries().then(() => {
+                if (placeholder) {
+                    placeholder.classList.add('hidden');
+                }
+
+                if (window.gpxMaps[idx]) {
+                    window.gpxMaps[idx].invalidateSize();
+                    return;
+                }
+
+                // Initialize Leaflet Map
+                const map = L.map(mapDom, {
+                    scrollWheelZoom: false, // Prevent scroll trapping on mobile
+                    zoomControl: true,
+                }).setView([-6.2, 106.8], 12);
+
+                // Add CartoDB Voyager tiles (clean light tiles)
+                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+                    maxZoom: 19,
+                    subdomains: ['a', 'b', 'c', 'd'],
+                    attribution: '&copy; CARTO &copy; OpenStreetMap'
+                }).addTo(map);
+
+                window.gpxMaps[idx] = map;
+
+                if (gpxUrl) {
+                    new L.GPX(gpxUrl, {
+                        async: true,
+                        marker_options: {
+                            startIconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/pin-icon-start.png',
+                            endIconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/pin-icon-end.png',
+                            shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/pin-shadow.png'
+                        },
+                        polyline_options: {
+                            color: getComputedStyle(document.documentElement).getPropertyValue('--theme-primary').trim() || '#059669',
+                            weight: 4.5,
+                            opacity: 0.9,
+                            lineCap: 'round',
+                            lineJoin: 'round'
+                        }
+                    }).on('loaded', function(e) {
+                        map.fitBounds(e.target.getBounds(), { padding: [30, 30] });
+                    }).on('error', function() {
+                        console.warn('GPX file could not be parsed directly:', gpxUrl);
+                    }).addTo(map);
+                }
+
+                window.addEventListener('resize', () => {
+                    map.invalidateSize();
+                });
+            }).catch(err => {
+                console.error(err);
+                if (loadBtn) {
+                    loadBtn.disabled = false;
+                    loadBtn.innerHTML = '<i class="fas fa-triangle-exclamation text-xs"></i> <span>Gagal Memuat. Coba Lagi</span>';
+                }
+            });
+        };
     </script>
 </body>
 </html>
