@@ -117,8 +117,11 @@
                 'min_elevation' => $minEle,
                 'max_elevation' => $maxEle,
                 'route_type' => $routeType,
+                'slug' => $mg->slug ?: $mg->id,
+                'detail_url' => !empty($mg->id) ? route('gpx.show', $mg->slug ?: $mg->id) : null,
                 'gpx_url' => $gpxFilePath,
                 'download_url' => $downloadUrl,
+                'coordinates' => $rawCoords,
                 'area_path' => $areaD,
                 'line_path' => $lineD,
             ];
@@ -1225,9 +1228,9 @@
                         </p>
                     </div>
 
-                    <!-- Category Switcher Tabs -->
-                    @if(count($gpxDataList) > 1)
-                        <div class="shrink-0 flex items-center">
+                    <!-- Category Switcher Tabs & Database GPX Link -->
+                    <div class="shrink-0 flex flex-wrap items-center gap-2">
+                        @if(count($gpxDataList) > 1)
                             <div class="inline-flex p-1 bg-white border border-slate-200 rounded-md shadow-sm gap-1" id="gpx-category-tabs">
                                 @foreach($gpxDataList as $gIdx => $gData)
                                     <button type="button" 
@@ -1238,8 +1241,19 @@
                                     </button>
                                 @endforeach
                             </div>
-                        </div>
-                    @endif
+                        @endif
+
+                        @if(!empty($gpxDataList[0]['detail_url']))
+                            <a href="{{ $gpxDataList[0]['detail_url'] }}" 
+                               id="btn-header-gpx-detail"
+                               target="_blank"
+                               class="px-3.5 py-1.5 rounded-md bg-white border border-slate-300 hover:border-theme-primary hover-text-theme-primary text-slate-700 text-xs font-bold transition shadow-sm flex items-center gap-1.5 whitespace-nowrap">
+                                <i class="fas fa-database text-[11px] text-theme-primary"></i>
+                                <span>Database GPX</span>
+                                <i class="fas fa-arrow-up-right-from-square text-[10px] text-slate-400"></i>
+                            </a>
+                        @endif
+                    </div>
                 </div>
 
                 @foreach($gpxDataList as $gIdx => $gData)
@@ -1354,7 +1368,16 @@
                                 </div>
                             </div>
 
-                            <div class="flex items-center gap-2">
+                            <div class="flex items-center gap-2 flex-wrap">
+                                @if(!empty($gData['detail_url']))
+                                    <a href="{{ $gData['detail_url'] }}" 
+                                       target="_blank" 
+                                       class="px-3 py-1.5 rounded-md border border-slate-300 hover:border-theme-primary bg-white hover:bg-slate-50 text-slate-700 hover-text-theme-primary text-xs font-bold transition flex items-center gap-1.5 shadow-sm"
+                                       title="Buka rute ini di Database GPX RuangLari untuk navigasi GPS live, flyover 3D & PacePro">
+                                        <i class="fas fa-arrow-up-right-from-square text-[11px] text-theme-primary"></i>
+                                        <span>Buka di Database GPX</span>
+                                    </a>
+                                @endif
                                 @if($gData['download_url'])
                                     <a href="{{ $gData['download_url'] }}" 
                                        download 
@@ -1369,22 +1392,32 @@
                         <!-- Map Canvas Container (Lazy Loaded On-Demand) -->
                         <div class="relative w-full h-[420px] bg-slate-900" id="gpx-map-container-{{ $gIdx }}">
                             
-                            <!-- Placeholder Before User Clicks "Load Saat Dibuka" -->
+                            <!-- Placeholder Before Auto-load / User Click -->
                             <div id="gpx-placeholder-{{ $gIdx }}" class="absolute inset-0 z-10 flex flex-col items-center justify-center p-6 text-center bg-slate-900 text-white">
                                 <div class="w-14 h-14 rounded-full bg-slate-800 border border-slate-700 text-theme-primary flex items-center justify-center mb-4 shadow-lg">
                                     <i class="fas fa-map-location-dot text-2xl"></i>
                                 </div>
                                 <h4 class="text-base font-bold text-white mb-1">Peta Rute {{ $gData['category_name'] }}</h4>
                                 <p class="text-xs text-slate-400 max-w-md mb-5 leading-relaxed">
-                                    Peta GPS interaktif dimuat sesuai kebutuhan untuk menjaga kecepatan browsing halaman dan menghemat kuota data.
+                                    Peta GPS interaktif dimuat otomatis saat rute dibuka untuk menjaga kecepatan browsing dan menghemat kuota data.
                                 </p>
-                                <button type="button" 
-                                        onclick="loadGpxMap({{ $gIdx }}, '{{ $gData['gpx_url'] }}')" 
-                                        id="btn-load-gpx-map-{{ $gIdx }}"
-                                        class="px-5 py-2.5 rounded-md bg-theme-primary hover-bg-theme-primary text-white text-xs font-bold transition shadow flex items-center gap-2 cursor-pointer">
-                                    <i class="fas fa-play text-xs"></i>
-                                    <span>Buka Peta Interaktif</span>
-                                </button>
+                                <div class="flex items-center gap-2 flex-wrap justify-center">
+                                    <button type="button" 
+                                            onclick="loadGpxMap({{ $gIdx }})" 
+                                            id="btn-load-gpx-map-{{ $gIdx }}"
+                                            class="px-5 py-2.5 rounded-md bg-theme-primary hover-bg-theme-primary text-white text-xs font-bold transition shadow flex items-center gap-2 cursor-pointer">
+                                        <i class="fas fa-play text-xs"></i>
+                                        <span>Buka Peta Interaktif</span>
+                                    </button>
+                                    @if(!empty($gData['detail_url']))
+                                        <a href="{{ $gData['detail_url'] }}" 
+                                           target="_blank" 
+                                           class="px-4 py-2.5 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white text-xs font-bold transition shadow flex items-center gap-2">
+                                            <i class="fas fa-database text-xs text-theme-primary"></i>
+                                            <span>Buka di Database GPX</span>
+                                        </a>
+                                    @endif
+                                </div>
                             </div>
 
                             <!-- Actual Map DOM element -->
@@ -3610,6 +3643,16 @@
         window.gpxMaps = {};
         window.isLeafletLoaded = false;
         window.isLeafletLoading = false;
+        window.gpxDataList = {!! json_encode(array_map(function($g) {
+            return [
+                'id' => $g['id'],
+                'category_name' => $g['category_name'],
+                'distance_formatted' => $g['distance_formatted'],
+                'gpx_url' => $g['gpx_url'],
+                'detail_url' => $g['detail_url'],
+                'coordinates' => $g['coordinates'] ?? [],
+            ];
+        }, $gpxDataList)) !!};
 
         window.switchGpxCategory = function(targetIdx) {
             window.activeGpxIdx = targetIdx;
@@ -3626,6 +3669,12 @@
                 }
             });
 
+            // Update header Database GPX button URL if present
+            const headerDbBtn = document.getElementById('btn-header-gpx-detail');
+            if (headerDbBtn && window.gpxDataList && window.gpxDataList[targetIdx] && window.gpxDataList[targetIdx].detail_url) {
+                headerDbBtn.href = window.gpxDataList[targetIdx].detail_url;
+            }
+
             // Switch content panes
             document.querySelectorAll('.gpx-tab-pane').forEach((pane, idx) => {
                 if (idx === targetIdx) {
@@ -3634,6 +3683,8 @@
                         setTimeout(() => {
                             window.gpxMaps[targetIdx].invalidateSize();
                         }, 100);
+                    } else {
+                        window.loadGpxMap(targetIdx);
                     }
                 } else {
                     pane.classList.add('hidden');
@@ -3706,7 +3757,10 @@
             });
         };
 
-        window.loadGpxMap = function(idx, gpxUrl) {
+        window.loadGpxMap = function(idx) {
+            const dataItem = (window.gpxDataList && window.gpxDataList[idx]) ? window.gpxDataList[idx] : null;
+            if (!dataItem) return;
+
             const placeholder = document.getElementById('gpx-placeholder-' + idx);
             const loadBtn = document.getElementById('btn-load-gpx-map-' + idx);
             const mapDom = document.getElementById('gpx-live-map-' + idx);
@@ -3728,6 +3782,8 @@
                     return;
                 }
 
+                const themeColor = getComputedStyle(document.documentElement).getPropertyValue('--theme-primary').trim() || '#059669';
+
                 // Initialize Leaflet Map
                 const map = L.map(mapDom, {
                     scrollWheelZoom: false, // Prevent scroll trapping on mobile
@@ -3743,8 +3799,62 @@
 
                 window.gpxMaps[idx] = map;
 
-                if (gpxUrl) {
-                    new L.GPX(gpxUrl, {
+                let hasRenderedTrack = false;
+
+                // 1. Try rendering polyline directly from coordinates (instant & 100% reliable)
+                if (Array.isArray(dataItem.coordinates) && dataItem.coordinates.length > 1) {
+                    const latlngs = [];
+                    dataItem.coordinates.forEach(pt => {
+                        let lat = null, lng = null;
+                        if (Array.isArray(pt)) {
+                            lat = parseFloat(pt[0]);
+                            lng = parseFloat(pt[1]);
+                        } else if (typeof pt === 'object' && pt !== null) {
+                            lat = parseFloat(pt.lat || pt.latitude);
+                            lng = parseFloat(pt.lng || pt.lon || pt.longitude);
+                        }
+                        if (!isNaN(lat) && !isNaN(lng)) {
+                            latlngs.push([lat, lng]);
+                        }
+                    });
+
+                    if (latlngs.length > 1) {
+                        const polyline = L.polyline(latlngs, {
+                            color: themeColor,
+                            weight: 5,
+                            opacity: 0.95,
+                            lineCap: 'round',
+                            lineJoin: 'round'
+                        }).addTo(map);
+
+                        // Start Marker
+                        L.circleMarker(latlngs[0], {
+                            radius: 7,
+                            fillColor: '#10B981',
+                            color: '#ffffff',
+                            weight: 2.5,
+                            opacity: 1,
+                            fillOpacity: 1
+                        }).bindTooltip('Start (0 KM)', { permanent: false }).addTo(map);
+
+                        // Finish Marker
+                        L.circleMarker(latlngs[latlngs.length - 1], {
+                            radius: 7,
+                            fillColor: '#EF4444',
+                            color: '#ffffff',
+                            weight: 2.5,
+                            opacity: 1,
+                            fillOpacity: 1
+                        }).bindTooltip('Finish (' + (dataItem.distance_formatted || '') + ' KM)', { permanent: false }).addTo(map);
+
+                        map.fitBounds(polyline.getBounds(), { padding: [35, 35] });
+                        hasRenderedTrack = true;
+                    }
+                }
+
+                // 2. Fallback to L.GPX if coordinates not available
+                if (!hasRenderedTrack && dataItem.gpx_url) {
+                    new L.GPX(dataItem.gpx_url, {
                         async: true,
                         marker_options: {
                             startIconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/pin-icon-start.png',
@@ -3752,18 +3862,20 @@
                             shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet-gpx/1.7.0/pin-shadow.png'
                         },
                         polyline_options: {
-                            color: getComputedStyle(document.documentElement).getPropertyValue('--theme-primary').trim() || '#059669',
-                            weight: 4.5,
-                            opacity: 0.9,
+                            color: themeColor,
+                            weight: 5,
+                            opacity: 0.95,
                             lineCap: 'round',
                             lineJoin: 'round'
                         }
                     }).on('loaded', function(e) {
-                        map.fitBounds(e.target.getBounds(), { padding: [30, 30] });
+                        map.fitBounds(e.target.getBounds(), { padding: [35, 35] });
                     }).on('error', function() {
-                        console.warn('GPX file could not be parsed directly:', gpxUrl);
+                        console.warn('GPX file could not be parsed directly:', dataItem.gpx_url);
                     }).addTo(map);
                 }
+
+                setTimeout(() => map.invalidateSize(), 200);
 
                 window.addEventListener('resize', () => {
                     map.invalidateSize();
@@ -3776,6 +3888,29 @@
                 }
             });
         };
+
+        // Auto-load on scroll intersection (Load saat dibuka / saat section terlihat)
+        document.addEventListener('DOMContentLoaded', function() {
+            const routeSec = document.getElementById('route');
+            if (routeSec && 'IntersectionObserver' in window) {
+                const routeObs = new IntersectionObserver((entries, obs) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            window.loadGpxMap(window.activeGpxIdx || 0);
+                            obs.disconnect();
+                        }
+                    });
+                }, { rootMargin: '150px 0px' });
+                routeObs.observe(routeSec);
+            }
+
+            // Also trigger on click navbar anchor #route
+            document.querySelectorAll('a[href="#route"]').forEach(a => {
+                a.addEventListener('click', () => {
+                    setTimeout(() => window.loadGpxMap(window.activeGpxIdx || 0), 100);
+                });
+            });
+        });
     </script>
 </body>
 </html>
