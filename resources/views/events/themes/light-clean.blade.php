@@ -814,7 +814,7 @@
                         <div class="flex flex-wrap items-center gap-3 pt-2">
                             @if($isRegOpen)
                                 <a href="#register" class="px-8 py-3.5 rounded-md bg-theme-primary hover-bg-theme-primary text-white font-bold text-sm transition shadow-sm flex items-center gap-2">
-                                    <span>Amankan Slot Sekarang</span>
+                                    <span>Daftar Sekarang</span>
                                     <i class="fas fa-arrow-right text-xs"></i>
                                 </a>
                             @elseif($isNaturallyClosed)
