@@ -37,6 +37,7 @@ class Event extends Model
         'hero_image_url',
         'hero_image',
         'logo_image',
+        'favicon_image',
         'floating_image',
         'medal_image',
         'jersey_image',
@@ -510,6 +511,17 @@ class Event extends Model
         }
 
         return '';
+    }
+
+    public function getFaviconUrl(): string
+    {
+        if (!empty($this->favicon_image)) {
+            return asset('storage/' . $this->favicon_image);
+        }
+        if (!empty($this->logo_image)) {
+            return asset('storage/' . $this->logo_image);
+        }
+        return asset('images/green/favicon-32x32.png');
     }
 
     public function coupons(): HasMany

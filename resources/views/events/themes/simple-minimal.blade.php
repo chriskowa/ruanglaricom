@@ -81,11 +81,14 @@
       }
     }
     </script>
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ $event->logo_image ? asset('storage/' . $event->logo_image) : asset('images/green/favicon-32x32.png') }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ $event->logo_image ? asset('storage/' . $event->logo_image) : asset('images/green/favicon-16x16.png') }}">
-    <link rel="apple-touch-icon" href="{{ $event->logo_image ? asset('storage/' . $event->logo_image) : asset('images/green/apple-touch-icon.png') }}">
+    @php
+        $faviconUrl = $event->getFaviconUrl();
+    @endphp
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ $faviconUrl }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ $faviconUrl }}">
+    <link rel="apple-touch-icon" href="{{ $faviconUrl }}">
     <link rel="manifest" href="{{ asset('images/green/site.webmanifest') }}">
-    <link rel="shortcut icon" href="{{ $event->logo_image ? asset('storage/' . $event->logo_image) : asset('favicon.ico') }}">
+    <link rel="shortcut icon" href="{{ $faviconUrl }}">
     <meta name="csrf-token" content="{{ csrf_token() }}" />
 
     @if(env('RECAPTCHA_SITE_KEY_v3'))

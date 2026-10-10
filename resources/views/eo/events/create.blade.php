@@ -978,11 +978,26 @@
                         <div id="logo-dropzone" class="dropzone bg-slate-900 border-2 border-dashed border-slate-700 rounded-xl hover:border-yellow-400 transition-colors">
                             <div class="dz-message text-center py-8">
                                 <svg class="w-10 h-10 text-slate-500 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                <p class="text-sm text-slate-400">Click or Drag Logo (Square)</p>
+                                <p class="text-sm text-slate-400">Click or Drag Logo (Horizontal atau Persegi)</p>
                             </div>
                         </div>
                         <input type="hidden" name="logo_image" id="logo_image_input">
+                        @error('logo_image') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Favicon Event (Tab Browser) <span class="text-slate-500 text-xs">(Rasio 1:1 Persegi)</span></label>
+                        <div id="favicon-dropzone" class="dropzone bg-slate-900 border-2 border-dashed border-slate-700 rounded-xl hover:border-yellow-400 transition-colors">
+                            <div class="dz-message text-center py-8">
+                                <svg class="w-10 h-10 text-slate-500 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                <p class="text-sm text-slate-400">Click or Drag Favicon (1:1 Square, PNG/ICO)</p>
+                            </div>
+                        </div>
+                        <input type="hidden" name="favicon_image" id="favicon_image_input">
+                        <p class="text-xs text-slate-500 mt-1.5">Opsional. Jika kosong, akan menggunakan Event Logo atau favicon default.</p>
+                        @error('favicon_image') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+
 
                     <div>
                         <label class="block text-sm font-medium text-slate-300 mb-2">Twibbon Image (PNG) <span class="text-slate-500 text-xs">(Optional)</span></label>
@@ -1331,6 +1346,7 @@
     document.addEventListener("DOMContentLoaded", function() {
         initDropzone('hero-dropzone', 'hero_image', 1);
         initDropzone('logo-dropzone', 'logo_image', 1);
+        initDropzone('favicon-dropzone', 'favicon_image', 1);
         initDropzone('twibbon-dropzone', 'twibbon_image', 1);
         initDropzone('jersey-dropzone', 'jersey_image', 1);
         initDropzone('medal-dropzone', 'medal_image', 1);

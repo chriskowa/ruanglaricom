@@ -132,16 +132,15 @@
     }
     </script>
 
-    <!-- Favicon default -->
-    <link rel="icon" href="{{ $event->logo_image ? asset('storage/' . $event->logo_image) : asset('images/green/favicon-32x32.png') }}" type="image/x-icon">
-    <link rel="shortcut icon" href="{{ $event->logo_image ? asset('storage/' . $event->logo_image) : asset('images/paolo/favicon-32x32.png') }}" type="image/x-icon">
-
-    <!-- Versi PNG -->
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ $event->logo_image ? asset('storage/' . $event->logo_image) : asset('images/paolo/favicon-32x32.png') }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ $event->logo_image ? asset('storage/' . $event->logo_image) : asset('images/paolo/favicon-16x16.png') }}">
-
-    <!-- Versi Apple Touch -->
-    <link rel="apple-touch-icon" sizes="180x180" href="{{ $event->logo_image ? asset('storage/' . $event->logo_image) : asset('images/paolo/apple-touch-icon.png') }}">
+    @php
+        $faviconUrl = $event->getFaviconUrl();
+    @endphp
+    <!-- Favicon -->
+    <link rel="icon" href="{{ $faviconUrl }}" type="image/x-icon">
+    <link rel="shortcut icon" href="{{ $faviconUrl }}" type="image/x-icon">
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ $faviconUrl }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ $faviconUrl }}">
+    <link rel="apple-touch-icon" sizes="180x180" href="{{ $faviconUrl }}">
 
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-562MDGQ3RZ"></script>

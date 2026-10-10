@@ -30,16 +30,26 @@
         $seoKeywords = isset($seo['keywords']) && $seo['keywords'] ? $seo['keywords'] : 'lari, event lari, ' . $event->name . ', ' . ($event->location_name ?? '') . ', pendaftaran lari, ruanglari';
         $seoUrl = isset($seo['url']) && $seo['url'] ? $seo['url'] : route('events.show', $event->slug);
         $seoImage = isset($seo['image']) && $seo['image'] ? $seo['image'] : ($event->hero_image ? asset('storage/' . $event->hero_image) : asset('images/ruanglari_green.png'));
+
+        $now = now();
+        $isComingSoon = ($event->registration_open_at && $now < $event->registration_open_at);
+        $isNaturallyClosed = ($event->registration_close_at && $now > $event->registration_close_at);
+        $isRegOpen = !$isComingSoon && !$isNaturallyClosed;
+
+        $gaId = \App\Models\AppSettings::get('google_analytics');
+        $gadsId = \App\Models\AppSettings::get('google_ads_tag');
     @endphp
 
     <title>{{ $seoTitle }}</title>
     <meta name="description" content="{{ $seoDesc }}" />
     <meta name="keywords" content="{{ $seoKeywords }}">
     <link rel="canonical" href="{{ $seoUrl }}">
+    <meta name="robots" content="index, follow, max-image-preview:large" />
     <meta name="theme-color" content="#ffffff">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="event" />
+    <meta property="og:locale" content="id_ID" />
     <meta property="og:title" content="{{ $seoTitle }}" />
     <meta property="og:description" content="{{ $seoDesc }}" />
     <meta property="og:url" content="{{ $seoUrl }}" />
@@ -52,48 +62,179 @@
     <meta name="twitter:description" content="{{ $seoDesc }}" />
     <meta name="twitter:image" content="{{ $seoImage }}" />
 
-    <!-- Schema.org Structured Data -->
-    <script type="application/ld+json">
-    {
-      "@@context": "https://schema.org",
-      "@@type": "Event",
-      "name": "{{ $event->name }}",
-      "description": "{{ $seoDesc }}",
-      "image": "{{ $seoImage }}",
-      "startDate": "{{ $event->start_at ? $event->start_at->toIso8601String() : '' }}",
-      "endDate": "{{ $event->end_at ? $event->end_at->toIso8601String() : ($event->start_at ? $event->start_at->addHours(4)->toIso8601String() : '') }}",
-      "eventStatus": "https://schema.org/EventScheduled",
-      "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
-      "location": {
-        "@@type": "Place",
-        "name": "{{ $event->location_name ?? 'TBA' }}",
-        "address": {
-          "@@type": "PostalAddress",
-          "addressLocality": "{{ $event->city ?? '' }}",
-          "addressCountry": "ID"
-        }
-      },
-      "organizer": {
-        "@@type": "Organization",
-        "name": "RuangLari",
-        "url": "{{ url('/') }}"
-      },
-      "offers": {
-        "@@type": "Offer",
-        "url": "{{ $seoUrl }}",
-        "price": "0",
-        "priceCurrency": "IDR",
-        "availability": "{{ (isset($isRegOpen) && $isRegOpen) ? 'https://schema.org/InStock' : 'https://schema.org/SoldOut' }}",
-        "validFrom": "{{ $event->registration_open_at ? $event->registration_open_at->toIso8601String() : '' }}"
-      }
-    }
+    <!-- GEO / Geotargeting -->
+    @if($event->location_lat && $event->location_lng)
+    <meta name="geo.region" content="ID" />
+    <meta name="geo.placename" content="{{ $event->city ?? ($event->location_name ?? 'Indonesia') }}" />
+    <meta name="geo.position" content="{{ $event->location_lat }};{{ $event->location_lng }}" />
+    <meta name="ICBM" content="{{ $event->location_lat }}, {{ $event->location_lng }}" />
+    @endif
+
+    @if($gaId || $gadsId)
+    <!-- Google Analytics (GA4) / Google Tag Manager -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ $gaId ?: $gadsId }}"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        @if($gaId)
+        gtag('config', '{{ $gaId }}');
+        @endif
+        @if($gadsId)
+        gtag('config', '{{ $gadsId }}');
+        @endif
     </script>
+    @endif
+
+    <!-- Schema.org Structured Data (Event, Breadcrumb, FAQ for SEO & AIO) -->
+    @php
+        $eventSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => ['Event', 'SportsEvent'],
+            'name' => $event->name,
+            'description' => $seoDesc,
+            'url' => $seoUrl,
+            'image' => [$seoImage],
+            'startDate' => $event->start_at ? $event->start_at->toIso8601String() : '',
+            'endDate' => $event->end_at ? $event->end_at->toIso8601String() : ($event->start_at ? $event->start_at->addHours(4)->toIso8601String() : ''),
+            'eventStatus' => 'https://schema.org/EventScheduled',
+            'eventAttendanceMode' => 'https://schema.org/OfflineEventAttendanceMode',
+            'location' => [
+                '@type' => 'Place',
+                'name' => $event->location_name ?? 'TBA',
+                'address' => [
+                    '@type' => 'PostalAddress',
+                    'streetAddress' => $event->location_address ?? '',
+                    'addressLocality' => $event->city ?? '',
+                    'addressCountry' => 'ID',
+                ],
+            ],
+            'organizer' => [
+                '@type' => 'Organization',
+                'name' => $event->organizer_name ?: ($event->user->name ?? 'RuangLari'),
+                'url' => url('/'),
+            ],
+        ];
+
+        if (!empty($event->location_lat) && !empty($event->location_lng)) {
+            $eventSchema['location']['geo'] = [
+                '@type' => 'GeoCoordinates',
+                'latitude' => (float) $event->location_lat,
+                'longitude' => (float) $event->location_lng,
+            ];
+        }
+
+        $offersList = [];
+        if (isset($categories) && $categories->isNotEmpty()) {
+            foreach ($categories as $cat) {
+                $catPrice = (float) ($cat->price_regular ?: ($cat->price_early ?: 0));
+                $offersList[] = [
+                    '@type' => 'Offer',
+                    'name' => $cat->name . ($cat->distance_km ? ' (' . $cat->distance_km . 'K)' : ''),
+                    'price' => (string) $catPrice,
+                    'priceCurrency' => 'IDR',
+                    'url' => $seoUrl,
+                    'validFrom' => $event->registration_open_at ? $event->registration_open_at->toIso8601String() : null,
+                    'availability' => ($isRegOpen && ($cat->is_active ?? true))
+                        ? 'https://schema.org/InStock'
+                        : 'https://schema.org/SoldOut',
+                ];
+            }
+        }
+
+        if (!empty($offersList)) {
+            $eventSchema['offers'] = count($offersList) === 1 ? $offersList[0] : $offersList;
+        } else {
+            $eventSchema['offers'] = [
+                '@type' => 'Offer',
+                'url' => $seoUrl,
+                'price' => '0',
+                'priceCurrency' => 'IDR',
+                'availability' => $isRegOpen ? 'https://schema.org/InStock' : 'https://schema.org/SoldOut',
+                'validFrom' => $event->registration_open_at ? $event->registration_open_at->toIso8601String() : null,
+            ];
+        }
+
+        $breadcrumbSchema = [
+            '@context' => 'https://schema.org',
+            '@type' => 'BreadcrumbList',
+            'itemListElement' => [
+                [
+                    '@type' => 'ListItem',
+                    'position' => 1,
+                    'name' => 'Beranda',
+                    'item' => url('/'),
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 2,
+                    'name' => 'Event Lari',
+                    'item' => route('events.index'),
+                ],
+                [
+                    '@type' => 'ListItem',
+                    'position' => 3,
+                    'name' => $event->name,
+                    'item' => $seoUrl,
+                ],
+            ],
+        ];
+
+        $rawFaqs = $event->premium_amenities['faq']['items'] ?? [];
+        if (empty($rawFaqs)) {
+            $rawFaqs = [
+                ['question' => 'Kapan pengambilan Race Pack (RPC) dilakukan?', 'answer' => 'Jadwal dan lokasi pengambilan race pack akan diumumkan resmi melalui email dan WhatsApp terdaftar menjelang hari H.'],
+                ['question' => 'Apakah tiket yang sudah dibeli dapat dipindahtangankan?', 'answer' => 'Tiket bersifat personal sesuai identitas diri saat pendaftaran demi keselamatan dan asuransi medis pelari.'],
+                ['question' => 'Apakah tersedia penitipan barang (Baggage Drop)?', 'answer' => 'Ya, panitia menyediakan fasilitas baggage drop resmi di area venue lomba untuk barang esensial non-berharga.'],
+                ['question' => 'Bagaimana jika event dibatalkan karena cuaca ekstrim?', 'answer' => 'Keputusan keselamatan merujuk pada standar medis & kepolisian dengan pengumuman berkala kepada seluruh peserta.']
+            ];
+        }
+
+        $faqSchema = null;
+        if (!empty($rawFaqs)) {
+            $faqEntities = [];
+            foreach ($rawFaqs as $f) {
+                if (!empty($f['question']) && !empty($f['answer'])) {
+                    $faqEntities[] = [
+                        '@type' => 'Question',
+                        'name' => strip_tags($f['question']),
+                        'acceptedAnswer' => [
+                            '@type' => 'Answer',
+                            'text' => strip_tags($f['answer']),
+                        ],
+                    ];
+                }
+            }
+            if (!empty($faqEntities)) {
+                $faqSchema = [
+                    '@context' => 'https://schema.org',
+                    '@type' => 'FAQPage',
+                    'mainEntity' => $faqEntities,
+                ];
+            }
+        }
+    @endphp
+
+    <script type="application/ld+json">
+    {!! json_encode($eventSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+    </script>
+    <script type="application/ld+json">
+    {!! json_encode($breadcrumbSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+    </script>
+    @if($faqSchema)
+    <script type="application/ld+json">
+    {!! json_encode($faqSchema, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+    </script>
+    @endif
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ $event->logo_image ? asset('storage/' . $event->logo_image) : asset('images/green/favicon-32x32.png') }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ $event->logo_image ? asset('storage/' . $event->logo_image) : asset('images/green/favicon-16x16.png') }}">
-    <link rel="apple-touch-icon" href="{{ $event->logo_image ? asset('storage/' . $event->logo_image) : asset('images/green/apple-touch-icon.png') }}">
-    <link rel="shortcut icon" href="{{ $event->logo_image ? asset('storage/' . $event->logo_image) : asset('favicon.ico') }}">
+    @php
+        $faviconUrl = $event->getFaviconUrl();
+    @endphp
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ $faviconUrl }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ $faviconUrl }}">
+    <link rel="apple-touch-icon" href="{{ $faviconUrl }}">
+    <link rel="shortcut icon" href="{{ $faviconUrl }}">
 
     <meta name="csrf-token" content="{{ csrf_token() }}" />
     <meta name="app-url" content="{{ url('/') }}" />

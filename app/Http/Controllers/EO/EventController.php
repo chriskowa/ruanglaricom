@@ -95,6 +95,7 @@ class EventController extends Controller
         // Handle images
         $event->hero_image = $data['hero_image_url'] ?? ($data['hero_image'] ?? null);
         $event->logo_image = $data['logo_image'] ?? null;
+        $event->favicon_image = $data['favicon_image'] ?? null;
         $event->floating_image = $data['floating_image'] ?? null;
         
         $event->template = $data['template'] ?? 'modern-dark';
@@ -177,6 +178,7 @@ class EventController extends Controller
             'hero_image_url' => 'nullable|url',
             'hero_image' => 'nullable|string', // Changed to string (path)
             'logo_image' => 'nullable|string',
+            'favicon_image' => 'nullable|string',
             'floating_image' => 'nullable|string',
             'medal_image' => 'nullable|string',
             'jersey_image' => 'nullable|string',
@@ -527,6 +529,7 @@ class EventController extends Controller
             'hero_image_url' => 'nullable|url',
             'hero_image' => 'nullable|string',
             'logo_image' => 'nullable|string',
+            'favicon_image' => 'nullable|string',
             'floating_image' => 'nullable|string',
             'medal_image' => 'nullable|string',
             'jersey_image' => 'nullable|string',
@@ -784,7 +787,7 @@ class EventController extends Controller
 
         // Explicitly handle image updates if present in request but not in validated (though validate should catch them)
         // This ensures that if the frontend sends a new path, it overrides whatever was there
-        foreach (['hero_image', 'logo_image', 'floating_image', 'medal_image', 'jersey_image'] as $imgField) {
+        foreach (['hero_image', 'logo_image', 'favicon_image', 'floating_image', 'medal_image', 'jersey_image'] as $imgField) {
             if ($request->has($imgField)) {
                 $validated[$imgField] = $request->input($imgField);
             }

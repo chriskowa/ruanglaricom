@@ -1154,6 +1154,8 @@ Route::middleware('auth')->group(function () {
         Route::get('transactions', [App\Http\Controllers\Admin\TransactionController::class, 'index'])->name('transactions.index');
         Route::post('transactions/withdrawals/{withdrawal}/approve', [App\Http\Controllers\Admin\TransactionController::class, 'approveWithdrawal'])->name('transactions.withdrawals.approve');
         Route::post('transactions/withdrawals/{withdrawal}/reject', [App\Http\Controllers\Admin\TransactionController::class, 'rejectWithdrawal'])->name('transactions.withdrawals.reject');
+        Route::delete('transactions/events/{transaction}', [App\Http\Controllers\Admin\TransactionController::class, 'destroyEventTransaction'])->name('transactions.events.destroy');
+        Route::delete('transactions/ledger/{transaction}', [App\Http\Controllers\Admin\TransactionController::class, 'destroyLedgerTransaction'])->name('transactions.ledger.destroy');
 
         // Integration Settings
         Route::get('/integration-settings', [App\Http\Controllers\Admin\IntegrationSettingsController::class, 'index'])->name('integration.settings');

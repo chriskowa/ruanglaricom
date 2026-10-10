@@ -4,7 +4,7 @@
 @section('title', 'Manajemen Transaksi')
 
 @section('content')
-<div x-data="{ showActionModal: false, actionUrl: '', actionLabel: '', notes: '', amountLabel: '', userLabel: '' }" class="min-h-screen pt-20 pb-10 px-4 md:px-8 relative overflow-hidden font-sans">
+<div x-data="{ showActionModal: false, actionUrl: '', actionLabel: '', notes: '', amountLabel: '', userLabel: '', showDeleteModal: false, deleteUrl: '', deleteTitle: '', deleteDesc: '' }" class="min-h-screen pt-20 pb-10 px-4 md:px-8 relative overflow-hidden font-sans">
     <div class="mb-8 flex flex-col md:flex-row justify-between items-end gap-4 relative z-10">
         <div>
             <a href="{{ route('admin.dashboard') }}" class="text-slate-400 hover:text-white text-sm mb-2 inline-flex items-center gap-1 transition-colors">
@@ -12,10 +12,10 @@
                 Back to Dashboard
             </a>
             <h1 class="text-3xl md:text-4xl font-black text-white italic tracking-tighter">MANAJEMEN TRANSAKSI</h1>
-            <p class="text-slate-400 mt-1">Monitor deposit (topup) dan withdraw, lengkap dengan status dan riwayat.</p>
+            <p class="text-slate-400 mt-1">Monitor deposit (topup), withdraw, tiket event, dan riwayat ledger.</p>
         </div>
 
-        <div class="grid grid-cols-2 gap-3">
+        <div class="grid grid-cols-2 md:grid-cols-3 gap-3">
             <div class="bg-slate-800/50 border border-slate-700 rounded-2xl px-4 py-3">
                 <div class="text-xs text-slate-400">Withdraw Pending</div>
                 <div class="text-2xl font-black text-white">{{ number_format($counts['withdrawals_pending'] ?? 0) }}</div>
@@ -23,6 +23,10 @@
             <div class="bg-slate-800/50 border border-slate-700 rounded-2xl px-4 py-3">
                 <div class="text-xs text-slate-400">Topup Pending</div>
                 <div class="text-2xl font-black text-white">{{ number_format($counts['topups_pending'] ?? 0) }}</div>
+            </div>
+            <div class="bg-slate-800/50 border border-slate-700 rounded-2xl px-4 py-3 col-span-2 md:col-span-1">
+                <div class="text-xs text-slate-400">Tiket Event Paid</div>
+                <div class="text-2xl font-black text-white">{{ number_format($counts['event_tickets_paid'] ?? 0) }}</div>
             </div>
         </div>
     </div>
@@ -52,6 +56,9 @@
             <a href="{{ route('admin.transactions.index', ['tab' => 'topups']) }}" class="px-4 py-2 rounded-xl border {{ $tab === 'topups' ? 'bg-blue-600 text-white border-blue-500' : 'bg-slate-900/40 text-slate-200 border-slate-700 hover:border-slate-500' }} transition">
                 Deposit (Topup)
             </a>
+            <a href="{{ route('admin.transactions.index', ['tab' => 'event_tickets']) }}" class="px-4 py-2 rounded-xl border {{ $tab === 'event_tickets' ? 'bg-blue-600 text-white border-blue-500' : 'bg-slate-900/40 text-slate-200 border-slate-700 hover:border-slate-500' }} transition">
+                Tiket Event
+            </a>
             <a href="{{ route('admin.transactions.index', ['tab' => 'ledger']) }}" class="px-4 py-2 rounded-xl border {{ $tab === 'ledger' ? 'bg-blue-600 text-white border-blue-500' : 'bg-slate-900/40 text-slate-200 border-slate-700 hover:border-slate-500' }} transition">
                 Ledger Wallet
             </a>
@@ -74,6 +81,12 @@
                 @elseif($tab === 'topups')
                     <option value="pending" {{ $status === 'pending' ? 'selected' : '' }}>pending</option>
                     <option value="success" {{ $status === 'success' ? 'selected' : '' }}>success</option>
+                    <option value="failed" {{ $status === 'failed' ? 'selected' : '' }}>failed</option>
+                    <option value="expired" {{ $status === 'expired' ? 'selected' : '' }}>expired</option>
+                @elseif($tab === 'event_tickets')
+                    <option value="paid" {{ $status === 'paid' ? 'selected' : '' }}>paid</option>
+                    <option value="pending" {{ $status === 'pending' ? 'selected' : '' }}>pending</option>
+                    <option value="cancelled" {{ $status === 'cancelled' ? 'selected' : '' }}>cancelled</option>
                     <option value="failed" {{ $status === 'failed' ? 'selected' : '' }}>failed</option>
                     <option value="expired" {{ $status === 'expired' ? 'selected' : '' }}>expired</option>
                 @elseif($tab === 'ledger')
@@ -129,6 +142,84 @@
                 </table>
             </div>
             <div class="p-5">{{ $topups?->links() }}</div>
+        @elseif($tab === 'event_tickets')
+            <div class="overflow-x-auto">
+                <table class="min-w-full text-sm text-slate-200">
+                    <thead class="bg-slate-900/50 text-slate-300">
+                        <tr>
+                            <th class="text-left px-5 py-4">Waktu</th>
+                            <th class="text-left px-5 py-4">Ref / Order ID</th>
+                            <th class="text-left px-5 py-4">Event & EO</th>
+                            <th class="text-left px-5 py-4">Pemesan</th>
+                            <th class="text-left px-5 py-4">Nominal</th>
+                            <th class="text-left px-5 py-4">Peserta</th>
+                            <th class="text-left px-5 py-4">Status</th>
+                            <th class="text-left px-5 py-4">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-700/60">
+                        @forelse($eventTransactions as $etx)
+                            <tr class="hover:bg-slate-900/30 transition">
+                                <td class="px-5 py-4 whitespace-nowrap text-slate-300">
+                                    {{ $etx->created_at?->format('Y-m-d H:i') }}
+                                </td>
+                                <td class="px-5 py-4 font-mono font-semibold text-white">
+                                    {{ $etx->public_ref }}
+                                    @if($etx->midtrans_order_id)
+                                        <div class="text-xs text-slate-400 font-normal">{{ $etx->midtrans_order_id }}</div>
+                                    @endif
+                                </td>
+                                <td class="px-5 py-4">
+                                    <div class="font-semibold text-white">{{ $etx->event?->name ?? '-' }}</div>
+                                    <div class="text-xs text-slate-400">EO: {{ $etx->event?->user?->name ?? '-' }}</div>
+                                </td>
+                                <td class="px-5 py-4">
+                                    @php($pic = $etx->pic_data ?? [])
+                                    <div class="font-semibold text-white">{{ $pic['name'] ?? ($etx->user?->name ?? '-') }}</div>
+                                    <div class="text-xs text-slate-400">{{ $pic['email'] ?? ($etx->user?->email ?? '-') }}</div>
+                                </td>
+                                <td class="px-5 py-4">
+                                    <div class="font-semibold text-white">Rp {{ number_format((float) $etx->final_amount, 0, ',', '.') }}</div>
+                                    <div class="text-xs text-slate-400">Fee: Rp {{ number_format((float) $etx->admin_fee, 0, ',', '.') }}</div>
+                                </td>
+                                <td class="px-5 py-4">
+                                    <span class="px-2 py-0.5 rounded text-xs font-semibold bg-slate-800 text-slate-300 border border-slate-700">
+                                        {{ $etx->participants->count() }} orang
+                                    </span>
+                                </td>
+                                <td class="px-5 py-4">
+                                    <span class="px-2 py-1 rounded text-xs font-semibold border {{ in_array($etx->payment_status, ['paid', 'settlement', 'capture']) ? 'bg-green-500/10 border-green-500/30 text-green-300' : ($etx->payment_status === 'pending' ? 'bg-yellow-500/10 border-yellow-500/30 text-yellow-300' : 'bg-red-500/10 border-red-500/30 text-red-300') }}">
+                                        {{ $etx->payment_status }}
+                                    </span>
+                                </td>
+                                <td class="px-5 py-4">
+                                    <button
+                                        type="button"
+                                        @click="
+                                            deleteUrl = '{{ route('admin.transactions.events.destroy', $etx) }}';
+                                            deleteTitle = 'Hapus Transaksi {{ $etx->public_ref }}';
+                                            deleteDesc = 'Tindakan ini akan menghapus transaksi tiket event, sisa peserta (jika ada), serta otomatis memotong kembali saldo dompet EO sebesar Rp {{ number_format(max(0, (float) $etx->final_amount - (float) $etx->admin_fee), 0, ',', '.') }} dan menghapus mutasi terkait agar revenue kembali bersih.';
+                                            showDeleteModal = true;
+                                        "
+                                        class="px-3 py-1.5 rounded-md bg-red-500/10 hover:bg-red-600 border border-red-500/30 text-red-300 hover:text-white text-xs font-semibold transition inline-flex items-center gap-1.5"
+                                        title="Hapus & Bersihkan Transaksi"
+                                    >
+                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3m-4 0h14" />
+                                        </svg>
+                                        Hapus
+                                    </button>
+                                </td>
+                            </tr>
+                        @empty
+                            <tr>
+                                <td colspan="8" class="px-5 py-10 text-center text-slate-400">Tidak ada transaksi tiket event.</td>
+                            </tr>
+                        @endforelse
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-5">{{ $eventTransactions?->links() }}</div>
         @elseif($tab === 'ledger')
             <div class="overflow-x-auto">
                 <table class="min-w-full text-sm text-slate-200">
@@ -140,6 +231,7 @@
                             <th class="text-left px-5 py-4">Amount</th>
                             <th class="text-left px-5 py-4">Status</th>
                             <th class="text-left px-5 py-4">Deskripsi</th>
+                            <th class="text-left px-5 py-4">Aksi</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-slate-700/60">
@@ -158,10 +250,25 @@
                                     </span>
                                 </td>
                                 <td class="px-5 py-4 text-slate-300">{{ $txn->description ?? '-' }}</td>
+                                <td class="px-5 py-4">
+                                    <button
+                                        type="button"
+                                        @click="
+                                            deleteUrl = '{{ route('admin.transactions.ledger.destroy', $txn) }}';
+                                            deleteTitle = 'Hapus Mutasi Ledger #{{ $txn->id }}';
+                                            deleteDesc = 'Menghapus mutasi ini akan memotong saldo dompet user sebesar Rp {{ number_format((float) $txn->amount, 0, ',', '.') }} (jika deposit completed) dan menghapus catatan ledger ini.';
+                                            showDeleteModal = true;
+                                        "
+                                        class="px-3 py-1.5 rounded-md bg-red-500/10 hover:bg-red-600 border border-red-500/30 text-red-300 hover:text-white text-xs font-semibold transition"
+                                        title="Hapus Mutasi Ledger"
+                                    >
+                                        Hapus
+                                    </button>
+                                </td>
                             </tr>
                         @empty
                             <tr>
-                                <td colspan="6" class="px-5 py-10 text-center text-slate-400">Tidak ada data transaksi.</td>
+                                <td colspan="7" class="px-5 py-10 text-center text-slate-400">Tidak ada data transaksi.</td>
                             </tr>
                         @endforelse
                     </tbody>
@@ -348,6 +455,38 @@
                     <button type="button" @click="showActionModal = false" class="px-4 py-2.5 rounded-xl border border-slate-700 text-slate-200 hover:border-slate-500 transition">Batal</button>
                     <button type="submit" class="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold transition">Lanjut</button>
                 </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Konfirmasi Hapus Transaksi & Bersihkan Saldo -->
+    <div x-show="showDeleteModal" x-cloak class="fixed inset-0 z-50 flex items-center justify-center">
+        <div class="absolute inset-0 bg-black/75" @click="showDeleteModal = false"></div>
+        <div class="relative w-full max-w-lg mx-4 bg-slate-900 border border-slate-800 rounded-lg p-6 shadow-2xl">
+            <div class="flex items-start justify-between gap-4">
+                <div>
+                    <div class="text-xs uppercase tracking-wider text-red-400 font-bold">Pembersihan Transaksi</div>
+                    <div class="text-xl font-bold text-white mt-1" x-text="deleteTitle"></div>
+                </div>
+                <button type="button" class="text-slate-400 hover:text-white" @click="showDeleteModal = false">
+                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                </button>
+            </div>
+
+            <div class="mt-4 p-4 rounded-md bg-red-950/30 border border-red-900/40 text-red-200 text-sm leading-relaxed" x-text="deleteDesc"></div>
+
+            <form :action="deleteUrl" method="POST" class="mt-6 flex justify-end gap-2">
+                @csrf
+                @method('DELETE')
+                <button type="button" @click="showDeleteModal = false" class="px-4 py-2 rounded-md border border-slate-700 text-slate-300 hover:bg-slate-800 text-sm font-semibold transition">
+                    Batal
+                </button>
+                <button type="submit" class="px-4 py-2 rounded-md bg-red-600 hover:bg-red-700 text-white text-sm font-bold transition inline-flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3m-4 0h14" />
+                    </svg>
+                    Ya, Hapus & Bersihkan
+                </button>
             </form>
         </div>
     </div>
