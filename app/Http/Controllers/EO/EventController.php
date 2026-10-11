@@ -485,9 +485,27 @@ class EventController extends Controller
     {
         $this->authorizeEvent($event);
 
-        $event->load(['categories', 'user']);
+        $event->load([
+            'categories' => function ($query) {
+                $query->withCount([
+                    'participants as total_participants',
+                    'participants as paid_participants' => function ($q) {
+                        $q->whereHas('transaction', function ($t) {
+                            $t->where('payment_status', 'paid');
+                        });
+                    }
+                ]);
+            },
+            'user'
+        ]);
 
-        return view('eo.events.show', compact('event'));
+        $totalRegistered = $event->categories->sum('total_participants');
+        $totalPaid = $event->categories->sum('paid_participants');
+        $totalEarnings = $event->categories->sum(function ($cat) {
+            return ($cat->price_regular ?? 0) * ($cat->paid_participants ?? 0);
+        });
+
+        return view('eo.events.show', compact('event', 'totalRegistered', 'totalPaid', 'totalEarnings'));
     }
 
     public function edit(Event $event)
