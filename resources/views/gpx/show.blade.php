@@ -189,7 +189,7 @@
                         <span>{{ $cityName }}</span>
                     </a>
 
-                    <span class="inline-flex items-center px-2 py-0.5 rounded border border-slate-700 bg-slate-850 text-slate-200 font-semibold text-[11px] font-mono uppercase tracking-wider">
+                    <span class="inline-flex items-center px-2 py-0.5 rounded border border-slate-700 bg-slate-850 text-slate-200 font-semibold text-[11px] uppercase tracking-wider">
                         {{ $item->route_type_label }}
                     </span>
                     
@@ -272,24 +272,24 @@
         <!-- Primary Map & Integrated Elevation Stage -->
         <div class="bg-slate-900 border border-slate-800 rounded-lg shadow-2xl relative" id="gpx-map-card-wrap">
             <!-- Map Sub-header with Mode Switchers -->
-            <div class="px-3 sm:px-4 py-2.5 sm:py-3 border-b border-slate-800 flex flex-wrap items-center justify-between gap-2.5 text-xs bg-slate-900 relative z-40 rounded-t-lg">
-                <div class="flex items-center gap-2">
-                    <span class="w-2 h-2 rounded-full bg-neon"></span>
-                    <h2 class="font-semibold text-white text-xs">Peta Interaktif Jalur GPX</h2>
+            <!-- Map Sub-header with Mode Switchers -->
+            <div class="px-2.5 sm:px-4 py-2 border-b border-slate-800 flex flex-wrap items-center justify-between gap-1.5 sm:gap-2.5 text-xs bg-slate-900 relative z-40 rounded-t-lg">
+                <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+                    <span class="w-1.5 h-1.5 rounded-full bg-[#FC4C02]"></span>
+                    <h2 class="font-semibold text-white text-[11px] sm:text-xs truncate">Peta Rute GPX</h2>
                 </div>
 
                 <!-- Navigation Controls Toolbar -->
-                <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
-                    <button type="button" id="btn-toggle-km-markers" onclick="toggleKmMarkers()" class="px-2 sm:px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 transition cursor-pointer flex items-center gap-1.5" title="Tampilkan / Sembunyikan Marker KM">
-                        <span class="w-3.5 h-3.5 rounded-full bg-slate-700 text-white text-[9px] font-mono font-bold flex items-center justify-center">1</span>
+                <div class="flex items-center gap-1 sm:gap-1.5 shrink-0 max-w-full">
+                    <button type="button" id="btn-toggle-km-markers" onclick="toggleKmMarkers()" class="px-2 py-1 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] font-medium text-slate-200 transition cursor-pointer flex items-center gap-1" title="Tampilkan / Sembunyikan Marker KM">
                         <span>KM</span>
-                        <span id="badge-km-toggle-state" class="text-[10px] px-1 py-0.2 rounded bg-emerald-950 text-emerald-300 font-mono font-medium">ON</span>
+                        <span id="badge-km-toggle-state" class="text-[9px] px-1 py-0.5 rounded bg-slate-700 text-[#FC4C02] font-semibold">ON</span>
                     </button>
 
                     <!-- Map Layer Switcher -->
                     <div class="relative inline-block z-50" id="map-layer-dropdown-wrapper">
-                        <button type="button" id="btn-toggle-map-layer" onclick="toggleMapLayerMenu()" class="px-2 sm:px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-medium text-slate-200 transition cursor-pointer flex items-center gap-1.5">
-                            <span id="label-active-map-layer">Peta: Dark</span>
+                        <button type="button" id="btn-toggle-map-layer" onclick="toggleMapLayerMenu()" class="px-2 py-1 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-[11px] font-medium text-slate-200 transition cursor-pointer flex items-center gap-1">
+                            <span id="label-active-map-layer"><span class="hidden sm:inline">Peta: </span>Dark</span>
                             <i class="fa-solid fa-chevron-down text-[8px] text-slate-400"></i>
                         </button>
                         <div id="map-layer-menu" class="hidden absolute right-0 top-full mt-1.5 bg-slate-900 border border-slate-800 rounded-md shadow-2xl py-1 z-[99999] min-w-[140px] text-xs divide-y divide-slate-800">
@@ -308,19 +308,18 @@
                         </div>
                     </div>
 
-                    <button type="button" id="btn-map-locate-me" onclick="locateMeOnDetailMap()" class="px-2 sm:px-2.5 py-1 rounded-lg bg-[#0D131F] hover:bg-slate-800 border border-slate-700 text-[11px] font-medium text-slate-200 transition cursor-pointer flex items-center gap-1.5 shadow-sm">
+                    <button type="button" id="btn-map-locate-me" onclick="locateMeOnDetailMap()" class="px-2 py-1 rounded-md bg-[#0D131F] hover:bg-slate-800 border border-slate-700 text-[11px] font-medium text-slate-200 transition cursor-pointer flex items-center gap-1 shadow-sm" title="Lokasi Saya">
                         <i class="fa-solid fa-location-crosshairs text-[10px] text-[#FC4C02]"></i>
-                        <span class="hidden sm:inline">Lokasi Saya</span>
+                        <span class="hidden md:inline">Lokasi</span>
                     </button>
 
-                    <button type="button" id="btn-map-fit-bounds" onclick="fitRouteBounds()" class="px-2 py-1 rounded-lg bg-[#0D131F] hover:bg-slate-800 border border-slate-700 text-[11px] font-medium text-slate-200 transition cursor-pointer flex items-center gap-1 shadow-sm">
+                    <button type="button" id="btn-map-fit-bounds" onclick="fitRouteBounds()" class="px-2 py-1 rounded-md bg-[#0D131F] hover:bg-slate-800 border border-slate-700 text-[11px] font-medium text-slate-200 transition cursor-pointer flex items-center gap-1 shadow-sm" title="Fit Rute">
                         <i class="fa-solid fa-expand text-[10px]"></i>
-                        <span class="hidden md:inline">Fit</span>
                     </button>
 
-                    <button type="button" id="btn-toggle-animator-panel" onclick="toggleGpxAnimator()" class="px-3 py-1 rounded-lg bg-[#FC4C02] text-white font-bold text-[11px] hover:bg-[#e04300] transition cursor-pointer flex items-center gap-1.5 shadow-lg shadow-[#FC4C02]/30">
-                        <i class="fa-solid fa-play text-[10px]" id="icon-anim-toggle-btn"></i>
-                        <span>Flyover 3D</span>
+                    <button type="button" id="btn-toggle-animator-panel" onclick="toggleGpxAnimator()" class="px-2 sm:px-2.5 py-1 rounded-md bg-[#FC4C02] text-white font-semibold text-[11px] hover:bg-[#e04300] transition cursor-pointer flex items-center gap-1 shadow-sm shrink-0" title="Flyover 3D">
+                        <i class="fa-solid fa-play text-[9px]" id="icon-anim-toggle-btn"></i>
+                        <span>Flyover<span class="hidden xs:inline"> 3D</span></span>
                     </button>
                 </div>
             </div>
@@ -330,34 +329,34 @@
                 <div id="gpx-detail-map" class="relative"></div>
 
                 <!-- Floating Live Telemetry HUD (Responsive: Compact top bar on mobile, full card on desktop) -->
-                <div id="gpx-live-telemetry-hud" class="hidden absolute top-2 left-2 right-2 sm:top-4 sm:right-4 sm:left-auto sm:w-[320px] z-[990] bg-[#070B12]/95 backdrop-blur-md border border-slate-700/90 rounded-xl sm:rounded-[20px] p-2.5 sm:p-4 shadow-2xl space-y-2.5 sm:space-y-3 text-white select-none pointer-events-auto transition-all" style="background-color: #070B12 !important; opacity: 1 !important;">
+                <div id="gpx-live-telemetry-hud" class="hidden absolute top-2 left-2 right-2 sm:top-4 sm:right-4 sm:left-auto sm:w-[320px] z-[990] bg-[#070B12]/95 backdrop-blur-md border border-slate-700/90 rounded-lg sm:rounded-xl p-2 sm:p-3.5 shadow-2xl space-y-2 sm:space-y-3 text-white select-none pointer-events-auto transition-all" style="background-color: #070B12 !important; opacity: 1 !important;">
                     <!-- Header & Compact Mobile Strip -->
                     <div class="flex items-center justify-between gap-2">
                         <div class="flex items-center gap-1.5 shrink-0">
-                            <span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse"></span>
-                            <span class="text-[10px] sm:text-xs font-bold font-mono tracking-wider text-slate-200 uppercase">
+                            <span class="w-1.5 h-1.5 rounded-full bg-[#FC4C02]"></span>
+                            <span class="text-[10px] sm:text-xs font-bold tracking-wider text-slate-200 uppercase">
                                 <span class="hidden xs:inline">LIVE </span>TELEMETRY
                             </span>
                         </div>
 
                         <!-- Compact Mobile Metrics (Only visible on mobile) -->
-                        <div class="flex items-center gap-2 sm:hidden text-[10px] font-mono text-slate-300">
-                            <span id="anim-telemetry-km-compact" class="font-bold text-white">0.00 km</span>
+                        <div class="flex items-center gap-2 sm:hidden text-[10px] font-semibold text-slate-300">
+                            <span id="anim-telemetry-km-compact" class="text-white">0.00 km</span>
                             <span class="text-slate-600">|</span>
-                            <span id="anim-telemetry-elev-compact" class="font-bold text-emerald-400">0m</span>
+                            <span id="anim-telemetry-elev-compact" class="text-white">0m</span>
                             <span class="text-slate-600">|</span>
-                            <span id="anim-telemetry-slope-compact" class="font-semibold text-slate-300">0%</span>
+                            <span id="anim-telemetry-slope-compact" class="text-slate-300">0%</span>
                         </div>
 
                         <div class="flex items-center gap-1 shrink-0">
                             <!-- Mobile Toggle Button (Expand/Collapse Details) -->
-                            <button type="button" id="btn-toggle-telemetry-detail" onclick="toggleTelemetryDetail()" class="sm:hidden px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer text-[10px] font-mono flex items-center gap-1 border border-slate-700/80" title="Toggle Detail">
+                            <button type="button" id="btn-toggle-telemetry-detail" onclick="toggleTelemetryDetail()" class="sm:hidden px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer text-[10px] flex items-center gap-1 border border-slate-700/80" title="Toggle Detail">
                                 <span id="label-telemetry-toggle" class="text-[9px]">Detail</span>
                                 <i class="fa-solid fa-chevron-down text-[8px]" id="icon-telemetry-chevron"></i>
                             </button>
 
                             <!-- Desktop Badge -->
-                            <span class="hidden sm:inline-block px-2.5 py-0.5 rounded-full border border-emerald-500/40 bg-emerald-950/80 text-emerald-400 text-[10px] font-bold tracking-wider uppercase font-mono">
+                            <span class="hidden sm:inline-block px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-slate-300 text-[10px] font-semibold tracking-wider uppercase">
                                 FLYOVER 3D
                             </span>
                         </div>
@@ -373,16 +372,16 @@
                                     <span>Ketinggian Rute</span>
                                 </div>
                                 <div class="flex items-baseline gap-1.5">
-                                    <span id="anim-telemetry-elev" class="text-2xl sm:text-4xl font-black text-white tracking-tight font-mono">0</span>
+                                    <span id="anim-telemetry-elev" class="text-2xl sm:text-4xl font-extrabold text-white tracking-tight">0</span>
                                     <span class="text-xs sm:text-sm font-semibold text-slate-400">m mdpl</span>
                                 </div>
                             </div>
 
                             <!-- Gauge Box -->
-                            <div class="bg-[#111724] border border-slate-800 rounded-xl p-2 px-3 flex flex-col items-center justify-center shrink-0 w-16 sm:w-20">
-                                <span class="text-[9px] font-bold text-slate-400 tracking-wider uppercase font-mono mb-1.5">GAUGE</span>
+                            <div class="bg-[#111724] border border-slate-800 rounded-lg p-2 px-3 flex flex-col items-center justify-center shrink-0 w-16 sm:w-20">
+                                <span class="text-[9px] font-bold text-slate-400 tracking-wider uppercase mb-1.5">GAUGE</span>
                                 <div class="w-3.5 h-9 sm:h-11 bg-slate-800 rounded-full p-0.5 relative overflow-hidden flex flex-col justify-end">
-                                    <div id="anim-gauge-bar" class="w-full bg-gradient-to-t from-emerald-500 via-yellow-400 to-[#FC4C02] rounded-full transition-all duration-150" style="height: 30%;"></div>
+                                    <div id="anim-gauge-bar" class="w-full bg-gradient-to-t from-slate-600 via-amber-500 to-[#FC4C02] rounded-full transition-all duration-150" style="height: 30%;"></div>
                                 </div>
                             </div>
                         </div>
@@ -390,24 +389,24 @@
                         <!-- 2 Sub Metric Cards -->
                         <div class="grid grid-cols-2 gap-2">
                             <!-- Distance Card -->
-                            <div class="bg-[#111724] border border-slate-800 rounded-xl p-2 sm:p-2.5 space-y-1">
-                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block font-mono">JARAK TEMPUH</span>
-                                <div class="text-xs sm:text-sm font-bold text-white font-mono truncate">
+                            <div class="bg-[#111724] border border-slate-800 rounded-lg p-2 sm:p-2.5 space-y-1">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">JARAK TEMPUH</span>
+                                <div class="text-xs sm:text-sm font-bold text-white truncate">
                                     <span id="anim-telemetry-km" class="text-white">0.00</span> / {{ $formattedDist }} KM
                                 </div>
                             </div>
 
                             <!-- Slope Card -->
-                            <div class="bg-[#111724] border border-slate-800 rounded-xl p-2 sm:p-2.5 space-y-1">
-                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block font-mono">KEMIRINGAN</span>
-                                <div id="anim-telemetry-slope" class="text-xs sm:text-sm font-bold text-white font-mono truncate">
+                            <div class="bg-[#111724] border border-slate-800 rounded-lg p-2 sm:p-2.5 space-y-1">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">KEMIRINGAN</span>
+                                <div id="anim-telemetry-slope" class="text-xs sm:text-sm font-bold text-white truncate">
                                     — 0.0% (Datar)
                                 </div>
                             </div>
                         </div>
 
                         <!-- Bottom Status Banner -->
-                        <div class="bg-[#111724] border border-slate-800 rounded-xl px-3 py-2 flex items-center gap-2 text-xs font-semibold text-slate-200">
+                        <div class="bg-[#111724] border border-slate-800 rounded-lg px-3 py-2 flex items-center gap-2 text-xs font-semibold text-slate-200">
                             <i class="fa-solid fa-flag text-rose-500 text-xs shrink-0"></i>
                             <span id="anim-telemetry-status-text" class="truncate">Lintasan Lari KM 0.0 — Bersiap!</span>
                         </div>
@@ -415,13 +414,13 @@
                 </div>
 
                 <!-- Floating Replay Controller HUD (Bottom) -->
-                <div id="gpx-animator-hud" class="hidden absolute bottom-2 left-2 right-2 sm:bottom-3 sm:left-3 sm:right-3 z-[999] bg-[#070B12]/95 backdrop-blur-xl border border-slate-700/90 rounded-xl sm:rounded-2xl p-2.5 sm:p-4 shadow-2xl space-y-2 sm:space-y-2.5 transition-all">
+                <div id="gpx-animator-hud" class="hidden absolute bottom-2 left-2 right-2 sm:bottom-3 sm:left-3 sm:right-3 z-[999] bg-[#070B12]/95 backdrop-blur-xl border border-slate-700/90 rounded-lg sm:rounded-xl p-2.5 sm:p-3.5 shadow-2xl space-y-2 sm:space-y-2.5 transition-all">
                     <!-- Progress Scrubber Slider -->
                     <div class="relative flex flex-col space-y-1">
                         <input type="range" id="anim-progress-slider" min="0" max="1000" value="0" step="1"
-                            class="w-full h-1.5 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-[#FC4C02] focus:outline-none"
+                            class="w-full h-1.5 bg-slate-800 rounded appearance-none cursor-pointer accent-[#FC4C02] focus:outline-none"
                             oninput="onAnimSliderInput(this.value)">
-                        <div class="flex justify-between text-[10px] font-mono text-slate-400">
+                        <div class="flex justify-between text-[10px] font-semibold text-slate-400">
                             <span>KM 0.0</span>
                             <span id="anim-telemetry-time" class="text-slate-300 font-bold">00:00:00</span>
                             <span>KM {{ $formattedDist }}</span>
@@ -431,28 +430,28 @@
                     <!-- Bottom Controls Line -->
                     <div class="flex items-center justify-between gap-1.5 sm:gap-2 pt-1 border-t border-slate-800/80 text-xs">
                         <div class="flex items-center gap-1.5 sm:gap-2">
-                            <button type="button" id="btn-anim-play-pause" onclick="togglePlayPauseAnimation()" class="px-3 sm:px-3.5 py-1.5 rounded-lg sm:rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-lg shadow-[#FC4C02]/25">
-                                <i class="fa-solid fa-play text-[11px]" id="icon-anim-play"></i>
+                            <button type="button" id="btn-anim-play-pause" onclick="togglePlayPauseAnimation()" class="px-2.5 sm:px-3 py-1 rounded-md bg-[#FC4C02] hover:bg-[#e04300] text-white font-semibold text-xs transition cursor-pointer flex items-center gap-1 shadow-md shadow-[#FC4C02]/20">
+                                <i class="fa-solid fa-play text-[10px]" id="icon-anim-play"></i>
                                 <span id="label-anim-play">Play</span>
                             </button>
-                            <button type="button" onclick="restartAnimation()" class="px-2.5 sm:px-3 py-1.5 rounded-lg sm:rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white text-xs transition cursor-pointer flex items-center gap-1">
+                            <button type="button" onclick="restartAnimation()" class="px-2 sm:px-2.5 py-1 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white text-xs transition cursor-pointer flex items-center gap-1">
                                 <i class="fa-solid fa-rotate-left text-[10px]"></i>
                                 <span>Reset</span>
                             </button>
                         </div>
 
                         <!-- Speed Toggle & Camera Follow -->
-                        <div class="flex items-center gap-1 sm:gap-2 font-mono text-[11px]">
-                            <div class="flex items-center gap-0.5 sm:gap-1 bg-slate-900 border border-slate-800 rounded-lg p-0.5" id="anim-speed-btn-group">
+                        <div class="flex items-center gap-1 sm:gap-1.5 text-[11px] font-semibold">
+                            <div class="flex items-center gap-0.5 sm:gap-1 bg-slate-900 border border-slate-800 rounded-md p-0.5" id="anim-speed-btn-group">
                                 <button type="button" onclick="setAnimSpeed(1)" class="anim-speed-btn px-1.5 sm:px-2 py-0.5 rounded text-[10px] text-slate-400 hover:text-white cursor-pointer" data-speed="1">1x</button>
                                 <button type="button" onclick="setAnimSpeed(2)" class="anim-speed-btn px-1.5 sm:px-2 py-0.5 rounded text-[10px] text-slate-400 hover:text-white cursor-pointer" data-speed="2">2x</button>
                                 <button type="button" onclick="setAnimSpeed(5)" class="anim-speed-btn px-1.5 sm:px-2 py-0.5 rounded text-[10px] bg-slate-800 text-white font-bold cursor-pointer" data-speed="5">5x</button>
                                 <button type="button" onclick="setAnimSpeed(10)" class="anim-speed-btn px-1.5 sm:px-2 py-0.5 rounded text-[10px] text-slate-400 hover:text-white cursor-pointer" data-speed="10">10x</button>
                             </div>
 
-                            <button type="button" id="btn-anim-camera-follow" onclick="toggleCameraFollow()" class="px-2 sm:px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-[10px] text-slate-300 hover:text-white transition cursor-pointer flex items-center gap-1">
+                            <button type="button" id="btn-anim-camera-follow" onclick="toggleCameraFollow()" class="px-2 py-1 rounded-md bg-slate-800 border border-slate-700 text-[10px] text-slate-300 hover:text-white transition cursor-pointer flex items-center gap-1">
                                 <span class="hidden xs:inline">Follow</span>
-                                <span id="badge-camera-follow" class="text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-bold">ON</span>
+                                <span id="badge-camera-follow" class="text-[9px] px-1.5 py-0.5 rounded bg-slate-700 text-[#FC4C02] font-semibold">ON</span>
                             </button>
 
                             <button type="button" onclick="toggleGpxAnimator()" class="p-1 text-slate-400 hover:text-white transition cursor-pointer ml-0.5 sm:ml-1" title="Tutup Animasi">
@@ -470,10 +469,10 @@
                         <i class="fa-solid fa-chart-area text-[#FC4C02] text-[11px]"></i>
                         <span>Profil Elevasi Rute</span>
                     </div>
-                    <div class="flex items-center gap-3 font-mono text-[11px]">
-                        <span>Min: <strong id="elev-min-val" class="text-white font-semibold">0m</strong></span>
-                        <span>Max: <strong id="elev-max-val" class="text-white font-semibold">0m</strong></span>
-                        <span>Gain: <strong id="elev-gain-val" class="text-emerald-400 font-semibold">+{{ round($gainM) }}m</strong></span>
+                    <div class="flex items-center gap-3 text-[11px] font-semibold">
+                        <span>Min: <strong id="elev-min-val" class="text-white">0m</strong></span>
+                        <span>Max: <strong id="elev-max-val" class="text-white">0m</strong></span>
+                        <span>Gain: <strong id="elev-gain-val" class="text-white">+{{ round($gainM) }}m</strong></span>
                     </div>
                 </div>
 
@@ -491,12 +490,12 @@
 
                     <div id="elev-hover-line" class="absolute top-0 bottom-0 w-[1.5px] bg-[#FC4C02] pointer-events-none hidden border-r border-dashed border-white/40"></div>
                     <div id="elev-hover-dot" class="absolute w-3 h-3 rounded-full bg-white border-2 border-[#FC4C02] pointer-events-none hidden -translate-x-1/2 -translate-y-1/2 shadow-lg shadow-[#FC4C02]"></div>
-                    <div id="elev-tooltip" class="absolute hidden bg-[#070B12] border border-slate-700 text-white text-[11px] font-mono font-medium px-2 py-0.5 rounded shadow pointer-events-none z-20 whitespace-nowrap -top-7 -translate-x-1/2">
+                    <div id="elev-tooltip" class="absolute hidden bg-[#070B12] border border-slate-700 text-white text-[11px] font-medium px-2 py-0.5 rounded shadow pointer-events-none z-20 whitespace-nowrap -top-7 -translate-x-1/2">
                         <span id="elev-tooltip-km">0.0 KM</span> • <span id="elev-tooltip-m" class="text-[#FC4C02] font-bold">0m</span>
                     </div>
                 </div>
 
-                <div class="flex justify-between items-center text-[10px] font-mono text-slate-500 pt-0.5">
+                <div class="flex justify-between items-center text-[10px] text-slate-400 font-medium pt-0.5">
                     <span>0 km</span>
                     <span id="elev-chart-mid-km">{{ number_format($distKm / 2, 1) }} km</span>
                     <span>{{ $formattedDist }} km</span>
@@ -561,10 +560,10 @@
                         <div class="pt-2.5 border-t border-slate-800">
                             <div class="flex justify-between items-center mb-1">
                                 <label class="text-xs font-semibold text-slate-300">Pacing Split</label>
-                                <span id="pp-strategy-label" class="text-xs font-semibold text-slate-200 font-mono">Even (0%)</span>
+                                <span id="pp-strategy-label" class="text-xs font-semibold text-slate-200">Even (0%)</span>
                             </div>
                             <input type="range" id="pp-strategy-slider" min="-10" max="10" value="0" step="1" class="w-full h-1 bg-slate-800 rounded appearance-none cursor-pointer accent-[#FC4C02]">
-                            <div class="flex justify-between text-[10px] text-slate-500 font-mono mt-1">
+                            <div class="flex justify-between text-[10px] text-slate-400 font-medium mt-1">
                                 <span>-10% Negatif</span>
                                 <span>Even</span>
                                 <span>+10% Positif</span>
@@ -574,10 +573,10 @@
                         <div class="pt-2.5 border-t border-slate-800">
                             <div class="flex justify-between items-center mb-1">
                                 <label class="text-xs font-semibold text-slate-300">Adaptasi Tanjakan</label>
-                                <span id="pp-hill-label" class="text-xs font-semibold text-[#FC4C02] font-mono">Normal (0)</span>
+                                <span id="pp-hill-label" class="text-xs font-semibold text-[#FC4C02]">Normal (0)</span>
                             </div>
                             <input type="range" id="pp-hill-slider" min="-10" max="10" value="0" step="1" class="w-full h-1 bg-slate-800 rounded appearance-none cursor-pointer accent-[#FC4C02]">
-                            <div class="flex justify-between text-[10px] text-slate-500 font-mono mt-1">
+                            <div class="flex justify-between text-[10px] text-slate-400 font-medium mt-1">
                                 <span>-10 Agresif</span>
                                 <span>Normal</span>
                                 <span>+10 Konservatif</span>
@@ -624,7 +623,7 @@
 
                         <div class="pacepro-table-wrap max-h-[360px] overflow-y-auto overflow-x-auto w-full">
                             <table class="w-full text-xs text-center table-fixed" id="pp-pace-table">
-                                <thead class="bg-[#090D16] text-slate-300 uppercase text-[10px] sm:text-[11px] font-mono sticky top-0 border-b border-slate-800 z-10">
+                                <thead class="bg-[#090D16] text-slate-300 uppercase text-[10px] sm:text-[11px] font-semibold tracking-wider sticky top-0 border-b border-slate-800 z-10">
                                     <tr>
                                         <th class="py-2.5 px-1 sm:px-2 font-semibold text-center w-[16%]">KM</th>
                                         <th class="py-2.5 px-1 sm:px-2 font-semibold text-center w-[22%]">Pace</th>
@@ -670,9 +669,9 @@
 <div id="gpx-nav-hud" class="fixed inset-0 z-[99990] bg-[#070B12] text-white flex flex-col hidden select-none font-sans overflow-hidden">
     <div class="nav-solid-header absolute top-0 left-0 right-0 z-30 px-3 py-2.5 sm:px-4 sm:py-3 bg-[#070B12] border-b border-slate-800 flex items-center justify-between gap-3 shadow-2xl">
         <div class="flex items-center gap-2 min-w-0 flex-1">
-            <div id="nav-gps-indicator" class="w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0"></div>
+            <div id="nav-gps-indicator" class="w-2 h-2 rounded-full bg-[#FC4C02] shrink-0"></div>
             <div class="min-w-0 flex-1">
-                <span class="text-[10px] font-mono font-bold uppercase tracking-wider text-slate-400 block truncate" id="nav-status-label">
+                <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block truncate" id="nav-status-label">
                     Navigasi GPS Aktif
                 </span>
                 <h2 class="text-xs sm:text-sm font-bold text-white truncate" id="nav-status-title">
@@ -692,12 +691,12 @@
                 <span id="nav-to-start-dot" class="w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse shrink-0"></span>
                 <span class="font-bold text-white text-xs truncate" id="nav-to-start-title">Menuju Titik Start</span>
             </div>
-            <span id="nav-to-start-dist-badge" class="px-2 py-0.5 rounded bg-blue-950 border border-blue-800 text-blue-300 font-mono font-semibold text-[11px] tabular-nums shrink-0">-- m</span>
+            <span id="nav-to-start-dist-badge" class="px-2 py-0.5 rounded bg-blue-950 border border-blue-800 text-blue-300 font-semibold text-[11px] tabular-nums shrink-0">-- m</span>
         </div>
 
         <!-- OSRM Routing Mode Toggle -->
         <div class="flex items-center justify-between gap-1.5 mt-2 bg-slate-950/80 p-1 rounded-md border border-slate-800 text-[10px]">
-            <span class="text-slate-400 font-mono px-1">Jalur OSRM:</span>
+            <span class="text-slate-400 font-medium px-1">Jalur OSRM:</span>
             <div class="flex items-center gap-1">
                 <button type="button" id="btn-osrm-mode-foot" onclick="setOsrmToStartMode('foot')" class="px-2 py-0.5 rounded bg-blue-600 text-white font-medium transition cursor-pointer" title="Ikuti jalan kaki / setapak terdekat via OSRM">
                     <i class="fa-solid fa-person-walking text-[9px] mr-1"></i>Jalan Kaki
@@ -716,7 +715,7 @@
         </p>
         <div class="mt-2.5 pt-2 border-t border-slate-800 flex items-center gap-2">
             <button type="button" onclick="openGoogleMapsToStart()" class="flex-1 py-1.5 px-2.5 rounded-md bg-slate-800 hover:bg-slate-700 text-white text-[11px] font-medium transition flex items-center justify-center gap-1.5 cursor-pointer" title="Buka navigasi Google Maps untuk rute jalan ke titik start">
-                <i class="fa-solid fa-diamond-turn-right text-emerald-400 text-xs"></i>
+                <i class="fa-solid fa-diamond-turn-right text-[#FC4C02] text-xs"></i>
                 <span id="nav-to-start-gmaps-label">Arah Jalan (Google Maps)</span>
             </button>
             <button type="button" onclick="fitUserAndStart()" class="py-1.5 px-2.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white text-[11px] font-medium transition flex items-center justify-center gap-1 cursor-pointer" title="Fokus posisi saya dan titik start di peta">
@@ -742,30 +741,30 @@
         <div class="max-w-xl mx-auto space-y-3.5">
             <div class="nav-metrics-box grid grid-cols-3 gap-3 text-center divide-x divide-slate-800 bg-[#111724] border border-slate-800 rounded-xl p-3.5 shadow-inner">
                 <div>
-                    <span class="text-[10px] font-mono font-semibold uppercase text-slate-400 block tracking-wider">Pace Saat Ini</span>
+                    <span class="text-[10px] font-bold uppercase text-slate-400 block tracking-wider">Pace Saat Ini</span>
                     <div class="mt-0.5">
-                        <span id="nav-live-pace" class="text-2xl sm:text-3xl font-black font-mono text-white tabular-nums">--:--</span>
-                        <span class="text-[10px] font-mono text-slate-500 block">/km</span>
+                        <span id="nav-live-pace" class="text-2xl sm:text-3xl font-black text-white tabular-nums">--:--</span>
+                        <span class="text-[10px] font-medium text-slate-500 block">/km</span>
                     </div>
                 </div>
                 <div>
-                    <span class="text-[10px] font-mono font-semibold uppercase text-slate-400 block tracking-wider">Jarak Lari</span>
+                    <span class="text-[10px] font-bold uppercase text-slate-400 block tracking-wider">Jarak Lari</span>
                     <div class="mt-0.5">
-                        <span id="nav-actual-dist" class="text-2xl sm:text-3xl font-black font-mono text-[#FC4C02] tabular-nums">0.00</span>
-                        <span class="text-[10px] font-mono text-slate-500 block">km</span>
+                        <span id="nav-actual-dist" class="text-2xl sm:text-3xl font-black text-[#FC4C02] tabular-nums">0.00</span>
+                        <span class="text-[10px] font-medium text-slate-500 block">km</span>
                     </div>
                 </div>
                 <div>
-                    <span class="text-[10px] font-mono font-semibold uppercase text-slate-400 block tracking-wider">Waktu Lari</span>
+                    <span class="text-[10px] font-bold uppercase text-slate-400 block tracking-wider">Waktu Lari</span>
                     <div class="mt-0.5">
-                        <span id="nav-running-time" class="text-2xl sm:text-3xl font-black font-mono text-white tabular-nums">00:00</span>
-                        <span class="text-[10px] font-mono text-slate-500 block">Durasi</span>
+                        <span id="nav-running-time" class="text-2xl sm:text-3xl font-black text-white tabular-nums">00:00</span>
+                        <span class="text-[10px] font-medium text-slate-500 block">Durasi</span>
                     </div>
                 </div>
             </div>
 
             <div>
-                <div class="flex justify-between text-xs font-mono text-slate-300 mb-1.5">
+                <div class="flex justify-between text-xs font-medium text-slate-300 mb-1.5">
                     <span>Progress: <strong id="nav-progress-pct" class="text-white font-bold">0%</strong></span>
                     <span>Sisa: <strong id="nav-remaining-dist" class="text-[#FC4C02] font-bold">{{ $formattedDist }}</strong> km</span>
                 </div>
@@ -951,13 +950,13 @@
                 // Start / Finish Markers
                 const startIcon = L.divIcon({
                     className: 'border-0 bg-transparent',
-                    html: '<div class="w-5 h-5 rounded-full bg-emerald-500 border-2 border-white text-[9px] font-mono font-bold text-white flex items-center justify-center shadow">S</div>',
+                    html: '<div class="w-5 h-5 rounded-full bg-slate-900 border-2 border-white text-[9px] font-bold text-white flex items-center justify-center shadow">S</div>',
                     iconSize: [20, 20],
                     iconAnchor: [10, 10]
                 });
                 const finishIcon = L.divIcon({
                     className: 'border-0 bg-transparent',
-                    html: '<div class="w-5 h-5 rounded-full bg-[#FC4C02] border-2 border-white text-[9px] font-mono font-bold text-white flex items-center justify-center shadow">F</div>',
+                    html: '<div class="w-5 h-5 rounded-full bg-[#FC4C02] border-2 border-white text-[9px] font-bold text-white flex items-center justify-center shadow">F</div>',
                     iconSize: [20, 20],
                     iconAnchor: [10, 10]
                 });
@@ -972,7 +971,7 @@
                     if (currentTargetKm <= totalKmWhole && p.dist >= currentTargetKm) {
                         const kmBadgeIcon = L.divIcon({
                             className: 'border-0 bg-transparent',
-                            html: `<div class="w-5 h-5 rounded-full bg-white border-2 border-[#FC4C02] text-[#FC4C02] text-[10px] font-mono font-black flex items-center justify-center shadow">${currentTargetKm}</div>`,
+                            html: `<div class="w-5 h-5 rounded-full bg-white border-2 border-[#FC4C02] text-[#FC4C02] text-[10px] font-black flex items-center justify-center shadow">${currentTargetKm}</div>`,
                             iconSize: [20, 20],
                             iconAnchor: [10, 10]
                         });
@@ -1122,7 +1121,7 @@
             const badge = document.getElementById('badge-camera-follow');
             if (badge) {
                 badge.textContent = animCameraFollow ? 'ON' : 'OFF';
-                badge.className = animCameraFollow ? 'text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-bold' : 'text-[9px] px-1 py-0.2 rounded bg-slate-800 text-slate-400 font-bold';
+                badge.className = animCameraFollow ? 'text-[9px] px-1.5 py-0.5 rounded bg-slate-700 text-[#FC4C02] font-semibold' : 'text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-500 font-semibold';
             }
         }
 
@@ -1198,14 +1197,14 @@
                 const slopeVal = parseFloat(((dElev / (dDist * 1000)) * 100).toFixed(1));
 
                 if (slopeEl) {
-                    if (slopeVal > 1.0) slopeEl.innerHTML = `<span class="text-emerald-400 font-bold">+${slopeVal}% (Naik)</span>`;
+                    if (slopeVal > 1.0) slopeEl.innerHTML = `<span class="text-white font-bold">+${slopeVal}% (Naik)</span>`;
                     else if (slopeVal < -1.0) slopeEl.innerHTML = `<span class="text-amber-400 font-bold">${slopeVal}% (Turun)</span>`;
                     else slopeEl.innerHTML = `<span class="text-slate-300 font-bold">— 0.0% (Datar)</span>`;
                 }
 
                 const slopeCompactEl = document.getElementById('anim-telemetry-slope-compact');
                 if (slopeCompactEl) {
-                    if (slopeVal > 1.0) slopeCompactEl.innerHTML = `<span class="text-emerald-400 font-bold">+${slopeVal}%</span>`;
+                    if (slopeVal > 1.0) slopeCompactEl.innerHTML = `<span class="text-white font-bold">+${slopeVal}%</span>`;
                     else if (slopeVal < -1.0) slopeCompactEl.innerHTML = `<span class="text-amber-400 font-bold">${slopeVal}%</span>`;
                     else slopeCompactEl.innerHTML = `<span class="text-slate-400 font-semibold">0%</span>`;
                 }
@@ -1533,7 +1532,7 @@
 
                 const kmDisplay = (item.km === totalKm && item.splitDist < 0.99) ? `${totalDist.toFixed(2)}` : `${item.km}`;
                 const gainText = item.splitGain > 0 ? `+${Math.round(item.splitGain)}m` : `-`;
-                const gainClass = item.splitGain > 0 ? 'text-emerald-400 font-semibold' : 'text-slate-500';
+                const gainClass = item.splitGain > 0 ? 'text-slate-200 font-semibold' : 'text-slate-500';
 
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-slate-800/40 transition-colors text-center';
@@ -1586,7 +1585,7 @@
             const badge = document.getElementById('badge-km-toggle-state');
             if (badge) {
                 badge.textContent = showKmMarkers ? 'ON' : 'OFF';
-                badge.className = showKmMarkers ? 'text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-mono font-bold' : 'text-[9px] px-1 py-0.2 rounded bg-slate-800 text-slate-400 font-mono font-bold';
+                badge.className = showKmMarkers ? 'text-[9px] px-1.5 py-0.5 rounded bg-slate-700 text-[#FC4C02] font-semibold' : 'text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-500 font-semibold';
             }
         }
 
@@ -1938,15 +1937,15 @@
             if (straightDistM <= 50) {
                 if (titleEl) titleEl.textContent = 'Sudah di Titik Start';
                 if (descEl) descEl.textContent = 'Posisi Anda sudah berada di titik awal rute! Tekan Mulai Rute (Start) untuk merekam dan mengikuti peta navigasi.';
-                if (dotEl) dotEl.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0';
-                if (distBadge) distBadge.className = 'px-2 py-0.5 rounded bg-emerald-950 border border-emerald-800 text-emerald-300 font-mono font-semibold text-[11px] tabular-nums shrink-0';
-                if (proxText) proxText.innerHTML = '<span class="text-emerald-400 font-bold">Sudah di titik start</span> &bull; Siap mulai rute!';
+                if (dotEl) dotEl.className = 'w-2 h-2 rounded-full bg-[#FC4C02] shrink-0';
+                if (distBadge) distBadge.className = 'px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-[#FC4C02] font-semibold text-[11px] tabular-nums shrink-0';
+                if (proxText) proxText.innerHTML = '<span class="text-white font-bold">Sudah di titik start</span> &bull; Siap mulai rute!';
                 if (startBtnText) startBtnText.textContent = 'Mulai Rute (Start)';
             } else {
                 const modeLabel = osrmToStartMode === 'driving' ? 'Kendaraan' : (osrmToStartMode === 'foot' ? 'Jalan Kaki' : 'Garis Lurus');
                 if (titleEl) titleEl.textContent = 'Menuju Titik Start (' + modeLabel + ')';
                 if (dotEl) dotEl.className = 'w-2.5 h-2.5 rounded-full bg-blue-500 animate-pulse shrink-0';
-                if (distBadge) distBadge.className = 'px-2 py-0.5 rounded bg-blue-950 border border-blue-800 text-blue-300 font-mono font-semibold text-[11px] tabular-nums shrink-0';
+                if (distBadge) distBadge.className = 'px-2 py-0.5 rounded bg-blue-950 border border-blue-800 text-blue-300 font-semibold text-[11px] tabular-nums shrink-0';
 
                 const estSuffix = durStr ? ` (~${durStr})` : '';
                 const sourceLabel = osrmRouteGeometry.length > 0 ? 'jalur OSRM' : 'jalur terdekat';
@@ -2042,7 +2041,7 @@
                 // Start Marker ('S')
                 const startIcon = L.divIcon({
                     className: 'border-0 bg-transparent',
-                    html: '<div class="w-6 h-6 rounded-full bg-emerald-500 border-2 border-white text-[10px] font-mono font-bold text-white flex items-center justify-center shadow-lg">S</div>',
+                    html: '<div class="w-6 h-6 rounded-full bg-slate-900 border-2 border-white text-[10px] font-bold text-white flex items-center justify-center shadow-lg">S</div>',
                     iconSize: [24, 24],
                     iconAnchor: [12, 12]
                 });
@@ -2053,7 +2052,7 @@
                 const finishPoint = routePoints[routePoints.length - 1];
                 const finishIcon = L.divIcon({
                     className: 'border-0 bg-transparent',
-                    html: '<div class="w-6 h-6 rounded-full bg-[#FC4C02] border-2 border-white text-[10px] font-mono font-bold text-white flex items-center justify-center shadow-lg">F</div>',
+                    html: '<div class="w-6 h-6 rounded-full bg-[#FC4C02] border-2 border-white text-[10px] font-bold text-white flex items-center justify-center shadow-lg">F</div>',
                     iconSize: [24, 24],
                     iconAnchor: [12, 12]
                 });
@@ -2151,12 +2150,12 @@
             if (navStatusLabel && navGpsIndicator) {
                 if (minDistanceM > navOffCourseThresholdM) {
                     navStatusLabel.textContent = `Off Course (+${Math.round(minDistanceM)}m dari jalur)`;
-                    navStatusLabel.className = 'text-[10px] font-mono font-bold uppercase tracking-wider text-rose-400 block truncate';
+                    navStatusLabel.className = 'text-[10px] font-bold uppercase tracking-wider text-rose-400 block truncate';
                     navGpsIndicator.className = 'w-2.5 h-2.5 rounded-full bg-rose-500 shrink-0 animate-ping';
                 } else {
                     navStatusLabel.textContent = 'Navigasi GPS Aktif (On Course)';
-                    navStatusLabel.className = 'text-[10px] font-mono font-bold uppercase tracking-wider text-emerald-400 block truncate';
-                    navGpsIndicator.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 shrink-0';
+                    navStatusLabel.className = 'text-[10px] font-bold uppercase tracking-wider text-white block truncate';
+                    navGpsIndicator.className = 'w-2 h-2 rounded-full bg-[#FC4C02] shrink-0';
                 }
             }
 
@@ -2278,8 +2277,8 @@
             if (wrap) {
                 wrap.innerHTML = `
                     <div class="grid grid-cols-2 gap-2">
-                        <button type="button" onclick="startRunningSession()" class="py-3 px-3 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer">
-                            <i class="fa-solid fa-play text-xs"></i>
+                        <button type="button" onclick="startRunningSession()" class="py-3 px-3 rounded-lg bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-1.5 cursor-pointer border border-slate-700">
+                            <i class="fa-solid fa-play text-xs text-[#FC4C02]"></i>
                             <span>Lanjut</span>
                         </button>
                         <button type="button" onclick="closeLiveNavigation()" class="py-3 px-4 rounded-lg bg-[#FC4C02] hover:bg-[#e04300] text-white font-black text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-[#FC4C02]/20">
@@ -2344,19 +2343,19 @@
 
             if (isSaved) {
                 if (banner) {
-                    banner.className = 'p-3 rounded-md border flex items-start gap-3 text-xs bg-emerald-950/40 border-emerald-800/80';
+                    banner.className = 'p-3 rounded-md border flex items-start gap-3 text-xs bg-slate-800 border-slate-700 text-slate-200';
                 }
                 if (icon) {
-                    icon.className = 'mt-0.5 text-sm shrink-0 text-emerald-400 font-bold';
-                    icon.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400"></i>';
+                    icon.className = 'mt-0.5 text-sm shrink-0 text-white font-bold';
+                    icon.innerHTML = '<i class="fa-solid fa-circle-check text-white"></i>';
                 }
                 if (title) title.textContent = 'Status: Peta & Rute Tersimpan Offline';
                 if (desc) desc.textContent = 'Data lintasan GPS dan tile peta resolusi tinggi siap dipakai tanpa internet di gunung.';
                 if (deleteBtn) deleteBtn.classList.remove('hidden');
                 if (startLabel) startLabel.textContent = 'Unduh Ulang';
                 if (btnLabel) btnLabel.textContent = 'Tersimpan';
-                if (btnIcon) btnIcon.className = 'fa-solid fa-cloud-arrow-down text-[11px] text-emerald-400';
-                if (btnToggle) btnToggle.classList.add('border-emerald-700/60');
+                if (btnIcon) btnIcon.className = 'fa-solid fa-cloud-arrow-down text-[11px] text-[#FC4C02]';
+                if (btnToggle) btnToggle.classList.add('border-[#FC4C02]/60');
             } else {
                 if (banner) {
                     banner.className = 'p-3 rounded-md border flex items-start gap-3 text-xs bg-slate-950 border-slate-800';
@@ -2371,7 +2370,7 @@
                 if (startLabel) startLabel.textContent = 'Mulai Unduh Offline';
                 if (btnLabel) btnLabel.textContent = 'Offline';
                 if (btnIcon) btnIcon.className = 'fa-solid fa-cloud-arrow-down text-[11px] text-slate-300';
-                if (btnToggle) btnToggle.classList.remove('border-emerald-700/60');
+                if (btnToggle) btnToggle.classList.remove('border-[#FC4C02]/60');
             }
         }
 

@@ -8,8 +8,8 @@
                     <!-- SVG Route Thumbnail with Subtle Grid Background -->
                     <div class="relative mb-3 rounded-md overflow-hidden border border-slate-800/80 aspect-[16/9] gpx-svg-grid flex items-center justify-center">
                         <!-- GPX SCOPE Telemetry Watermark -->
-                        <div class="pointer-events-none absolute bottom-2 left-2 z-10 px-1.5 py-0.5 rounded bg-slate-950/80 border border-slate-800/60 text-[9px] font-mono text-slate-400 flex items-center gap-1 shadow-sm">
-                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                        <div class="pointer-events-none absolute bottom-2 left-2 z-10 px-1.5 py-0.5 rounded bg-slate-950/80 border border-slate-800/60 text-[9px] font-medium text-slate-400 flex items-center gap-1 shadow-sm">
+                            <span class="w-1.5 h-1.5 rounded-full bg-[#FC4C02]"></span>
                             <span>GPX SCOPE</span>
                         </div>
 

@@ -50,7 +50,7 @@
                     <span id="offline-progress-pct" class="font-mono font-semibold text-white">0%</span>
                 </div>
                 <div class="w-full h-2 rounded-sm bg-slate-800 overflow-hidden">
-                    <div id="offline-progress-bar" class="h-full bg-emerald-500 transition-all duration-150 rounded-sm" style="width: 0%;"></div>
+                    <div id="offline-progress-bar" class="h-full bg-[#FC4C02] transition-all duration-150 rounded-sm" style="width: 0%;"></div>
                 </div>
             </div>
 
