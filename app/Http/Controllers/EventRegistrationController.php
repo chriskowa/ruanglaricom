@@ -82,12 +82,14 @@ class EventRegistrationController extends Controller
             }
 
             $discountAmount = $coupon->applyDiscount($validated['total_amount']);
-            $finalAmount = $validated['total_amount'] - $discountAmount;
+            $finalAmount = max(0, $validated['total_amount'] - $discountAmount);
+            $is100Percent = ($coupon->type === 'percent' && (float) $coupon->value >= 100) || ($discountAmount >= $validated['total_amount']);
 
             \Illuminate\Support\Facades\Log::info('Coupon Applied Successfully', [
                 'code' => $coupon->code,
                 'discount' => $discountAmount,
                 'final' => $finalAmount,
+                'is_100' => $is100Percent,
             ]);
 
             return response()->json([
@@ -96,6 +98,8 @@ class EventRegistrationController extends Controller
                 'discount_amount' => $discountAmount,
                 'final_price' => $finalAmount,
                 'final_amount' => $finalAmount, // Keep backward compatibility
+                'is_100_percent' => $is100Percent,
+                'waive_platform_fee' => $is100Percent || ($finalAmount <= 0),
                 'coupon' => [
                     'id' => $coupon->id,
                     'code' => $coupon->code,

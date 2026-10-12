@@ -46,7 +46,13 @@ class ProcessPaidEventTransaction implements ShouldQueue
             }
 
             $event = $this->transaction->event;
-            $isPaidTransaction = ((float) ($this->transaction->final_amount ?? 0) > 0) || ($this->transaction->payment_gateway !== 'free');
+            $hasFullCoupon = $this->transaction->coupon_id && (
+                ((float) ($this->transaction->discount_amount ?? 0) >= (float) ($this->transaction->total_original ?? 0))
+                || ($this->transaction->coupon && $this->transaction->coupon->type === 'percent' && (float) $this->transaction->coupon->value >= 100)
+            );
+            $isPaidTransaction = ((float) ($this->transaction->final_amount ?? 0) > 0)
+                || ($this->transaction->payment_gateway !== 'free')
+                || $hasFullCoupon;
             $requiresApproval = ! empty($event->premium_amenities['requires_approval']) && ! $isPaidTransaction;
 
             if ($requiresApproval) {
@@ -117,10 +123,9 @@ class ProcessPaidEventTransaction implements ShouldQueue
      */
     protected function depositToEOWallet(): void
     {
-        // Direct transfer to EO's account or COD means the EO already received cash/funds directly.
-        // Do not deposit to platform wallet to prevent unwithdrawable or duplicate platform funds.
-        if (in_array($this->transaction->payment_gateway, ['manual_transfer', 'cod'], true)) {
-            Log::info('ProcessPaidEventTransaction: Skipped EO wallet deposit for direct transfer / COD', [
+        // Direct transfer to EO's account, COD, or free transactions (100% coupon) do not deposit to platform wallet.
+        if (in_array($this->transaction->payment_gateway, ['manual_transfer', 'cod', 'free'], true) || (float) $this->transaction->final_amount <= 0) {
+            Log::info('ProcessPaidEventTransaction: Skipped EO wallet deposit for direct transfer / COD / free transaction', [
                 'transaction_id' => $this->transaction->id,
                 'payment_gateway' => $this->transaction->payment_gateway,
             ]);

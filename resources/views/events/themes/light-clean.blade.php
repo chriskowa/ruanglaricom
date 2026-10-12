@@ -1983,7 +1983,7 @@
                                     </div>
 
                                     <!-- Payment Gateway Selector -->
-                                    <div class="border-t border-slate-100 pt-4 space-y-2.5">
+                                    <div id="paymentGatewaySection" class="border-t border-slate-100 pt-4 space-y-2.5">
                                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Metode Pembayaran</label>
                                         
                                         @if($showMidtrans)
@@ -2025,6 +2025,14 @@
                                             </div>
                                         </label>
                                         @endif
+                                    </div>
+
+                                    <!-- Free Registration / 100% Coupon Notice -->
+                                    <div id="freePaymentNoticeSection" class="hidden border-t border-slate-100 pt-4">
+                                        <div class="bg-slate-50 border border-slate-200 rounded-md p-3 text-xs text-slate-700">
+                                            <span class="block font-bold text-slate-900 mb-0.5">Pendaftaran Bebas Biaya (Gratis)</span>
+                                            <span class="text-slate-500 text-[11px] leading-relaxed">Kupon diskon 100% atau pendaftaran gratis aktif. Tidak ada biaya pendaftaran maupun biaya layanan yang perlu dibayarkan.</span>
+                                        </div>
                                     </div>
 
                                     @if($event->terms_and_conditions)
@@ -2104,7 +2112,7 @@
                 <button type="button" onclick="closeConfirmationModal()" class="text-white hover:text-slate-200 text-lg">&times;</button>
             </div>
             <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto custom-scrollbar">
-                <p class="text-xs text-slate-600 leading-relaxed">
+                <p id="confModalIntro" class="text-xs text-slate-600 leading-relaxed">
                     Mohon periksa data Anda sebelum dialihkan ke sistem pembayaran. Pastikan NIK, gender, dan ukuran jersey telah sesuai.
                 </p>
 
@@ -2594,6 +2602,9 @@
                 }
             }
 
+            let currentCalculatedSubtotal = 0;
+            let currentCalculatedGrandTotal = 0;
+
             function updateCalc() {
                 let categorySubtotal = 0;
                 let addonsTotal = 0;
@@ -2629,9 +2640,13 @@
                 });
 
                 const subtotal = categorySubtotal + addonsTotal;
-                const totalFee = (subtotal - discountAmount <= 0) ? 0 : (count * platformFee);
-                let grandTotal = subtotal + totalFee - discountAmount;
+                currentCalculatedSubtotal = subtotal;
+
+                const is100Discount = (appliedCoupon && appliedCoupon.type === 'percent' && parseFloat(appliedCoupon.value) >= 100) || (discountAmount >= subtotal && subtotal > 0);
+                const totalFee = (is100Discount || (subtotal - discountAmount <= 0)) ? 0 : (count * platformFee);
+                let grandTotal = is100Discount ? 0 : (subtotal + totalFee - discountAmount);
                 if (grandTotal < 0) grandTotal = 0;
+                currentCalculatedGrandTotal = grandTotal;
 
                 if (subtotalDisplay) subtotalDisplay.textContent = formatRp(subtotal);
                 if (platformFeeDisplay) platformFeeDisplay.textContent = formatRp(totalFee);
@@ -2649,6 +2664,24 @@
                         discountRow.classList.add('hidden');
                         discountDisplay.textContent = '-Rp 0';
                     }
+                }
+
+                // Dynamic UI for Payment Gateway and Submit Button when grandTotal is 0
+                const paymentSec = document.getElementById('paymentGatewaySection');
+                const freeNoticeSec = document.getElementById('freePaymentNoticeSection');
+                const submitBtnEl = document.getElementById('submitBtn');
+                const submitBtnSpan = submitBtnEl ? submitBtnEl.querySelector('span') : null;
+
+                if (grandTotal <= 0) {
+                    if (paymentSec) paymentSec.classList.add('hidden');
+                    if (freeNoticeSec) freeNoticeSec.classList.remove('hidden');
+                    form.querySelectorAll('input[name="payment_method"]').forEach(r => r.removeAttribute('required'));
+                    if (submitBtnSpan) submitBtnSpan.textContent = 'Selesaikan Pendaftaran (Gratis)';
+                } else {
+                    if (paymentSec) paymentSec.classList.remove('hidden');
+                    if (freeNoticeSec) freeNoticeSec.classList.add('hidden');
+                    form.querySelectorAll('input[name="payment_method"]').forEach(r => r.setAttribute('required', 'required'));
+                    if (submitBtnSpan) submitBtnSpan.textContent = 'Lanjut Pembayaran';
                 }
             }
 
@@ -2727,14 +2760,17 @@
                         return;
                     }
 
-                    // Compute current subtotal
-                    let currentSubtotal = 0;
-                    document.querySelectorAll('.participant-item').forEach(item => {
-                        const checkedRadio = item.querySelector('input[type="radio"].cat-radio:checked');
-                        if (checkedRadio) {
-                            currentSubtotal += parseFloat(checkedRadio.getAttribute('data-price') || 0);
-                        }
-                    });
+                    // Compute current subtotal using calculated category + addons
+                    const currentSubtotal = currentCalculatedSubtotal > 0 ? currentCalculatedSubtotal : (() => {
+                        let sub = 0;
+                        document.querySelectorAll('.participant-item').forEach(item => {
+                            const checkedRadio = item.querySelector('input[type="radio"].cat-radio:checked');
+                            if (checkedRadio) {
+                                sub += parseFloat(checkedRadio.getAttribute('data-price') || 0);
+                            }
+                        });
+                        return sub;
+                    })();
 
                     if (currentSubtotal <= 0) {
                         if (msgEl) msgEl.innerHTML = '<span class="text-red-500">Pilih kategori peserta terlebih dahulu.</span>';
@@ -2762,7 +2798,8 @@
                     .then(data => {
                         if (data.success) {
                             appliedCoupon = data.coupon;
-                            discountAmount = parseFloat(data.discount_amount || 0);
+                            const is100 = data.is_100_percent || (data.coupon.type === 'percent' && parseFloat(data.coupon.value) >= 100);
+                            discountAmount = is100 ? currentSubtotal : parseFloat(data.discount_amount || 0);
                             document.getElementById('coupon_code_hidden').value = data.coupon.code;
                             if (msgEl) msgEl.innerHTML = '<span class="text-emerald-600 font-bold">Kupon berhasil digunakan!</span>';
                             updateCalc();
@@ -3141,12 +3178,14 @@
                     }
                 });
 
-                // 3. Payment Method
-                const paymentRadios = form.querySelectorAll('input[name="payment_method"]');
-                if (paymentRadios.length > 0) {
-                    const checkedPm = form.querySelector('input[name="payment_method"]:checked');
-                    if (!checkedPm) {
-                        showFieldError(paymentRadios[0], 'Silakan pilih salah satu metode pembayaran.', 'Silakan pilih metode pembayaran.');
+                // 3. Payment Method (Only required if grand total > 0)
+                if (currentCalculatedGrandTotal > 0) {
+                    const paymentRadios = form.querySelectorAll('input[name="payment_method"]');
+                    if (paymentRadios.length > 0) {
+                        const checkedPm = form.querySelector('input[name="payment_method"]:checked');
+                        if (!checkedPm) {
+                            showFieldError(paymentRadios[0], 'Silakan pilih salah satu metode pembayaran.', 'Silakan pilih metode pembayaran.');
+                        }
                     }
                 }
 
@@ -3233,6 +3272,17 @@
                 });
 
                 document.getElementById('confTotal').textContent = totalDisplay ? totalDisplay.textContent : 'Rp 0';
+
+                // Update confirmation modal text based on grand total
+                const confIntro = document.getElementById('confModalIntro');
+                const confConfirmBtn = document.getElementById('confirmSubmitBtn');
+                if (currentCalculatedGrandTotal <= 0) {
+                    if (confIntro) confIntro.textContent = 'Pendaftaran Anda bebas biaya (kupon 100% / gratis). Data pendaftaran akan langsung disetujui (auto approve) setelah Anda menekan tombol konfirmasi.';
+                    if (confConfirmBtn) confConfirmBtn.textContent = 'Konfirmasi Pendaftaran';
+                } else {
+                    if (confIntro) confIntro.textContent = 'Mohon periksa data Anda sebelum dialihkan ke sistem pembayaran. Pastikan NIK, gender, dan ukuran jersey telah sesuai.';
+                    if (confConfirmBtn) confConfirmBtn.textContent = 'Lanjut Bayar';
+                }
 
                 // Open Confirmation Modal
                 const confModal = document.getElementById('confirmationModal');

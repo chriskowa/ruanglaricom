@@ -215,8 +215,23 @@ class StoreRegistrationAction
 
         $paymentMethod = strtolower($validated['payment_method'] ?? 'midtrans');
 
+        // Pre-check if coupon provides 100% discount to avoid unnecessary COD requirements
+        $isPrefetchedCoupon100 = false;
+        if (! empty($validated['coupon_code'])) {
+            $checkCoupon = Coupon::where('code', $validated['coupon_code'])
+                ->where(function ($query) use ($event) {
+                    $query->where('event_id', $event->id)
+                        ->orWhereNull('event_id');
+                })
+                ->first();
+            if ($checkCoupon && $checkCoupon->type === 'percent' && (float) $checkCoupon->value >= 100) {
+                $isPrefetchedCoupon100 = true;
+                $paymentMethod = 'free';
+            }
+        }
+
         // For COD payment method, photo upload is mandatory
-        if ($paymentMethod === 'cod') {
+        if ($paymentMethod === 'cod' && ! $isPrefetchedCoupon100) {
             foreach ($validated['participants'] as $pIdx => $pItem) {
                 if (empty($pItem['photo'])) {
                     throw \Illuminate\Validation\ValidationException::withMessages([
@@ -491,8 +506,13 @@ class StoreRegistrationAction
             $totalParticipants = count($validated['participants']);
             $platformFeePerParticipant = $event->platform_fee ?? 0;
 
-            // If ticket is fully discounted (<= 0), waive the platform fee
-            if (($totalOriginal - $discountAmount) <= 0) {
+            $isCoupon100 = $coupon && (
+                ($coupon->type === 'percent' && (float) $coupon->value >= 100)
+                || ($discountAmount >= $totalOriginal)
+            );
+
+            // If ticket is fully discounted (<= 0) or 100% coupon applied, waive the platform fee
+            if ($isCoupon100 || (($totalOriginal - $discountAmount) <= 0)) {
                 $totalAdminFee = 0;
             } else {
                 $totalAdminFee = $platformFeePerParticipant * $totalParticipants;
@@ -501,9 +521,10 @@ class StoreRegistrationAction
             $finalAmount = ($totalOriginal - $discountAmount) + $totalAdminFee;
 
             // Handle Zero Amount (100% Discount / Free Event / Challenge)
-            $isZeroAmount = $finalAmount <= 0;
+            $isZeroAmount = $isCoupon100 || ($finalAmount <= 0);
             if ($isZeroAmount) {
                 $finalAmount = 0;
+                $paymentMethod = 'free';
             }
 
             $uniqueCode = 0;
@@ -522,8 +543,14 @@ class StoreRegistrationAction
                 $finalAmount += $uniqueCode;
             }
 
-            $requiresApproval = ! empty($event->premium_amenities['requires_approval']) || ($paymentMethod === 'cod');
-            $isZeroAmountPending = $isZeroAmount && ! empty($event->premium_amenities['requires_approval']);
+            // Direct approval: 100% coupon holders bypass organizer approval requirements
+            if ($isCoupon100) {
+                $requiresApproval = false;
+                $isZeroAmountPending = false;
+            } else {
+                $requiresApproval = ! empty($event->premium_amenities['requires_approval']) || ($paymentMethod === 'cod');
+                $isZeroAmountPending = $isZeroAmount && ! empty($event->premium_amenities['requires_approval']);
+            }
 
             // Create transaction
             $transaction = Transaction::create([
@@ -606,7 +633,7 @@ class StoreRegistrationAction
                     'strava_url' => ! empty($participantData['strava_url']) ? $participantData['strava_url'] : (! empty($participantData['strava_activity']) ? $participantData['strava_activity'] : null),
                     'photo' => $photoPath,
                     'addons' => $participantsWithAddons[$pIndex] ?? [],
-                    'status' => 'pending',
+                    'status' => ($isZeroAmount && ! $requiresApproval) ? 'confirmed' : 'pending',
                     'isApproved' => $requiresApproval ? 0 : 1,
                     'price_type' => $priceType,
                 ]);
@@ -630,16 +657,17 @@ class StoreRegistrationAction
             // Load participants with category for Midtrans
             $transaction->load(['participants.category']);
 
-            $requiresApproval = ! empty($event->premium_amenities['requires_approval']) || ($paymentMethod === 'cod');
+            if ($isCoupon100) {
+                $requiresApproval = false;
+            } else {
+                $requiresApproval = ! empty($event->premium_amenities['requires_approval']) || ($paymentMethod === 'cod');
+            }
 
             if ($isZeroAmount) {
                 Cache::put($idKey, $transaction->id, now()->addMinutes(10));
 
                 if (! $requiresApproval) {
-                    // Dispatch emails only if no manual approval required
-                    app(\App\Services\EventRegistrationEmailDispatcher::class)->dispatch($transaction);
-
-                    // Process Paid Event Transaction (Wallet, Stats, etc)
+                    // Process Paid Event Transaction (Wallet, Stats, BIB generation, and Dispatch E-ticket Email)
                     \App\Jobs\ProcessPaidEventTransaction::dispatch($transaction);
                 }
 

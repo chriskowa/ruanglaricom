@@ -329,69 +329,93 @@
             <div class="relative overflow-hidden">
                 <div id="gpx-detail-map" class="relative"></div>
 
-                <!-- Floating Live Telemetry HUD (Top-Right) matching UI reference -->
-                <div id="gpx-live-telemetry-hud" class="hidden absolute top-3 right-3 sm:top-4 sm:right-4 z-[990] bg-[#070B12] border border-slate-700/90 rounded-[20px] p-3.5 sm:p-4 shadow-2xl space-y-3 w-[290px] sm:w-[320px] text-white select-none pointer-events-auto" style="background-color: #070B12 !important; opacity: 1 !important;">
-                    <!-- Header -->
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse"></span>
-                            <span class="text-xs font-bold font-mono tracking-wider text-slate-200 uppercase">LIVE TELEMETRY</span>
-                        </div>
-                        <span class="px-2.5 py-0.5 rounded-full border border-emerald-500/40 bg-emerald-950/80 text-emerald-400 text-[10px] font-bold tracking-wider uppercase font-mono">
-                            2D EXPLORER
-                        </span>
-                    </div>
-
-                    <!-- Main Elevation & Gauge Row -->
-                    <div class="flex items-center justify-between gap-3 pt-0.5">
-                        <div class="space-y-0.5">
-                            <div class="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
-                                <i class="fa-solid fa-chart-line text-[#FC4C02] text-xs"></i>
-                                <span>Ketinggian Rute</span>
-                            </div>
-                            <div class="flex items-baseline gap-1.5">
-                                <span id="anim-telemetry-elev" class="text-3xl sm:text-4xl font-black text-white tracking-tight font-mono">0</span>
-                                <span class="text-xs sm:text-sm font-semibold text-slate-400">m mdpl</span>
-                            </div>
+                <!-- Floating Live Telemetry HUD (Responsive: Compact top bar on mobile, full card on desktop) -->
+                <div id="gpx-live-telemetry-hud" class="hidden absolute top-2 left-2 right-2 sm:top-4 sm:right-4 sm:left-auto sm:w-[320px] z-[990] bg-[#070B12]/95 backdrop-blur-md border border-slate-700/90 rounded-xl sm:rounded-[20px] p-2.5 sm:p-4 shadow-2xl space-y-2.5 sm:space-y-3 text-white select-none pointer-events-auto transition-all" style="background-color: #070B12 !important; opacity: 1 !important;">
+                    <!-- Header & Compact Mobile Strip -->
+                    <div class="flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-1.5 shrink-0">
+                            <span class="w-2 h-2 rounded-full bg-emerald-400 shadow-[0_0_8px_#34d399] animate-pulse"></span>
+                            <span class="text-[10px] sm:text-xs font-bold font-mono tracking-wider text-slate-200 uppercase">
+                                <span class="hidden xs:inline">LIVE </span>TELEMETRY
+                            </span>
                         </div>
 
-                        <!-- Gauge Box -->
-                        <div class="bg-[#111724] border border-slate-800 rounded-xl p-2 px-3 flex flex-col items-center justify-center shrink-0 w-16 sm:w-20">
-                            <span class="text-[9px] font-bold text-slate-400 tracking-wider uppercase font-mono mb-1.5">GAUGE</span>
-                            <div class="w-3.5 h-11 bg-slate-800 rounded-full p-0.5 relative overflow-hidden flex flex-col justify-end">
-                                <div id="anim-gauge-bar" class="w-full bg-gradient-to-t from-emerald-500 via-yellow-400 to-[#FC4C02] rounded-full transition-all duration-150" style="height: 30%;"></div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 2 Sub Metric Cards -->
-                    <div class="grid grid-cols-2 gap-2">
-                        <!-- Distance Card -->
-                        <div class="bg-[#111724] border border-slate-800 rounded-xl p-2.5 space-y-1">
-                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block font-mono">JARAK TEMPUH</span>
-                            <div class="text-xs sm:text-sm font-bold text-white font-mono truncate">
-                                <span id="anim-telemetry-km" class="text-white">0.00</span> / {{ $formattedDist }} KM
-                            </div>
+                        <!-- Compact Mobile Metrics (Only visible on mobile) -->
+                        <div class="flex items-center gap-2 sm:hidden text-[10px] font-mono text-slate-300">
+                            <span id="anim-telemetry-km-compact" class="font-bold text-white">0.00 km</span>
+                            <span class="text-slate-600">|</span>
+                            <span id="anim-telemetry-elev-compact" class="font-bold text-emerald-400">0m</span>
+                            <span class="text-slate-600">|</span>
+                            <span id="anim-telemetry-slope-compact" class="font-semibold text-slate-300">0%</span>
                         </div>
 
-                        <!-- Slope Card -->
-                        <div class="bg-[#111724] border border-slate-800 rounded-xl p-2.5 space-y-1">
-                            <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block font-mono">KEMIRINGAN</span>
-                            <div id="anim-telemetry-slope" class="text-xs sm:text-sm font-bold text-white font-mono truncate">
-                                — 0.0% (Datar)
-                            </div>
+                        <div class="flex items-center gap-1 shrink-0">
+                            <!-- Mobile Toggle Button (Expand/Collapse Details) -->
+                            <button type="button" id="btn-toggle-telemetry-detail" onclick="toggleTelemetryDetail()" class="sm:hidden px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white transition cursor-pointer text-[10px] font-mono flex items-center gap-1 border border-slate-700/80" title="Toggle Detail">
+                                <span id="label-telemetry-toggle" class="text-[9px]">Detail</span>
+                                <i class="fa-solid fa-chevron-down text-[8px]" id="icon-telemetry-chevron"></i>
+                            </button>
+
+                            <!-- Desktop Badge -->
+                            <span class="hidden sm:inline-block px-2.5 py-0.5 rounded-full border border-emerald-500/40 bg-emerald-950/80 text-emerald-400 text-[10px] font-bold tracking-wider uppercase font-mono">
+                                FLYOVER 3D
+                            </span>
                         </div>
                     </div>
 
-                    <!-- Bottom Status Banner -->
-                    <div class="bg-[#111724] border border-slate-800 rounded-xl px-3 py-2 flex items-center gap-2 text-xs font-semibold text-slate-200">
-                        <i class="fa-solid fa-flag text-rose-500 text-xs shrink-0"></i>
-                        <span id="anim-telemetry-status-text" class="truncate">Lintasan Lari KM 0.0 — Bersiap!</span>
+                    <!-- Expandable Detail Body (Collapsible on mobile, always visible on sm+) -->
+                    <div id="telemetry-detail-body" class="hidden sm:block space-y-3 pt-2 sm:pt-0 border-t border-slate-800 sm:border-0">
+                        <!-- Main Elevation & Gauge Row -->
+                        <div class="flex items-center justify-between gap-3 pt-0.5">
+                            <div class="space-y-0.5">
+                                <div class="flex items-center gap-1.5 text-xs text-slate-400 font-medium">
+                                    <i class="fa-solid fa-chart-line text-[#FC4C02] text-xs"></i>
+                                    <span>Ketinggian Rute</span>
+                                </div>
+                                <div class="flex items-baseline gap-1.5">
+                                    <span id="anim-telemetry-elev" class="text-2xl sm:text-4xl font-black text-white tracking-tight font-mono">0</span>
+                                    <span class="text-xs sm:text-sm font-semibold text-slate-400">m mdpl</span>
+                                </div>
+                            </div>
+
+                            <!-- Gauge Box -->
+                            <div class="bg-[#111724] border border-slate-800 rounded-xl p-2 px-3 flex flex-col items-center justify-center shrink-0 w-16 sm:w-20">
+                                <span class="text-[9px] font-bold text-slate-400 tracking-wider uppercase font-mono mb-1.5">GAUGE</span>
+                                <div class="w-3.5 h-9 sm:h-11 bg-slate-800 rounded-full p-0.5 relative overflow-hidden flex flex-col justify-end">
+                                    <div id="anim-gauge-bar" class="w-full bg-gradient-to-t from-emerald-500 via-yellow-400 to-[#FC4C02] rounded-full transition-all duration-150" style="height: 30%;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2 Sub Metric Cards -->
+                        <div class="grid grid-cols-2 gap-2">
+                            <!-- Distance Card -->
+                            <div class="bg-[#111724] border border-slate-800 rounded-xl p-2 sm:p-2.5 space-y-1">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block font-mono">JARAK TEMPUH</span>
+                                <div class="text-xs sm:text-sm font-bold text-white font-mono truncate">
+                                    <span id="anim-telemetry-km" class="text-white">0.00</span> / {{ $formattedDist }} KM
+                                </div>
+                            </div>
+
+                            <!-- Slope Card -->
+                            <div class="bg-[#111724] border border-slate-800 rounded-xl p-2 sm:p-2.5 space-y-1">
+                                <span class="text-[9px] font-bold text-slate-400 uppercase tracking-wider block font-mono">KEMIRINGAN</span>
+                                <div id="anim-telemetry-slope" class="text-xs sm:text-sm font-bold text-white font-mono truncate">
+                                    — 0.0% (Datar)
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Bottom Status Banner -->
+                        <div class="bg-[#111724] border border-slate-800 rounded-xl px-3 py-2 flex items-center gap-2 text-xs font-semibold text-slate-200">
+                            <i class="fa-solid fa-flag text-rose-500 text-xs shrink-0"></i>
+                            <span id="anim-telemetry-status-text" class="truncate">Lintasan Lari KM 0.0 — Bersiap!</span>
+                        </div>
                     </div>
                 </div>
 
                 <!-- Floating Replay Controller HUD (Bottom) -->
-                <div id="gpx-animator-hud" class="hidden absolute bottom-3 left-3 right-3 z-[999] bg-[#070B12]/95 backdrop-blur-xl border border-slate-700/90 rounded-2xl p-3 sm:p-4 shadow-2xl space-y-2.5 transition-all">
+                <div id="gpx-animator-hud" class="hidden absolute bottom-2 left-2 right-2 sm:bottom-3 sm:left-3 sm:right-3 z-[999] bg-[#070B12]/95 backdrop-blur-xl border border-slate-700/90 rounded-xl sm:rounded-2xl p-2.5 sm:p-4 shadow-2xl space-y-2 sm:space-y-2.5 transition-all">
                     <!-- Progress Scrubber Slider -->
                     <div class="relative flex flex-col space-y-1">
                         <input type="range" id="anim-progress-slider" min="0" max="1000" value="0" step="1"
@@ -405,33 +429,33 @@
                     </div>
 
                     <!-- Bottom Controls Line -->
-                    <div class="flex flex-wrap items-center justify-between gap-2 pt-1 border-t border-slate-800/80 text-xs">
-                        <div class="flex items-center gap-2">
-                            <button type="button" id="btn-anim-play-pause" onclick="togglePlayPauseAnimation()" class="px-3.5 py-1.5 rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-lg shadow-[#FC4C02]/25">
+                    <div class="flex items-center justify-between gap-1.5 sm:gap-2 pt-1 border-t border-slate-800/80 text-xs">
+                        <div class="flex items-center gap-1.5 sm:gap-2">
+                            <button type="button" id="btn-anim-play-pause" onclick="togglePlayPauseAnimation()" class="px-3 sm:px-3.5 py-1.5 rounded-lg sm:rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white font-bold text-xs transition cursor-pointer flex items-center gap-1.5 shadow-lg shadow-[#FC4C02]/25">
                                 <i class="fa-solid fa-play text-[11px]" id="icon-anim-play"></i>
                                 <span id="label-anim-play">Play</span>
                             </button>
-                            <button type="button" onclick="restartAnimation()" class="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white text-xs transition cursor-pointer flex items-center gap-1">
+                            <button type="button" onclick="restartAnimation()" class="px-2.5 sm:px-3 py-1.5 rounded-lg sm:rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-300 hover:text-white text-xs transition cursor-pointer flex items-center gap-1">
                                 <i class="fa-solid fa-rotate-left text-[10px]"></i>
                                 <span>Reset</span>
                             </button>
                         </div>
 
                         <!-- Speed Toggle & Camera Follow -->
-                        <div class="flex items-center gap-1.5 sm:gap-2 font-mono text-[11px]">
-                            <div class="flex items-center gap-1 bg-slate-900 border border-slate-800 rounded-lg p-0.5" id="anim-speed-btn-group">
-                                <button type="button" onclick="setAnimSpeed(1)" class="anim-speed-btn px-2 py-0.5 rounded text-[10px] text-slate-400 hover:text-white cursor-pointer" data-speed="1">1x</button>
-                                <button type="button" onclick="setAnimSpeed(2)" class="anim-speed-btn px-2 py-0.5 rounded text-[10px] text-slate-400 hover:text-white cursor-pointer" data-speed="2">2x</button>
-                                <button type="button" onclick="setAnimSpeed(5)" class="anim-speed-btn px-2 py-0.5 rounded text-[10px] bg-slate-800 text-white font-bold cursor-pointer" data-speed="5">5x</button>
-                                <button type="button" onclick="setAnimSpeed(10)" class="anim-speed-btn px-2 py-0.5 rounded text-[10px] text-slate-400 hover:text-white cursor-pointer" data-speed="10">10x</button>
+                        <div class="flex items-center gap-1 sm:gap-2 font-mono text-[11px]">
+                            <div class="flex items-center gap-0.5 sm:gap-1 bg-slate-900 border border-slate-800 rounded-lg p-0.5" id="anim-speed-btn-group">
+                                <button type="button" onclick="setAnimSpeed(1)" class="anim-speed-btn px-1.5 sm:px-2 py-0.5 rounded text-[10px] text-slate-400 hover:text-white cursor-pointer" data-speed="1">1x</button>
+                                <button type="button" onclick="setAnimSpeed(2)" class="anim-speed-btn px-1.5 sm:px-2 py-0.5 rounded text-[10px] text-slate-400 hover:text-white cursor-pointer" data-speed="2">2x</button>
+                                <button type="button" onclick="setAnimSpeed(5)" class="anim-speed-btn px-1.5 sm:px-2 py-0.5 rounded text-[10px] bg-slate-800 text-white font-bold cursor-pointer" data-speed="5">5x</button>
+                                <button type="button" onclick="setAnimSpeed(10)" class="anim-speed-btn px-1.5 sm:px-2 py-0.5 rounded text-[10px] text-slate-400 hover:text-white cursor-pointer" data-speed="10">10x</button>
                             </div>
 
-                            <button type="button" id="btn-anim-camera-follow" onclick="toggleCameraFollow()" class="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-[10px] text-slate-300 hover:text-white transition cursor-pointer flex items-center gap-1">
+                            <button type="button" id="btn-anim-camera-follow" onclick="toggleCameraFollow()" class="px-2 sm:px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-[10px] text-slate-300 hover:text-white transition cursor-pointer flex items-center gap-1">
                                 <span class="hidden xs:inline">Follow</span>
                                 <span id="badge-camera-follow" class="text-[9px] px-1 py-0.2 rounded bg-emerald-500/20 text-emerald-400 font-bold">ON</span>
                             </button>
 
-                            <button type="button" onclick="toggleGpxAnimator()" class="p-1 text-slate-400 hover:text-white transition cursor-pointer ml-1" title="Tutup Animasi">
+                            <button type="button" onclick="toggleGpxAnimator()" class="p-1 text-slate-400 hover:text-white transition cursor-pointer ml-0.5 sm:ml-1" title="Tutup Animasi">
                                 <i class="fa-solid fa-xmark text-sm"></i>
                             </button>
                         </div>
@@ -540,6 +564,11 @@
                                 <span id="pp-strategy-label" class="text-xs font-semibold text-slate-200 font-mono">Even (0%)</span>
                             </div>
                             <input type="range" id="pp-strategy-slider" min="-10" max="10" value="0" step="1" class="w-full h-1 bg-slate-800 rounded appearance-none cursor-pointer accent-[#FC4C02]">
+                            <div class="flex justify-between text-[10px] text-slate-500 font-mono mt-1">
+                                <span>-10% Negatif</span>
+                                <span>Even</span>
+                                <span>+10% Positif</span>
+                            </div>
                         </div>
 
                         <div class="pt-2.5 border-t border-slate-800">
@@ -548,6 +577,11 @@
                                 <span id="pp-hill-label" class="text-xs font-semibold text-[#FC4C02] font-mono">Normal (0)</span>
                             </div>
                             <input type="range" id="pp-hill-slider" min="-10" max="10" value="0" step="1" class="w-full h-1 bg-slate-800 rounded appearance-none cursor-pointer accent-[#FC4C02]">
+                            <div class="flex justify-between text-[10px] text-slate-500 font-mono mt-1">
+                                <span>-10 Agresif</span>
+                                <span>Normal</span>
+                                <span>+10 Konservatif</span>
+                            </div>
                         </div>
 
                         <button type="button" id="pp-btn-generate" class="w-full py-2.5 px-3 rounded-xl bg-[#FC4C02] hover:bg-[#e04300] text-white font-semibold text-xs uppercase tracking-wide transition flex items-center justify-center gap-1.5 cursor-pointer shadow-lg shadow-[#FC4C02]/20">
@@ -996,6 +1030,33 @@
                 initAnimatorLayers();
                 renderAnimationState(animProgressRatio);
                 startAnimation();
+
+                // On mobile screen (<640px), keep telemetry detail collapsed by default so it doesn't obstruct map
+                const teleBody = document.getElementById('telemetry-detail-body');
+                const teleIcon = document.getElementById('icon-telemetry-chevron');
+                const teleLabel = document.getElementById('label-telemetry-toggle');
+                if (window.innerWidth < 640 && teleBody) {
+                    teleBody.classList.add('hidden');
+                    if (teleIcon) teleIcon.className = 'fa-solid fa-chevron-down text-[8px]';
+                    if (teleLabel) teleLabel.textContent = 'Detail';
+                }
+            }
+        }
+
+        function toggleTelemetryDetail() {
+            const body = document.getElementById('telemetry-detail-body');
+            const icon = document.getElementById('icon-telemetry-chevron');
+            const label = document.getElementById('label-telemetry-toggle');
+            if (!body) return;
+            const isHidden = body.classList.contains('hidden');
+            if (isHidden) {
+                body.classList.remove('hidden');
+                if (icon) icon.className = 'fa-solid fa-chevron-up text-[8px]';
+                if (label) label.textContent = 'Tutup';
+            } else {
+                body.classList.add('hidden');
+                if (icon) icon.className = 'fa-solid fa-chevron-down text-[8px]';
+                if (label) label.textContent = 'Detail';
             }
         }
 
@@ -1109,6 +1170,12 @@
             if (slider) slider.value = Math.round(ratio * 1000);
             if (timeEl) timeEl.textContent = formatDurationTime(pt.dist * 300);
 
+            // Compact Telemetry for mobile top strip
+            const kmCompactEl = document.getElementById('anim-telemetry-km-compact');
+            const elevCompactEl = document.getElementById('anim-telemetry-elev-compact');
+            if (kmCompactEl) kmCompactEl.textContent = `${pt.dist.toFixed(2)} km`;
+            if (elevCompactEl) elevCompactEl.textContent = `${Math.round(pt.ele)}m`;
+
             // Gauge Bar Calculation (0 - 100% relative to min/max elevation)
             if (gaugeBar && routePoints && routePoints.length > 0) {
                 const allEles = routePoints.map(p => p.ele || 0);
@@ -1134,6 +1201,13 @@
                     if (slopeVal > 1.0) slopeEl.innerHTML = `<span class="text-emerald-400 font-bold">+${slopeVal}% (Naik)</span>`;
                     else if (slopeVal < -1.0) slopeEl.innerHTML = `<span class="text-amber-400 font-bold">${slopeVal}% (Turun)</span>`;
                     else slopeEl.innerHTML = `<span class="text-slate-300 font-bold">— 0.0% (Datar)</span>`;
+                }
+
+                const slopeCompactEl = document.getElementById('anim-telemetry-slope-compact');
+                if (slopeCompactEl) {
+                    if (slopeVal > 1.0) slopeCompactEl.innerHTML = `<span class="text-emerald-400 font-bold">+${slopeVal}%</span>`;
+                    else if (slopeVal < -1.0) slopeCompactEl.innerHTML = `<span class="text-amber-400 font-bold">${slopeVal}%</span>`;
+                    else slopeCompactEl.innerHTML = `<span class="text-slate-400 font-semibold">0%</span>`;
                 }
 
                 if (statusEl) {
@@ -1256,9 +1330,117 @@
         }
 
         // 5. PacePro Calculations
+        function buildElevationProfileByKm() {
+            const totalDist = totalRouteDistance || 10;
+            const totalKm = Math.ceil(totalDist);
+            const gains = new Array(totalKm).fill(0);
+
+            let hasPointEle = false;
+            let prevEle = null;
+
+            if (Array.isArray(routePoints) && routePoints.length > 1) {
+                for (let i = 0; i < routePoints.length; i++) {
+                    const p = routePoints[i];
+                    const ele = (p.ele !== null && p.ele !== undefined && !isNaN(p.ele)) ? parseFloat(p.ele) : null;
+                    if (ele !== null) {
+                        if (prevEle !== null) {
+                            hasPointEle = true;
+                            const diff = ele - prevEle;
+                            if (diff > 0) {
+                                const splitIdx = Math.min(totalKm - 1, Math.max(0, Math.floor(p.dist)));
+                                gains[splitIdx] += diff;
+                            }
+                        }
+                        prevEle = ele;
+                    }
+                }
+            }
+
+            // Fallback: If route points lack per-point elevation but total elevation gain is known,
+            // distribute proportionally across distance splits so hill adaptation still activates.
+            const totalComputedGain = gains.reduce((a, b) => a + b, 0);
+            if (!hasPointEle || totalComputedGain < 1) {
+                if (totalElevationGain > 0) {
+                    for (let km = 1; km <= totalKm; km++) {
+                        const splitDist = km > totalDist ? (totalDist - (km - 1)) : 1;
+                        gains[km - 1] = (totalElevationGain / totalDist) * splitDist;
+                    }
+                }
+            }
+
+            elevationByKm = gains;
+            return gains;
+        }
+
+        function updatePaceProStrategyLabels(val) {
+            const lbl = document.getElementById('pp-strategy-label');
+            const badge = document.getElementById('pp-strategy-badge');
+            let lblText = 'Even (0%)';
+            let badgeText = 'Even Split (0%)';
+            if (val < 0) {
+                lblText = `Negatif (${val}%)`;
+                badgeText = `Negative Split (${val}%)`;
+            } else if (val > 0) {
+                lblText = `Positif (+${val}%)`;
+                badgeText = `Positive Split (+${val}%)`;
+            }
+            if (lbl) lbl.textContent = lblText;
+            if (badge) badge.textContent = badgeText;
+        }
+
+        function updatePaceProHillLabels(val) {
+            const lbl = document.getElementById('pp-hill-label');
+            let lblText = 'Normal (0)';
+            if (val < 0) {
+                lblText = `Agresif (${val})`;
+            } else if (val > 0) {
+                lblText = `Konservatif (+${val})`;
+            }
+            if (lbl) lbl.textContent = lblText;
+        }
+
         function initPacePro() {
+            buildElevationProfileByKm();
+
+            const strategySlider = document.getElementById('pp-strategy-slider');
+            const hillSlider = document.getElementById('pp-hill-slider');
+            const timeH = document.getElementById('pp-time-h');
+            const timeM = document.getElementById('pp-time-m');
+            const timeS = document.getElementById('pp-time-s');
+            const btnGenerate = document.getElementById('pp-btn-generate');
+
+            if (strategySlider) {
+                const onStrategyChange = () => {
+                    const val = parseInt(strategySlider.value || '0', 10) || 0;
+                    updatePaceProStrategyLabels(val);
+                    calculatePaceProPlan();
+                };
+                strategySlider.addEventListener('input', onStrategyChange);
+                strategySlider.addEventListener('change', onStrategyChange);
+            }
+
+            if (hillSlider) {
+                const onHillChange = () => {
+                    const val = parseInt(hillSlider.value || '0', 10) || 0;
+                    updatePaceProHillLabels(val);
+                    calculatePaceProPlan();
+                };
+                hillSlider.addEventListener('input', onHillChange);
+                hillSlider.addEventListener('change', onHillChange);
+            }
+
+            [timeH, timeM, timeS].forEach(input => {
+                if (input) {
+                    input.addEventListener('input', calculatePaceProPlan);
+                    input.addEventListener('change', calculatePaceProPlan);
+                }
+            });
+
+            btnGenerate?.addEventListener('click', calculatePaceProPlan);
+
+            if (strategySlider) updatePaceProStrategyLabels(parseInt(strategySlider.value || '0', 10) || 0);
+            if (hillSlider) updatePaceProHillLabels(parseInt(hillSlider.value || '0', 10) || 0);
             calculatePaceProPlan();
-            document.getElementById('pp-btn-generate')?.addEventListener('click', calculatePaceProPlan);
         }
 
         function setPacePreset(min, sec) {
@@ -1279,33 +1461,98 @@
 
             const totalDist = totalRouteDistance || 10;
             const avgPaceSec = totalTargetSec / totalDist;
-            document.getElementById('pp-avg-pace').textContent = formatPaceTime(avgPaceSec) + ' /km';
-            document.getElementById('pp-target-total-time').textContent = formatDurationTime(totalTargetSec);
+            const avgPaceEl = document.getElementById('pp-avg-pace');
+            const targetTotalTimeEl = document.getElementById('pp-target-total-time');
+            if (avgPaceEl) avgPaceEl.textContent = formatPaceTime(avgPaceSec) + ' /km';
+            if (targetTotalTimeEl) targetTotalTimeEl.textContent = formatDurationTime(totalTargetSec);
+
+            if (!elevationByKm || elevationByKm.length === 0) {
+                buildElevationProfileByKm();
+            }
+
+            const strategySlider = document.getElementById('pp-strategy-slider');
+            const hillSlider = document.getElementById('pp-hill-slider');
+            const strategyVal = parseInt(strategySlider?.value || '0', 10) || 0;
+            const hillVal = parseInt(hillSlider?.value || '0', 10) || 0;
+
+            const intensity = strategyVal / 100;
+            const startFactor = 1 - intensity;
+            const endFactor = 1 + intensity;
+            const hillFactor = 1 + (hillVal / 10) * 0.5;
 
             const tableBody = document.getElementById('pp-table-body');
             if (!tableBody) return;
             tableBody.innerHTML = '';
 
             const totalKm = Math.ceil(totalDist);
+            const rawSplits = [];
+            let rawTotalSec = 0;
+
+            // Pass 1: Raw target pace with Pacing Split gradient and Hill Effort
+            for (let km = 1; km <= totalKm; km++) {
+                const splitDist = km > totalDist ? (totalDist - (km - 1)) : 1;
+                const progress = totalKm > 1 ? ((km - 0.5) / totalDist) : 0.5;
+                const strategyFactor = startFactor + (endFactor - startFactor) * progress;
+
+                let targetPaceSec = avgPaceSec * strategyFactor;
+                const splitGain = elevationByKm[km - 1] || 0;
+                if (splitGain > 0) {
+                    targetPaceSec += (splitGain / 10) * 1.5 * hillFactor;
+                }
+
+                if (targetPaceSec < 60) targetPaceSec = 60;
+
+                const rawSplitTimeSec = targetPaceSec * splitDist;
+                rawTotalSec += rawSplitTimeSec;
+
+                rawSplits.push({
+                    km,
+                    splitDist,
+                    splitGain,
+                    rawSplitTimeSec
+                });
+            }
+
+            // Pass 2: Two-pass normalization ensuring total time equals target exactly
+            const diff = totalTargetSec - rawTotalSec;
+            const adjPerKm = diff / totalDist;
             let cumSec = 0;
             lastPaceTableData = [];
 
-            for (let km = 1; km <= totalKm; km++) {
-                const splitDist = km > totalDist ? (totalDist - (km - 1)) : 1;
-                const splitSec = avgPaceSec * splitDist;
-                cumSec += splitSec;
+            for (let i = 0; i < rawSplits.length; i++) {
+                const item = rawSplits[i];
+                let adjSplitTimeSec = item.rawSplitTimeSec + (adjPerKm * item.splitDist);
+                if (adjSplitTimeSec < 1) adjSplitTimeSec = 1;
+
+                if (i === rawSplits.length - 1) {
+                    adjSplitTimeSec = Math.max(1, totalTargetSec - cumSec);
+                }
+
+                cumSec += adjSplitTimeSec;
+                const finalSplitPaceSec = adjSplitTimeSec / item.splitDist;
+
+                const kmDisplay = (item.km === totalKm && item.splitDist < 0.99) ? `${totalDist.toFixed(2)}` : `${item.km}`;
+                const gainText = item.splitGain > 0 ? `+${Math.round(item.splitGain)}m` : `-`;
+                const gainClass = item.splitGain > 0 ? 'text-emerald-400 font-semibold' : 'text-slate-500';
 
                 const tr = document.createElement('tr');
                 tr.className = 'hover:bg-slate-800/40 transition-colors text-center';
                 tr.innerHTML = `
-                    <td class="py-2.5 px-2 font-medium text-slate-300">${km}</td>
-                    <td class="py-2.5 px-2 text-white font-semibold">${formatPaceTime(avgPaceSec)}</td>
-                    <td class="py-2.5 px-2 text-slate-300">${formatDurationTime(splitSec)}</td>
-                    <td class="py-2.5 px-2 text-slate-400">${formatDurationTime(cumSec)}</td>
-                    <td class="py-2.5 px-2 text-slate-500">-</td>
+                    <td class="py-2.5 px-2 font-medium text-slate-300 font-mono">${kmDisplay}</td>
+                    <td class="py-2.5 px-2 text-[#FC4C02] font-bold font-mono">${formatPaceTime(finalSplitPaceSec)}</td>
+                    <td class="py-2.5 px-2 text-slate-300 font-mono">${formatDurationTime(adjSplitTimeSec)}</td>
+                    <td class="py-2.5 px-2 text-slate-400 font-mono">${formatDurationTime(cumSec)}</td>
+                    <td class="py-2.5 px-2 font-mono ${gainClass}">${gainText}</td>
                 `;
                 tableBody.appendChild(tr);
-                lastPaceTableData.push({ km, pace: formatPaceTime(avgPaceSec), split: formatDurationTime(splitSec), cum: formatDurationTime(cumSec), elev: '-' });
+
+                lastPaceTableData.push({
+                    km: kmDisplay,
+                    pace: formatPaceTime(finalSplitPaceSec),
+                    split: formatDurationTime(adjSplitTimeSec),
+                    cum: formatDurationTime(cumSec),
+                    elev: gainText
+                });
             }
         }
 
@@ -2276,9 +2523,9 @@
         function copyPaceStrategy() {
             if (!lastPaceTableData || lastPaceTableData.length === 0) return;
             let txt = `Rencana Pacing PacePro - ${routeTitle} (${totalRouteDistance.toFixed(2)} km)\n`;
-            txt += `KM | Target Pace | Waktu Split | Kumulatif\n`;
+            txt += `KM | Target Pace | Waktu Split | Kumulatif | Elevasi\n`;
             lastPaceTableData.forEach(r => {
-                txt += `KM ${r.km} | ${r.pace} | ${r.split} | ${r.cum}\n`;
+                txt += `KM ${r.km} | ${r.pace} | ${r.split} | ${r.cum} | ${r.elev}\n`;
             });
             navigator.clipboard.writeText(txt).then(() => {
                 const btn = document.getElementById('pp-copy-text');
@@ -2291,9 +2538,9 @@
 
         function exportPaceCsv() {
             if (!lastPaceTableData || lastPaceTableData.length === 0) return;
-            let csv = "KM,Target Pace,Split Time,Cumulative Time\n";
+            let csv = "KM,Target Pace,Split Time,Cumulative Time,Elevation\n";
             lastPaceTableData.forEach(r => {
-                csv += `${r.km},"${r.pace}","${r.split}","${r.cum}"\n`;
+                csv += `${r.km},"${r.pace}","${r.split}","${r.cum}","${r.elev}"\n`;
             });
             const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
