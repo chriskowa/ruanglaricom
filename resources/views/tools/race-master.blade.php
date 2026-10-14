@@ -439,6 +439,25 @@
     <main class="max-w-7xl mx-auto p-4">
 
         <div v-if="currentView === 'setup'" class="space-y-6 animate-fade-in">
+
+            <!-- Saved Session Banner: shown when existing data is loaded from localStorage -->
+            <div v-if="raceName || participants.length > 0" class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 py-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800">
+                <div class="flex items-start gap-3 min-w-0">
+                    <i class="fa-solid fa-rotate-left text-amber-600 dark:text-amber-400 mt-0.5 shrink-0"></i>
+                    <div class="min-w-0">
+                        <div class="text-sm font-bold text-amber-800 dark:text-amber-300 truncate">
+                            Data tersimpan: <span class="font-mono">@{{ raceName || 'Race tanpa nama' }}</span>
+                            <span v-if="participants.length > 0" class="font-normal text-amber-700 dark:text-amber-400">&nbsp;&bull; @{{ participants.length }} peserta</span>
+                        </div>
+                        <div class="text-xs text-amber-600 dark:text-amber-500 mt-0.5">Melanjutkan sesi sebelumnya. Untuk memulai lomba baru yang berbeda, klik &ldquo;Mulai Race Baru&rdquo;.</div>
+                    </div>
+                </div>
+                <button type="button" @click="resetAllRaceSetup"
+                    class="shrink-0 px-4 py-2 rounded-md bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs transition-colors flex items-center gap-2">
+                    <i class="fa-solid fa-plus"></i>
+                    Mulai Race Baru
+                </button>
+            </div>
             <!-- Multi-Admin Live Session / Room Sync Card -->
             <div class="bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-200 dark:bg-slate-800 dark:border-slate-700 transition-colors">
                 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
@@ -2427,6 +2446,50 @@
 
     </main>
 
+    <!-- Login Required Modal (shown to guest/incognito users who try to create a session) -->
+    <div v-if="loginModalOpen" class="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/70" @click.self="hideLoginModal">
+        <div class="bg-slate-900 border border-slate-800 rounded-lg p-6 w-full max-w-sm shadow-2xl text-white space-y-5">
+            <!-- Header -->
+            <div class="flex items-start justify-between gap-3">
+                <div>
+                    <h3 class="text-base font-bold text-white flex items-center gap-2">
+                        <i class="fa-solid fa-lock text-amber-400"></i>
+                        Login Diperlukan
+                    </h3>
+                    <p class="text-xs text-slate-400 mt-1">Fitur ini memerlukan akun untuk menyimpan data lomba ke server.</p>
+                </div>
+                <button type="button" @click="hideLoginModal" class="text-slate-500 hover:text-white transition-colors p-1 shrink-0">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Explanation -->
+            <div class="bg-slate-800 rounded-md p-3.5 space-y-2 text-sm text-slate-300">
+                <div class="flex items-start gap-2">
+                    <i class="fa-solid fa-circle-check text-emerald-400 mt-0.5 shrink-0 text-xs"></i>
+                    <span>Tanpa login, Race Master tetap berjalan penuh secara <strong class="text-white">offline di browser ini</strong> (timer, peserta, hasil).</span>
+                </div>
+                <div class="flex items-start gap-2">
+                    <i class="fa-solid fa-circle-check text-emerald-400 mt-0.5 shrink-0 text-xs"></i>
+                    <span>Login dibutuhkan untuk <strong class="text-white">Sesi Bersama</strong> (multi-admin, link TV Display, sinkronisasi antar perangkat).</span>
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex flex-col gap-2">
+                <button type="button" @click="goToLogin"
+                    class="w-full px-4 py-3 rounded-md bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-sm transition-colors flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-right-to-bracket"></i>
+                    Login / Daftar Sekarang
+                </button>
+                <button type="button" @click="hideLoginModal"
+                    class="w-full px-4 py-2.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 font-semibold text-sm transition-colors">
+                    Lanjutkan Tanpa Login (Offline)
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Face Capture Webcam Modal for Multi-Angle Participant Enrollment -->
     <div v-if="faceCaptureModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80" @click.self="closeFaceCaptureModal">
         <div class="bg-slate-900 border border-slate-700 rounded-2xl p-5 w-full max-w-lg shadow-2xl relative text-white space-y-4">
@@ -3686,6 +3749,16 @@
             const isAuthenticated = @json(auth()->check());
             const apiBase = @json(url('api/tools/race-master'));
             const resultsBase = @json(url('tools/race-master/results'));
+            const loginUrl = @json(route('login'));
+
+            // Login Modal (for guest/incognito users)
+            const loginModalOpen = ref(false);
+            const showLoginModal = () => { loginModalOpen.value = true; };
+            const hideLoginModal = () => { loginModalOpen.value = false; };
+            const goToLogin = () => {
+                const returnUrl = encodeURIComponent(window.location.href);
+                window.location.href = `${loginUrl}?redirect=${returnUrl}`;
+            };
 
             const apiFetchJson = async (url, options = {}) => {
                 const headers = options.headers ? { ...options.headers } : {};
@@ -4262,6 +4335,7 @@
             const initializingSession = ref(false);
 
             const initializeRaceSession = async (startTimerNow = false) => {
+                if (!isAuthenticated) { showLoginModal(); return; }
                 if (initializingSession.value) return;
                 initializingSession.value = true;
                 try {
@@ -4283,6 +4357,7 @@
             };
 
             const createNewSession = async () => {
+                if (!isAuthenticated) { showLoginModal(); return; }
                 if (!isSessionHost.value) {
                     alert('Hanya Host pembuat sesi yang berhak membuat sesi baru.');
                     return;
@@ -4787,7 +4862,7 @@
             };
 
             const resetAllRaceSetup = () => {
-                if (!confirm('PERINGATAN: Reset total semua data di halaman ini?\n\nNama race, sesi, timer, dan seluruh daftar peserta di perangkat ini akan dikosongkan kembali ke awal.')) return;
+                if (!confirm('Mulai Race Baru?\n\nSemua data di perangkat ini (nama race, sesi, timer, daftar peserta) akan dikosongkan.\nData yang sudah tersimpan ke database tetap aman.')) return;
                 try {
                     localStorage.removeItem(STORAGE_KEY);
                     localStorage.removeItem(QUEUE_STORAGE_KEY);
@@ -9241,7 +9316,7 @@
                 prevRacePage, nextRacePage, setRacePage,
                 recordLap, markDNF, getLastLapTime, getInitials, formatTime, formatTimeHms,
                 formatPace, getDeltaMs, formatDelta, getPointsInfo,
-                isAuthenticated,
+                isAuthenticated, loginModalOpen, hideLoginModal, goToLogin,
                 isDarkMode, toggleDarkMode, playBeep,
                 copyResultsLink,
                 mediaModalOpen, mediaType, mediaParticipant, mediaLoading, mediaError, mediaPreviewUrl, mediaFile,
