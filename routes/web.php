@@ -255,6 +255,7 @@ Route::get('/r/{slug}', function ($slug) {
 
 Route::prefix('/api/tools/race-master')->group(function () {
     Route::get('/sessions/{session}/live-sync', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'liveSync'])->name('tools.race-master.api.sessions.live-sync');
+    Route::post('/ai-bib-vision', [App\Http\Controllers\Tools\RaceMasterApiController::class, 'recognizeBibVision'])->name('tools.race-master.api.ai-bib-vision');
 });
 
 Route::prefix('/api/tools/race-master')->middleware(['auth', 'role:admin|eo'])->group(function () {

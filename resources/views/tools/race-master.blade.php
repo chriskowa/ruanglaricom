@@ -1092,6 +1092,19 @@
                         <i class="fa-solid fa-camera text-[10px]"></i>
                         <span>Kamera</span>
                     </button>
+                    <button v-if="camera.active" @click="triggerManualCapture"
+                        :disabled="camera.busy"
+                        class="shrink-0 h-8 px-3 rounded-md bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-semibold text-xs flex items-center gap-1.5 transition"
+                        title="Manual Capture Foto & Kunci Waktu (Spasi)">
+                        <i class="fa-solid fa-camera-retro text-[10px]"></i>
+                        <span>Capture (Spasi)</span>
+                    </button>
+                    <label class="shrink-0 h-8 px-3 rounded-md bg-slate-700 hover:bg-slate-600 text-slate-200 font-semibold text-xs flex items-center gap-1.5 transition cursor-pointer"
+                        title="Upload gambar untuk diproses BIB (tanpa kamera)">
+                        <i class="fa-solid fa-image text-[10px]"></i>
+                        <span>Upload Foto</span>
+                        <input type="file" accept="image/*" class="hidden" @change="uploadImageForBibTest">
+                    </label>
                     <button @click="openTvDisplay"
                         class="shrink-0 h-8 px-3 rounded-md bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 font-semibold text-xs flex items-center gap-1.5 transition"
                         title="Tampilkan Layar TV Fullscreen">
@@ -1477,6 +1490,24 @@
                                 <option value="bib_scan">BIB Number Scan Only</option>
                             </select>
 
+                            <!-- Manual Capture Button -->
+                            <button type="button" @click="triggerManualCapture" 
+                                :disabled="camera.busy"
+                                class="px-3 py-1.5 rounded-md bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold flex items-center gap-1.5 transition-colors shadow-sm"
+                                title="Ambil foto saat ini secara manual dan proses nomor BIB (Shortcut: Spasi)">
+                                <i class="fa-solid fa-camera-retro"></i>
+                                <span>Manual Capture</span>
+                                <span class="hidden sm:inline-block px-1 py-0.5 text-[9px] bg-emerald-800 text-emerald-100 rounded font-mono">Spasi</span>
+                            </button>
+
+                            <!-- Upload Foto for BIB Test -->
+                            <label class="px-3 py-1.5 rounded-md bg-slate-700 hover:bg-slate-600 text-slate-200 font-bold flex items-center gap-1.5 transition-colors shadow-sm cursor-pointer"
+                                title="Upload gambar dari perangkat untuk dideteksi nomor BIB-nya (uji coba tanpa kamera)">
+                                <i class="fa-solid fa-image"></i>
+                                <span>Upload Foto</span>
+                                <input type="file" accept="image/*" class="hidden" @change="uploadImageForBibTest">
+                            </label>
+
                             <!-- Local Referee Video Recorder Button -->
                             <button type="button" @click="toggleVideoRecording" 
                                 class="px-3 py-1.5 rounded-lg font-bold flex items-center gap-1.5 transition-colors shadow-sm"
@@ -1562,6 +1593,24 @@
                             </select>
                         </div>
 
+                        <!-- Trigger Mode & AI Vision Engine -->
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Pemicu Deteksi Gambar</label>
+                            <select v-model="raceSettings.ocrTriggerMode" class="w-full bg-slate-950 text-white font-medium px-2.5 py-1.5 rounded border border-slate-700 outline-none text-xs">
+                                <option value="crossing">Saat Lewat Garis/Kotak (Hemat Token & Cepat)</option>
+                                <option value="continuous">Scan Terus-Menerus (Full Frame ~450ms)</option>
+                                <option value="manual">Hanya Manual Capture (Tombol / Spasi)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-[11px] font-bold text-slate-400 uppercase mb-1">Engine AI Vision BIB</label>
+                            <select v-model="raceSettings.aiVisionEngine" class="w-full bg-slate-950 text-white font-medium px-2.5 py-1.5 rounded border border-slate-700 outline-none text-xs">
+                                <option value="gpt_preferred">GPT-4o-mini Vision (Server API) + Fallback Lokal</option>
+                                <option value="local_only">PaddleOCR Lokal Saja (100% Offline, Bebas Token)</option>
+                            </select>
+                        </div>
+
                         <!-- OCR, Face AI & Audio Toggles -->
                         <div class="sm:col-span-2 md:col-span-4 flex flex-wrap items-center gap-4 pt-1 border-t border-slate-800">
                             <label class="inline-flex items-center gap-2 cursor-pointer text-xs">
@@ -1576,19 +1625,30 @@
                                 <input type="checkbox" v-model="raceSettings.enableBeep" class="rounded bg-slate-950 border-slate-700 text-indigo-600 focus:ring-indigo-500">
                                 <span>Audio Beep saat Crossing</span>
                             </label>
-                            <!-- Line Preset Buttons -->
-                            <div class="flex items-center gap-1.5 ml-auto">
-                                <span class="text-slate-500 text-[11px]">Preset Garis:</span>
-                                <button type="button" @click="setLinePreset('vertical')" class="px-2 py-1 rounded bg-slate-950 hover:bg-slate-800 text-slate-300 font-medium border border-slate-700">Tegak</button>
-                                <button type="button" @click="setLinePreset('horizontal')" class="px-2 py-1 rounded bg-slate-950 hover:bg-slate-800 text-slate-300 font-medium border border-slate-700">Datar</button>
+                            <!-- Finish Gate Shape & Presets -->
+                            <div class="flex items-center gap-1.5 ml-auto flex-wrap">
+                                <span class="text-slate-500 text-[11px]">Bentuk Sensor:</span>
+                                <button type="button" @click="setGatePreset('line_vertical')" 
+                                    :class="raceSettings.gateType === 'line' ? 'bg-indigo-600 text-white font-bold' : 'bg-slate-950 text-slate-300 hover:bg-slate-800'"
+                                    class="px-2 py-1 rounded border border-slate-700 text-[11px] transition">
+                                    Garis
+                                </button>
+                                <button type="button" @click="setGatePreset('box_overhead')" 
+                                    :class="raceSettings.gateType === 'box' ? 'bg-amber-600 text-white font-bold' : 'bg-slate-950 text-slate-300 hover:bg-slate-800'"
+                                    class="px-2 py-1 rounded border border-slate-700 text-[11px] transition"
+                                    title="Kotak Finish Gate untuk kamera tinggi / overhead">
+                                    Kotak Gate (Kamera Tinggi)
+                                </button>
                             </div>
                         </div>
 
                         <!-- Camera Console FAST GLOBAL OCR -->
                         <div v-if="raceSettings.enableOcr" class="sm:col-span-2 md:col-span-4 flex items-center justify-between flex-wrap gap-2 text-xs pt-1 border-t border-slate-800">
-                            <span class="text-slate-400 font-bold text-[11px]">OCR Scanner:</span>
+                            <span class="text-slate-400 font-bold text-[11px]">Pipeline Vision:</span>
                             <span class="text-emerald-400 font-bold text-[11px]">
-                                PaddleOCR AI • Full Frame • Runtime Pattern • Fuzzy Top-1
+                                @{{ raceSettings.aiVisionEngine === 'gpt_preferred' ? 'GPT-4o-mini Vision (Server)' : 'PaddleOCR AI' }} • 
+                                @{{ raceSettings.ocrTriggerMode === 'crossing' ? 'Event Lewat Garis/Kotak (Hemat Token)' : (raceSettings.ocrTriggerMode === 'manual' ? 'Manual Capture Saja' : 'Full Frame 450ms') }} •
+                                Sensor: @{{ raceSettings.gateType === 'box' ? 'Kotak Gate (Overhead ROI)' : 'Garis Finish' }}
                             </span>
                         </div>
                     </div>
@@ -1613,9 +1673,31 @@
                     <!-- HTML5 QR Container for QR only fallback mode -->
                     <div id="reader" class="w-full" :class="{'hidden': camera.mode !== 'qr_only'}"></div>
 
-                    <!-- Line Dragging Tip Badge -->
+                    <!-- Line / Gate Dragging Tip Badge -->
                     <div v-if="camera.mode === 'ai_line'" class="absolute bottom-2 left-2 z-20 px-2.5 py-1 rounded bg-black/80 border border-slate-700 text-[11px] text-slate-300 font-medium pointer-events-none">
-                        Tarik titik A atau B untuk menyesuaikan posisi Garis Finish
+                        <span v-if="raceSettings.gateType === 'box'">Tarik sudut Kotak Finish Gate (Kamera Tinggi) untuk mengatur area deteksi</span>
+                        <span v-else>Tarik titik A atau B untuk menyesuaikan posisi Garis Finish</span>
+                    </div>
+
+                    <!-- Manual Flash Shutter Animation -->
+                    <div v-if="camera.manualFlash" class="absolute inset-0 bg-white/50 z-30 pointer-events-none transition-opacity duration-150"></div>
+
+                    <!-- Floating Shutter & Upload Buttons -->
+                    <div class="absolute bottom-3 right-3 z-30 flex items-center gap-2">
+                        <label class="h-9 sm:h-10 px-3 sm:px-4 rounded-md bg-slate-800/90 hover:bg-slate-700 active:scale-95 text-slate-200 font-bold text-xs flex items-center gap-1.5 shadow-xl border border-slate-600 transition-all select-none cursor-pointer"
+                            title="Upload gambar untuk diproses BIB">
+                            <i class="fa-solid fa-image text-xs sm:text-sm"></i>
+                            <span class="hidden sm:inline">Upload Foto</span>
+                            <input type="file" accept="image/*" class="hidden" @change="uploadImageForBibTest">
+                        </label>
+                        <button type="button" @click="triggerManualCapture"
+                            :disabled="camera.busy"
+                            class="h-9 sm:h-10 px-3 sm:px-4 rounded-md bg-emerald-600 hover:bg-emerald-500 active:scale-95 disabled:opacity-50 text-white font-bold text-xs flex items-center gap-1.5 sm:gap-2 shadow-2xl border border-emerald-400 transition-all select-none"
+                            title="Snap foto finish sekarang (Spasi)">
+                            <i class="fa-solid fa-camera-retro text-xs sm:text-sm"></i>
+                            <span class="hidden sm:inline">Manual Capture</span>
+                            <span class="font-mono text-[10px] bg-emerald-800 px-1.5 py-0.5 rounded">Spasi</span>
+                        </button>
                     </div>
 
                     <!-- BIB Scan Mode: Detected BIB overlay -->
@@ -3244,7 +3326,10 @@
                 enableFaceAi: true,
                 enableBeep: true,
                 stationMode: 'master', // 'master' | 'satellite'
-                ocrScope: 'full_frame', // FAST GLOBAL OCR always scans the whole frame
+                ocrScope: 'torso',
+                ocrTriggerMode: 'crossing', // 'crossing' (hemat & akurat) | 'continuous' | 'manual'
+                gateType: 'line', // 'line' | 'box'
+                aiVisionEngine: 'gpt_preferred', // 'gpt_preferred' (GPT-4o-mini + fallback PaddleOCR) | 'local_only' (PaddleOCR)
             });
 
             // Manual BIB Rapid Entry & Validation State
@@ -3444,8 +3529,14 @@
                     x2: 0.5, y2: 0.9,
                     direction: 'any'
                 },
+                box: {
+                    x: 0.25, y: 0.35,
+                    w: 0.50, h: 0.40
+                },
+                dragOffset: null,
                 draggingPoint: null,
                 lineFlash: false,
+                manualFlash: false,
                 minConfidence: 0.45,
             });
 
@@ -6539,16 +6630,35 @@
                 const canvas = document.getElementById('aiCanvas');
                 if (!canvas) return;
                 const c = getCanvasCoords(e, canvas);
-                const p1Px = { x: camera.value.line.x1 * c.width, y: camera.value.line.y1 * c.height };
-                const p2Px = { x: camera.value.line.x2 * c.width, y: camera.value.line.y2 * c.height };
 
-                const d1 = Math.hypot(c.pxX - p1Px.x, c.pxY - p1Px.y);
-                const d2 = Math.hypot(c.pxX - p2Px.x, c.pxY - p2Px.y);
+                if (raceSettings.value.gateType === 'box') {
+                    const b = camera.value.box;
+                    const tlPx = { x: b.x * c.width, y: b.y * c.height };
+                    const brPx = { x: (b.x + b.w) * c.width, y: (b.y + b.h) * c.height };
 
-                if (d1 < 35) {
-                    camera.value.draggingPoint = 'p1';
-                } else if (d2 < 35) {
-                    camera.value.draggingPoint = 'p2';
+                    const dTL = Math.hypot(c.pxX - tlPx.x, c.pxY - tlPx.y);
+                    const dBR = Math.hypot(c.pxX - brPx.x, c.pxY - brPx.y);
+
+                    if (dTL < 35) {
+                        camera.value.draggingPoint = 'box_tl';
+                    } else if (dBR < 35) {
+                        camera.value.draggingPoint = 'box_br';
+                    } else if (c.x >= b.x && c.x <= b.x + b.w && c.y >= b.y && c.y <= b.y + b.h) {
+                        camera.value.draggingPoint = 'box_center';
+                        camera.value.dragOffset = { dx: c.x - b.x, dy: c.y - b.y };
+                    }
+                } else {
+                    const p1Px = { x: camera.value.line.x1 * c.width, y: camera.value.line.y1 * c.height };
+                    const p2Px = { x: camera.value.line.x2 * c.width, y: camera.value.line.y2 * c.height };
+
+                    const d1 = Math.hypot(c.pxX - p1Px.x, c.pxY - p1Px.y);
+                    const d2 = Math.hypot(c.pxX - p2Px.x, c.pxY - p2Px.y);
+
+                    if (d1 < 35) {
+                        camera.value.draggingPoint = 'p1';
+                    } else if (d2 < 35) {
+                        camera.value.draggingPoint = 'p2';
+                    }
                 }
             };
 
@@ -6557,7 +6667,25 @@
                 const canvas = document.getElementById('aiCanvas');
                 if (!canvas) return;
                 const c = getCanvasCoords(e, canvas);
-                if (camera.value.draggingPoint === 'p1') {
+
+                if (camera.value.draggingPoint === 'box_tl') {
+                    const b = camera.value.box;
+                    const right = b.x + b.w;
+                    const bottom = b.y + b.h;
+                    b.x = Math.max(0.02, Math.min(right - 0.08, c.x));
+                    b.y = Math.max(0.02, Math.min(bottom - 0.08, c.y));
+                    b.w = right - b.x;
+                    b.h = bottom - b.y;
+                } else if (camera.value.draggingPoint === 'box_br') {
+                    const b = camera.value.box;
+                    b.w = Math.max(0.08, Math.min(0.98 - b.x, c.x - b.x));
+                    b.h = Math.max(0.08, Math.min(0.98 - b.y, c.y - b.y));
+                } else if (camera.value.draggingPoint === 'box_center') {
+                    const b = camera.value.box;
+                    const offset = camera.value.dragOffset || { dx: b.w / 2, dy: b.h / 2 };
+                    b.x = Math.max(0.01, Math.min(0.99 - b.w, c.x - offset.dx));
+                    b.y = Math.max(0.01, Math.min(0.99 - b.h, c.y - offset.dy));
+                } else if (camera.value.draggingPoint === 'p1') {
                     camera.value.line.x1 = c.x;
                     camera.value.line.y1 = c.y;
                 } else if (camera.value.draggingPoint === 'p2') {
@@ -6569,6 +6697,7 @@
 
             const handleCanvasMouseUp = () => {
                 camera.value.draggingPoint = null;
+                camera.value.dragOffset = null;
                 saveState();
             };
 
@@ -6576,19 +6705,37 @@
             const handleCanvasTouchMove = (e) => handleCanvasMouseMove(e);
             const handleCanvasTouchEnd = () => handleCanvasMouseUp();
 
-            const setLinePreset = (preset) => {
-                if (preset === 'vertical') {
+            const setGatePreset = (preset) => {
+                if (preset === 'line_vertical') {
+                    raceSettings.value.gateType = 'line';
                     camera.value.line.x1 = 0.5;
                     camera.value.line.y1 = 0.05;
                     camera.value.line.x2 = 0.5;
                     camera.value.line.y2 = 0.95;
-                } else if (preset === 'horizontal') {
+                } else if (preset === 'line_horizontal') {
+                    raceSettings.value.gateType = 'line';
                     camera.value.line.x1 = 0.05;
                     camera.value.line.y1 = 0.5;
                     camera.value.line.x2 = 0.95;
                     camera.value.line.y2 = 0.5;
+                } else if (preset === 'box_finish') {
+                    raceSettings.value.gateType = 'box';
+                    camera.value.box.x = 0.25;
+                    camera.value.box.y = 0.35;
+                    camera.value.box.w = 0.50;
+                    camera.value.box.h = 0.40;
+                } else if (preset === 'box_overhead') {
+                    raceSettings.value.gateType = 'box';
+                    camera.value.box.x = 0.20;
+                    camera.value.box.y = 0.45;
+                    camera.value.box.w = 0.60;
+                    camera.value.box.h = 0.35;
                 }
                 saveState();
+            };
+
+            const setLinePreset = (preset) => {
+                setGatePreset(preset === 'vertical' ? 'line_vertical' : 'line_horizontal');
             };
 
             // Geometry & Line Crossing Intersection Algorithm
@@ -7005,13 +7152,15 @@
 
             const startGlobalOcrScanner = () => {
                 stopGlobalOcrScanner();
+                // If trigger mode is 'crossing' or 'manual', periodic full-frame scanning is disabled
+                // to save CPU/GPU and tokens! Images are processed strictly on crossing/manual trigger.
+                if (raceSettings.value.ocrTriggerMode !== 'continuous') {
+                    return;
+                }
                 globalOcrTimer = setInterval(() => {
-                    // Do not queue overlapping PaddleOCR work. If one scan is still running,
-                    // this interval is simply skipped.
                     runGlobalOcrTick();
                 }, OCR_GLOBAL_INTERVAL_MS);
 
-                // First scan quickly after camera startup.
                 setTimeout(() => runGlobalOcrTick(), 120);
             };
 
@@ -7521,14 +7670,176 @@
             };
 
 
-            // Runner Crossing Event Handler
+            // Unified Background BIB Recognition Queue
+            const bibRecognitionQueue = [];
+            let bibRecognitionQueueBusy = false;
+
+            const enqueueBibRecognitionJob = (job) => {
+                bibRecognitionQueue.push(job);
+                processNextBibJob();
+            };
+
+            const processNextBibJob = async () => {
+                if (bibRecognitionQueueBusy || bibRecognitionQueue.length === 0) return;
+                bibRecognitionQueueBusy = true;
+                const job = bibRecognitionQueue.shift();
+
+                try {
+                    let participant = null;
+                    let detectedBib = '';
+                    let matchMethod = '';
+
+                    // 1. QR Code Engine (Immediate check from video frame)
+                    if (raceSettings.value.enableQr && job.video) {
+                        try {
+                            const bibs = await decodeMultipleFromVideoFrame(job.video);
+                            for (const qrBib of bibs || []) {
+                                const resolved = resolveBibCandidate(qrBib);
+                                if (resolved.participant) {
+                                    participant = resolved.participant;
+                                    detectedBib = normalizeBib(participant.bib) || participant.bib;
+                                    matchMethod = 'qr';
+                                    break;
+                                }
+                            }
+                        } catch (e) {}
+                    }
+
+                    // 2. GPT-4o-mini Vision (via Backend API endpoint)
+                    if (!participant && raceSettings.value.enableOcr && raceSettings.value.aiVisionEngine !== 'local_only') {
+                        try {
+                            camera.value.lastScanMsg = 'AI Vision: Membaca BIB via GPT-4o-mini...';
+                            const res = await apiFetchJson(`${apiBase}/ai-bib-vision`, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ image: job.snapshotDataUrl })
+                            });
+
+                            if (res?.success && res?.bib) {
+                                const resolved = resolveBibCandidate(res.bib);
+                                if (resolved.participant) {
+                                    participant = resolved.participant;
+                                    detectedBib = normalizeBib(participant.bib) || participant.bib;
+                                    matchMethod = 'gpt-4o-mini';
+                                } else {
+                                    detectedBib = res.bib;
+                                    matchMethod = 'gpt-4o-mini (unregistered)';
+                                }
+                            }
+                        } catch (err) {
+                            console.warn('[BibQueue] GPT-4o-mini error, falling back to local PaddleOCR:', err);
+                        }
+                    }
+
+                    // 3. Fallback: Local PaddleOCR Engine
+                    if (!participant && raceSettings.value.enableOcr) {
+                        try {
+                            const paddleEngine = await ensurePaddleOcr();
+                            if (paddleEngine) {
+                                const img = new Image();
+                                img.src = job.snapshotDataUrl;
+                                await new Promise(r => { img.onload = r; img.onerror = r; });
+
+                                const ocrRes = await runOcrQueued(async () => paddleEngine.recognize(img), true);
+                                const rawText = extractTextFromPaddleResult(ocrRes);
+                                if (rawText) {
+                                    const best = findBestOcrParticipantMatch(rawText);
+                                    if (best?.participant) {
+                                        participant = best.participant;
+                                        detectedBib = normalizeBib(participant.bib) || participant.bib;
+                                        matchMethod = 'paddle_ocr';
+                                    } else {
+                                        const digits = rawText.match(/\d{1,6}/g);
+                                        if (digits && digits.length > 0) {
+                                            detectedBib = digits[0];
+                                            matchMethod = 'paddle_ocr (unregistered)';
+                                        }
+                                    }
+                                }
+                            }
+                        } catch (err) {
+                            console.warn('[BibQueue] PaddleOCR error:', err);
+                        }
+                    }
+
+                    // 4. Fallback: Face AI Biometrics
+                    if (!participant && raceSettings.value.enableFaceAi && faceModelsLoaded && job.snapCanvas) {
+                        try {
+                            const liveDesc = await extractFaceDescriptorFromImage(job.snapCanvas);
+                            if (liveDesc) {
+                                let bestMatch = null;
+                                let minDistance = 0.54;
+                                participants.value.forEach(p => {
+                                    const targetDescriptors = Array.isArray(p.faceDescriptors) && p.faceDescriptors.length > 0
+                                        ? p.faceDescriptors
+                                        : (p.faceDescriptor ? [p.faceDescriptor] : []);
+                                    targetDescriptors.forEach(desc => {
+                                        if (Array.isArray(desc)) {
+                                            const dist = faceapi.euclideanDistance(liveDesc, desc);
+                                            if (dist < minDistance) {
+                                                minDistance = dist;
+                                                bestMatch = p;
+                                            }
+                                        }
+                                    });
+                                });
+                                if (bestMatch) {
+                                    participant = bestMatch;
+                                    detectedBib = normalizeBib(bestMatch.bib) || bestMatch.bib;
+                                    matchMethod = 'face_ai';
+                                }
+                            }
+                        } catch (e) {}
+                    }
+
+                    // Update Feed & Record Timing
+                    const formattedTimeStr = formatTime(job.timingLock.elapsedMs);
+                    if (participant) {
+                        job.feedItem.bib = participant.bib;
+                        job.feedItem.name = participant.name;
+                        job.feedItem.participantId = participant.id;
+                        job.feedItem.matchMethod = matchMethod;
+                        job.feedItem.status = 'confirmed';
+
+                        if (timer.value.running) {
+                            const recorded = recordLap(participant.id, matchMethod, job.timingLock);
+                            if (recorded) {
+                                triggerTvFinisherFlash(participant);
+                                camera.value.lastScanMsg = `FINISH [${matchMethod.toUpperCase()}]: #${participant.bib} (${participant.name}) • ${formattedTimeStr}`;
+                                showDuplicateAlert('success', `BIB #${participant.bib} (${participant.name}) Finish pada ${formattedTimeStr}!`, participant);
+                            }
+                        } else {
+                            camera.value.lastScanMsg = `Crossing: BIB #${participant.bib} (${participant.name}) • ${formattedTimeStr}`;
+                        }
+                    } else if (detectedBib) {
+                        job.feedItem.bib = detectedBib;
+                        job.feedItem.name = 'BIB Belum Terdaftar';
+                        job.feedItem.matchMethod = matchMethod || 'ocr';
+                        job.feedItem.status = 'unmatched';
+                        camera.value.lastScanMsg = `Crossing: Terbaca #${detectedBib} (Belum Terdaftar) • ${formattedTimeStr}`;
+                        showDuplicateAlert('warning', `Terdeteksi BIB #${detectedBib} pada ${formattedTimeStr}, belum terdaftar di data peserta. Tap untuk verifikasi.`);
+                    } else {
+                        job.feedItem.bib = '';
+                        job.feedItem.name = 'Perlu Verifikasi Manual';
+                        job.feedItem.status = 'manual_review';
+                        camera.value.lastScanMsg = `Crossing tersimpan • ${formattedTimeStr} • Perlu verifikasi BIB`;
+                    }
+                } finally {
+                    bibRecognitionQueueBusy = false;
+                    if (bibRecognitionQueue.length > 0) {
+                        setTimeout(() => processNextBibJob(), 80);
+                    }
+                }
+            };
+
+            // Runner Crossing Event Handler (Triggered only when runner crosses line or enters gate box)
             const handleRunnerCrossing = async (video, bbox, trackId = null, crossingTiming = null) => {
                 camera.value.crossingCount++;
                 camera.value.lineFlash = true;
                 setTimeout(() => { camera.value.lineFlash = false; }, 450);
                 if (raceSettings.value.enableBeep) playBeep();
 
-                // Lock timing IMMEDIATELY at the physical crossing. OCR/Face AI may finish later.
+                // 1. Lock timing IMMEDIATELY at the physical crossing.
                 const capturedAt = Number.isFinite(crossingTiming?.capturedAt) ? crossingTiming.capturedAt : Date.now();
                 const recordedTimeMs = Number.isFinite(crossingTiming?.elapsedMs)
                     ? crossingTiming.elapsedMs
@@ -7536,157 +7847,59 @@
                 const timingLock = { capturedAt, elapsedMs: recordedTimeMs };
                 const formattedTimeStr = formatTime(recordedTimeMs);
 
-                // Create snapshot thumbnail immediately from the crossing frame.
+                // 2. Smart Torso Crop (Area dada untuk membaca nomor BIB dengan optimal & hemat token)
                 let snapshotDataUrl = '';
+                let snapCanvas = document.createElement('canvas');
                 try {
-                    const snapCanvas = document.createElement('canvas');
-                    snapCanvas.width = 240;
-                    snapCanvas.height = 240;
-                    const snapCtx = snapCanvas.getContext('2d');
-
                     const [bx, by, bw, bh] = bbox;
-                    const padX = Math.max(0, bx - 14);
-                    const padY = Math.max(0, by - 14);
-                    const padW = Math.min(video.videoWidth - padX, bw + 28);
-                    const padH = Math.min(video.videoHeight - padY, bh + 28);
-                    snapCtx.drawImage(video, padX, padY, padW, padH, 0, 0, 240, 240);
-                    snapshotDataUrl = snapCanvas.toDataURL('image/jpeg', 0.86);
-                } catch (e) {}
+                    const cropX = Math.max(0, bx - bw * 0.1);
+                    const cropY = Math.max(0, by + bh * 0.08);
+                    const cropW = Math.max(1, Math.min(video.videoWidth - cropX, bw * 1.2));
+                    const cropH = Math.max(1, Math.min(video.videoHeight - cropY, bh * 0.65));
 
-                let detectedBib = '';
-                let matchMethod = '';
-                let participant = null;
-                let weakCandidate = null;
-
-                // Engine 1: QR. Accept only if it resolves to a participant; otherwise continue OCR/Face.
-                if (raceSettings.value.enableQr) {
+                    snapCanvas.width = 480;
+                    snapCanvas.height = Math.max(180, Math.round(480 * (cropH / cropW)));
+                    const snapCtx = snapCanvas.getContext('2d');
+                    snapCtx.drawImage(video, cropX, cropY, cropW, cropH, 0, 0, snapCanvas.width, snapCanvas.height);
+                    snapshotDataUrl = snapCanvas.toDataURL('image/jpeg', 0.85);
+                } catch (e) {
                     try {
-                        const bibs = await decodeMultipleFromVideoFrame(video);
-                        for (const qrBib of bibs || []) {
-                            const resolved = resolveBibCandidate(qrBib);
-                            if (resolved.participant) {
-                                participant = resolved.participant;
-                                detectedBib = normalizeBib(participant.bib) || participant.bib;
-                                matchMethod = 'qr';
-                                break;
-                            }
-                            if (!weakCandidate && resolved.bib) weakCandidate = { ...resolved, method: 'qr' };
-                        }
-                    } catch (e) {}
+                        snapCanvas.width = 480;
+                        snapCanvas.height = Math.round(480 * (video.videoHeight / video.videoWidth));
+                        snapCanvas.getContext('2d').drawImage(video, 0, 0, snapCanvas.width, snapCanvas.height);
+                        snapshotDataUrl = snapCanvas.toDataURL('image/jpeg', 0.82);
+                    } catch (err) {}
                 }
 
-                // OCR is handled by the independent GLOBAL full-frame scanner (PaddleOCR).
-                // Do not block crossing handling with per-person OCR here.
-
-                // Engine 3: Face Recognition fallback.
-                if (!participant && raceSettings.value.enableFaceAi && faceModelsLoaded) {
-                    try {
-                        const [bx, by, bw, bh] = bbox;
-                        const headY = Math.max(0, by);
-                        const headH = Math.min(video.videoHeight - headY, bh * 0.45);
-                        const headX = Math.max(0, bx + bw * 0.1);
-                        const headW = Math.min(video.videoWidth - headX, bw * 0.8);
-
-                        const faceCanvas = document.createElement('canvas');
-                        faceCanvas.width = 160;
-                        faceCanvas.height = 160;
-                        const fCtx = faceCanvas.getContext('2d');
-                        fCtx.drawImage(video, headX, headY, headW, headH, 0, 0, 160, 160);
-
-                        const liveDesc = await extractFaceDescriptorFromImage(faceCanvas);
-                        if (liveDesc) {
-                            let bestMatch = null;
-                            let minDistance = 0.54;
-
-                            participants.value.forEach(p => {
-                                const targetDescriptors = Array.isArray(p.faceDescriptors) && p.faceDescriptors.length > 0
-                                    ? p.faceDescriptors
-                                    : (p.faceDescriptor ? [p.faceDescriptor] : []);
-
-                                targetDescriptors.forEach(desc => {
-                                    if (Array.isArray(desc)) {
-                                        const dist = faceapi.euclideanDistance(liveDesc, desc);
-                                        if (dist < minDistance) {
-                                            minDistance = dist;
-                                            bestMatch = p;
-                                        }
-                                    }
-                                });
-                            });
-
-                            if (bestMatch) {
-                                participant = bestMatch;
-                                detectedBib = normalizeBib(bestMatch.bib) || bestMatch.bib;
-                                matchMethod = 'face_ai';
-                            }
-                        }
-                    } catch (e) {}
-                }
-
-                // Preserve the best readable text for audit/manual assignment when automatic identity failed.
-                if (!participant && weakCandidate?.bib) detectedBib = weakCandidate.bib;
-
-                if (participant && timer.value.running) {
-                    const tag = matchMethod === 'face_ai' ? '[Face AI]' : '[QR]';
-
-                    if (raceSettings.value.raceMode === 'single') {
-                        if (participant.status === 'finished') {
-                            camera.value.lastScanMsg = `BIB #${participant.bib} sudah Finish sebelumnya (${formatTime(participant.totalTime)})`;
-                            showDuplicateAlert('warning', `DUPLIKAT: BIB #${participant.bib} (${participant.name}) SUDAH FINISH sebelumnya pada ${formatTime(participant.totalTime)}!`, participant);
-                        } else {
-                            const recorded = recordLap(participant.id, 'ai_vision', timingLock);
-                            if (recorded) {
-                                triggerTvFinisherFlash(participant);
-                                camera.value.lastScanMsg = `FINISH ${tag}: BIB #${participant.bib} (${participant.name}) • ${formattedTimeStr}`;
-                                showDuplicateAlert('success', `FINISH ${tag}: BIB #${participant.bib} (${participant.name}) • ${formattedTimeStr}`, participant);
-                            }
-                        }
-                    } else {
-                        const cooldownMs = raceSettings.value.minLapCooldownSec * 1000;
-                        if (participant.lastScanTime && (capturedAt - participant.lastScanTime < cooldownMs)) {
-                            const rem = Math.ceil((cooldownMs - (capturedAt - participant.lastScanTime)) / 1000);
-                            camera.value.lastScanMsg = `BIB #${participant.bib} dalam masa cooldown putaran`;
-                            showDuplicateAlert('warning', `BIB #${participant.bib} (${participant.name}) masih dalam cooldown lap (${rem}s tersisa)!`, participant);
-                        } else {
-                            const recorded = recordLap(participant.id, 'ai_vision', timingLock);
-                            if (recorded) {
-                                if (participant.laps.length >= raceSettings.value.targetLaps) {
-                                    triggerTvFinisherFlash(participant);
-                                    camera.value.lastScanMsg = `FINISH ${tag} (Lap ${participant.laps.length}): BIB #${participant.bib} (${participant.name}) • ${formattedTimeStr}`;
-                                    showDuplicateAlert('success', `FINISH ${tag}: BIB #${participant.bib} (${participant.name}) • ${formattedTimeStr}`, participant);
-                                } else {
-                                    camera.value.lastScanMsg = `LAP ${participant.laps.length}/${raceSettings.value.targetLaps} ${tag}: BIB #${participant.bib} • ${formattedTimeStr}`;
-                                    showDuplicateAlert('info', `LAP ${participant.laps.length}/${raceSettings.value.targetLaps} ${tag}: BIB #${participant.bib} • ${formattedTimeStr}`, participant);
-                                }
-                            }
-                        }
-                    }
-                } else if (weakCandidate?.ambiguous) {
-                    const names = (weakCandidate.candidates || []).map(p => p.bib).join(', ');
-                    camera.value.lastScanMsg = `OCR ambigu: ${weakCandidate.bib} → ${names || 'beberapa peserta'} • ${formattedTimeStr}`;
-                    showDuplicateAlert('warning', `BIB ${weakCandidate.bib} terbaca tetapi ambigu (${names}). Gunakan snapshot / Face AI / assign manual.`);
-                } else if (detectedBib) {
-                    camera.value.lastScanMsg = `Crossing: BIB terbaca #${detectedBib}, belum cocok ke peserta • ${formattedTimeStr}`;
-                    showDuplicateAlert('error', `Crossing terdeteksi BIB #${detectedBib}, namun identitas belum dapat dipastikan.`);
-                } else {
-                    camera.value.lastScanMsg = `Crossing terdeteksi • Waktu: ${formattedTimeStr} • Perlu verifikasi BIB`;
-                }
-
-                liveFinishFeed.value.unshift({
+                // 3. Register placeholder item in Live Finish Feed immediately
+                const feedItem = {
                     id: crypto.randomUUID(),
                     capturedAt,
                     timestampMs: recordedTimeMs,
                     timeFormatted: formattedTimeStr,
-                    bib: participant ? participant.bib : (detectedBib || ''),
-                    name: participant ? participant.name : '',
+                    bib: '',
+                    name: 'Memproses AI / OCR...',
                     snapshot: snapshotDataUrl,
-                    participantId: participant ? participant.id : null,
-                    matchMethod: matchMethod || weakCandidate?.method || '',
-                    ocrConfidence: Number(weakCandidate?.confidence || weakCandidate?.avg || 0),
-                    ambiguous: Boolean(weakCandidate?.ambiguous),
-                });
-
+                    participantId: null,
+                    matchMethod: 'crossing',
+                    ocrConfidence: 0,
+                    ambiguous: false,
+                    status: 'processing',
+                };
+                liveFinishFeed.value.unshift(feedItem);
                 if (liveFinishFeed.value.length > 30) liveFinishFeed.value.pop();
+
+                camera.value.lastScanMsg = `Crossing terdeteksi • ${formattedTimeStr} • Memproses BIB...`;
+
+                // 4. Send to Background Queue for asynchronous recognition (QR -> GPT-4o-mini / PaddleOCR -> Face AI)
+                enqueueBibRecognitionJob({
+                    feedItem,
+                    video,
+                    snapCanvas,
+                    snapshotDataUrl,
+                    timingLock,
+                    bbox
+                });
             };
 
             // AI Detection & Canvas Rendering Loop
@@ -7719,42 +7932,76 @@
                 const vw = canvas.width;
                 const vh = canvas.height;
 
-                // Draw Finish Line
-                const lx1 = camera.value.line.x1 * vw;
-                const ly1 = camera.value.line.y1 * vh;
-                const lx2 = camera.value.line.x2 * vw;
-                const ly2 = camera.value.line.y2 * vh;
+                // Draw Finish Gate: Box ROI (Elevated Camera) or Line A-B
+                if (raceSettings.value.gateType === 'box') {
+                    const bx = camera.value.box.x * vw;
+                    const by = camera.value.box.y * vh;
+                    const bw = camera.value.box.w * vw;
+                    const bh = camera.value.box.h * vh;
 
-                ctx.save();
-                ctx.lineWidth = camera.value.lineFlash ? 8 : 4;
-                ctx.strokeStyle = camera.value.lineFlash ? '#10B981' : '#6366F1';
-                ctx.setLineDash([8, 6]);
-                ctx.beginPath();
-                ctx.moveTo(lx1, ly1);
-                ctx.lineTo(lx2, ly2);
-                ctx.stroke();
-                ctx.setLineDash([]);
+                    ctx.save();
+                    ctx.lineWidth = camera.value.lineFlash ? 6 : 3;
+                    ctx.strokeStyle = camera.value.lineFlash ? '#10B981' : '#F59E0B';
+                    ctx.fillStyle = camera.value.lineFlash ? 'rgba(16, 185, 129, 0.18)' : 'rgba(245, 158, 11, 0.08)';
+                    ctx.fillRect(bx, by, bw, bh);
+                    ctx.setLineDash([8, 6]);
+                    ctx.strokeRect(bx, by, bw, bh);
+                    ctx.setLineDash([]);
 
-                // Draw Endpoint handles
-                const drawHandle = (x, y, label) => {
-                    ctx.beginPath();
-                    ctx.arc(x, y, 14, 0, Math.PI * 2);
-                    ctx.fillStyle = '#6366F1';
-                    ctx.fill();
-                    ctx.lineWidth = 3;
-                    ctx.strokeStyle = '#FFFFFF';
-                    ctx.stroke();
-
-                    ctx.fillStyle = '#FFFFFF';
+                    ctx.fillStyle = camera.value.lineFlash ? '#10B981' : '#F59E0B';
                     ctx.font = 'bold 11px Inter, sans-serif';
-                    ctx.textAlign = 'center';
-                    ctx.textBaseline = 'middle';
-                    ctx.fillText(label, x, y);
-                };
+                    ctx.fillText('FINISH GATE (OVERHEAD ROI)', bx + 8, by > 18 ? by - 6 : by + 16);
 
-                drawHandle(lx1, ly1, 'A');
-                drawHandle(lx2, ly2, 'B');
-                ctx.restore();
+                    // Corner Handles (TL and BR)
+                    const drawBoxHandle = (x, y) => {
+                        ctx.beginPath();
+                        ctx.arc(x, y, 7, 0, Math.PI * 2);
+                        ctx.fillStyle = '#F59E0B';
+                        ctx.fill();
+                        ctx.lineWidth = 2;
+                        ctx.strokeStyle = '#FFFFFF';
+                        ctx.stroke();
+                    };
+                    drawBoxHandle(bx, by);
+                    drawBoxHandle(bx + bw, by + bh);
+                    ctx.restore();
+                } else {
+                    const lx1 = camera.value.line.x1 * vw;
+                    const ly1 = camera.value.line.y1 * vh;
+                    const lx2 = camera.value.line.x2 * vw;
+                    const ly2 = camera.value.line.y2 * vh;
+
+                    ctx.save();
+                    ctx.lineWidth = camera.value.lineFlash ? 8 : 4;
+                    ctx.strokeStyle = camera.value.lineFlash ? '#10B981' : '#6366F1';
+                    ctx.setLineDash([8, 6]);
+                    ctx.beginPath();
+                    ctx.moveTo(lx1, ly1);
+                    ctx.lineTo(lx2, ly2);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+
+                    // Draw Endpoint handles
+                    const drawHandle = (x, y, label) => {
+                        ctx.beginPath();
+                        ctx.arc(x, y, 14, 0, Math.PI * 2);
+                        ctx.fillStyle = '#6366F1';
+                        ctx.fill();
+                        ctx.lineWidth = 3;
+                        ctx.strokeStyle = '#FFFFFF';
+                        ctx.stroke();
+
+                        ctx.fillStyle = '#FFFFFF';
+                        ctx.font = 'bold 11px Inter, sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(label, x, y);
+                    };
+
+                    drawHandle(lx1, ly1, 'A');
+                    drawHandle(lx2, ly2, 'B');
+                    ctx.restore();
+                }
 
                 // Detect Person with COCO-SSD
                 if (cocoModel && !camera.value.busy) {
@@ -7805,16 +8052,24 @@
                                 const prevPoint = { x: track.lastX, y: track.lastY };
                                 const currPoint = normCentroid;
 
-                                const lineP1 = { x: camera.value.line.x1, y: camera.value.line.y1 };
-                                const lineP2 = { x: camera.value.line.x2, y: camera.value.line.y2 };
+                                let isCrossing = false;
+                                if (raceSettings.value.gateType === 'box') {
+                                    const b = camera.value.box;
+                                    const isInsideNow = (currPoint.x >= b.x && currPoint.x <= b.x + b.w && currPoint.y >= b.y && currPoint.y <= b.y + b.h);
+                                    const wasInsideBefore = (prevPoint.x >= b.x && prevPoint.x <= b.x + b.w && prevPoint.y >= b.y && prevPoint.y <= b.y + b.h);
+                                    isCrossing = isInsideNow && !wasInsideBefore;
+                                } else {
+                                    const lineP1 = { x: camera.value.line.x1, y: camera.value.line.y1 };
+                                    const lineP2 = { x: camera.value.line.x2, y: camera.value.line.y2 };
+                                    isCrossing = checkIntersection(prevPoint, currPoint, lineP1, lineP2);
+                                }
 
-                                const isCrossing = checkIntersection(prevPoint, currPoint, lineP1, lineP2);
-                                const isValidDir = checkDirectionValid(prevPoint, currPoint, camera.value.line);
+                                const isValidDir = raceSettings.value.gateType === 'box' ? true : checkDirectionValid(prevPoint, currPoint, camera.value.line);
 
                                 if (isCrossing && isValidDir && (now - track.crossedAt > 3500)) {
                                     track.crossedAt = now;
 
-                                    // Lock official time here, before any async OCR/Face processing.
+                                    // Lock official time immediately at the physical trigger moment
                                     const crossingCapturedAt = Date.now();
                                     const crossingElapsedMs = timer.value.running && timer.value.startTime
                                         ? Math.max(0, crossingCapturedAt - timer.value.startTime)
@@ -8288,6 +8543,148 @@
                 }
             };
 
+            // Trigger Manual Capture: Locks official timing immediately, captures snapshot, and delegates to background queue
+            const triggerManualCapture = async () => {
+                if (camera.value.busy) return;
+                if (!camera.value.active) {
+                    showDuplicateAlert('warning', 'Nyalakan kamera terlebih dahulu untuk melakukan capture.');
+                    return;
+                }
+
+                const video = getReaderVideo();
+                if (!video || !video.videoWidth) {
+                    showDuplicateAlert('error', 'Stream kamera belum siap.');
+                    return;
+                }
+
+                // 1. INSTANT TIME-LOCK: Presisi milidetik saat tombol dipencet
+                const capturedAt = Date.now();
+                const elapsedMs = timer.value.running && timer.value.startTime
+                    ? Math.max(0, capturedAt - timer.value.startTime)
+                    : Math.max(0, timer.value.elapsed || 0);
+                const timingLock = { capturedAt, elapsedMs };
+                const formattedTimeStr = formatTime(elapsedMs);
+
+                // 2. Audio & Visual Shutter Feedback
+                if (raceSettings.value.enableBeep) playBeep();
+                camera.value.manualFlash = true;
+                setTimeout(() => { camera.value.manualFlash = false; }, 200);
+
+                // 3. Capture Snapshot Canvas (Resized for speed & token efficiency)
+                const snapCanvas = document.createElement('canvas');
+                snapCanvas.width = 640;
+                snapCanvas.height = Math.max(240, Math.round(640 * (video.videoHeight / video.videoWidth)));
+                const snapCtx = snapCanvas.getContext('2d');
+                snapCtx.drawImage(video, 0, 0, snapCanvas.width, snapCanvas.height);
+                const snapshotDataUrl = snapCanvas.toDataURL('image/jpeg', 0.86);
+
+                // 4. Create Entry in Live Finish Feed (Immediate Feedback for Marshal)
+                const feedItem = {
+                    id: crypto.randomUUID(),
+                    capturedAt,
+                    timestampMs: elapsedMs,
+                    timeFormatted: formattedTimeStr,
+                    bib: '',
+                    name: 'Memproses AI / OCR...',
+                    snapshot: snapshotDataUrl,
+                    participantId: null,
+                    matchMethod: 'manual_capture',
+                    ocrConfidence: 0,
+                    ambiguous: false,
+                    status: 'processing',
+                };
+                liveFinishFeed.value.unshift(feedItem);
+                if (liveFinishFeed.value.length > 30) liveFinishFeed.value.pop();
+
+                camera.value.lastScanMsg = `Manual Capture • ${formattedTimeStr} • Memproses BIB...`;
+
+                // 5. Delegate to Background Queue for asynchronous AI recognition
+                enqueueBibRecognitionJob({
+                    feedItem,
+                    video,
+                    snapCanvas,
+                    snapshotDataUrl,
+                    timingLock,
+                    bbox: null
+                });
+            };
+
+            // Upload Image for BIB Test: accepts a file from user's device and feeds it through the full recognition pipeline
+            const uploadImageForBibTest = async (event) => {
+                const file = event.target.files?.[0];
+                if (!file) return;
+                // Reset input so same file can be re-uploaded
+                event.target.value = '';
+
+                // 1. Lock timing at the moment of upload
+                const capturedAt = Date.now();
+                const elapsedMs = timer.value.running && timer.value.startTime
+                    ? Math.max(0, capturedAt - timer.value.startTime)
+                    : Math.max(0, timer.value.elapsed || 0);
+                const timingLock = { capturedAt, elapsedMs };
+                const formattedTimeStr = formatTime(elapsedMs);
+
+                // 2. Load image file into a canvas for processing
+                const img = new Image();
+                const objectUrl = URL.createObjectURL(file);
+                img.src = objectUrl;
+
+                await new Promise((resolve, reject) => {
+                    img.onload = resolve;
+                    img.onerror = () => reject(new Error('Gagal memuat gambar.'));
+                }).catch(err => {
+                    URL.revokeObjectURL(objectUrl);
+                    showDuplicateAlert('error', err.message);
+                    return null;
+                });
+
+                if (!img.naturalWidth) return;
+
+                // 3. Draw to canvas (resize max 640px wide for efficiency)
+                const snapCanvas = document.createElement('canvas');
+                const scale = Math.min(1, 640 / img.naturalWidth);
+                snapCanvas.width = Math.round(img.naturalWidth * scale);
+                snapCanvas.height = Math.round(img.naturalHeight * scale);
+                snapCanvas.getContext('2d').drawImage(img, 0, 0, snapCanvas.width, snapCanvas.height);
+                const snapshotDataUrl = snapCanvas.toDataURL('image/jpeg', 0.88);
+                URL.revokeObjectURL(objectUrl);
+
+                // 4. Visual feedback
+                if (raceSettings.value.enableBeep) playBeep();
+                camera.value.manualFlash = true;
+                setTimeout(() => { camera.value.manualFlash = false; }, 200);
+
+                // 5. Create feed placeholder entry
+                const feedItem = {
+                    id: crypto.randomUUID(),
+                    capturedAt,
+                    timestampMs: elapsedMs,
+                    timeFormatted: formattedTimeStr,
+                    bib: '',
+                    name: `Memproses Upload: ${file.name}`,
+                    snapshot: snapshotDataUrl,
+                    participantId: null,
+                    matchMethod: 'upload_test',
+                    ocrConfidence: 0,
+                    ambiguous: false,
+                    status: 'processing',
+                };
+                liveFinishFeed.value.unshift(feedItem);
+                if (liveFinishFeed.value.length > 30) liveFinishFeed.value.pop();
+
+                camera.value.lastScanMsg = `Upload Foto: ${file.name} • Memproses BIB...`;
+
+                // 6. Enqueue into recognition pipeline (same as manual capture)
+                enqueueBibRecognitionJob({
+                    feedItem,
+                    video: null,         // no live camera
+                    snapCanvas,
+                    snapshotDataUrl,
+                    timingLock,
+                    bbox: null
+                });
+            };
+
             const onKeydown = (e) => {
                 if (e.key === 'Escape' && tvDisplayOpen.value) {
                     closeTvDisplay();
@@ -8299,7 +8696,7 @@
 
                 if (e.code === 'Space') {
                     e.preventDefault();
-                    captureScan();
+                    triggerManualCapture();
                 }
             };
 
@@ -8837,7 +9234,7 @@
                 participants, timer, camera, formattedTime, certificatesByBib,
                 focusName, addParticipant, removeParticipant, goToBibs, printBibs,
                 downloadCsvSample, onCsvUpload, importCsvText,
-                startRace, pauseRace, finishRace, resetRace, toggleScanner, captureScan,
+                startRace, pauseRace, finishRace, resetRace, toggleScanner, captureScan, triggerManualCapture, uploadImageForBibTest,
                 activeParticipants, sortedResults, dnfParticipants,
                 raceSearchQuery, raceStatusFilter, raceViewMode, racePageSize, raceCurrentPage,
                 filteredRaceParticipants, raceTotalPages, paginatedRaceParticipants,
@@ -8866,7 +9263,7 @@
                 liveFinishFeed, assignBibModalOpen, selectedUnassignedFinish,
                 handleCanvasMouseDown, handleCanvasMouseMove, handleCanvasMouseUp,
                 handleCanvasTouchStart, handleCanvasTouchMove, handleCanvasTouchEnd,
-                setLinePreset, switchCameraDevice, switchCameraMode,
+                setLinePreset, setGatePreset, switchCameraDevice, switchCameraMode,
                 sessionRoomInput, sessionSyncActive, sessionSyncLastUpdated, sessionSyncError,
                 copySessionShareUrl, joinLiveSession, startLiveSyncPolling,
                 initializingSession, initializeRaceSession, createNewSession,

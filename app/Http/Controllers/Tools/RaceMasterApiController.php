@@ -15,6 +15,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Str;
@@ -2455,5 +2456,87 @@ class RaceMasterApiController extends Controller
                 'created_by' => Auth::id(),
             ]
         );
+    }
+
+    /**
+     * AI BIB Vision Recognition using OpenAI GPT-4o-mini
+     */
+    public function recognizeBibVision(Request $request)
+    {
+        $request->validate([
+            'image' => 'required|string',
+        ]);
+
+        $imageBase64 = $request->input('image');
+        if (!str_starts_with($imageBase64, 'data:image')) {
+            $imageBase64 = 'data:image/jpeg;base64,' . $imageBase64;
+        }
+
+        $apiKey = config('services.openai.api_key') ?: env('OPENAI_API_KEY');
+        if (!$apiKey) {
+            return response()->json([
+                'success' => false,
+                'message' => 'OPENAI_API_KEY belum dikonfigurasi di server.'
+            ], 422);
+        }
+
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $apiKey,
+                'Content-Type' => 'application/json',
+            ])->timeout(15)->post('https://api.openai.com/v1/chat/completions', [
+                'model' => 'gpt-4o-mini',
+                'temperature' => 0,
+                'response_format' => ['type' => 'json_object'],
+                'messages' => [
+                    [
+                        'role' => 'system',
+                        'content' => 'Kamu adalah asisten OCR spesialis lomba lari. Deteksi nomor BIB (nomor dada) pelari dari potongan foto finish. Format output WAJIB JSON: {"bib": "string", "confidence": "high"|"medium"|"low"}. Jika tidak ada angka BIB terbaca, isi {"bib": "", "confidence": "none"}.'
+                    ],
+                    [
+                        'role' => 'user',
+                        'content' => [
+                            [
+                                'type' => 'text',
+                                'text' => 'Baca nomor BIB pelari dari foto finish ini.'
+                            ],
+                            [
+                                'type' => 'image_url',
+                                'image_url' => [
+                                    'url' => $imageBase64,
+                                    'detail' => 'low'
+                                ]
+                            ]
+                        ]
+                    ]
+                ],
+                'max_tokens' => 80
+            ]);
+
+            if ($response->successful()) {
+                $data = $response->json();
+                $content = $data['choices'][0]['message']['content'] ?? '{}';
+                $parsed = json_decode($content, true);
+                $bib = isset($parsed['bib']) ? trim((string)$parsed['bib']) : '';
+                return response()->json([
+                    'success' => true,
+                    'bib' => $bib,
+                    'confidence' => $parsed['confidence'] ?? 'medium',
+                    'engine' => 'gpt-4o-mini'
+                ]);
+            }
+
+            return response()->json([
+                'success' => false,
+                'message' => 'OpenAI API Error: ' . $response->status(),
+                'details' => $response->json()
+            ], 500);
+
+        } catch (\Throwable $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Exception: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }
