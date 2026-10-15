@@ -2648,6 +2648,48 @@
                 });
             }
 
+            function generateTelemetrySeriesJs(count, target, type) {
+                if (!target || count < 1) return new Array(count).fill(null);
+                if (count === 1) return [target];
+
+                var series = [];
+                var warmupCount = (type === 'hr') ? Math.min(15, Math.max(0, Math.round(count * 0.08))) : 0;
+
+                for (var i = 0; i < count; i++) {
+                    var val = target;
+                    if (type === 'hr') {
+                        if (warmupCount > 0 && i < warmupCount) {
+                            var pct = i / warmupCount;
+                            var startHr = Math.max(50, Math.round(target * 0.85));
+                            val = Math.round(startHr + (target - startHr) * pct + (Math.sin(i * 0.4) * 1.5));
+                        } else {
+                            var wave = Math.sin((i - warmupCount) * 0.15) * 2.5 + Math.cos((i - warmupCount) * 0.04) * 1.5;
+                            val = Math.round(target + wave);
+                        }
+                        val = Math.max(40, Math.min(230, val));
+                    } else if (type === 'cadence') {
+                        var wave = Math.sin(i * 0.25) * 1.5 + Math.cos(i * 0.07) * 1.0;
+                        val = Math.round(target + wave);
+                        val = Math.max(40, Math.min(260, val));
+                    } else { // power
+                        var wave = Math.sin(i * 0.22) * 8.0 + Math.cos(i * 0.05) * 5.0;
+                        val = Math.round(target + wave);
+                        val = Math.max(0, Math.min(1500, val));
+                    }
+                    series.push(val);
+                }
+
+                var sum = series.reduce(function (a, b) { return a + b; }, 0);
+                var diff = Math.round(target - (sum / count));
+                if (diff !== 0) {
+                    var startIdx = Math.min(warmupCount, count - 1);
+                    for (var j = startIdx; j < count; j++) {
+                        series[j] += diff;
+                    }
+                }
+                return series;
+            }
+
             function exportGpx() {
                 if (!timeIsValid) {
                     setStatus('Error: Waktu tidak valid');
@@ -2659,10 +2701,63 @@
                     return;
                 }
                 var name = (els.name.value || 'rute-lari').trim() || 'rute-lari';
-                var now = new Date().toISOString();
-                var seg = routePoints.map(function (p) {
-                    return '<trkpt lat="' + p.lat.toFixed(6) + '" lon="' + p.lng.toFixed(6) + '"><time>' + now + '</time></trkpt>';
-                }).join('');
+
+                var effectivePace = 360;
+                var basePace = parsePaceSecPerKm();
+                if (basePace > 0) {
+                    effectivePace = basePace;
+                } else if (els.stravaPace && els.stravaPace.value) {
+                    var m = els.stravaPace.value.trim().match(/^(\d{1,2}):([0-5]\d)$/);
+                    if (m) effectivePace = (parseInt(m[1], 10) * 60) + parseInt(m[2], 10);
+                }
+
+                var totalDistKm = 0;
+                for (var i = 1; i < routePoints.length; i++) {
+                    totalDistKm += haversineKm(routePoints[i - 1], routePoints[i]);
+                }
+                var totalDurationSec = totalDistKm * effectivePace;
+
+                var startTimeMs = Date.now() - ((totalDurationSec + 120) * 1000);
+                if (els.stravaStart && els.stravaStart.value) {
+                    var parsedStart = new Date(els.stravaStart.value).getTime();
+                    if (!isNaN(parsedStart)) {
+                        startTimeMs = parsedStart;
+                        if (startTimeMs + (totalDurationSec * 1000) > Date.now()) {
+                            startTimeMs = Date.now() - ((totalDurationSec + 120) * 1000);
+                        }
+                    }
+                }
+
+                var targetHr = (els.stravaHr && els.stravaHr.value) ? parseInt(els.stravaHr.value, 10) : null;
+                var targetCad = (els.stravaCadence && els.stravaCadence.value) ? parseInt(els.stravaCadence.value, 10) : null;
+                var targetPower = (els.stravaPower && els.stravaPower.value) ? parseInt(els.stravaPower.value, 10) : null;
+                var hasTelemetry = !!(targetHr || targetCad || targetPower);
+
+                var hrSeries = generateTelemetrySeriesJs(routePoints.length, targetHr, 'hr');
+                var cadSeries = generateTelemetrySeriesJs(routePoints.length, targetCad, 'cadence');
+                var powerSeries = generateTelemetrySeriesJs(routePoints.length, targetPower, 'power');
+
+                var accumulatedSec = 0;
+                var seg = '';
+
+                for (var k = 0; k < routePoints.length; k++) {
+                    var pt = routePoints[k];
+                    if (k > 0) {
+                        accumulatedSec += (haversineKm(routePoints[k - 1], pt) * effectivePace);
+                    }
+                    var ptTime = new Date(startTimeMs + (accumulatedSec * 1000)).toISOString();
+
+                    var extContent = '';
+                    var tpxContent = '';
+                    if (hrSeries[k] !== null) tpxContent += '<gpxtpx:hr>' + hrSeries[k] + '</gpxtpx:hr>';
+                    if (cadSeries[k] !== null) tpxContent += '<gpxtpx:cad>' + cadSeries[k] + '</gpxtpx:cad>';
+                    if (powerSeries[k] !== null) tpxContent += '<gpxtpx:watts>' + powerSeries[k] + '</gpxtpx:watts>';
+                    if (tpxContent !== '') extContent += '<gpxtpx:TrackPointExtension>' + tpxContent + '</gpxtpx:TrackPointExtension>';
+                    if (powerSeries[k] !== null) extContent += '<power>' + powerSeries[k] + '</power>';
+
+                    var extXml = extContent !== '' ? '<extensions>' + extContent + '</extensions>' : '';
+                    seg += '<trkpt lat="' + pt.lat.toFixed(6) + '" lon="' + pt.lng.toFixed(6) + '"><time>' + ptTime + '</time>' + extXml + '</trkpt>';
+                }
 
                 var wpts = customMarkers.map(function(cm) {
                     var sym = 'Waypoint';
@@ -2680,9 +2775,18 @@
                            '</wpt>';
                 }).join('');
 
+                var gpxAttrs = 'version="1.1" creator="RuangLari" xmlns="http://www.topografix.com/GPX/1/1"';
+                if (hasTelemetry) {
+                    gpxAttrs += ' xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1"' +
+                        ' xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3"' +
+                        ' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"' +
+                        ' xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd http://www.garmin.com/xmlschemas/TrackPointExtension/v1 http://www.garmin.com/xmlschemas/TrackPointExtensionv1.xsd"';
+                }
+
+                var startTimeIso = new Date(startTimeMs).toISOString();
                 var gpx = '<?xml version="1.0" encoding="UTF-8"?>' +
-                    '<gpx version="1.1" creator="RuangLari" xmlns="http://www.topografix.com/GPX/1/1">' +
-                    '<metadata><name>' + escapeXml(name) + '</name><time>' + now + '</time></metadata>' +
+                    '<gpx ' + gpxAttrs + '>' +
+                    '<metadata><name>' + escapeXml(name) + '</name><time>' + startTimeIso + '</time></metadata>' +
                     wpts +
                     '<trk><name>' + escapeXml(name) + '</name><trkseg>' + seg + '</trkseg></trk>' +
                     '</gpx>';

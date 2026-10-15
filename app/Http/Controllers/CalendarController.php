@@ -390,12 +390,15 @@ class CalendarController extends Controller
             'activity_type' => $validated['activity_type'] ?? null,
             'private' => (bool) ($validated['private'] ?? false),
             'pace_sec_per_km' => $validated['pace_sec_per_km'] ?? 360,
+            'hr' => ! empty($validated['hr']) ? (int) $validated['hr'] : null,
+            'cadence' => ! empty($validated['cadence']) ? (int) $validated['cadence'] : null,
+            'power' => ! empty($validated['power']) ? (int) $validated['power'] : null,
             'points' => $validated['points'],
             'start_at' => $startAt,
         ];
     }
 
-    private function uploadPointsToStrava($user, array $data, ?Carbon $startAt): array
+    private function uploadPointsToStrava($user, array $data, $startAt): array
     {
         $strava = app(StravaApiService::class);
         $accessToken = $strava->getValidAccessToken($user);
@@ -404,6 +407,14 @@ class CalendarController extends Controller
                 'ok' => false,
                 'message' => 'Strava belum tersambung atau izin kedaluwarsa. Silakan hubungkan ulang akun Strava.',
             ];
+        }
+
+        if (is_string($startAt)) {
+            try {
+                $startAt = Carbon::parse($startAt);
+            } catch (\Throwable $e) {
+                $startAt = null;
+            }
         }
 
         $name = trim((string) ($data['name'] ?? 'RuangLari Route'));
@@ -428,7 +439,13 @@ class CalendarController extends Controller
             ];
         }
 
-        $gpx = $this->buildGpxFromPoints($name, $points, $paceSecPerKm, $startAt);
+        $telemetry = [
+            'hr' => isset($data['hr']) && (int) $data['hr'] > 0 ? (int) $data['hr'] : null,
+            'cadence' => isset($data['cadence']) && (int) $data['cadence'] > 0 ? (int) $data['cadence'] : null,
+            'power' => isset($data['power']) && (int) $data['power'] > 0 ? (int) $data['power'] : null,
+        ];
+
+        $gpx = $this->buildGpxFromPoints($name, $points, $paceSecPerKm, $startAt, $telemetry);
 
         $externalId = 'rl-route-'.$user->id.'-'.now()->format('YmdHis').'.gpx';
         $payload = [
@@ -491,13 +508,71 @@ class CalendarController extends Controller
         ];
     }
 
-    private function buildGpxFromPoints(string $name, array $points, ?int $paceSecPerKm, ?Carbon $startAt): string
+    private function generateTelemetrySeries(int $count, ?int $target, string $type): array
+    {
+        if (! $target || $count < 1) {
+            return array_fill(0, $count, null);
+        }
+
+        if ($count === 1) {
+            return [$target];
+        }
+
+        $series = [];
+        $warmupCount = ($type === 'hr') ? min(15, max(0, (int) round($count * 0.08))) : 0;
+
+        for ($i = 0; $i < $count; $i++) {
+            if ($type === 'hr') {
+                if ($warmupCount > 0 && $i < $warmupCount) {
+                    $pct = $i / (float) $warmupCount;
+                    $startHr = max(50, (int) round($target * 0.85));
+                    $val = (int) round($startHr + ($target - $startHr) * $pct + (sin($i * 0.4) * 1.5));
+                } else {
+                    $wave = sin(($i - $warmupCount) * 0.15) * 2.5 + cos(($i - $warmupCount) * 0.04) * 1.5;
+                    $val = (int) round($target + $wave);
+                }
+                $val = max(40, min(230, $val));
+            } elseif ($type === 'cadence') {
+                $wave = sin($i * 0.25) * 1.5 + cos($i * 0.07) * 1.0;
+                $val = (int) round($target + $wave);
+                $val = max(40, min(260, $val));
+            } else { // power
+                $wave = sin($i * 0.22) * 8.0 + cos($i * 0.05) * 5.0;
+                $val = (int) round($target + $wave);
+                $val = max(0, min(1500, $val));
+            }
+            $series[] = $val;
+        }
+
+        // Calibrate steady section so average precisely matches target
+        $currentMean = array_sum($series) / $count;
+        $diff = (int) round($target - $currentMean);
+        if ($diff !== 0) {
+            $startIdx = min($warmupCount, $count - 1);
+            for ($i = $startIdx; $i < $count; $i++) {
+                $series[$i] += $diff;
+            }
+        }
+
+        return $series;
+    }
+
+    private function buildGpxFromPoints(string $name, array $points, ?int $paceSecPerKm, $startAt, array $telemetry = []): string
     {
         $effectivePace = ($paceSecPerKm && $paceSecPerKm > 0) ? $paceSecPerKm : 360;
+        $count = count($points);
+
+        if ($startAt !== null && ! ($startAt instanceof Carbon)) {
+            try {
+                $startAt = Carbon::parse($startAt);
+            } catch (\Throwable $e) {
+                $startAt = null;
+            }
+        }
 
         // Calculate total distance & duration first
         $totalDistKm = 0.0;
-        for ($i = 1; $i < count($points); $i++) {
+        for ($i = 1; $i < $count; $i++) {
             $totalDistKm += $this->haversineKm(
                 (float) $points[$i - 1]['lat'],
                 (float) $points[$i - 1]['lng'],
@@ -517,6 +592,11 @@ class CalendarController extends Controller
             $startedAt = $nowUtc->copy()->subSeconds((int) ceil($totalDurationSec) + 120);
         }
 
+        $hrSeries = $this->generateTelemetrySeries($count, $telemetry['hr'] ?? null, 'hr');
+        $cadenceSeries = $this->generateTelemetrySeries($count, $telemetry['cadence'] ?? null, 'cadence');
+        $powerSeries = $this->generateTelemetrySeries($count, $telemetry['power'] ?? null, 'power');
+        $hasTelemetry = ($telemetry['hr'] ?? null) || ($telemetry['cadence'] ?? null) || ($telemetry['power'] ?? null);
+
         $accumulatedSeconds = 0.0;
         $trkpts = '';
         $lastLat = null;
@@ -532,7 +612,31 @@ class CalendarController extends Controller
             }
 
             $t = $startedAt->copy()->addMilliseconds((int) ($accumulatedSeconds * 1000));
-            $trkpts .= '<trkpt lat="'.$this->fmtCoord($lat).'" lon="'.$this->fmtCoord($lng).'"><time>'.$t->format('Y-m-d\TH:i:s\Z').'</time></trkpt>';
+
+            $extContent = '';
+            $tpxContent = '';
+            if (isset($hrSeries[$idx]) && $hrSeries[$idx] !== null) {
+                $tpxContent .= '<gpxtpx:hr>'.$hrSeries[$idx].'</gpxtpx:hr>';
+            }
+            if (isset($cadenceSeries[$idx]) && $cadenceSeries[$idx] !== null) {
+                $tpxContent .= '<gpxtpx:cad>'.$cadenceSeries[$idx].'</gpxtpx:cad>';
+            }
+            if (isset($powerSeries[$idx]) && $powerSeries[$idx] !== null) {
+                $tpxContent .= '<gpxtpx:watts>'.$powerSeries[$idx].'</gpxtpx:watts>';
+            }
+            if ($tpxContent !== '') {
+                $extContent .= '<gpxtpx:TrackPointExtension>'.$tpxContent.'</gpxtpx:TrackPointExtension>';
+            }
+            if (isset($powerSeries[$idx]) && $powerSeries[$idx] !== null) {
+                $extContent .= '<power>'.$powerSeries[$idx].'</power>';
+            }
+
+            $extXml = $extContent !== '' ? '<extensions>'.$extContent.'</extensions>' : '';
+
+            $trkpts .= '<trkpt lat="'.$this->fmtCoord($lat).'" lon="'.$this->fmtCoord($lng).'">'
+                .'<time>'.$t->format('Y-m-d\TH:i:s\Z').'</time>'
+                .$extXml
+                .'</trkpt>';
 
             $lastLat = $lat;
             $lastLng = $lng;
@@ -541,8 +645,16 @@ class CalendarController extends Controller
         $safeName = $this->escapeXml($name);
         $time = $startedAt->format('Y-m-d\TH:i:s\Z');
 
+        $gpxAttrs = 'version="1.1" creator="RuangLari" xmlns="http://www.topografix.com/GPX/1/1"';
+        if ($hasTelemetry) {
+            $gpxAttrs .= ' xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1"'
+                .' xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3"'
+                .' xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"'
+                .' xsi:schemaLocation="http://www.topografix.com/GPX/1/1 http://www.topografix.com/GPX/1/1/gpx.xsd http://www.garmin.com/xmlschemas/TrackPointExtension/v1 http://www.garmin.com/xmlschemas/TrackPointExtensionv1.xsd"';
+        }
+
         return '<?xml version="1.0" encoding="UTF-8"?>'
-            .'<gpx version="1.1" creator="RuangLari" xmlns="http://www.topografix.com/GPX/1/1">'
+            .'<gpx '.$gpxAttrs.'>'
             .'<metadata><name>'.$safeName.'</name><time>'.$time.'</time></metadata>'
             .'<trk><name>'.$safeName.'</name><trkseg>'.$trkpts.'</trkseg></trk>'
             .'</gpx>';
