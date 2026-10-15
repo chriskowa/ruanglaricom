@@ -528,4 +528,44 @@ class Event extends Model
     {
         return $this->hasMany(Coupon::class);
     }
+
+    /**
+     * Check if the event has any active, usable promo/coupon codes (including global coupons).
+     */
+    public function hasActiveCoupons(): bool
+    {
+        if ($this->relationLoaded('coupons')) {
+            $hasEventCoupon = $this->coupons->contains(function ($coupon) {
+                return $coupon->is_active
+                    && (! $coupon->expires_at || $coupon->expires_at->isFuture())
+                    && (! $coupon->max_uses || $coupon->used_count < $coupon->max_uses);
+            });
+            if ($hasEventCoupon) {
+                return true;
+            }
+        } else {
+            $hasEventCoupon = $this->coupons()
+                ->where('is_active', true)
+                ->where(function ($q) {
+                    $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+                })
+                ->where(function ($q) {
+                    $q->whereNull('max_uses')->orWhereRaw('used_count < max_uses');
+                })
+                ->exists();
+            if ($hasEventCoupon) {
+                return true;
+            }
+        }
+
+        return Coupon::whereNull('event_id')
+            ->where('is_active', true)
+            ->where(function ($q) {
+                $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })
+            ->where(function ($q) {
+                $q->whereNull('max_uses')->orWhereRaw('used_count < max_uses');
+            })
+            ->exists();
+    }
 }

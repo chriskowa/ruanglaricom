@@ -1961,26 +1961,34 @@
                     </div>
 
                     <div class="flex gap-2.5 overflow-x-auto pb-1 no-scrollbar">
-                        <div v-for="item in liveFinishFeed" :key="item.id" class="flex-none w-56 p-2.5 rounded-xl bg-slate-900 border border-slate-800 flex items-center gap-2.5 text-xs">
-                            <div class="w-12 h-12 rounded-lg bg-black overflow-hidden shrink-0 border border-slate-700 relative">
+                        <div v-for="item in liveFinishFeed" :key="item.id" class="flex-none w-64 p-3 rounded-lg bg-slate-900 border border-slate-800 flex items-center gap-3 text-xs">
+                            <div class="w-14 h-14 rounded-md bg-black overflow-hidden shrink-0 border border-slate-700 relative">
                                 <img v-if="item.snapshot" :src="item.snapshot" class="w-full h-full object-cover" alt="Finish Snapshot">
                                 <div v-else class="w-full h-full flex items-center justify-center text-slate-600"><i class="fa-solid fa-camera"></i></div>
                             </div>
                             <div class="min-w-0 flex-1">
                                 <div class="font-bold text-white truncate">
-                                    <span v-if="item.bib" class="font-oswald text-sm text-indigo-400 mr-1">#@{{ item.bib }}</span>
-                                    <span v-else class="text-amber-400 font-medium">Unassigned</span>
-                                    <span v-if="item.name">@{{ item.name }}</span>
+                                    <template v-if="item.status === 'processing'">
+                                        <span class="text-indigo-400 font-mono text-xs flex items-center gap-1.5 animate-pulse">
+                                            <i class="fa-solid fa-circle-notch fa-spin text-[10px]"></i> AI Vision Membaca...
+                                        </span>
+                                    </template>
+                                    <template v-else>
+                                        <span v-if="item.bib" class="font-mono text-sm text-indigo-400 font-bold mr-1">#@{{ item.bib }}</span>
+                                        <span v-else class="text-amber-400 font-medium mr-1">Unassigned</span>
+                                        <span v-if="item.name" class="text-slate-200">@{{ item.name }}</span>
+                                    </template>
                                 </div>
                                 <div class="text-[11px] font-mono text-slate-400 mt-0.5">@{{ item.timeFormatted }}</div>
-                                <div class="mt-0.5 flex items-center gap-1 flex-wrap text-[9px] font-bold uppercase">
+                                <div class="mt-1 flex items-center gap-1 flex-wrap text-[9px] font-bold uppercase">
                                     <span v-if="item.matchMethod" class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300">@{{ item.matchMethod }}</span>
+                                    <span v-if="item.allBibs && item.allBibs.length > 1" class="px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800/40" :title="'Semua BIB: ' + item.allBibs.join(', ')">@{{ item.allBibs.length }} BIB</span>
                                     <span v-if="item.ocrConfidence > 0" class="px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-300">OCR @{{ Math.round(item.ocrConfidence) }}%</span>
                                     <span v-if="item.ambiguous" class="px-1.5 py-0.5 rounded bg-amber-950 text-amber-300">Ambigu</span>
-                                    <span v-if="!item.participantId" class="px-1.5 py-0.5 rounded bg-red-950 text-red-300">Perlu Verifikasi</span>
+                                    <span v-if="!item.participantId && item.status !== 'processing'" class="px-1.5 py-0.5 rounded bg-red-950 text-red-300">Perlu Verifikasi</span>
                                 </div>
 
-                                <button v-if="!item.participantId" type="button" @click="openAssignBibModal(item)" class="mt-1 px-2 py-0.5 rounded bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] transition-colors w-full">
+                                <button v-if="!item.participantId && item.status !== 'processing'" type="button" @click="openAssignBibModal(item)" class="mt-1.5 px-2 py-1 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[10px] transition-colors w-full">
                                     Verifikasi / Tetapkan BIB
                                 </button>
                             </div>
@@ -2172,7 +2180,7 @@
                             <tr v-for="p in paginatedRaceParticipants" :key="p.id" 
                                 class="hover:bg-indigo-50/40 dark:hover:bg-slate-800/60 transition-colors"
                                 :class="{'bg-indigo-50/60 dark:bg-indigo-950/30': p.recentlyScanned}">
-                                <td class="p-3 font-oswald font-bold text-base text-slate-900 dark:text-white">
+                                <td class="p-3 font-mono font-bold text-base text-slate-900 dark:text-white">
                                     #@{{ p.bib }}
                                 </td>
                                 <td class="p-3 font-semibold text-slate-800 dark:text-slate-200">
@@ -2615,36 +2623,62 @@
 
     <!-- Assign BIB Modal for Unassigned Finish Crossing -->
     <div v-if="assignBibModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80" @click.self="assignBibModalOpen = false">
-            <div class="bg-slate-900 border border-slate-700 rounded-2xl p-5 w-full max-w-md shadow-2xl relative text-white">
-                <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-base font-bold">Tetapkan BIB untuk Hasil Finish Ini</h3>
-                    <button type="button" @click="assignBibModalOpen = false" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+        <div class="bg-slate-900 border border-slate-700 rounded-lg p-5 w-full max-w-md shadow-2xl relative text-white">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-base font-bold">Tetapkan BIB untuk Hasil Finish Ini</h3>
+                <button type="button" @click="assignBibModalOpen = false" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            
+            <div class="flex items-center gap-3 p-3 rounded-lg bg-slate-950 border border-slate-800 mb-3">
+                <img v-if="selectedUnassignedFinish?.snapshot" :src="selectedUnassignedFinish.snapshot" class="w-16 h-16 rounded-md object-cover border border-slate-700 shrink-0" alt="Snapshot">
+                <div class="min-w-0">
+                    <div class="text-xs text-slate-400">Waktu Finish Terdeteksi:</div>
+                    <div class="font-mono font-bold text-base text-indigo-400">@{{ selectedUnassignedFinish?.timeFormatted }}</div>
                 </div>
-                
-                <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-950 border border-slate-800 mb-4">
-                    <img v-if="selectedUnassignedFinish?.snapshot" :src="selectedUnassignedFinish.snapshot" class="w-16 h-16 rounded-lg object-cover border border-slate-700" alt="Snapshot">
-                    <div>
-                        <div class="text-xs text-slate-400">Waktu Finish Terdeteksi:</div>
-                        <div class="font-mono font-bold text-base text-indigo-400">@{{ selectedUnassignedFinish?.timeFormatted }}</div>
-                    </div>
-                </div>
+            </div>
 
-                <div class="space-y-2 mb-4">
-                    <label class="block text-xs font-bold text-slate-400 uppercase">Pilih Peserta</label>
-                    <div class="max-h-60 overflow-y-auto divide-y divide-slate-800 border border-slate-800 rounded-xl bg-slate-950">
-                        <button v-for="p in activeParticipants" :key="p.id" type="button" @click="confirmAssignBib(p)" class="w-full p-3 text-left hover:bg-slate-800 transition-colors flex items-center justify-between gap-2">
-                            <div class="min-w-0">
-                                <div class="font-bold text-sm text-white">@{{ p.name }}</div>
-                                <div class="text-xs text-slate-400 font-oswald">BIB: @{{ p.bib }}</div>
-                            </div>
-                            <span class="text-xs px-2.5 py-1 rounded bg-indigo-600 hover:bg-indigo-700 text-white font-bold shrink-0">
-                                Pilih
-                            </span>
-                        </button>
+            <!-- AI Detected BIB Quick Action -->
+            <div v-if="selectedUnassignedFinish?.bib" class="p-3 rounded-lg bg-slate-950 border border-indigo-900/60 mb-3">
+                <div class="text-[11px] text-slate-400 uppercase font-semibold mb-1">Hasil Deteksi AI Vision:</div>
+                <div class="flex items-center justify-between gap-2">
+                    <div class="font-mono font-bold text-lg text-emerald-400">
+                        #@{{ selectedUnassignedFinish.bib }}
+                    </div>
+                    <button type="button" @click="quickRegisterAndAssign(selectedUnassignedFinish)" class="px-3 py-1.5 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs transition">
+                        Tetapkan BIB Ini
+                    </button>
+                </div>
+                <!-- Choice for other detected BIBs if multiple in photo -->
+                <div v-if="selectedUnassignedFinish.allBibs && selectedUnassignedFinish.allBibs.length > 1" class="mt-2.5 pt-2 border-t border-slate-800 flex items-center gap-1.5 flex-wrap">
+                    <span class="text-[10px] text-slate-400">BIB Lain Terbaca:</span>
+                    <button v-for="b in selectedUnassignedFinish.allBibs" :key="b" type="button"
+                        @click="selectedUnassignedFinish.bib = b"
+                        :class="selectedUnassignedFinish.bib === b ? 'bg-indigo-600 text-white font-bold' : 'bg-slate-800 text-slate-300 hover:bg-slate-700'"
+                        class="px-2 py-0.5 rounded font-mono text-xs transition">
+                        #@{{ b }}
+                    </button>
+                </div>
+            </div>
+
+            <div class="space-y-2 mb-2">
+                <label class="block text-xs font-bold text-slate-400 uppercase">Atau Pilih dari Daftar Peserta</label>
+                <div class="max-h-52 overflow-y-auto divide-y divide-slate-800 border border-slate-800 rounded-lg bg-slate-950">
+                    <button v-for="p in activeParticipants" :key="p.id" type="button" @click="confirmAssignBib(p)" class="w-full p-2.5 text-left hover:bg-slate-800 transition-colors flex items-center justify-between gap-2">
+                        <div class="min-w-0">
+                            <div class="font-bold text-sm text-white">@{{ p.name }}</div>
+                            <div class="text-xs text-slate-400 font-mono">BIB: @{{ p.bib }}</div>
+                        </div>
+                        <span class="text-xs px-2.5 py-1 rounded-md bg-indigo-600 hover:bg-indigo-700 text-white font-bold shrink-0">
+                            Pilih
+                        </span>
+                    </button>
+                    <div v-if="activeParticipants.length === 0" class="p-4 text-center text-xs text-slate-500">
+                        Tidak ada peserta aktif lain yang belum finish.
                     </div>
                 </div>
             </div>
         </div>
+    </div>
 
         <!-- 4:5 Canvas Sports Finisher Card Modal -->
         <div v-if="mediaModalOpen" class="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-sm animate-fade-in" @click.self="closeMediaModal">
@@ -7806,8 +7840,8 @@
                         }
                     }
 
-                    // 3. Fallback: Local PaddleOCR Engine
-                    if (!participant && raceSettings.value.enableOcr) {
+                    // 3. Fallback: Local PaddleOCR Engine (only if no BIB detected yet)
+                    if (!participant && !detectedBib && raceSettings.value.enableOcr) {
                         try {
                             const paddleEngine = await ensurePaddleOcr();
                             if (paddleEngine) {
@@ -7837,8 +7871,8 @@
                         }
                     }
 
-                    // 4. Fallback: Face AI Biometrics
-                    if (!participant && raceSettings.value.enableFaceAi && faceModelsLoaded && job.snapCanvas) {
+                    // 4. Fallback: Face AI Biometrics (only if no BIB detected yet)
+                    if (!participant && !detectedBib && raceSettings.value.enableFaceAi && faceModelsLoaded && job.snapCanvas) {
                         try {
                             const liveDesc = await extractFaceDescriptorFromImage(job.snapCanvas);
                             if (liveDesc) {
@@ -8350,12 +8384,41 @@
                 assignBibModalOpen.value = true;
             };
 
+            // Quick register participant if detected BIB not found, and confirm assign finish
+            const quickRegisterAndAssign = (item) => {
+                if (!item?.bib) return;
+                const bibValue = normalizeBib(item.bib) || item.bib;
+                let participant = participants.value.find(p => normalizeBib(p.bib) === bibValue);
+
+                if (!participant) {
+                    participant = {
+                        id: crypto.randomUUID(),
+                        bib: bibValue,
+                        name: `Pelari #${bibValue}`,
+                        photoUrl: item.snapshot || '',
+                        facePhotos: {},
+                        faceDescriptor: null,
+                        faceDescriptors: [],
+                        predictedTimeMs: null,
+                        status: 'ready',
+                        totalTime: 0,
+                        laps: [],
+                        lastScanTime: 0,
+                        isLocked: false,
+                    };
+                    participants.value.push(participant);
+                }
+
+                confirmAssignBib(participant);
+            };
+
             const confirmAssignBib = (p) => {
                 if (!selectedUnassignedFinish.value) return;
                 const item = selectedUnassignedFinish.value;
                 item.bib = p.bib;
                 item.name = p.name;
                 item.participantId = p.id;
+                item.status = 'confirmed';
 
                 const originalTiming = {
                     capturedAt: Number.isFinite(item.capturedAt) ? item.capturedAt : Date.now(),
@@ -8375,7 +8438,7 @@
 
                 assignBibModalOpen.value = false;
                 selectedUnassignedFinish.value = null;
-                alert(`Hasil finish ${item.timeFormatted} berhasil ditetapkan untuk ${p.name} (BIB #${p.bib})`);
+                showDuplicateAlert('success', `Hasil finish ${item.timeFormatted} berhasil ditetapkan untuk ${p.name} (BIB #${p.bib})`, p);
             };
 
             const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
@@ -8684,80 +8747,120 @@
                 });
             };
 
-            // Upload Image for BIB Test: accepts a file from user's device and feeds it through the full recognition pipeline
+            // Upload Image for BIB Test: directly calls AI Vision API for fast results (bypasses heavy queue)
             const uploadImageForBibTest = async (event) => {
                 const file = event.target.files?.[0];
                 if (!file) return;
-                // Reset input so same file can be re-uploaded
                 event.target.value = '';
 
-                // 1. Lock timing at the moment of upload
                 const capturedAt = Date.now();
                 const elapsedMs = timer.value.running && timer.value.startTime
                     ? Math.max(0, capturedAt - timer.value.startTime)
                     : Math.max(0, timer.value.elapsed || 0);
-                const timingLock = { capturedAt, elapsedMs };
                 const formattedTimeStr = formatTime(elapsedMs);
 
-                // 2. Load image file into a canvas for processing
+                // Load image
                 const img = new Image();
                 const objectUrl = URL.createObjectURL(file);
                 img.src = objectUrl;
 
-                await new Promise((resolve, reject) => {
-                    img.onload = resolve;
-                    img.onerror = () => reject(new Error('Gagal memuat gambar.'));
-                }).catch(err => {
+                try {
+                    await new Promise((resolve, reject) => {
+                        img.onload = resolve;
+                        img.onerror = () => reject(new Error('Gagal memuat gambar.'));
+                    });
+                } catch (err) {
                     URL.revokeObjectURL(objectUrl);
                     showDuplicateAlert('error', err.message);
-                    return null;
-                });
+                    return;
+                }
 
-                if (!img.naturalWidth) return;
+                if (!img.naturalWidth) { URL.revokeObjectURL(objectUrl); return; }
 
-                // 3. Draw to canvas (resize max 640px wide for efficiency)
+                // Resize to max 1024px for good OCR accuracy
                 const snapCanvas = document.createElement('canvas');
-                const scale = Math.min(1, 640 / img.naturalWidth);
+                const scale = Math.min(1, 1024 / img.naturalWidth);
                 snapCanvas.width = Math.round(img.naturalWidth * scale);
                 snapCanvas.height = Math.round(img.naturalHeight * scale);
                 snapCanvas.getContext('2d').drawImage(img, 0, 0, snapCanvas.width, snapCanvas.height);
-                const snapshotDataUrl = snapCanvas.toDataURL('image/jpeg', 0.88);
+                const snapshotDataUrl = snapCanvas.toDataURL('image/jpeg', 0.85);
                 URL.revokeObjectURL(objectUrl);
 
-                // 4. Visual feedback
                 if (raceSettings.value.enableBeep) playBeep();
-                camera.value.manualFlash = true;
-                setTimeout(() => { camera.value.manualFlash = false; }, 200);
 
-                // 5. Create feed placeholder entry
+                // Create feed entry
                 const feedItem = {
                     id: crypto.randomUUID(),
                     capturedAt,
                     timestampMs: elapsedMs,
                     timeFormatted: formattedTimeStr,
                     bib: '',
-                    name: `Memproses Upload: ${file.name}`,
+                    name: `AI Vision: ${file.name}`,
                     snapshot: snapshotDataUrl,
                     participantId: null,
                     matchMethod: 'upload_test',
                     ocrConfidence: 0,
                     ambiguous: false,
                     status: 'processing',
+                    allBibs: [],
                 };
                 liveFinishFeed.value.unshift(feedItem);
                 if (liveFinishFeed.value.length > 30) liveFinishFeed.value.pop();
 
-                camera.value.lastScanMsg = `Upload Foto: ${file.name} • Memproses BIB...`;
+                camera.value.lastScanMsg = `Upload: ${file.name} — Mengirim ke AI Vision...`;
 
-                // 6. Enqueue into recognition pipeline (same as manual capture)
-                enqueueBibRecognitionJob({
-                    feedItem,
-                    video: null,         // no live camera
-                    snapCanvas,
-                    snapshotDataUrl,
-                    timingLock,
-                    bbox: null
-                });
+                // Direct API call (bypass queue, no PaddleOCR, no FaceAI)
+                try {
+                    const res = await apiFetchJson(`${apiBase}/ai-bib-vision`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ image: snapshotDataUrl })
+                    });
+
+                    if (res?.success && res?.bib) {
+                        const allBibs = res.all_bibs || [res.bib];
+                        const resolved = resolveBibCandidate(res.bib);
+
+                        feedItem.bib = res.bib;
+                        feedItem.allBibs = allBibs;
+                        feedItem.ocrConfidence = res.confidence === 'high' ? 95 : (res.confidence === 'medium' ? 70 : 40);
+                        feedItem.matchMethod = `gpt-4o-mini (${res.confidence})`;
+
+                        if (resolved.participant) {
+                            feedItem.name = resolved.participant.name;
+                            feedItem.participantId = resolved.participant.id;
+                            feedItem.status = 'confirmed';
+
+                            if (timer.value.running) {
+                                const timingLock = { capturedAt, elapsedMs };
+                                const recorded = recordLap(resolved.participant.id, 'gpt-4o-mini', timingLock);
+                                if (recorded) {
+                                    triggerTvFinisherFlash(resolved.participant);
+                                }
+                            }
+
+                            camera.value.lastScanMsg = `BIB #${res.bib} (${resolved.participant.name}) — ${allBibs.length > 1 ? 'Semua: ' + allBibs.join(', ') : res.confidence}`;
+                            showDuplicateAlert('success', `BIB terdeteksi: #${res.bib} (${resolved.participant.name})${allBibs.length > 1 ? ' | Semua BIB: ' + allBibs.join(', ') : ''}`, resolved.participant);
+                        } else {
+                            feedItem.name = 'BIB Belum Terdaftar';
+                            feedItem.status = 'unmatched';
+                            camera.value.lastScanMsg = `BIB #${res.bib} terdeteksi (belum terdaftar)${allBibs.length > 1 ? ' | Semua: ' + allBibs.join(', ') : ''}`;
+                            showDuplicateAlert('warning', `BIB terdeteksi: #${res.bib} (belum terdaftar di data peserta)${allBibs.length > 1 ? ' | Semua BIB dalam foto: ' + allBibs.join(', ') : ''}`);
+                        }
+                    } else {
+                        feedItem.bib = '';
+                        feedItem.name = 'BIB tidak terbaca';
+                        feedItem.status = 'manual_review';
+                        camera.value.lastScanMsg = `Upload: BIB tidak terdeteksi — ${res?.message || 'coba foto lebih jelas'}`;
+                        showDuplicateAlert('error', `AI Vision tidak bisa membaca nomor BIB dari foto ini. ${res?.message || 'Pastikan nomor BIB terlihat jelas.'}`);
+                    }
+                } catch (err) {
+                    console.error('[Upload BIB] AI Vision error:', err);
+                    feedItem.name = 'Error AI Vision';
+                    feedItem.status = 'manual_review';
+                    camera.value.lastScanMsg = `Upload error: ${err?.message || err}`;
+                    showDuplicateAlert('error', `Gagal menghubungi AI Vision: ${err?.message || 'Periksa koneksi internet.'}`);
+                }
             };
 
             const onKeydown = (e) => {
@@ -9343,7 +9446,7 @@
                 copySessionShareUrl, joinLiveSession, startLiveSyncPolling,
                 initializingSession, initializeRaceSession, createNewSession,
                 removeAllParticipants, resetAllRaceSetup,
-                openAssignBibModal, confirmAssignBib,
+                openAssignBibModal, confirmAssignBib, quickRegisterAndAssign,
                 bibScan, onBibSampleUpload, getBibRuntimeProfile, activeBibPattern,
                 ocrTestMode, ocrTestResult, toggleOcrTestMode,
 

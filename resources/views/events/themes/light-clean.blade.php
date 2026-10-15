@@ -1948,16 +1948,16 @@
                                     </h3>
 
                                     <!-- Coupon Input -->
-                                    <div>
+                                    <div id="couponContainer" class="{{ (!$event->hasActiveCoupons() && !request()->filled('coupon') && !request()->filled('code') && !request()->filled('coupon_code')) ? 'hidden' : '' }}">
                                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1.5">Kode Promo</label>
                                         <div class="flex gap-2">
-                                            <input type="text" id="coupon_code" placeholder="KODE..." class="input-light flex-1 px-3 py-2 text-sm uppercase font-mono font-bold">
+                                            <input type="text" id="coupon_code" value="{{ request('coupon') ?? request('coupon_code') ?? request('code') ?? '' }}" placeholder="KODE..." class="input-light flex-1 px-3 py-2 text-sm uppercase font-mono font-bold">
                                             <button type="button" id="applyCouponBtn" class="px-4 py-2 rounded-md bg-theme-primary hover-bg-theme-primary text-white font-bold text-xs transition shadow-sm">
                                                 Pakai
                                             </button>
                                         </div>
                                         <div id="couponMessage" class="mt-1.5 text-xs font-medium"></div>
-                                        <input type="hidden" name="coupon_code" id="coupon_code_hidden">
+                                        <input type="hidden" name="coupon_code" id="coupon_code_hidden" value="{{ request('coupon') ?? request('coupon_code') ?? request('code') ?? '' }}">
                                     </div>
 
                                     <!-- Summary Calculation Rows -->

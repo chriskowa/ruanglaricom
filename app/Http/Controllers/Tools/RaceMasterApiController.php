@@ -2491,26 +2491,26 @@ class RaceMasterApiController extends Controller
                 'messages' => [
                     [
                         'role' => 'system',
-                        'content' => 'Kamu adalah asisten OCR spesialis lomba lari. Deteksi nomor BIB (nomor dada) pelari dari potongan foto finish. Format output WAJIB JSON: {"bib": "string", "confidence": "high"|"medium"|"low"}. Jika tidak ada angka BIB terbaca, isi {"bib": "", "confidence": "none"}.'
+                        'content' => 'Kamu adalah asisten OCR spesialis lomba lari. Deteksi nomor BIB (nomor dada pelari) dari foto. Format output WAJIB JSON: {"bib": "string", "all_bibs": ["string"], "confidence": "high"|"medium"|"low"}. Prioritaskan pelari utama di posisi depan/tengah. Sertakan huruf prefix jika ada (contoh: M31385, A102). Jika tidak ada nomor BIB yang terbaca, kembalikan {"bib": "", "all_bibs": [], "confidence": "none"}.'
                     ],
                     [
                         'role' => 'user',
                         'content' => [
                             [
                                 'type' => 'text',
-                                'text' => 'Baca nomor BIB pelari dari foto finish ini.'
+                                'text' => 'Baca nomor BIB pelari dari foto lomba lari ini.'
                             ],
                             [
                                 'type' => 'image_url',
                                 'image_url' => [
                                     'url' => $imageBase64,
-                                    'detail' => 'low'
+                                    'detail' => 'high'
                                 ]
                             ]
                         ]
                     ]
                 ],
-                'max_tokens' => 80
+                'max_tokens' => 120
             ]);
 
             if ($response->successful()) {
@@ -2518,10 +2518,19 @@ class RaceMasterApiController extends Controller
                 $content = $data['choices'][0]['message']['content'] ?? '{}';
                 $parsed = json_decode($content, true);
                 $bib = isset($parsed['bib']) ? trim((string)$parsed['bib']) : '';
+                $allBibs = isset($parsed['all_bibs']) && is_array($parsed['all_bibs'])
+                    ? array_values(array_filter(array_map('trim', $parsed['all_bibs'])))
+                    : [];
+
+                if ($bib && !in_array($bib, $allBibs)) {
+                    array_unshift($allBibs, $bib);
+                }
+
                 return response()->json([
                     'success' => true,
                     'bib' => $bib,
-                    'confidence' => $parsed['confidence'] ?? 'medium',
+                    'all_bibs' => $allBibs,
+                    'confidence' => $parsed['confidence'] ?? ($bib ? 'high' : 'none'),
                     'engine' => 'gpt-4o-mini'
                 ]);
             }
