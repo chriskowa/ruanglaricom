@@ -957,16 +957,32 @@
                                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     <div>
                                         <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider">Device</label>
-                                        <select id="rl-strava-device" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-2 text-white font-bold focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500 text-xs">
-                                            <option value="">Pilih device</option>
-                                            <option>Garmin</option>
-                                            <option>Coros</option>
-                                            <option>Polar</option>
-                                            <option>Suunto</option>
-                                            <option>Apple Watch</option>
-                                            <option>Android Phone</option>
-                                            <option>iPhone</option>
-                                        </select>
+                                        <input id="rl-strava-device" list="rl-strava-device-list" type="text" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-2 text-white font-bold placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500 text-xs" placeholder="Pilih / ketik mis. Garmin Forerunner 165">
+                                        <datalist id="rl-strava-device-list">
+                                            <option value="Garmin Forerunner 165">
+                                            <option value="Garmin Forerunner 265">
+                                            <option value="Garmin Forerunner 965">
+                                            <option value="Garmin Forerunner 55">
+                                            <option value="Garmin Forerunner 255">
+                                            <option value="Garmin Forerunner 955">
+                                            <option value="Garmin Fenix 7">
+                                            <option value="Garmin Fenix 8">
+                                            <option value="Garmin Epix Gen 2">
+                                            <option value="Garmin Enduro 3">
+                                            <option value="Coros Pace 3">
+                                            <option value="Coros Pace 2">
+                                            <option value="Coros Apex 2 Pro">
+                                            <option value="Coros Vertix 2">
+                                            <option value="Apple Watch Ultra 2">
+                                            <option value="Apple Watch Series 9">
+                                            <option value="Apple Watch SE">
+                                            <option value="Polar Pacer Pro">
+                                            <option value="Polar Vantage V3">
+                                            <option value="Suunto Race">
+                                            <option value="Suunto Vertical">
+                                            <option value="Android Phone">
+                                            <option value="iPhone">
+                                        </datalist>
                                     </div>
                                     <div>
                                         <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider">Pace (menit/km)</label>
@@ -2650,13 +2666,19 @@
 
             function generateTelemetrySeriesJs(count, target, type) {
                 if (!target || count < 1) return new Array(count).fill(null);
-                if (count === 1) return [target];
+
+                // Strava expects running GPX trackpoint cadence <gpxtpx:cad> as RPM (single-leg strides)
+                // and automatically multiplies it by 2 to display SPM. If target is in SPM (>= 110),
+                // convert to RPM (target / 2) so Strava displays the exact SPM entered.
+                var effectiveTarget = (type === 'cadence' && target >= 110) ? (target / 2) : target;
+
+                if (count === 1) return [Math.round(effectiveTarget)];
 
                 var series = [];
                 var warmupCount = (type === 'hr') ? Math.min(15, Math.max(0, Math.round(count * 0.08))) : 0;
 
                 for (var i = 0; i < count; i++) {
-                    var val = target;
+                    var val = effectiveTarget;
                     if (type === 'hr') {
                         if (warmupCount > 0 && i < warmupCount) {
                             var pct = i / warmupCount;
@@ -2669,8 +2691,8 @@
                         val = Math.max(40, Math.min(230, val));
                     } else if (type === 'cadence') {
                         var wave = Math.sin(i * 0.25) * 1.5 + Math.cos(i * 0.07) * 1.0;
-                        val = Math.round(target + wave);
-                        val = Math.max(40, Math.min(260, val));
+                        val = Math.round(effectiveTarget + wave);
+                        val = Math.max(20, Math.min(150, val));
                     } else { // power
                         var wave = Math.sin(i * 0.22) * 8.0 + Math.cos(i * 0.05) * 5.0;
                         val = Math.round(target + wave);
@@ -2679,12 +2701,14 @@
                     series.push(val);
                 }
 
+                var desiredSum = Math.round(effectiveTarget * count);
                 var sum = series.reduce(function (a, b) { return a + b; }, 0);
-                var diff = Math.round(target - (sum / count));
+                var diff = desiredSum - sum;
                 if (diff !== 0) {
-                    var startIdx = Math.min(warmupCount, count - 1);
-                    for (var j = startIdx; j < count; j++) {
-                        series[j] += diff;
+                    var step = diff > 0 ? 1 : -1;
+                    var absDiff = Math.abs(diff);
+                    for (var j = 0; j < absDiff; j++) {
+                        series[(warmupCount + j) % count] += step;
                     }
                 }
                 return series;
@@ -2775,7 +2799,9 @@
                            '</wpt>';
                 }).join('');
 
-                var gpxAttrs = 'version="1.1" creator="RuangLari" xmlns="http://www.topografix.com/GPX/1/1"';
+                var device = (els.stravaDevice && els.stravaDevice.value ? els.stravaDevice.value : '').trim();
+                var creator = device || 'RuangLari';
+                var gpxAttrs = 'version="1.1" creator="' + escapeXml(creator) + '" xmlns="http://www.topografix.com/GPX/1/1"';
                 if (hasTelemetry) {
                     gpxAttrs += ' xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1"' +
                         ' xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3"' +

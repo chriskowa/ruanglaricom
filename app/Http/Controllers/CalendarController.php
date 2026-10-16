@@ -344,7 +344,7 @@ class CalendarController extends Controller
             'private' => 'nullable|boolean',
             'pace_sec_per_km' => 'nullable|integer|min:1|max:3600',
             'start_at' => 'nullable|date',
-            'device' => 'nullable|string|max:50',
+            'device' => 'nullable|string|max:100',
             'hr' => 'nullable|integer|min:30|max:250',
             'cadence' => 'nullable|integer|min:60|max:300',
             'power' => 'nullable|integer|min:0|max:2000',
@@ -390,6 +390,7 @@ class CalendarController extends Controller
             'activity_type' => $validated['activity_type'] ?? null,
             'private' => (bool) ($validated['private'] ?? false),
             'pace_sec_per_km' => $validated['pace_sec_per_km'] ?? 360,
+            'device' => ! empty($validated['device']) ? trim((string) $validated['device']) : null,
             'hr' => ! empty($validated['hr']) ? (int) $validated['hr'] : null,
             'cadence' => ! empty($validated['cadence']) ? (int) $validated['cadence'] : null,
             'power' => ! empty($validated['power']) ? (int) $validated['power'] : null,
@@ -445,7 +446,8 @@ class CalendarController extends Controller
             'power' => isset($data['power']) && (int) $data['power'] > 0 ? (int) $data['power'] : null,
         ];
 
-        $gpx = $this->buildGpxFromPoints($name, $points, $paceSecPerKm, $startAt, $telemetry);
+        $device = ! empty($data['device']) ? trim((string) $data['device']) : null;
+        $gpx = $this->buildGpxFromPoints($name, $points, $paceSecPerKm, $startAt, $telemetry, $device, $activityType);
 
         $externalId = 'rl-route-'.$user->id.'-'.now()->format('YmdHis').'.gpx';
         $payload = [
@@ -508,14 +510,21 @@ class CalendarController extends Controller
         ];
     }
 
-    private function generateTelemetrySeries(int $count, ?int $target, string $type): array
+    private function generateTelemetrySeries(int $count, ?int $target, string $type, string $activityType = 'run'): array
     {
         if (! $target || $count < 1) {
             return array_fill(0, $count, null);
         }
 
+        // In GPX TrackPointExtension for running/walking, Strava treats <gpxtpx:cad> as RPM (single-leg strides)
+        // and automatically multiplies it by 2 to display SPM. If target is in SPM (>= 110) for non-ride activity,
+        // convert to RPM (target / 2) so Strava displays the exact SPM entered.
+        $effectiveTarget = ($type === 'cadence' && $activityType !== 'ride' && $target >= 110)
+            ? ($target / 2.0)
+            : (float) $target;
+
         if ($count === 1) {
-            return [$target];
+            return [(int) round($effectiveTarget)];
         }
 
         $series = [];
@@ -525,39 +534,41 @@ class CalendarController extends Controller
             if ($type === 'hr') {
                 if ($warmupCount > 0 && $i < $warmupCount) {
                     $pct = $i / (float) $warmupCount;
-                    $startHr = max(50, (int) round($target * 0.85));
-                    $val = (int) round($startHr + ($target - $startHr) * $pct + (sin($i * 0.4) * 1.5));
+                    $startHr = max(50, (int) round($effectiveTarget * 0.85));
+                    $val = (int) round($startHr + ($effectiveTarget - $startHr) * $pct + (sin($i * 0.4) * 1.5));
                 } else {
                     $wave = sin(($i - $warmupCount) * 0.15) * 2.5 + cos(($i - $warmupCount) * 0.04) * 1.5;
-                    $val = (int) round($target + $wave);
+                    $val = (int) round($effectiveTarget + $wave);
                 }
                 $val = max(40, min(230, $val));
             } elseif ($type === 'cadence') {
                 $wave = sin($i * 0.25) * 1.5 + cos($i * 0.07) * 1.0;
-                $val = (int) round($target + $wave);
-                $val = max(40, min(260, $val));
+                $val = (int) round($effectiveTarget + $wave);
+                $val = max(20, min(150, $val));
             } else { // power
                 $wave = sin($i * 0.22) * 8.0 + cos($i * 0.05) * 5.0;
-                $val = (int) round($target + $wave);
+                $val = (int) round($effectiveTarget + $wave);
                 $val = max(0, min(1500, $val));
             }
             $series[] = $val;
         }
 
-        // Calibrate steady section so average precisely matches target
-        $currentMean = array_sum($series) / $count;
-        $diff = (int) round($target - $currentMean);
+        // Calibrate so sum matches desired sum
+        $desiredSum = (int) round($effectiveTarget * $count);
+        $diff = $desiredSum - array_sum($series);
         if ($diff !== 0) {
-            $startIdx = min($warmupCount, $count - 1);
-            for ($i = $startIdx; $i < $count; $i++) {
-                $series[$i] += $diff;
+            $step = $diff > 0 ? 1 : -1;
+            $absDiff = abs($diff);
+            for ($k = 0; $k < $absDiff; $k++) {
+                $idx = ($warmupCount + $k) % $count;
+                $series[$idx] += $step;
             }
         }
 
         return $series;
     }
 
-    private function buildGpxFromPoints(string $name, array $points, ?int $paceSecPerKm, $startAt, array $telemetry = []): string
+    private function buildGpxFromPoints(string $name, array $points, ?int $paceSecPerKm, $startAt, array $telemetry = [], ?string $device = null, string $activityType = 'run'): string
     {
         $effectivePace = ($paceSecPerKm && $paceSecPerKm > 0) ? $paceSecPerKm : 360;
         $count = count($points);
@@ -592,9 +603,9 @@ class CalendarController extends Controller
             $startedAt = $nowUtc->copy()->subSeconds((int) ceil($totalDurationSec) + 120);
         }
 
-        $hrSeries = $this->generateTelemetrySeries($count, $telemetry['hr'] ?? null, 'hr');
-        $cadenceSeries = $this->generateTelemetrySeries($count, $telemetry['cadence'] ?? null, 'cadence');
-        $powerSeries = $this->generateTelemetrySeries($count, $telemetry['power'] ?? null, 'power');
+        $hrSeries = $this->generateTelemetrySeries($count, $telemetry['hr'] ?? null, 'hr', $activityType);
+        $cadenceSeries = $this->generateTelemetrySeries($count, $telemetry['cadence'] ?? null, 'cadence', $activityType);
+        $powerSeries = $this->generateTelemetrySeries($count, $telemetry['power'] ?? null, 'power', $activityType);
         $hasTelemetry = ($telemetry['hr'] ?? null) || ($telemetry['cadence'] ?? null) || ($telemetry['power'] ?? null);
 
         $accumulatedSeconds = 0.0;
@@ -645,7 +656,8 @@ class CalendarController extends Controller
         $safeName = $this->escapeXml($name);
         $time = $startedAt->format('Y-m-d\TH:i:s\Z');
 
-        $gpxAttrs = 'version="1.1" creator="RuangLari" xmlns="http://www.topografix.com/GPX/1/1"';
+        $creator = ! empty($device) ? $this->escapeXml($device) : 'RuangLari';
+        $gpxAttrs = 'version="1.1" creator="'.$creator.'" xmlns="http://www.topografix.com/GPX/1/1"';
         if ($hasTelemetry) {
             $gpxAttrs .= ' xmlns:gpxtpx="http://www.garmin.com/xmlschemas/TrackPointExtension/v1"'
                 .' xmlns:gpxx="http://www.garmin.com/xmlschemas/GpxExtensions/v3"'
