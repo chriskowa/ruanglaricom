@@ -334,6 +334,8 @@ class CalendarController extends Controller
             'hr' => $request->input('hr'),
             'cadence' => $request->input('cadence'),
             'power' => $request->input('power'),
+            'split_type' => $request->input('split_type', 'even'),
+            'split_pct' => $request->input('split_pct', 2.0),
             'points' => $rawPoints,
         ];
 
@@ -348,6 +350,8 @@ class CalendarController extends Controller
             'hr' => 'nullable|integer|min:30|max:250',
             'cadence' => 'nullable|integer|min:60|max:300',
             'power' => 'nullable|integer|min:0|max:2000',
+            'split_type' => 'nullable|string|in:even,negative,positive',
+            'split_pct' => 'nullable|numeric|min:0.1|max:15',
             'points' => 'required|array|min:2|max:8000',
             'points.*.lat' => 'required|numeric|between:-90,90',
             'points.*.lng' => 'required|numeric|between:-180,180',
@@ -362,6 +366,11 @@ class CalendarController extends Controller
                 $startAt = null;
             }
         }
+
+        $splitType = strtolower(trim((string) ($validated['split_type'] ?? 'even')));
+        $splitType = in_array($splitType, ['even', 'negative', 'positive'], true) ? $splitType : 'even';
+        $splitPct = isset($validated['split_pct']) && is_numeric($validated['split_pct']) ? (float) $validated['split_pct'] : 2.0;
+        $splitPct = max(0.1, min(15.0, $splitPct));
 
         $description = trim((string) ($validated['description'] ?? ''));
         $extras = [];
@@ -380,6 +389,11 @@ class CalendarController extends Controller
         if (! empty($validated['pace_sec_per_km'])) {
             $extras[] = 'Target Pace: '.$this->formatPaceSec((int) $validated['pace_sec_per_km']).'/km';
         }
+        if ($splitType === 'negative') {
+            $extras[] = 'Split: Negative Split (+'.number_format($splitPct, 1).' %/km)';
+        } elseif ($splitType === 'positive') {
+            $extras[] = 'Split: Positive Split (-'.number_format($splitPct, 1).' %/km)';
+        }
         if (! empty($extras)) {
             $description = trim($description."\n\n".implode(' • ', $extras));
         }
@@ -394,6 +408,8 @@ class CalendarController extends Controller
             'hr' => ! empty($validated['hr']) ? (int) $validated['hr'] : null,
             'cadence' => ! empty($validated['cadence']) ? (int) $validated['cadence'] : null,
             'power' => ! empty($validated['power']) ? (int) $validated['power'] : null,
+            'split_type' => $splitType,
+            'split_pct' => $splitPct,
             'points' => $validated['points'],
             'start_at' => $startAt,
         ];
@@ -447,7 +463,12 @@ class CalendarController extends Controller
         ];
 
         $device = ! empty($data['device']) ? trim((string) $data['device']) : null;
-        $gpx = $this->buildGpxFromPoints($name, $points, $paceSecPerKm, $startAt, $telemetry, $device, $activityType);
+        $splitType = strtolower(trim((string) ($data['split_type'] ?? 'even')));
+        $splitType = in_array($splitType, ['even', 'negative', 'positive'], true) ? $splitType : 'even';
+        $splitPct = isset($data['split_pct']) && is_numeric($data['split_pct']) ? (float) $data['split_pct'] : 2.0;
+        $splitPct = max(0.1, min(15.0, $splitPct));
+
+        $gpx = $this->buildGpxFromPoints($name, $points, $paceSecPerKm, $startAt, $telemetry, $device, $activityType, $splitType, $splitPct);
 
         $externalId = 'rl-route-'.$user->id.'-'.now()->format('YmdHis').'.gpx';
         $payload = [
@@ -510,8 +531,15 @@ class CalendarController extends Controller
         ];
     }
 
-    private function generateTelemetrySeries(int $count, ?int $target, string $type, string $activityType = 'run'): array
-    {
+    private function generateTelemetrySeries(
+        int $count,
+        ?int $target,
+        string $type,
+        string $activityType = 'run',
+        array $speedRatios = [],
+        array $cumDists = [],
+        float $totalDist = 0.0
+    ): array {
         if (! $target || $count < 1) {
             return array_fill(0, $count, null);
         }
@@ -531,45 +559,65 @@ class CalendarController extends Controller
         $warmupCount = ($type === 'hr') ? min(15, max(0, (int) round($count * 0.08))) : 0;
 
         for ($i = 0; $i < $count; $i++) {
+            $r = $speedRatios[$i] ?? 1.0;
+            $distProgress = ($totalDist > 0 && isset($cumDists[$i])) ? ($cumDists[$i] / $totalDist) : 0.0;
+
             if ($type === 'hr') {
+                // Heart rate rises when speed is faster than average, and drops when slower
+                $speedDelta = ($r - 1.0) * ($target * 0.65);
+                $drift = $distProgress * 2.5; // Natural progressive cardiac drift
+                $wave = sin($i * 0.15) * 1.5 + cos($i * 0.04) * 1.0;
+
                 if ($warmupCount > 0 && $i < $warmupCount) {
                     $pct = $i / (float) $warmupCount;
-                    $startHr = max(50, (int) round($effectiveTarget * 0.85));
-                    $val = (int) round($startHr + ($effectiveTarget - $startHr) * $pct + (sin($i * 0.4) * 1.5));
+                    $startHr = max(50, (int) round($target * 0.85));
+                    $val = (int) round($startHr + ($target - $startHr) * $pct + $wave);
                 } else {
-                    $wave = sin(($i - $warmupCount) * 0.15) * 2.5 + cos(($i - $warmupCount) * 0.04) * 1.5;
-                    $val = (int) round($effectiveTarget + $wave);
+                    $val = (int) round($target + $speedDelta + $drift + $wave);
                 }
                 $val = max(40, min(230, $val));
             } elseif ($type === 'cadence') {
-                $wave = sin($i * 0.25) * 1.5 + cos($i * 0.07) * 1.0;
-                $val = (int) round($effectiveTarget + $wave);
+                // Cadence (stride rate) rises slightly with faster speed (~25% sensitivity)
+                $speedDeltaRpm = ($r - 1.0) * ($effectiveTarget * 0.25);
+                $wave = sin($i * 0.25) * 1.0 + cos($i * 0.07) * 0.7;
+                $val = (int) round($effectiveTarget + $speedDeltaRpm + $wave);
                 $val = max(20, min(150, $val));
             } else { // power
                 $wave = sin($i * 0.22) * 8.0 + cos($i * 0.05) * 5.0;
-                $val = (int) round($effectiveTarget + $wave);
+                $val = (int) round($target * pow($r, 1.5) + $wave);
                 $val = max(0, min(1500, $val));
             }
             $series[] = $val;
         }
 
-        // Calibrate so sum matches desired sum
-        $desiredSum = (int) round($effectiveTarget * $count);
+        // Calibrate so series average strictly matches user's specified target!
+        $targetMean = ($type === 'cadence') ? $effectiveTarget : (float) $target;
+        $desiredSum = (int) round($targetMean * $count);
         $diff = $desiredSum - array_sum($series);
         if ($diff !== 0) {
             $step = $diff > 0 ? 1 : -1;
             $absDiff = abs($diff);
+            $startIdx = ($type === 'hr') ? min($warmupCount, $count - 1) : 0;
+            $span = max(1, $count - $startIdx);
             for ($k = 0; $k < $absDiff; $k++) {
-                $idx = ($warmupCount + $k) % $count;
-                $series[$idx] += $step;
+                $series[$startIdx + ($k % $span)] += $step;
             }
         }
 
         return $series;
     }
 
-    private function buildGpxFromPoints(string $name, array $points, ?int $paceSecPerKm, $startAt, array $telemetry = [], ?string $device = null, string $activityType = 'run'): string
-    {
+    private function buildGpxFromPoints(
+        string $name,
+        array $points,
+        ?int $paceSecPerKm,
+        $startAt,
+        array $telemetry = [],
+        ?string $device = null,
+        string $activityType = 'run',
+        string $splitType = 'even',
+        float $splitPct = 2.0
+    ): string {
         $effectivePace = ($paceSecPerKm && $paceSecPerKm > 0) ? $paceSecPerKm : 360;
         $count = count($points);
 
@@ -581,17 +629,55 @@ class CalendarController extends Controller
             }
         }
 
-        // Calculate total distance & duration first
+        // Precompute segment distances & cumulative progress
+        $segDists = [];
+        $cumDists = [0.0];
         $totalDistKm = 0.0;
+
         for ($i = 1; $i < $count; $i++) {
-            $totalDistKm += $this->haversineKm(
+            $d = $this->haversineKm(
                 (float) $points[$i - 1]['lat'],
                 (float) $points[$i - 1]['lng'],
                 (float) $points[$i]['lat'],
                 (float) $points[$i]['lng']
             );
+            $segDists[] = $d;
+            $totalDistKm += $d;
+            $cumDists[] = $totalDistKm;
         }
-        $totalDurationSec = $totalDistKm * $effectivePace;
+
+        $midDistKm = $totalDistKm / 2.0;
+
+        // Calculate speed ratios Ri for each point based on split strategy
+        $speedRatios = [];
+        $pointPaces = [];
+        for ($i = 0; $i < $count; $i++) {
+            $distFromMid = $cumDists[$i] - $midDistKm;
+            $ratio = 1.0;
+            if ($splitType === 'negative') {
+                $ratio = 1.0 + ($distFromMid * ($splitPct / 100.0));
+            } elseif ($splitType === 'positive') {
+                $ratio = 1.0 - ($distFromMid * ($splitPct / 100.0));
+            }
+            $ratio = max(0.4, min(2.5, $ratio));
+            $speedRatios[] = $ratio;
+            $pointPaces[] = $effectivePace / $ratio;
+        }
+
+        // Segment durations with normalization to preserve exact desired total duration
+        $rawDurations = [];
+        $rawTotalSec = 0.0;
+        for ($i = 1; $i < $count; $i++) {
+            $avgPace = ($pointPaces[$i - 1] + $pointPaces[$i]) / 2.0;
+            $sec = $segDists[$i - 1] * $avgPace;
+            $rawDurations[] = $sec;
+            $rawTotalSec += $sec;
+        }
+
+        $desiredTotalSec = $totalDistKm * $effectivePace;
+        $corr = $rawTotalSec > 0 ? ($desiredTotalSec / $rawTotalSec) : 1.0;
+        $segDurations = array_map(fn($s) => $s * $corr, $rawDurations);
+        $totalDurationSec = $desiredTotalSec;
 
         $startedAt = $startAt ? $startAt->copy() : now()->utc();
 
@@ -603,9 +689,9 @@ class CalendarController extends Controller
             $startedAt = $nowUtc->copy()->subSeconds((int) ceil($totalDurationSec) + 120);
         }
 
-        $hrSeries = $this->generateTelemetrySeries($count, $telemetry['hr'] ?? null, 'hr', $activityType);
-        $cadenceSeries = $this->generateTelemetrySeries($count, $telemetry['cadence'] ?? null, 'cadence', $activityType);
-        $powerSeries = $this->generateTelemetrySeries($count, $telemetry['power'] ?? null, 'power', $activityType);
+        $hrSeries = $this->generateTelemetrySeries($count, $telemetry['hr'] ?? null, 'hr', $activityType, $speedRatios, $cumDists, $totalDistKm);
+        $cadenceSeries = $this->generateTelemetrySeries($count, $telemetry['cadence'] ?? null, 'cadence', $activityType, $speedRatios, $cumDists, $totalDistKm);
+        $powerSeries = $this->generateTelemetrySeries($count, $telemetry['power'] ?? null, 'power', $activityType, $speedRatios, $cumDists, $totalDistKm);
         $hasTelemetry = ($telemetry['hr'] ?? null) || ($telemetry['cadence'] ?? null) || ($telemetry['power'] ?? null);
 
         $accumulatedSeconds = 0.0;
@@ -618,8 +704,7 @@ class CalendarController extends Controller
             $lng = (float) $p['lng'];
 
             if ($idx > 0) {
-                $dist = $this->haversineKm($lastLat, $lastLng, $lat, $lng);
-                $accumulatedSeconds += ($dist * $effectivePace);
+                $accumulatedSeconds += $segDurations[$idx - 1];
             }
 
             $t = $startedAt->copy()->addMilliseconds((int) ($accumulatedSeconds * 1000));

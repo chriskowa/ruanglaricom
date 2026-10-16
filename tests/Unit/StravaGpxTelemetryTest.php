@@ -238,4 +238,150 @@ class StravaGpxTelemetryTest extends TestCase
         $this->assertEqualsWithDelta(165, $stravaDisplayedSpm, 1.0);
         $this->assertNotEquals(330, (int) round($stravaDisplayedSpm));
     }
+
+    public function test_negative_split_produces_faster_late_segments_with_correlated_hr_and_cadence(): void
+    {
+        // 5 km route with 20 points
+        $points = [];
+        for ($i = 0; $i < 20; $i++) {
+            $points[] = ['lat' => -6.200000 - ($i * 0.0022), 'lng' => 106.816666 + ($i * 0.0022)];
+        }
+
+        $targetPace = 300; // 5:00/km
+        $targetHr = 150;
+        $targetCad = 166;
+        $splitPct = 3.0; // 3% faster per km
+
+        $gpx = $this->buildGpxMethod->invoke(
+            $this->controller,
+            'Negative Split 5K',
+            $points,
+            $targetPace,
+            Carbon::parse('2026-10-16 06:00:00 UTC'),
+            ['hr' => $targetHr, 'cadence' => $targetCad],
+            'Garmin Forerunner 265',
+            'run',
+            'negative',
+            $splitPct
+        );
+
+        $xml = simplexml_load_string($gpx);
+        $this->assertNotFalse($xml);
+
+        $trkpts = $xml->trk->trkseg->trkpt;
+        $times = [];
+        $hrs = [];
+        $cads = [];
+
+        foreach ($trkpts as $pt) {
+            $times[] = Carbon::parse((string) $pt->time)->getTimestamp();
+            $namespaces = $pt->getNamespaces(true);
+            $ext = $pt->children()->extensions;
+            $gpxtpx = $ext->children($namespaces['gpxtpx'] ?? 'http://www.garmin.com/xmlschemas/TrackPointExtension/v1');
+            $hrs[] = (int) $gpxtpx->TrackPointExtension->hr;
+            $cads[] = (int) $gpxtpx->TrackPointExtension->cad;
+        }
+
+        // 1. Time intervals: In negative split, earlier segments should take LONGER per meter than later segments
+        $firstSegmentDeltaT = $times[1] - $times[0];
+        $lastSegmentDeltaT = $times[count($times) - 1] - $times[count($times) - 2];
+        $this->assertGreaterThan($lastSegmentDeltaT, $firstSegmentDeltaT, 'Negative split must have faster later segments (smaller dt)');
+
+        // 2. Heart rate: Later points should have higher HR than earlier points
+        $earlyAvgHr = array_sum(array_slice($hrs, 0, 4)) / 4.0;
+        $lateAvgHr = array_sum(array_slice($hrs, -4)) / 4.0;
+        $this->assertGreaterThan($earlyAvgHr, $lateAvgHr, 'Heart rate must be higher in late segments when running faster');
+
+        // 3. Cadence: Later points should have higher cadence than earlier points
+        $earlyAvgCad = array_sum(array_slice($cads, 0, 4)) / 4.0;
+        $lateAvgCad = array_sum(array_slice($cads, -4)) / 4.0;
+        $this->assertGreaterThan($earlyAvgCad, $lateAvgCad, 'Cadence must be higher in late segments when running faster');
+
+        // 4. Overall averages MUST strictly match the targets
+        $overallAvgHr = array_sum($hrs) / count($hrs);
+        $this->assertEqualsWithDelta($targetHr, $overallAvgHr, 1.0, 'Average HR must strictly match target');
+
+        $overallAvgCadSpm = (array_sum($cads) / count($cads)) * 2;
+        $this->assertEqualsWithDelta($targetCad, $overallAvgCadSpm, 1.0, 'Average Cadence must strictly match target');
+    }
+
+    public function test_positive_split_produces_slower_late_segments_with_correlated_hr_and_cadence(): void
+    {
+        $points = [];
+        for ($i = 0; $i < 20; $i++) {
+            $points[] = ['lat' => -6.200000 - ($i * 0.0022), 'lng' => 106.816666 + ($i * 0.0022)];
+        }
+
+        $targetPace = 300;
+        $targetHr = 150;
+        $targetCad = 166;
+        $splitPct = 3.0; // 3% slower per km
+
+        $gpx = $this->buildGpxMethod->invoke(
+            $this->controller,
+            'Positive Split 5K',
+            $points,
+            $targetPace,
+            Carbon::parse('2026-10-16 06:00:00 UTC'),
+            ['hr' => $targetHr, 'cadence' => $targetCad],
+            'Garmin Forerunner 265',
+            'run',
+            'positive',
+            $splitPct
+        );
+
+        $xml = simplexml_load_string($gpx);
+        $this->assertNotFalse($xml);
+
+        $trkpts = $xml->trk->trkseg->trkpt;
+        $times = [];
+        $hrs = [];
+        $cads = [];
+
+        foreach ($trkpts as $pt) {
+            $times[] = Carbon::parse((string) $pt->time)->getTimestamp();
+            $namespaces = $pt->getNamespaces(true);
+            $ext = $pt->children()->extensions;
+            $gpxtpx = $ext->children($namespaces['gpxtpx'] ?? 'http://www.garmin.com/xmlschemas/TrackPointExtension/v1');
+            $hrs[] = (int) $gpxtpx->TrackPointExtension->hr;
+            $cads[] = (int) $gpxtpx->TrackPointExtension->cad;
+        }
+
+        // 1. Time intervals: In positive split, earlier segments are faster (smaller dt) than later segments
+        $firstSegmentDeltaT = $times[1] - $times[0];
+        $lastSegmentDeltaT = $times[count($times) - 1] - $times[count($times) - 2];
+        $this->assertLessThan($lastSegmentDeltaT, $firstSegmentDeltaT, 'Positive split must have slower later segments (larger dt)');
+
+        // 2. Cadence: Later points should have lower cadence than earlier points
+        $earlyAvgCad = array_sum(array_slice($cads, 0, 4)) / 4.0;
+        $lateAvgCad = array_sum(array_slice($cads, -4)) / 4.0;
+        $this->assertLessThan($earlyAvgCad, $lateAvgCad, 'Cadence must decrease in late segments when slowing down');
+
+        // 3. Overall averages MUST strictly match the targets
+        $overallAvgHr = array_sum($hrs) / count($hrs);
+        $this->assertEqualsWithDelta($targetHr, $overallAvgHr, 1.0, 'Average HR must strictly match target');
+
+        $overallAvgCadSpm = (array_sum($cads) / count($cads)) * 2;
+        $this->assertEqualsWithDelta($targetCad, $overallAvgCadSpm, 1.0, 'Average Cadence must strictly match target');
+    }
+
+    public function test_parse_route_post_payload_retains_split_strategy_and_pct(): void
+    {
+        $request = Request::create('/tools/buat-rute-lari/strava-upload', 'POST', [
+            'name' => 'Marathon Pace Simulation',
+            'split_type' => 'negative',
+            'split_pct' => 2.5,
+            'pace_sec_per_km' => 315,
+            'points' => [
+                ['lat' => -6.2, 'lng' => 106.8],
+                ['lat' => -6.21, 'lng' => 106.81],
+            ],
+        ]);
+
+        $payload = $this->parsePayloadMethod->invoke($this->controller, $request);
+        $this->assertEquals('negative', $payload['split_type']);
+        $this->assertEquals(2.5, $payload['split_pct']);
+        $this->assertStringContainsString('Split: Negative Split (+2.5 %/km)', $payload['description']);
+    }
 }
+

@@ -1005,6 +1005,59 @@
                                     </div>
                                 </div>
 
+                                <!-- Pacing Split Strategy -->
+                                <div class="p-3 rounded-lg bg-slate-900/90 border border-slate-800 space-y-2.5">
+                                    <div class="flex items-center justify-between">
+                                        <label class="text-[11px] font-bold text-slate-200 uppercase tracking-wider">Strategi Pacing Split</label>
+                                        <span id="rl-strava-split-badge" class="text-[10px] font-medium text-slate-400 bg-slate-800 px-2 py-0.5 rounded">Pace Rata (Even)</span>
+                                    </div>
+
+                                    <div class="grid grid-cols-3 gap-1.5 p-1 bg-slate-950/80 border border-slate-800 rounded-md">
+                                        <button type="button" data-split="even" class="rl-split-btn px-2 py-1.5 rounded text-xs font-semibold text-white bg-slate-800 shadow-sm transition text-center cursor-pointer">
+                                            Even
+                                        </button>
+                                        <button type="button" data-split="negative" class="rl-split-btn px-2 py-1.5 rounded text-xs font-semibold text-slate-400 hover:text-white transition text-center cursor-pointer">
+                                            Negative
+                                        </button>
+                                        <button type="button" data-split="positive" class="rl-split-btn px-2 py-1.5 rounded text-xs font-semibold text-slate-400 hover:text-white transition text-center cursor-pointer">
+                                            Positive
+                                        </button>
+                                    </div>
+
+                                    <div id="rl-strava-split-slider-container" class="hidden space-y-2 pt-1.5 border-t border-slate-800">
+                                        <div class="flex items-center justify-between text-xs">
+                                            <span class="text-slate-300 font-medium">Perubahan Pace Tiap Km</span>
+                                            <span id="rl-strava-split-pct-label" class="font-mono font-bold text-emerald-400">2.0% / km</span>
+                                        </div>
+                                        <input id="rl-strava-split-slider" type="range" min="0.5" max="8.0" step="0.5" value="2.0" class="w-full accent-emerald-500 cursor-pointer">
+                                        <div class="flex items-center justify-between text-[10px] text-slate-400">
+                                            <span>0.5% (Halus)</span>
+                                            <span>4.0% (Sedang)</span>
+                                            <span>8.0% (Agresif)</span>
+                                        </div>
+                                        <p id="rl-strava-split-hint" class="text-[11px] text-slate-400 leading-relaxed">
+                                            Pace makin kencang tiap km. Detak jantung (HR) dan cadence naik sejalan dengan kecepatan, dengan rata-rata total tetap presisi.
+                                        </p>
+                                    </div>
+
+                                    <div id="rl-strava-split-preview" class="hidden p-2 rounded bg-slate-950/60 border border-slate-800 text-[11px] space-y-1.5 font-mono">
+                                        <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Estimasi Progresi Rute</div>
+                                        <div class="grid grid-cols-2 gap-2 text-slate-300">
+                                            <div class="bg-slate-900/80 p-2 rounded border border-slate-800">
+                                                <div class="text-slate-400 text-[10px] font-sans">Km Pertama</div>
+                                                <div id="rl-split-preview-first" class="text-white font-semibold mt-0.5">-</div>
+                                            </div>
+                                            <div class="bg-slate-900/80 p-2 rounded border border-slate-800">
+                                                <div class="text-slate-400 text-[10px] font-sans">Km Akhir</div>
+                                                <div id="rl-split-preview-last" class="text-white font-semibold mt-0.5">-</div>
+                                            </div>
+                                        </div>
+                                        <div class="text-[10px] text-slate-400 font-sans">
+                                            Avg Target Terjaga: <span id="rl-split-preview-avg" class="text-slate-200 font-mono">-</span>
+                                        </div>
+                                    </div>
+                                </div>
+
                                 <div class="flex items-center justify-between gap-3">
                                     <label class="inline-flex items-center gap-2 text-xs font-bold text-slate-300">
                                         <input id="rl-strava-private" type="checkbox" class="accent-white">
@@ -1057,6 +1110,8 @@
                                             <input type="hidden" name="hr" id="rl-strava-hr-direct">
                                             <input type="hidden" name="cadence" id="rl-strava-cadence-direct">
                                             <input type="hidden" name="power" id="rl-strava-power-direct">
+                                            <input type="hidden" name="split_type" id="rl-strava-split-type-direct" value="even">
+                                            <input type="hidden" name="split_pct" id="rl-strava-split-pct-direct" value="2.0">
                                             <input type="hidden" name="private" id="rl-strava-private-direct" value="0">
                                             <button id="rl-strava-submit-direct" type="submit" class="w-full px-3 py-2 rounded-xl bg-[#FC4C02] text-white font-bold hover:bg-[#FC4C02]/90 transition text-xs cursor-pointer">
                                                 Export ke Strava
@@ -1073,6 +1128,8 @@
                                             <input type="hidden" name="hr" id="rl-strava-hr-auth">
                                             <input type="hidden" name="cadence" id="rl-strava-cadence-auth">
                                             <input type="hidden" name="power" id="rl-strava-power-auth">
+                                            <input type="hidden" name="split_type" id="rl-strava-split-type-auth" value="even">
+                                            <input type="hidden" name="split_pct" id="rl-strava-split-pct-auth" value="2.0">
                                             <input type="hidden" name="private" id="rl-strava-private-auth" value="0">
                                             <button id="rl-strava-submit-auth" type="submit" class="w-full px-3 py-2.5 rounded-xl bg-[#FC4C02] text-white font-bold hover:bg-[#FC4C02]/90 transition text-xs flex items-center justify-center gap-2 cursor-pointer">
                                                 <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
@@ -1402,6 +1459,19 @@
                 stravaCadenceAuth: document.getElementById('rl-strava-cadence-auth'),
                 stravaPowerAuth: document.getElementById('rl-strava-power-auth'),
                 stravaPrivateAuth: document.getElementById('rl-strava-private-auth'),
+                stravaSplitTypeDirect: document.getElementById('rl-strava-split-type-direct'),
+                stravaSplitPctDirect: document.getElementById('rl-strava-split-pct-direct'),
+                stravaSplitTypeAuth: document.getElementById('rl-strava-split-type-auth'),
+                stravaSplitPctAuth: document.getElementById('rl-strava-split-pct-auth'),
+                stravaSplitSlider: document.getElementById('rl-strava-split-slider'),
+                stravaSplitSliderContainer: document.getElementById('rl-strava-split-slider-container'),
+                stravaSplitPctLabel: document.getElementById('rl-strava-split-pct-label'),
+                stravaSplitBadge: document.getElementById('rl-strava-split-badge'),
+                stravaSplitHint: document.getElementById('rl-strava-split-hint'),
+                stravaSplitPreview: document.getElementById('rl-strava-split-preview'),
+                splitPreviewFirst: document.getElementById('rl-split-preview-first'),
+                splitPreviewLast: document.getElementById('rl-split-preview-last'),
+                splitPreviewAvg: document.getElementById('rl-split-preview-avg'),
                 center: document.getElementById('rl-center'),
                 fit: document.getElementById('rl-fit'),
                 modal: document.getElementById('rl-modal'),
@@ -2358,6 +2428,10 @@
                         timeIsValid = true;
                     }
                 }
+
+                if (typeof updateSplitPreview === 'function') {
+                    updateSplitPreview();
+                }
             }
 
             // [Duplicate addPoint removed]
@@ -2664,7 +2738,7 @@
                 });
             }
 
-            function generateTelemetrySeriesJs(count, target, type) {
+            function generateTelemetrySeriesJs(count, target, type, speedRatios, cumDists, totalDist) {
                 if (!target || count < 1) return new Array(count).fill(null);
 
                 // Strava expects running GPX trackpoint cadence <gpxtpx:cad> as RPM (single-leg strides)
@@ -2676,39 +2750,52 @@
 
                 var series = [];
                 var warmupCount = (type === 'hr') ? Math.min(15, Math.max(0, Math.round(count * 0.08))) : 0;
+                var hasRatios = Array.isArray(speedRatios) && speedRatios.length === count;
+                var hasProgress = Array.isArray(cumDists) && totalDist > 0;
 
                 for (var i = 0; i < count; i++) {
+                    var r = hasRatios ? speedRatios[i] : 1.0;
+                    var distProgress = hasProgress ? (cumDists[i] / totalDist) : 0.0;
                     var val = effectiveTarget;
+
                     if (type === 'hr') {
+                        var speedDelta = (r - 1.0) * (target * 0.65);
+                        var drift = distProgress * 2.5;
+                        var wave = Math.sin(i * 0.15) * 1.5 + Math.cos(i * 0.04) * 1.0;
+
                         if (warmupCount > 0 && i < warmupCount) {
                             var pct = i / warmupCount;
                             var startHr = Math.max(50, Math.round(target * 0.85));
-                            val = Math.round(startHr + (target - startHr) * pct + (Math.sin(i * 0.4) * 1.5));
+                            val = Math.round(startHr + (target - startHr) * pct + wave);
                         } else {
-                            var wave = Math.sin((i - warmupCount) * 0.15) * 2.5 + Math.cos((i - warmupCount) * 0.04) * 1.5;
-                            val = Math.round(target + wave);
+                            val = Math.round(target + speedDelta + drift + wave);
                         }
                         val = Math.max(40, Math.min(230, val));
                     } else if (type === 'cadence') {
-                        var wave = Math.sin(i * 0.25) * 1.5 + Math.cos(i * 0.07) * 1.0;
-                        val = Math.round(effectiveTarget + wave);
+                        var speedDeltaRpm = (r - 1.0) * (effectiveTarget * 0.25);
+                        var wave = Math.sin(i * 0.25) * 1.0 + Math.cos(i * 0.07) * 0.7;
+                        val = Math.round(effectiveTarget + speedDeltaRpm + wave);
                         val = Math.max(20, Math.min(150, val));
                     } else { // power
                         var wave = Math.sin(i * 0.22) * 8.0 + Math.cos(i * 0.05) * 5.0;
-                        val = Math.round(target + wave);
+                        val = Math.round(target * Math.pow(r, 1.5) + wave);
                         val = Math.max(0, Math.min(1500, val));
                     }
                     series.push(val);
                 }
 
-                var desiredSum = Math.round(effectiveTarget * count);
+                // Residual calibration so series average strictly matches user's specified target!
+                var targetMean = (type === 'cadence') ? effectiveTarget : target;
+                var desiredSum = Math.round(targetMean * count);
                 var sum = series.reduce(function (a, b) { return a + b; }, 0);
                 var diff = desiredSum - sum;
                 if (diff !== 0) {
                     var step = diff > 0 ? 1 : -1;
                     var absDiff = Math.abs(diff);
+                    var startIdx = (type === 'hr') ? Math.min(warmupCount, count - 1) : 0;
+                    var span = Math.max(1, count - startIdx);
                     for (var j = 0; j < absDiff; j++) {
-                        series[(warmupCount + j) % count] += step;
+                        series[startIdx + (j % span)] += step;
                     }
                 }
                 return series;
@@ -2735,11 +2822,49 @@
                     if (m) effectivePace = (parseInt(m[1], 10) * 60) + parseInt(m[2], 10);
                 }
 
+                var splitType = window.rlCurrentSplitType || 'even';
+                var splitPct = els.stravaSplitSlider ? (parseFloat(els.stravaSplitSlider.value) || 2.0) : 2.0;
+                splitPct = Math.max(0.1, Math.min(15.0, splitPct));
+
+                var segDists = [];
+                var cumDists = [0.0];
                 var totalDistKm = 0;
                 for (var i = 1; i < routePoints.length; i++) {
-                    totalDistKm += haversineKm(routePoints[i - 1], routePoints[i]);
+                    var d = haversineKm(routePoints[i - 1], routePoints[i]);
+                    segDists.push(d);
+                    totalDistKm += d;
+                    cumDists.push(totalDistKm);
                 }
-                var totalDurationSec = totalDistKm * effectivePace;
+
+                var midDistKm = totalDistKm / 2.0;
+                var speedRatios = [];
+                var pointPaces = [];
+                for (var j = 0; j < routePoints.length; j++) {
+                    var distFromMid = cumDists[j] - midDistKm;
+                    var ratio = 1.0;
+                    if (splitType === 'negative') {
+                        ratio = 1.0 + (distFromMid * (splitPct / 100.0));
+                    } else if (splitType === 'positive') {
+                        ratio = 1.0 - (distFromMid * (splitPct / 100.0));
+                    }
+                    ratio = Math.max(0.4, Math.min(2.5, ratio));
+                    speedRatios.push(ratio);
+                    pointPaces.push(effectivePace / ratio);
+                }
+
+                var rawDurations = [];
+                var rawTotalSec = 0;
+                for (var m = 1; m < routePoints.length; m++) {
+                    var avgPace = (pointPaces[m - 1] + pointPaces[m]) / 2.0;
+                    var sec = segDists[m - 1] * avgPace;
+                    rawDurations.push(sec);
+                    rawTotalSec += sec;
+                }
+
+                var desiredTotalSec = totalDistKm * effectivePace;
+                var corr = rawTotalSec > 0 ? (desiredTotalSec / rawTotalSec) : 1.0;
+                var segDurations = rawDurations.map(function (s) { return s * corr; });
+                var totalDurationSec = desiredTotalSec;
 
                 var startTimeMs = Date.now() - ((totalDurationSec + 120) * 1000);
                 if (els.stravaStart && els.stravaStart.value) {
@@ -2757,9 +2882,9 @@
                 var targetPower = (els.stravaPower && els.stravaPower.value) ? parseInt(els.stravaPower.value, 10) : null;
                 var hasTelemetry = !!(targetHr || targetCad || targetPower);
 
-                var hrSeries = generateTelemetrySeriesJs(routePoints.length, targetHr, 'hr');
-                var cadSeries = generateTelemetrySeriesJs(routePoints.length, targetCad, 'cadence');
-                var powerSeries = generateTelemetrySeriesJs(routePoints.length, targetPower, 'power');
+                var hrSeries = generateTelemetrySeriesJs(routePoints.length, targetHr, 'hr', speedRatios, cumDists, totalDistKm);
+                var cadSeries = generateTelemetrySeriesJs(routePoints.length, targetCad, 'cadence', speedRatios, cumDists, totalDistKm);
+                var powerSeries = generateTelemetrySeriesJs(routePoints.length, targetPower, 'power', speedRatios, cumDists, totalDistKm);
 
                 var accumulatedSec = 0;
                 var seg = '';
@@ -2767,7 +2892,7 @@
                 for (var k = 0; k < routePoints.length; k++) {
                     var pt = routePoints[k];
                     if (k > 0) {
-                        accumulatedSec += (haversineKm(routePoints[k - 1], pt) * effectivePace);
+                        accumulatedSec += segDurations[k - 1];
                     }
                     var ptTime = new Date(startTimeMs + (accumulatedSec * 1000)).toISOString();
 
@@ -3428,6 +3553,9 @@
                     }
                     els.stravaPace.value = paceM + ':' + String(paceS).padStart(2, '0');
                 }
+                if (typeof updateSplitPreview === 'function') {
+                    updateSplitPreview();
+                }
             }
 
             function fillHiddenStravaFields(kind) {
@@ -3472,6 +3600,9 @@
                     return false;
                 }
                 var json = JSON.stringify(cleanPoints);
+                var splitType = window.rlCurrentSplitType || 'even';
+                var splitPct = els.stravaSplitSlider ? (parseFloat(els.stravaSplitSlider.value) || 2.0) : 2.0;
+
                 if (kind === 'direct') {
                     if (els.stravaPointsJsonDirect) els.stravaPointsJsonDirect.value = json;
                     if (els.stravaNameDirect) els.stravaNameDirect.value = name;
@@ -3481,6 +3612,8 @@
                     if (els.stravaHrDirect) els.stravaHrDirect.value = hr;
                     if (els.stravaCadenceDirect) els.stravaCadenceDirect.value = cadence;
                     if (els.stravaPowerDirect) els.stravaPowerDirect.value = power;
+                    if (els.stravaSplitTypeDirect) els.stravaSplitTypeDirect.value = splitType;
+                    if (els.stravaSplitPctDirect) els.stravaSplitPctDirect.value = splitPct;
                     if (els.stravaPrivateDirect) els.stravaPrivateDirect.value = isPrivate ? '1' : '0';
                 } else {
                     if (els.stravaPointsJsonAuth) els.stravaPointsJsonAuth.value = json;
@@ -3491,6 +3624,8 @@
                     if (els.stravaHrAuth) els.stravaHrAuth.value = hr;
                     if (els.stravaCadenceAuth) els.stravaCadenceAuth.value = cadence;
                     if (els.stravaPowerAuth) els.stravaPowerAuth.value = power;
+                    if (els.stravaSplitTypeAuth) els.stravaSplitTypeAuth.value = splitType;
+                    if (els.stravaSplitPctAuth) els.stravaSplitPctAuth.value = splitPct;
                     if (els.stravaPrivateAuth) els.stravaPrivateAuth.value = isPrivate ? '1' : '0';
                 }
 
@@ -4464,6 +4599,154 @@
                     syncStravaDefaults();
                 }
             }
+
+            window.rlCurrentSplitType = 'even';
+
+            function updateSplitPreview() {
+                if (!els.stravaSplitPreview) return;
+                var splitType = window.rlCurrentSplitType || 'even';
+                if (splitType === 'even') {
+                    els.stravaSplitPreview.classList.add('hidden');
+                    return;
+                }
+                els.stravaSplitPreview.classList.remove('hidden');
+
+                var splitPct = els.stravaSplitSlider ? (parseFloat(els.stravaSplitSlider.value) || 2.0) : 2.0;
+                var rawSource = (els.followRoad && els.followRoad.checked && routePoints.length >= 2) ? routePoints : points;
+                var totalDistKm = 0;
+                if (rawSource.length >= 2) {
+                    for (var i = 1; i < rawSource.length; i++) {
+                        var p1 = rawSource[i - 1];
+                        var p2 = rawSource[i];
+                        var lat1 = typeof p1.lat === 'function' ? p1.lat() : p1.lat;
+                        var lng1 = typeof p1.lng === 'function' ? p1.lng() : p1.lng;
+                        var lat2 = typeof p2.lat === 'function' ? p2.lat() : p2.lat;
+                        var lng2 = typeof p2.lng === 'function' ? p2.lng() : p2.lng;
+                        if (typeof lat1 === 'number' && typeof lat2 === 'number') {
+                            totalDistKm += haversineKm({ lat: lat1, lng: lng1 }, { lat: lat2, lng: lng2 });
+                        }
+                    }
+                }
+                if (totalDistKm <= 0.1) totalDistKm = 5.0;
+
+                var effectivePace = 360;
+                if (els.stravaPace && els.stravaPace.value) {
+                    var m = els.stravaPace.value.trim().match(/^(\d{1,2}):([0-5]\d)$/);
+                    if (m) effectivePace = (parseInt(m[1], 10) * 60) + parseInt(m[2], 10);
+                } else {
+                    var paceM = parseInt(els.paceMin ? els.paceMin.value : '0', 10) || 0;
+                    var paceS = parseInt(els.paceSec ? els.paceSec.value : '0', 10) || 0;
+                    if (paceM > 0 || paceS > 0) effectivePace = (paceM * 60) + paceS;
+                }
+
+                var targetHr = (els.stravaHr && els.stravaHr.value) ? parseInt(els.stravaHr.value, 10) : null;
+                var targetCad = (els.stravaCadence && els.stravaCadence.value) ? parseInt(els.stravaCadence.value, 10) : null;
+
+                var midDist = totalDistKm / 2.0;
+                var rStart = (splitType === 'negative') ? (1.0 - (midDist * (splitPct / 100.0))) : (1.0 + (midDist * (splitPct / 100.0)));
+                var rEnd = (splitType === 'negative') ? (1.0 + (midDist * (splitPct / 100.0))) : (1.0 - (midDist * (splitPct / 100.0)));
+
+                rStart = Math.max(0.4, Math.min(2.5, rStart));
+                rEnd = Math.max(0.4, Math.min(2.5, rEnd));
+
+                var paceStartSec = Math.round(effectivePace / rStart);
+                var paceEndSec = Math.round(effectivePace / rEnd);
+
+                function fmtPace(sec) {
+                    var min = Math.floor(sec / 60);
+                    var s = Math.round(sec % 60);
+                    return min + ':' + String(s).padStart(2, '0') + '/km';
+                }
+
+                var textStart = fmtPace(paceStartSec);
+                var textEnd = fmtPace(paceEndSec);
+
+                if (targetHr) {
+                    var hrDeltaStart = Math.round((rStart - 1.0) * (targetHr * 0.65));
+                    var hrDeltaEnd = Math.round((rEnd - 1.0) * (targetHr * 0.65) + 2.5);
+                    var hrStart = Math.max(40, Math.min(220, targetHr + hrDeltaStart));
+                    var hrEnd = Math.max(40, Math.min(220, targetHr + hrDeltaEnd));
+                    textStart += ' • ' + hrStart + ' bpm';
+                    textEnd += ' • ' + hrEnd + ' bpm';
+                }
+
+                if (targetCad) {
+                    var targetRpm = targetCad / 2.0;
+                    var cadDeltaRpmStart = (rStart - 1.0) * (targetRpm * 0.25);
+                    var cadDeltaRpmEnd = (rEnd - 1.0) * (targetRpm * 0.25);
+                    var cadStart = Math.round((targetRpm + cadDeltaRpmStart) * 2);
+                    var cadEnd = Math.round((targetRpm + cadDeltaRpmEnd) * 2);
+                    textStart += ' • ' + cadStart + ' spm';
+                    textEnd += ' • ' + cadEnd + ' spm';
+                }
+
+                if (els.splitPreviewFirst) els.splitPreviewFirst.textContent = textStart;
+                if (els.splitPreviewLast) els.splitPreviewLast.textContent = textEnd;
+
+                var avgText = fmtPace(effectivePace);
+                if (targetHr) avgText += ' • HR ' + targetHr + ' bpm';
+                if (targetCad) avgText += ' • Cad ' + targetCad + ' spm';
+                if (els.splitPreviewAvg) els.splitPreviewAvg.textContent = avgText;
+            }
+
+            function setSplitStrategy(splitType) {
+                window.rlCurrentSplitType = splitType;
+                var btns = document.querySelectorAll('.rl-split-btn');
+                btns.forEach(function (btn) {
+                    var isSelected = btn.getAttribute('data-split') === splitType;
+                    if (isSelected) {
+                        btn.className = 'rl-split-btn px-2 py-1.5 rounded text-xs font-semibold text-white bg-slate-800 shadow-sm transition text-center cursor-pointer';
+                    } else {
+                        btn.className = 'rl-split-btn px-2 py-1.5 rounded text-xs font-semibold text-slate-400 hover:text-white transition text-center cursor-pointer';
+                    }
+                });
+
+                if (splitType === 'even') {
+                    if (els.stravaSplitBadge) {
+                        els.stravaSplitBadge.textContent = 'Pace Rata (Even)';
+                        els.stravaSplitBadge.className = 'text-[10px] font-medium text-slate-400 bg-slate-800 px-2 py-0.5 rounded';
+                    }
+                    if (els.stravaSplitSliderContainer) els.stravaSplitSliderContainer.classList.add('hidden');
+                    if (els.stravaSplitPreview) els.stravaSplitPreview.classList.add('hidden');
+                } else {
+                    if (els.stravaSplitSliderContainer) els.stravaSplitSliderContainer.classList.remove('hidden');
+                    var isNeg = splitType === 'negative';
+                    if (els.stravaSplitBadge) {
+                        els.stravaSplitBadge.textContent = isNeg ? 'Negative Split' : 'Positive Split';
+                        els.stravaSplitBadge.className = isNeg 
+                            ? 'text-[10px] font-medium text-emerald-400 bg-emerald-950/80 border border-emerald-800/60 px-2 py-0.5 rounded'
+                            : 'text-[10px] font-medium text-amber-400 bg-amber-950/80 border border-amber-800/60 px-2 py-0.5 rounded';
+                    }
+                    if (els.stravaSplitHint) {
+                        els.stravaSplitHint.textContent = isNeg
+                            ? 'Negative Split: Pace makin kencang tiap km. Detak jantung (HR) dan cadence meningkat sejalan kecepatan, dengan rata-rata total tetap presisi sesuai target.'
+                            : 'Positive Split: Start lebih cepat lalu melambat tiap km. Detak jantung (HR) dan cadence menurun sejalan kecepatan, dengan rata-rata total tetap presisi sesuai target.';
+                    }
+                    updateSplitPreview();
+                }
+            }
+
+            var splitBtns = document.querySelectorAll('.rl-split-btn');
+            splitBtns.forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var sType = btn.getAttribute('data-split') || 'even';
+                    setSplitStrategy(sType);
+                });
+            });
+
+            if (els.stravaSplitSlider) {
+                els.stravaSplitSlider.addEventListener('input', function () {
+                    var val = parseFloat(this.value) || 2.0;
+                    if (els.stravaSplitPctLabel) {
+                        els.stravaSplitPctLabel.textContent = val.toFixed(1) + '% / km';
+                    }
+                    updateSplitPreview();
+                });
+            }
+
+            if (els.stravaPace) els.stravaPace.addEventListener('input', updateSplitPreview);
+            if (els.stravaHr) els.stravaHr.addEventListener('input', updateSplitPreview);
+            if (els.stravaCadence) els.stravaCadence.addEventListener('input', updateSplitPreview);
 
             if (els.stravaDirectForm) {
                 els.stravaDirectForm.addEventListener('submit', function (e) {
