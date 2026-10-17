@@ -632,7 +632,12 @@
                             </div>
 
                             <div>
-                                <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block mb-1">Jam Start Aktivitas</label>
+                                <div class="flex items-center justify-between mb-1">
+                                    <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider block !mb-0">Jam Start Aktivitas</label>
+                                    <button type="button" id="rl-start-set-now" class="text-[10px] font-bold text-brand-lime hover:underline cursor-pointer">
+                                        Set Selesai Sekarang
+                                    </button>
+                                </div>
                                 <input id="rl-start-time" type="datetime-local" class="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white font-bold focus:outline-none focus:ring-1 focus:ring-slate-500">
                                 <div id="rl-start-time-error" class="text-xs text-red-500 mt-1.5 hidden"></div>
                             </div>
@@ -949,8 +954,14 @@
                                         <input id="rl-strava-name" type="text" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500 text-xs" placeholder="Mis. Easy Run">
                                     </div>
                                     <div>
-                                        <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider">Tanggal & Waktu</label>
-                                        <input id="rl-strava-start" type="datetime-local" class="mt-1 w-full bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500 text-xs">
+                                        <div class="flex items-center justify-between mb-1">
+                                            <label class="text-[11px] font-bold text-slate-300 uppercase tracking-wider !mb-0">Tanggal & Waktu</label>
+                                            <button type="button" id="rl-strava-set-now" class="text-[10px] font-bold text-brand-lime hover:underline cursor-pointer">
+                                                Set Selesai Sekarang
+                                            </button>
+                                        </div>
+                                        <input id="rl-strava-start" type="datetime-local" class="w-full bg-slate-950/40 border border-slate-700 rounded-xl px-3 py-2 text-white font-semibold focus:outline-none focus:ring-2 focus:ring-white/20 focus:border-slate-500 text-xs">
+                                        <div id="rl-strava-start-error" class="text-xs text-red-500 mt-1.5 hidden"></div>
                                     </div>
                                 </div>
 
@@ -1398,6 +1409,7 @@
                 paceSec: document.getElementById('rl-pace-sec'),
                 startTime: document.getElementById('rl-start-time'),
                 startTimeError: document.getElementById('rl-start-time-error'),
+                startSetNow: document.getElementById('rl-start-set-now'),
                 modeToggle: document.getElementById('rl-mode-toggle'),
                 markerPaletteToggle: document.getElementById('rl-marker-palette-toggle'),
                 markerPalette: document.getElementById('rl-marker-palette'),
@@ -1433,6 +1445,8 @@
                 stravaBody: document.getElementById('rl-strava-panel-body'),
                 stravaName: document.getElementById('rl-strava-name'),
                 stravaStart: document.getElementById('rl-strava-start'),
+                stravaStartError: document.getElementById('rl-strava-start-error'),
+                stravaSetNow: document.getElementById('rl-strava-set-now'),
                 stravaDevice: document.getElementById('rl-strava-device'),
                 stravaPace: document.getElementById('rl-strava-pace'),
                 stravaHr: document.getElementById('rl-strava-hr'),
@@ -2361,6 +2375,13 @@
                 return total;
             }
 
+            function calculateEstSeconds() {
+                var dist = totalDistanceKm();
+                var pace = parsePaceSecPerKm();
+                var est = Math.round(dist * pace);
+                return est > 0 ? est : 1800;
+            }
+
             function formatDateTimeDisplay(d) {
                 var pad = function (n) { return String(n).padStart(2, '0'); };
                 return pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
@@ -2383,50 +2404,64 @@
                 if (els.floatingTime) els.floatingTime.textContent = fmtHMS(est);
 
                 // Start time & Finish time validation
-                if (els.startTime) {
-                    var startTimeVal = els.startTime.value;
-                    var startDt = startTimeVal ? new Date(startTimeVal) : null;
+                var activeTimeVal = (els.stravaStart && (els.stravaStart.value || '').trim()) || (els.startTime && (els.startTime.value || '').trim()) || '';
+                if (activeTimeVal) {
+                    var startDt = new Date(activeTimeVal);
                     if (startDt && !isNaN(startDt.getTime())) {
                         var now = new Date();
                         var durationMs = est * 1000;
                         var finishDt = new Date(startDt.getTime() + durationMs);
-                        var isStartInFuture = startDt > now;
-                        var isFinishInFuture = finishDt > now;
-                        var msg = '';
-                        if (isStartInFuture) {
-                            msg = 'Waktu start tidak boleh melebihi waktu sekarang!';
-                            if (els.startTimeError) {
-                                els.startTimeError.textContent = msg;
-                                els.startTimeError.classList.remove('hidden');
+                        var isStartInFuture = startDt.getTime() > now.getTime();
+                        var isFinishInFuture = finishDt.getTime() > now.getTime();
+
+                        var padTwo = function (n) { return String(n).padStart(2, '0'); };
+                        var formatTimeOnly = function (d) { return padTwo(d.getHours()) + ':' + padTwo(d.getMinutes()); };
+
+                        var applyTimeError = function (el, errEl, text, isWarning) {
+                            if (errEl) {
+                                errEl.textContent = text;
+                                errEl.className = isWarning ? 'text-xs text-amber-300 mt-1.5' : 'text-xs text-red-400 mt-1.5';
+                                errEl.classList.remove('hidden');
                             }
-                            els.startTime.classList.add('border-red-500', 'text-red-400');
-                            els.startTime.classList.remove('border-slate-700', 'border-amber-500/80', 'text-amber-300');
+                            if (el) {
+                                el.classList.remove('border-slate-800', 'border-slate-700', 'border-red-500', 'border-amber-500/80', 'text-amber-300', 'text-red-400');
+                                if (isWarning) {
+                                    el.classList.add('border-amber-500/80', 'text-amber-300');
+                                } else {
+                                    el.classList.add('border-red-500', 'text-red-400');
+                                }
+                            }
+                        };
+
+                        var clearTimeError = function (el, errEl) {
+                            if (errEl) errEl.classList.add('hidden');
+                            if (el) {
+                                el.classList.remove('border-red-500', 'border-amber-500/80', 'text-amber-300', 'text-red-400');
+                                el.classList.add(el === els.startTime ? 'border-slate-800' : 'border-slate-700');
+                            }
+                        };
+
+                        if (isStartInFuture) {
+                            var msg = 'Waktu start (' + formatTimeOnly(startDt) + ') melebihi waktu sekarang (' + formatTimeOnly(now) + '). Strava menolak aktivitas di masa depan.';
+                            applyTimeError(els.startTime, els.startTimeError, msg, false);
+                            applyTimeError(els.stravaStart, els.stravaStartError, msg, false);
                             timeIsValid = false;
                         } else if (isFinishInFuture) {
-                            msg = 'Waktu finish melebihi waktu sekarang. Waktu aktivitas akan otomatis disesuaikan ke masa lampau saat export Strava.';
-                            if (els.startTimeError) {
-                                els.startTimeError.textContent = msg;
-                                els.startTimeError.classList.remove('hidden');
-                            }
-                            els.startTime.classList.remove('border-red-500', 'text-red-400');
-                            els.startTime.classList.add('border-amber-500/80', 'text-amber-300');
-                            timeIsValid = true;
+                            var diffMin = Math.ceil((finishDt.getTime() - now.getTime()) / 60000);
+                            var msg = 'Dengan durasi ' + fmtHMS(est) + ', rute selesai pukul ' + formatTimeOnly(finishDt) + ' (' + diffMin + 'm lagi). Strava hanya menerima aktivitas yang sudah selesai. Harap mundurkan start atau klik "Set Selesai Sekarang".';
+                            applyTimeError(els.startTime, els.startTimeError, msg, true);
+                            applyTimeError(els.stravaStart, els.stravaStartError, msg, true);
+                            timeIsValid = false;
                         } else {
-                            if (els.startTimeError) {
-                                els.startTimeError.classList.add('hidden');
-                            }
-                            els.startTime.classList.remove('border-red-500', 'text-red-400', 'border-amber-500/80', 'text-amber-300');
-                            els.startTime.classList.add('border-slate-700');
+                            clearTimeError(els.startTime, els.startTimeError);
+                            clearTimeError(els.stravaStart, els.stravaStartError);
                             timeIsValid = true;
                         }
                     } else {
-                        if (els.startTimeError) {
-                            els.startTimeError.classList.add('hidden');
-                        }
-                        els.startTime.classList.remove('border-red-500', 'text-red-400');
-                        els.startTime.classList.add('border-slate-700');
-                        timeIsValid = true;
+                        timeIsValid = false;
                     }
+                } else {
+                    timeIsValid = false;
                 }
 
                 if (typeof updateSplitPreview === 'function') {
@@ -2867,13 +2902,11 @@
                 var totalDurationSec = desiredTotalSec;
 
                 var startTimeMs = Date.now() - ((totalDurationSec + 120) * 1000);
-                if (els.stravaStart && els.stravaStart.value) {
-                    var parsedStart = new Date(els.stravaStart.value).getTime();
+                var chosenStartVal = (els.stravaStart && (els.stravaStart.value || '').trim()) || (els.startTime && (els.startTime.value || '').trim()) || '';
+                if (chosenStartVal) {
+                    var parsedStart = new Date(chosenStartVal).getTime();
                     if (!isNaN(parsedStart)) {
                         startTimeMs = parsedStart;
-                        if (startTimeMs + (totalDurationSec * 1000) > Date.now()) {
-                            startTimeMs = Date.now() - ((totalDurationSec + 120) * 1000);
-                        }
                     }
                 }
 
@@ -3530,19 +3563,16 @@
                     var baseName = (els.name.value || '').trim();
                     els.stravaName.value = baseName !== '' ? baseName : 'Easy Run';
                 }
-                var now = new Date();
-                var estSec = (typeof calculateEstSeconds === 'function') ? calculateEstSeconds() : 1800;
-                var safeStartTime = new Date(now.getTime() - (estSec + 120) * 1000);
-
-                if (els.startTime && els.startTime.value) {
-                    var currentStart = new Date(els.startTime.value);
-                    if (currentStart.getTime() + (estSec * 1000) > now.getTime()) {
-                        els.stravaStart.value = toDatetimeLocalValue(safeStartTime);
-                    } else {
+                // Only populate stravaStart if it is currently blank; never overwrite user's chosen start time
+                if ((els.stravaStart.value || '').trim() === '') {
+                    if (els.startTime && (els.startTime.value || '').trim() !== '') {
                         els.stravaStart.value = els.startTime.value;
+                    } else {
+                        var now = new Date();
+                        var estSec = calculateEstSeconds();
+                        var safeStartTime = new Date(now.getTime() - (estSec + 120) * 1000);
+                        els.stravaStart.value = toDatetimeLocalValue(safeStartTime);
                     }
-                } else if ((els.stravaStart.value || '').trim() === '') {
-                    els.stravaStart.value = toDatetimeLocalValue(safeStartTime);
                 }
                 if ((els.stravaPace.value || '').trim() === '') {
                     var paceM = clamp(parseInt(els.paceMin.value || '0', 10), 0, 59);
@@ -3559,11 +3589,6 @@
             }
 
             function fillHiddenStravaFields(kind) {
-                if (!timeIsValid) {
-                    setStatus('Error: Waktu start tidak valid');
-                    showInfoModal('Waktu Start Tidak Valid', 'Waktu start aktivitas melebihi waktu sekarang. Harap sesuaikan.');
-                    return false;
-                }
                 if (points.length < 2) {
                     showInfoModal('Belum ada rute', 'Tambahkan minimal 2 titik di peta sebelum export ke Strava.');
                     return false;
@@ -3572,7 +3597,40 @@
                 syncStravaDefaults();
 
                 var name = (els.stravaName && els.stravaName.value ? els.stravaName.value : '').trim();
-                var startAt = (els.stravaStart && els.stravaStart.value ? els.stravaStart.value : '').trim();
+                var startAt = (els.stravaStart && els.stravaStart.value ? els.stravaStart.value : (els.startTime && els.startTime.value ? els.startTime.value : '')).trim();
+
+                if (!startAt) {
+                    setStatus('Error: Waktu start belum diisi');
+                    showInfoModal('Waktu Start Belum Diisi', 'Silakan tentukan tanggal dan jam start aktivitas Anda.');
+                    return false;
+                }
+
+                var startDt = new Date(startAt);
+                if (!startDt || isNaN(startDt.getTime())) {
+                    setStatus('Error: Waktu start tidak valid');
+                    showInfoModal('Waktu Start Tidak Valid', 'Format tanggal dan waktu start aktivitas tidak valid.');
+                    return false;
+                }
+
+                var now = new Date();
+                var padTwo = function (n) { return String(n).padStart(2, '0'); };
+                var formatTimeOnly = function (d) { return padTwo(d.getHours()) + ':' + padTwo(d.getMinutes()); };
+
+                if (startDt.getTime() > now.getTime()) {
+                    setStatus('Error: Waktu start di masa depan');
+                    showInfoModal('Waktu Start Di Masa Depan', 'Waktu start aktivitas (' + formatTimeOnly(startDt) + ') melebihi waktu sekarang (' + formatTimeOnly(now) + '). Strava menolak aktivitas di masa depan. Harap sesuaikan jam start.');
+                    return false;
+                }
+
+                var estSec = calculateEstSeconds();
+                var finishDt = new Date(startDt.getTime() + (estSec * 1000));
+                if (finishDt.getTime() > now.getTime()) {
+                    var diffMin = Math.ceil((finishDt.getTime() - now.getTime()) / 60000);
+                    setStatus('Error: Aktivitas belum selesai');
+                    showInfoModal('Aktivitas Belum Selesai', 'Dengan estimasi durasi ' + fmtHMS(estSec) + ', aktivitas ini baru akan selesai pukul ' + formatTimeOnly(finishDt) + ' (' + diffMin + ' menit lagi dari waktu sekarang). Strava hanya menerima aktivitas yang sudah selesai. Harap mundurkan jam start atau klik "Set Selesai Sekarang".');
+                    return false;
+                }
+
                 var device = (els.stravaDevice && els.stravaDevice.value ? els.stravaDevice.value : '').trim();
                 var paceText = (els.stravaPace && els.stravaPace.value ? els.stravaPace.value : '').trim();
                 var hr = (els.stravaHr && els.stravaHr.value ? els.stravaHr.value : '').trim();
@@ -4311,10 +4369,44 @@
             els.paceMin.addEventListener('input', updateStats);
             els.paceSec.addEventListener('input', updateStats);
 
+            function setSafeStartTime() {
+                var now = new Date();
+                var estSec = calculateEstSeconds();
+                var safeDate = new Date(now.getTime() - (estSec + 120) * 1000);
+                var formatted = toDatetimeLocalValue(safeDate);
+                if (els.startTime) els.startTime.value = formatted;
+                if (els.stravaStart) els.stravaStart.value = formatted;
+                updateStats();
+                setStatus('Waktu start disesuaikan agar selesai sekarang');
+            }
+
+            if (els.startSetNow) {
+                els.startSetNow.addEventListener('click', setSafeStartTime);
+            }
+            if (els.stravaSetNow) {
+                els.stravaSetNow.addEventListener('click', setSafeStartTime);
+            }
+
+            function handleStartTimeInput(source) {
+                var val = source ? source.value : '';
+                if (source === els.startTime && els.stravaStart) {
+                    els.stravaStart.value = val;
+                } else if (source === els.stravaStart && els.startTime) {
+                    els.startTime.value = val;
+                }
+                updateStats();
+            }
+
+            var initialStartTime = toDatetimeLocalValue(new Date(Date.now() - 3600 * 1000));
             if (els.startTime) {
-                var oneHourAgo = new Date(Date.now() - 3600 * 1000);
-                els.startTime.value = toDatetimeLocalValue(oneHourAgo);
-                els.startTime.addEventListener('input', updateStats);
+                els.startTime.value = initialStartTime;
+                els.startTime.addEventListener('input', function () { handleStartTimeInput(els.startTime); });
+                els.startTime.addEventListener('change', function () { handleStartTimeInput(els.startTime); });
+            }
+            if (els.stravaStart) {
+                els.stravaStart.value = initialStartTime;
+                els.stravaStart.addEventListener('input', function () { handleStartTimeInput(els.stravaStart); });
+                els.stravaStart.addEventListener('change', function () { handleStartTimeInput(els.stravaStart); });
             }
 
             els.undo.addEventListener('click', undo);
