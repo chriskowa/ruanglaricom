@@ -25,6 +25,16 @@ class CoachFeasibilityService
             'intermediate' => ['min' => 50, 'ideal' => 70, 'max' => 95, 'min_weeks' => 16, 'min_freq' => 5],
             'advanced'     => ['min' => 70, 'ideal' => 90, 'max' => 120, 'min_weeks' => 16, 'min_freq' => 5],
         ],
+        'cooper12' => [
+            'beginner'     => ['min' => 15, 'ideal' => 22, 'max' => 30, 'min_weeks' => 8,  'min_freq' => 3],
+            'intermediate' => ['min' => 22, 'ideal' => 32, 'max' => 45, 'min_weeks' => 8,  'min_freq' => 4],
+            'advanced'     => ['min' => 30, 'ideal' => 42, 'max' => 60, 'min_weeks' => 8,  'min_freq' => 5],
+        ],
+        'balke15' => [
+            'beginner'     => ['min' => 15, 'ideal' => 22, 'max' => 30, 'min_weeks' => 8,  'min_freq' => 3],
+            'intermediate' => ['min' => 22, 'ideal' => 32, 'max' => 45, 'min_weeks' => 8,  'min_freq' => 4],
+            'advanced'     => ['min' => 30, 'ideal' => 42, 'max' => 60, 'min_weeks' => 8,  'min_freq' => 5],
+        ],
     ];
 
     private const VDOT_RATE = [
@@ -298,11 +308,13 @@ class CoachFeasibilityService
     private function distanceKm(string $distance): float
     {
         return match ($distance) {
-            '5k'  => 5.0,
-            '10k' => 10.0,
-            '21k' => 21.0975,
-            '42k' => 42.195,
-            default => 10.0,
+            '5k'       => 5.0,
+            '10k'      => 10.0,
+            '21k'      => 21.0975,
+            '42k'      => 42.195,
+            'cooper12' => 2.4,
+            'balke15'  => 3.0,
+            default    => 10.0,
         };
     }
 

@@ -880,18 +880,19 @@
                                 <div>
                                     <label class="label-text">Tanggal Mulai Latihan</label>
                                     <input v-model="form.start_date" type="date" @click="openDatePicker($event)" class="input-field cursor-pointer">
+                                    <p class="text-[11px] text-slate-400 mt-1">Default hari Senin (awal siklus mingguan). Anda tetap dapat memilih hari lain.</p>
                                 </div>
                                 <div>
                                     <div class="flex items-center justify-between mb-1">
                                         <label class="label-text !mb-0">Tanggal Race / Target Selesai</label>
                                         <button v-if="recommendedTargetDate && form.target_date !== recommendedTargetDate" 
-                                                @click="applyRecommendedTargetDate" 
+                                                @click="userEditedTargetDate = false; applyRecommendedTargetDate();" 
                                                 type="button" 
                                                 class="text-[10px] font-semibold text-brand-lime hover:underline cursor-pointer">
                                             Set @{{ recommendedWeeks }} Mgg
                                         </button>
                                     </div>
-                                    <input v-model="form.target_date" type="date" @click="openDatePicker($event)" class="input-field cursor-pointer">
+                                    <input v-model="form.target_date" @input="userEditedTargetDate = true" type="date" @click="openDatePicker($event)" class="input-field cursor-pointer">
                                 </div>
                             </div>
 
@@ -1079,7 +1080,7 @@
                             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label class="label-text">Level Pelari</label>
-                                    <select v-model="form.runner_level" class="input-field cursor-pointer text-sm">
+                                    <select v-model="form.runner_level" @change="onRunnerLevelChange" class="input-field cursor-pointer text-sm">
                                         <option value="beginner">Pemula (Beginner)</option>
                                         <option value="intermediate">Menengah (Intermediate)</option>
                                         <option value="advanced">Mahir (Advanced)</option>
@@ -1841,8 +1842,19 @@
             const goal_hours = ref(null);
             const goal_minutes = ref(null);
             const goal_seconds = ref(null);
+            const userEditedTargetDate = ref(false);
 
-            const todayStr = new Date().toISOString().split('T')[0];
+            const getNextMondayStr = (from = new Date()) => {
+                const d = new Date(from);
+                const day = d.getDay(); // 0: Minggu, 1: Senin, ..., 6: Sabtu
+                const diff = (day === 1) ? 0 : ((8 - day) % 7);
+                d.setDate(d.getDate() + diff);
+                const year = d.getFullYear();
+                const month = String(d.getMonth() + 1).padStart(2, '0');
+                const date = String(d.getDate()).padStart(2, '0');
+                return `${year}-${month}-${date}`;
+            };
+            const defaultStartMondayStr = getNextMondayStr();
 
             const conflictModal = reactive({
                 show: false,
@@ -1855,10 +1867,10 @@
                 pb_distance: '5k',
                 pb_time: '',
                 target_distance: '10k',
-                start_date: todayStr,
+                start_date: defaultStartMondayStr,
                 target_date: '',
                 goal_time: '',
-                weekly_mileage: 45,
+                weekly_mileage: 40,
                 frequency: 4,
                 gender: 'male',
                 age: 25,
@@ -2333,11 +2345,9 @@
 
             const coachAssessment = computed(() => computeCoachAssessment());
             const idealMileage = computed(() => {
-                const base = coachAssessment.value.ideal_peak_mileage || 45;
-                const rounded = Math.round(base / 5) * 5;
-                return Math.min(120, Math.max(20, rounded));
+                return Math.round(coachAssessment.value?.ideal_peak_mileage || 40);
             });
-            const minMileageDynamic = computed(() => Math.max(10, Math.floor((coachAssessment.value.min_required_peak_mileage || 15) - 1)));
+            const minMileageDynamic = computed(() => Math.max(10, Math.floor((coachAssessment.value?.min_required_peak_mileage || 15) - 1)));
 
             const applyChipOption = (opt) => {
                 if (!opt || !opt.apply) return;
@@ -2630,6 +2640,10 @@
                 suggestGoalTime(true);
             };
 
+            const onRunnerLevelChange = () => {
+                recommendMileage();
+            };
+
             const recalculateRecommendedGoalTime = () => {
                 userEditedGoal.value = false;
                 suggestGoalTime(true);
@@ -2701,7 +2715,7 @@
             });
 
             watch([() => form.start_date, () => form.target_distance], ([newStartDate, newDist], [oldStartDate, oldDist]) => {
-                if (recommendedTargetDate.value && (!form.target_date || newDist !== oldDist)) {
+                if (recommendedTargetDate.value && (!form.target_date || !userEditedTargetDate.value || newDist !== oldDist)) {
                     applyRecommendedTargetDate();
                 }
                 if (newDist && newDist !== oldDist) {
@@ -2786,9 +2800,9 @@
                 } else if (wizardStep.value === 3) {
                     const ca = coachAssessment.value;
                     const minMil = ca.min_required_peak_mileage || 10;
-                    const minMilFloor = Math.max(10, Math.floor(minMil * 0.7));
+                    const minMilFloor = Math.max(10, Math.round(minMil * 0.85));
                     if (!form.weekly_mileage || form.weekly_mileage < minMilFloor) {
-                        showNotification('Mileage mingguan minimal ' + minMilFloor + ' km (batas bawah minimum target Anda: ' + minMil + ' km). Untuk saran ideal klik Reset Saran.', 'error');
+                        showNotification('Mileage mingguan minimal ' + minMilFloor + ' km (batas fisiologis minimum target Anda: ' + minMil + ' km). Untuk saran ideal klik Reset Saran.', 'error');
                         return;
                     }
                     if (form.frequency < (ca.min_frequency || 3)) {
@@ -2842,6 +2856,15 @@
                         if (form.combine_plyometric === undefined) {
                             form.combine_plyometric = (form.strength_type === 'hybrid');
                         }
+                        if (form.start_date) {
+                            const parsed = new Date(form.start_date);
+                            const todayZero = new Date();
+                            todayZero.setHours(0, 0, 0, 0);
+                            if (!isNaN(parsed.getTime()) && parsed < todayZero) {
+                                form.start_date = defaultStartMondayStr;
+                                applyRecommendedTargetDate();
+                            }
+                        }
                         if (data.pb_hours !== undefined) pb_hours.value = data.pb_hours;
                         if (data.pb_minutes !== undefined) pb_minutes.value = data.pb_minutes;
                         if (data.pb_seconds !== undefined) pb_seconds.value = data.pb_seconds;
@@ -2875,10 +2898,11 @@
                 goal_hours.value = null;
                 goal_minutes.value = null;
                 goal_seconds.value = null;
+                userEditedTargetDate.value = false;
                 form.pb_distance = '5k';
                 form.target_distance = '10k';
-                form.start_date = todayStr;
-                form.weekly_mileage = 45;
+                form.start_date = defaultStartMondayStr;
+                form.weekly_mileage = 40;
                 form.frequency = 4;
                 form.gender = 'male';
                 form.age = 25;
@@ -2892,6 +2916,7 @@
                 form.long_run_day = 'sunday';
                 form.is_tropical = false;
                 applyRecommendedTargetDate();
+                recommendMileage();
                 showNotification('Draf formulir telah direset.', 'info');
             };
 
@@ -2973,6 +2998,7 @@
                     const restored = loadFormDraft();
                     if (!restored) {
                         applyRecommendedTargetDate();
+                        recommendMileage();
                     }
                 }
             });

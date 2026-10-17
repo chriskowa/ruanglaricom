@@ -1624,268 +1624,95 @@
         </div>
     </div>
 
-    <!-- VDOT AI Program Generator Modal -->
+    <!-- Konfirmasi Memulai Program Lari Modal -->
     <div x-show="openGenerateModal" 
          x-cloak
-         class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-dark/95 backdrop-blur-sm"
+         class="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm"
          @keydown.escape.window="openGenerateModal = false">
         
-        <div class="relative w-full max-w-3xl bg-slate-900 border border-slate-800 rounded-3xl shadow-2xl overflow-y-auto max-h-[90vh]"
+        <div class="relative w-full max-w-xl bg-slate-900 border border-slate-800 rounded-lg shadow-2xl overflow-hidden p-5 sm:p-6"
              @click.outside="openGenerateModal = false"
-             x-transition:enter="transition ease-out duration-300"
+             x-transition:enter="transition ease-out duration-200"
              x-transition:enter-start="opacity-0 scale-95"
              x-transition:enter-end="opacity-100 scale-100">
             
             <!-- Close Button -->
-            <button @click="openGenerateModal = false" class="absolute top-5 right-5 text-slate-500 hover:text-white transition-colors z-30">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
+            <button type="button" @click="openGenerateModal = false" class="absolute top-4 right-4 w-7 h-7 rounded-md bg-slate-800 border border-slate-700 text-slate-400 hover:text-white hover:bg-slate-700 flex items-center justify-center text-xs transition z-20" aria-label="Tutup">
+                ✕
             </button>
 
-            <!-- Step 1: Input Form -->
-            <div x-show="step === 1" class="p-6 md:p-8">
-                <h3 class="text-xl font-black text-white uppercase italic tracking-tight mb-2">AI Program Generator</h3>
-                <p class="text-xs text-slate-400 mb-6 leading-relaxed">Masukkan catatan waktu lari dan target lomba Anda untuk menghasilkan program latihan terpersonalisasi.</p>
+            <!-- Header -->
+            <div class="mb-5 pr-8">
+                <span class="inline-block text-[10px] font-mono font-bold text-neon uppercase tracking-wider mb-1">Mulai Latihan</span>
+                <h3 class="text-lg font-bold text-white tracking-tight">Belum Ada Program Aktif</h3>
+                <p class="text-xs text-slate-300 mt-1 leading-relaxed">
+                    Kalender latihan Anda masih kosong. Silakan pilih program dari coach profesional pilihan RuangLari atau buat program latihan mandiri berbasis VDOT.
+                </p>
+            </div>
 
-                <div class="space-y-6">
-                    <!-- PB Section -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="space-y-1">
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest">Parameter Test / PB Jarak</label>
-                            <select x-model="pb_distance" class="w-full px-4 py-3 bg-slate-950 border border-slate-850 rounded-xl text-white text-sm focus:outline-none focus:border-neon transition-colors cursor-pointer">
-                                <option value="5k">5 Kilometer</option>
-                                <option value="10k">10 Kilometer</option>
-                                <option value="21k">Half Marathon</option>
-                                <option value="42k">Full Marathon</option>
-                            </select>
+            <!-- 2 Options Grid -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 mb-5">
+                <!-- Opsi 1: Beli Program dari Coach -->
+                <div class="p-4 rounded-lg bg-slate-950 border border-slate-800 hover:border-slate-700 transition flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="px-2 py-0.5 rounded bg-slate-850 text-slate-300 text-[10px] font-mono font-semibold uppercase">Opsi 1</span>
+                            <span class="text-[11px] text-slate-400 font-medium">Pelatih Berlisensi</span>
                         </div>
-                        <div class="space-y-1">
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest">Waktu Parameter Test / PB</label>
-                            <div class="grid grid-cols-3 gap-2">
-                                <div class="flex flex-col items-center">
-                                    <input x-model="pb_hours" type="number" min="0" max="99" class="w-full px-3 py-2.5 bg-slate-950 border border-slate-850 rounded-xl text-white text-center font-bold text-sm focus:outline-none focus:border-neon" placeholder="HH">
-                                    <span class="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1">Jam</span>
-                                </div>
-                                <div class="flex flex-col items-center">
-                                    <input x-model="pb_minutes" type="number" min="0" max="59" class="w-full px-3 py-2.5 bg-slate-950 border border-slate-850 rounded-xl text-white text-center font-bold text-sm focus:outline-none focus:border-neon" placeholder="MM">
-                                    <span class="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1">Menit</span>
-                                </div>
-                                <div class="flex flex-col items-center">
-                                    <input x-model="pb_seconds" type="number" min="0" max="59" class="w-full px-3 py-2.5 bg-slate-950 border border-slate-850 rounded-xl text-white text-center font-bold text-sm focus:outline-none focus:border-neon" placeholder="SS">
-                                    <span class="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1">Detik</span>
-                                </div>
+                        <h4 class="text-sm font-bold text-white mb-1.5">Program dari Coach</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed mb-3">
+                            Pilih program latihan terstruktur yang dirancang langsung oleh pelatih lari profesional untuk target 5K, 10K, HM, hingga FM.
+                        </p>
+                        <div class="space-y-1.5 pt-2 border-t border-slate-850 text-[11px] text-slate-300 mb-4">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-neon font-bold">✓</span>
+                                <span>Periodisasi latihan teruji & terarah</span>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-neon font-bold">✓</span>
+                                <span>Target pace & evaluasi beban terukur</span>
                             </div>
                         </div>
                     </div>
+                    <a href="{{ route('programs.index') }}" class="w-full py-2.5 px-3 rounded-md bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs text-center border border-slate-700 transition block no-underline">
+                        Lihat Program Coach
+                    </a>
+                </div>
 
-                    <!-- Bio Section -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="space-y-1">
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest">Jenis Kelamin</label>
-                            <div class="flex p-1 bg-slate-950 rounded-xl border border-slate-850">
-                                <button type="button" @click="gender = 'male'" :class="gender === 'male' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500'" class="flex-1 py-2 rounded-lg font-bold text-[11px] transition-all uppercase tracking-wider font-bold">Laki-laki</button>
-                                <button type="button" @click="gender = 'female'" :class="gender === 'female' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-500'" class="flex-1 py-2 rounded-lg font-bold text-[11px] transition-all uppercase tracking-wider font-bold">Perempuan</button>
-                            </div>
+                <!-- Opsi 2: Generate Sendiri -->
+                <div class="p-4 rounded-lg bg-slate-950 border border-slate-800 hover:border-neon/40 transition flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="px-2 py-0.5 rounded bg-neon/15 text-neon text-[10px] font-mono font-bold uppercase border border-neon/30">Opsi 2</span>
+                            <span class="text-[11px] text-neon font-semibold">Instan & Mandiri</span>
                         </div>
-                        <div class="space-y-1">
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest">Umur</label>
-                            <input x-model="age" type="number" min="15" max="90" class="w-full px-4 py-3 bg-slate-950 border border-slate-850 rounded-xl text-white font-bold text-sm focus:outline-none focus:border-neon">
-                        </div>
-                    </div>
-
-                    <!-- Target Section -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div class="space-y-1">
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest">Target Jarak Lomba</label>
-                            <select x-model="target_distance" class="w-full px-4 py-3 bg-slate-950 border border-slate-850 rounded-xl text-white text-sm focus:outline-none focus:border-neon transition-colors cursor-pointer">
-                                <option value="5k">5K</option>
-                                <option value="10k">10K</option>
-                                <option value="21k">Half Marathon</option>
-                                <option value="42k">Full Marathon</option>
-                                <option value="cooper12">Cooper 12 Min</option>
-                            </select>
-                        </div>
-                        <div class="space-y-1">
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest">Target Tanggal Lomba</label>
-                            <input x-model="target_date" type="date" class="w-full px-4 py-3 bg-slate-950 border border-slate-850 rounded-xl text-white font-bold text-sm focus:outline-none focus:border-neon cursor-pointer">
-                        </div>
-                    </div>
-
-                    <!-- Goal Time Section -->
-                    <div class="space-y-2">
-                        <div class="flex justify-between items-center">
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest">Target Waktu Lomba</label>
-                            <template x-if="realism">
-                                <div :class="realism.color" class="px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider border" x-text="realism.label"></div>
-                            </template>
-                        </div>
-                        <div class="grid grid-cols-3 gap-2">
-                            <div class="flex flex-col items-center">
-                                <input x-model="goal_hours" type="number" min="0" max="99" class="w-full px-3 py-2.5 bg-slate-950 border border-slate-850 rounded-xl text-white text-center font-bold text-sm focus:outline-none focus:border-neon" placeholder="HH">
-                                <span class="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1">Jam</span>
+                        <h4 class="text-sm font-bold text-white mb-1.5">Generate Program Sendiri</h4>
+                        <p class="text-xs text-slate-400 leading-relaxed mb-3">
+                            Buat program latihan otomatis berbasis Jack Daniels' VDOT Formula yang disesuaikan dengan rekor waktu lari (PB) Anda.
+                        </p>
+                        <div class="space-y-1.5 pt-2 border-t border-slate-850 text-[11px] text-slate-300 mb-4">
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-neon font-bold">✓</span>
+                                <span>Perhitungan VDOT presisi & instan</span>
                             </div>
-                            <div class="flex flex-col items-center">
-                                <input x-model="goal_minutes" type="number" min="0" max="59" class="w-full px-3 py-2.5 bg-slate-950 border border-slate-850 rounded-xl text-white text-center font-bold text-sm focus:outline-none focus:border-neon" placeholder="MM">
-                                <span class="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1">Menit</span>
-                            </div>
-                            <div class="flex flex-col items-center">
-                                <input x-model="goal_seconds" type="number" min="0" max="59" class="w-full px-3 py-2.5 bg-slate-950 border border-slate-850 rounded-xl text-white text-center font-bold text-sm focus:outline-none focus:border-neon" placeholder="SS">
-                                <span class="text-[9px] text-slate-500 font-bold uppercase tracking-widest mt-1">Detik</span>
-                            </div>
-                        </div>
-                        <template x-if="realism">
-                            <p class="text-[10px] text-slate-400 italic leading-tight mt-1" x-text="realism.description"></p>
-                        </template>
-                    </div>
-
-                    <!-- Training Load Section -->
-                    <div class="space-y-4">
-                        <div>
-                            <div class="flex justify-between items-center mb-1">
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest">Mileage Mingguan (Km)</label>
-                                <span class="text-[9px] font-bold text-neon bg-neon/15 px-2 py-0.5 rounded-full border border-neon/20">Rekomendasi: <span x-text="idealMileage"></span> Km</span>
-                            </div>
-                            <div class="flex items-center gap-4">
-                                <input x-model="weekly_mileage" type="range" min="15" max="120" step="5" class="flex-1 h-1.5 bg-slate-850 rounded-lg appearance-none cursor-pointer accent-neon">
-                                <span class="w-10 text-center font-black text-white text-lg" x-text="weekly_mileage"></span>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-1.5">Frekuensi Latihan (Hari/Minggu)</label>
-                            <div class="flex justify-between gap-2">
-                                <template x-for="f in [3,4,5,6,7]" :key="f">
-                                    <button type="button" @click="frequency = f" 
-                                            :class="frequency === f ? 'bg-neon text-dark font-black border-neon' : 'bg-slate-950 text-slate-500 border border-slate-850 hover:border-slate-800'"
-                                            class="w-full py-2.5 rounded-xl text-xs transition-all border font-bold" x-text="f">
-                                    </button>
-                                </template>
-                            </div>
-                        </div>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="space-y-1">
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest">Level Pelari</label>
-                                <select x-model="runner_level" class="w-full px-4 py-3 bg-slate-950 border border-slate-850 rounded-xl text-white text-sm focus:outline-none focus:border-neon transition-colors cursor-pointer font-bold">
-                                    <option value="beginner">Pemula (Beginner)</option>
-                                    <option value="intermediate">Menengah (Medium)</option>
-                                    <option value="advanced">Mahir / Elite (Advanced)</option>
-                                </select>
-                            </div>
-                            <div class="space-y-1">
-                                <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest">Hari Long Run</label>
-                                <select x-model="long_run_day" class="w-full px-4 py-3 bg-slate-950 border border-slate-850 rounded-xl text-white text-sm focus:outline-none focus:border-neon transition-colors cursor-pointer font-bold">
-                                    <option value="saturday">Sabtu</option>
-                                    <option value="sunday">Minggu</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="space-y-1">
-                            <label class="block text-[10px] font-bold text-slate-500 uppercase tracking-widest">Penyesuaian Tropis (Indonesia)</label>
-                            <div class="flex items-center gap-3 p-3.5 bg-slate-950 rounded-xl border border-slate-850">
-                                <input type="checkbox" x-model="is_tropical" id="is_tropical" class="w-4 h-4 accent-neon cursor-pointer rounded border-slate-850 bg-slate-850">
-                                <label for="is_tropical" class="text-xs text-slate-400 font-bold cursor-pointer select-none">
-                                    Aktifkan penyesuaian pace untuk cuaca panas (+10-15s/km untuk menjaga beban kardio stabil)
-                                </label>
+                            <div class="flex items-center gap-1.5">
+                                <span class="text-neon font-bold">✓</span>
+                                <span>Sesuai target lomba & hari latihan</span>
                             </div>
                         </div>
                     </div>
-
-                    <button type="button" @click="generateProgram()" :disabled="loading" 
-                            class="w-full py-4 bg-neon hover:bg-neon/90 disabled:bg-slate-800 disabled:text-slate-600 text-dark font-black text-sm rounded-xl transition-all flex items-center justify-center gap-2">
-                        <span x-show="!loading">GENERATE AI PROGRAM</span>
-                        <span x-show="loading" class="flex items-center gap-2">
-                            <svg class="animate-spin h-5 w-5 text-dark" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                            </svg>
-                            MEMPROSES...
-                        </span>
-                    </button>
+                    <a href="{{ url('/buat-program-lari') }}" class="w-full py-2.5 px-3 rounded-md bg-neon hover:bg-white text-slate-950 font-bold text-xs text-center transition block no-underline shadow-sm">
+                        Generate Program Sendiri
+                    </a>
                 </div>
             </div>
 
-            <!-- Step 2: Results Display -->
-            <div x-show="step === 2" class="p-6 md:p-8" x-cloak>
-                <div class="flex items-center justify-between mb-6">
-                    <h3 class="text-xl font-black text-white uppercase italic tracking-tight">Program Latihan Anda</h3>
-                    <button type="button" @click="step = 1" class="text-slate-500 hover:text-slate-350 text-xs font-bold flex items-center gap-1">
-                        <span>←</span> Kembali
-                    </button>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <!-- Left Sidebar (VDOT & Paces) -->
-                    <div class="lg:col-span-1 space-y-4">
-                        <div class="bg-slate-950 p-6 rounded-2xl border border-slate-850 text-center">
-                            <div class="text-[9px] font-black text-slate-500 uppercase tracking-widest mb-1">Skor VDOT Estimasi</div>
-                            <div class="text-5xl font-black text-white tracking-tighter" x-text="result ? result.vdot : '-'"></div>
-                            
-                            <div class="space-y-1.5 py-4 border-y border-slate-850 mt-4 text-xs">
-                                <div class="flex justify-between">
-                                    <span class="text-slate-400">Target Jarak</span>
-                                    <span class="font-bold text-white uppercase" x-text="target_distance"></span>
-                                </div>
-                                <div class="flex justify-between">
-                                    <span class="text-slate-400">Durasi</span>
-                                    <span class="font-bold text-white"><span x-text="result ? result.weeks : '-'"></span> Minggu</span>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Paces list -->
-                        <div class="bg-slate-950 p-6 rounded-2xl border border-slate-850">
-                            <h4 class="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-4">Training Paces</h4>
-                            <div class="space-y-2.5">
-                                <template x-for="(paceVal, paceKey) in (result ? result.paces : {})" :key="paceKey">
-                                    <div class="flex justify-between items-center text-xs">
-                                        <span class="font-bold" :class="getPaceColor(paceKey)" x-text="getPaceLabel(paceKey)"></span>
-                                        <span class="font-mono font-bold text-white" x-text="formatPace(paceVal)"></span>
-                                    </div>
-                                </template>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Right Main Content (Weeks Preview) -->
-                    <div class="lg:col-span-2 space-y-6">
-                        <div class="max-h-[350px] overflow-y-auto space-y-4 pr-1">
-                            <template x-for="(weekSessions, weekNum) in sessionsByWeek" :key="weekNum">
-                                <div class="bg-slate-950 p-6 rounded-2xl border border-slate-850">
-                                    <div class="flex justify-between items-center mb-4">
-                                        <h4 class="text-sm font-black text-white italic uppercase tracking-tight">Preview Minggu <span x-text="weekNum"></span></h4>
-                                        <span class="px-2 py-0.5 bg-neon/10 text-neon text-[9px] font-black rounded border border-neon/20 uppercase tracking-widest">Akses Gratis</span>
-                                    </div>
-                                    
-                                    <div class="grid grid-cols-2 sm:grid-cols-7 gap-2">
-                                        <template x-for="day in weekSessions" :key="day.day">
-                                            <div class="p-2.5 rounded-xl border flex flex-col justify-between min-h-[90px]" :class="getSessionClass(day.type)">
-                                                <div class="flex justify-between items-start">
-                                                    <span class="text-[8px] font-bold text-slate-400" x-text="'D' + day.day"></span>
-                                                    <span class="text-xs" x-text="getSessionIcon(day.type)"></span>
-                                                </div>
-                                                <div class="mt-2">
-                                                    <h5 class="text-[8px] font-black text-white uppercase truncate" x-text="day.type.replace('_', ' ')"></h5>
-                                                    <p class="text-xs font-black text-white mt-0.5"><span x-text="day.distance"></span> <span class="text-[8px] font-normal text-slate-400">KM</span></p>
-                                                </div>
-                                            </div>
-                                        </template>
-                                    </div>
-                                </div>
-                            </template>
-                        </div>
-
-                        <!-- Remaining Weeks Locked Info -->
-                        <div class="bg-slate-950 p-6 text-center rounded-2xl border border-dashed border-slate-800">
-                            <h4 class="text-white font-bold text-sm mb-1">🔒 Sisa Program Terkunci</h4>
-                            <p class="text-slate-400 text-xs mb-4">Sisa program akan terbuka secara otomatis setelah Anda menyimpannya ke kalender lari.</p>
-                            <button type="button" @click="saveAndOpenCalendar()" :disabled="saving"
-                                    class="px-5 py-2.5 bg-neon hover:bg-neon/90 disabled:bg-slate-800 disabled:text-slate-600 text-dark font-black text-xs rounded-xl transition-all inline-flex items-center gap-2">
-                                <span x-show="!saving">SIMPAN KE KALENDER</span>
-                                <span x-show="saving" class="w-3 h-3 border-2 border-dark border-t-transparent rounded-full animate-spin"></span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+            <!-- Footer Action -->
+            <div class="pt-3 border-t border-slate-800 flex items-center justify-between">
+                <span class="text-[11px] text-slate-500">Anda dapat mengubah atau menambah program kapan saja.</span>
+                <button type="button" @click="openGenerateModal = false" class="text-xs text-slate-400 hover:text-white transition font-medium">
+                    Nanti Saja
+                </button>
             </div>
         </div>
     </div>
