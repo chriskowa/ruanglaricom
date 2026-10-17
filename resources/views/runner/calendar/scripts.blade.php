@@ -495,12 +495,206 @@ const runnerCalendarApp = createApp({
             workout_structure: [] // Array of steps
         });
         
-        // Weekly Target State
+        // Weekly Target State & Auto Sync
         const showWeeklyTargetModal = ref(false);
         const weeklyTargetLoading = ref(false);
-        const weeklyTargetForm = reactive({
-            weekly_km_target: trainingProfile.value.weekly_km_target || ''
+        const weeklyPlannedKm = ref(@json($weeklyPlannedKm ?? 0));
+        const weeklyCompletedKm = ref(@json($weeklyCompletedKm ?? 0));
+
+        const isWeeklyTargetAuto = computed(() => {
+            return trainingProfile.value.is_auto_target !== false && !!trainingProfile.value.has_active_program;
         });
+
+        const autoTargetKm = computed(() => {
+            const val = trainingProfile.value.auto_weekly_km_target !== undefined 
+                ? trainingProfile.value.auto_weekly_km_target 
+                : (weeklyPlannedKm.value || 0);
+            return Number(val || 0).toFixed(1);
+        });
+
+        const currentTargetDisplay = computed(() => {
+            if (isWeeklyTargetAuto.value) {
+                return autoTargetKm.value;
+            }
+            if (trainingProfile.value.weekly_km_target) {
+                return Number(trainingProfile.value.weekly_km_target).toFixed(1);
+            }
+            return autoTargetKm.value || '-';
+        });
+
+        const weeklyTargetForm = reactive({
+            mode: isWeeklyTargetAuto.value ? 'auto' : 'manual',
+            weekly_km_target: trainingProfile.value.manual_weekly_km_target || trainingProfile.value.weekly_km_target || ''
+        });
+
+        const openWeeklyTargetModal = () => {
+            weeklyTargetForm.mode = isWeeklyTargetAuto.value ? 'auto' : 'manual';
+            weeklyTargetForm.weekly_km_target = trainingProfile.value.manual_weekly_km_target || (isWeeklyTargetAuto.value ? '' : trainingProfile.value.weekly_km_target);
+            showWeeklyTargetModal.value = true;
+        };
+
+        // Current Week Telemetry Summary (Bound to Top Progress Bar)
+        const currentWeekSummary = reactive({
+            weekNumber: null,
+            dateRange: '',
+            plannedKm: Number(weeklyPlannedKm.value || 0),
+            completedKm: Number(weeklyCompletedKm.value || 0),
+            remainingKm: Math.max(0, Number(weeklyPlannedKm.value || 0) - Number(weeklyCompletedKm.value || 0)),
+            sessionCount: 0,
+            percent: (weeklyPlannedKm.value > 0) ? Math.min(100, Math.round(((weeklyCompletedKm.value || 0) / weeklyPlannedKm.value) * 100)) : 0
+        });
+
+        const formatIsoDate = (d) => {
+            const year = d.getFullYear();
+            const month = String(d.getMonth() + 1).padStart(2, '0');
+            const day = String(d.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        };
+
+        const getWeekRange = (dateObj) => {
+            const d = new Date(dateObj);
+            const day = d.getDay();
+            const diffToMon = (day === 0 ? -6 : 1) - day;
+            const monday = new Date(d);
+            monday.setDate(d.getDate() + diffToMon);
+            monday.setHours(0, 0, 0, 0);
+
+            const sunday = new Date(monday);
+            sunday.setDate(monday.getDate() + 6);
+            sunday.setHours(23, 59, 59, 999);
+
+            return { monday, sunday };
+        };
+
+        const calculateAndRenderWeeklyMileage = (events) => {
+            if (!events || !events.length) return;
+
+            const now = new Date();
+            const { monday: curMonday, sunday: curSunday } = getWeekRange(now);
+            const curSunStr = formatIsoDate(curSunday);
+
+            const weekBuckets = {};
+
+            events.forEach(ev => {
+                const dateStr = (ev.startStr || (ev.start ? formatIsoDate(new Date(ev.start)) : '')).slice(0, 10);
+                if (!dateStr) return;
+
+                const evDate = new Date(dateStr + 'T00:00:00');
+                if (isNaN(evDate.getTime())) return;
+
+                const { monday, sunday } = getWeekRange(evDate);
+                const sunKey = formatIsoDate(sunday);
+
+                if (!weekBuckets[sunKey]) {
+                    weekBuckets[sunKey] = {
+                        monday,
+                        sunday,
+                        plannedKm: 0,
+                        completedKm: 0,
+                        sessionCount: 0,
+                        weekNumber: null
+                    };
+                }
+
+                const props = ev.extendedProps || {};
+                const isRest = String(ev.title || '').toLowerCase().includes('rest') || 
+                               (props.session && String(props.session.type || '').toLowerCase().includes('rest'));
+
+                let dist = 0;
+                if (props.session && props.session.distance) dist = parseFloat(props.session.distance) || 0;
+                else if (props.workout && props.workout.distance) dist = parseFloat(props.workout.distance) || 0;
+                else if (props.distance_km) dist = parseFloat(props.distance_km) || 0;
+                else if (props.distance) dist = parseFloat(props.distance) || 0;
+
+                if (!weekBuckets[sunKey].weekNumber && props.session && props.session.week) {
+                    weekBuckets[sunKey].weekNumber = props.session.week;
+                }
+
+                if (!isRest) {
+                    weekBuckets[sunKey].plannedKm += dist;
+                    if (dist > 0 || (props.session && props.session.duration)) {
+                        weekBuckets[sunKey].sessionCount++;
+                    }
+                }
+
+                const isCompleted = props.type === 'strava_activity' || 
+                                    props.type === 'user_activity' || 
+                                    (props.workout && props.workout.status === 'completed') ||
+                                    (props.session && props.session.status === 'completed');
+
+                if (isCompleted) {
+                    weekBuckets[sunKey].completedKm += dist;
+                }
+            });
+
+            // Update Current Week Telemetry
+            const curBucket = weekBuckets[curSunStr] || {
+                plannedKm: weeklyPlannedKm.value || 0,
+                completedKm: weeklyCompletedKm.value || 0,
+                sessionCount: 0,
+                weekNumber: null
+            };
+
+            const planned = curBucket.plannedKm || weeklyPlannedKm.value || 0;
+            const completed = curBucket.completedKm || weeklyCompletedKm.value || 0;
+            const remaining = Math.max(0, planned - completed);
+            const pct = planned > 0 ? Math.min(100, Math.round((completed / planned) * 100)) : (completed > 0 ? 100 : 0);
+
+            const monthsShort = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agt', 'Sep', 'Okt', 'Nov', 'Des'];
+            const curMonDay = curMonday.getDate();
+            const curSunDay = curSunday.getDate();
+            const curMonMonth = monthsShort[curMonday.getMonth()];
+            const curSunMonth = monthsShort[curSunday.getMonth()];
+            const rangeStr = curMonMonth === curSunMonth 
+                ? `${curMonDay} - ${curSunDay} ${curMonMonth}` 
+                : `${curMonDay} ${curMonMonth} - ${curSunDay} ${curSunMonth}`;
+
+            currentWeekSummary.weekNumber = curBucket.weekNumber ? `W${curBucket.weekNumber}` : 'W';
+            currentWeekSummary.dateRange = rangeStr;
+            currentWeekSummary.plannedKm = planned;
+            currentWeekSummary.completedKm = completed;
+            currentWeekSummary.remainingKm = remaining;
+            currentWeekSummary.sessionCount = curBucket.sessionCount;
+            currentWeekSummary.percent = pct;
+
+            // Render Sunday badges in FullCalendar Month Grid
+            nextTick(() => {
+                const calEl = document.getElementById('calendar');
+                if (!calEl) return;
+
+                Object.keys(weekBuckets).forEach(sunDate => {
+                    const bucket = weekBuckets[sunDate];
+                    if (bucket.plannedKm <= 0 && bucket.completedKm <= 0) return;
+
+                    const cell = calEl.querySelector(`.fc-daygrid-day[data-date="${sunDate}"]`);
+                    if (!cell) return;
+
+                    const top = cell.querySelector('.fc-daygrid-day-top');
+                    if (!top) return;
+
+                    let badge = top.querySelector('.rl-weekly-mileage-badge');
+                    if (!badge) {
+                        badge = document.createElement('div');
+                        badge.className = 'rl-weekly-mileage-badge';
+                        top.prepend(badge);
+                    }
+
+                    const isAllDone = bucket.plannedKm > 0 && bucket.completedKm >= bucket.plannedKm;
+                    const kmDisplay = bucket.plannedKm > 0 ? bucket.plannedKm.toFixed(1) : bucket.completedKm.toFixed(1);
+
+                    badge.innerHTML = `
+                        <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[9px] font-mono font-bold border transition ${
+                            isAllDone 
+                                ? 'bg-slate-800 text-brand-lime border-brand-lime/40 shadow-sm' 
+                                : 'bg-slate-800/95 text-slate-200 border-slate-700'
+                        }" title="Total Jarak Pekan Ini: ${kmDisplay} km (${bucket.sessionCount} sesi)">
+                            <span class="text-[8px] ${isAllDone ? 'text-brand-lime' : 'text-slate-400'}">${isAllDone ? '✓' : 'Σ'}</span>
+                            <span>${kmDisplay} km</span>
+                        </span>
+                    `;
+                });
+            });
+        };
 
         // Race Form State
         const showRaceModal = ref(false);
@@ -1338,21 +1532,27 @@ const runnerCalendarApp = createApp({
         const updateWeeklyTarget = async () => {
             weeklyTargetLoading.value = true;
             try {
+                const payload = {
+                    mode: weeklyTargetForm.mode,
+                    weekly_km_target: weeklyTargetForm.mode === 'auto' ? null : weeklyTargetForm.weekly_km_target
+                };
                 const res = await fetch(`{{ route('runner.calendar.update-weekly-target') }}`, {
                     method: 'POST',
                     headers: { 'X-CSRF-TOKEN': csrf, 'Accept':'application/json', 'Content-Type':'application/json' },
-                    body: JSON.stringify(weeklyTargetForm)
+                    body: JSON.stringify(payload)
                 });
                 const data = await res.json();
                 if (data.success) {
-                    trainingProfile.value.weekly_km_target = data.weekly_km_target;
+                    trainingProfile.value.is_auto_target = data.is_auto_target;
+                    trainingProfile.value.weekly_km_target = data.weekly_km_target || trainingProfile.value.auto_weekly_km_target || weeklyPlannedKm.value;
+                    trainingProfile.value.manual_weekly_km_target = data.weekly_km_target;
                     showWeeklyTargetModal.value = false;
-                    alert('Weekly target updated!');
+                    showNotification(data.message || 'Target mingguan berhasil diperbarui');
                 } else {
-                    alert(data.message || 'Failed to update weekly target');
+                    alert(data.message || 'Gagal memperbarui target mingguan');
                 }
             } catch (e) {
-                alert('An error occurred');
+                alert('Terjadi kesalahan koneksi');
             } finally {
                 weeklyTargetLoading.value = false;
             }
@@ -2019,6 +2219,14 @@ const runnerCalendarApp = createApp({
                 initialView: initialView,
                 headerToolbar: headerToolbar,
                 events: '{{ route("runner.calendar.events") }}',
+                eventsSet: (events) => {
+                    calculateAndRenderWeeklyMileage(events);
+                },
+                datesSet: () => {
+                    if (calendar) {
+                        calculateAndRenderWeeklyMileage(calendar.getEvents());
+                    }
+                },
                 locale: 'id',
                 firstDay: 1,
                 editable: true, // Enable drag & drop
@@ -3568,9 +3776,10 @@ const runnerCalendarApp = createApp({
             stravaLinkInput, notesInput, rpeInput, feelingInput, showFinishForm, finishActivityWithLink, profileTab, chatCoach,
             aiCoachSummary, aiCoachCues, workoutGoalText, workoutEffectText, guidedSteps, guidedStepsDoneCount, guidedStepsProgressPct, guidedStepChecked, toggleGuidedStep,
             addStep, removeStep, moveStep, calculateTotalDistance, syncTraining, syncLoading, isSyncingStrava, syncStrava, weeklyVolume, maxVolume,
-            assetStorage, assetProfile, runnerUrl, chatUrl, 
+            assetStorage, assetProfile, runnerUrl, chatUrl,
             showRaceModal, raceForm, openRaceForm, saveRace, setRaceDist,
             showWeeklyTargetModal, weeklyTargetForm, weeklyTargetLoading, updateWeeklyTarget,
+            openWeeklyTargetModal, isWeeklyTargetAuto, autoTargetKm, currentTargetDisplay, currentWeekSummary,
             ruangLariEvents, loadingEvents, onSelectRuangLariEvent, eventSearchQuery, showEventDropdown, filteredEvents, selectRuangLariEvent,
             stravaDetailsLoading, stravaDetailsError, formatSeconds, displayPace, primaryMetricValue, primaryMetricUnit, statusDotClass,
             aiAnalysisLoading, aiAnalysisError, loadAiWorkoutAnalysis,

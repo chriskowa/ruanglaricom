@@ -690,13 +690,14 @@
                             </div>
 
                             <!-- Weekly Target Card -->
-                            <div class="bg-slate-900/90 rounded-xl p-3 sm:p-4 border border-slate-800 hover:border-slate-700 transition cursor-pointer text-center relative" @click="showWeeklyTargetModal = true">
+                            <div class="bg-slate-900/90 rounded-xl p-3 sm:p-4 border border-slate-800 hover:border-slate-700 transition cursor-pointer text-center relative" @click="openWeeklyTargetModal">
                                 <div class="text-[10px] font-mono text-slate-400 uppercase tracking-wider mb-1">Target Mingguan</div>
                                 <div class="text-2xl sm:text-4xl font-black text-white font-mono tracking-tight">
-                                    @{{ trainingProfile.weekly_km_target ? Number(trainingProfile.weekly_km_target).toFixed(1) : '-' }}<span class="text-xs font-bold text-neon ml-0.5">km</span>
+                                    @{{ currentTargetDisplay }}<span class="text-xs font-bold text-brand-lime ml-0.5">km</span>
                                 </div>
-                                <div class="text-[9px] text-slate-400 mt-2">
-                                    Edit target
+                                <div class="mt-2 flex items-center justify-center gap-1.5">
+                                    <span v-if="isWeeklyTargetAuto" class="text-[9px] px-1.5 py-0.5 rounded bg-brand-lime/10 text-brand-lime font-mono font-bold border border-brand-lime/30">Otomatis Program</span>
+                                    <span v-else class="text-[9px] px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono border border-slate-700">Target Kustom</span>
                                 </div>
                             </div>
                         </div>
@@ -1001,8 +1002,43 @@
                                 </svg>
                                 PDF
                             </button>
+                    </div>
+
+                    <!-- Telemetry Progress Bar Pekan Ini -->
+                    <div v-if="currentWeekSummary && currentWeekSummary.plannedKm > 0" 
+                         class="mb-4 p-3 sm:p-3.5 rounded-lg bg-slate-900 border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3 shadow-sm">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-md bg-slate-950 border border-slate-800 flex flex-col items-center justify-center text-center shrink-0">
+                                <span class="text-[8px] font-mono text-slate-400 uppercase tracking-widest leading-none">PEKAN</span>
+                                <span class="text-xs font-black text-brand-lime font-mono leading-tight mt-0.5">@{{ currentWeekSummary.weekNumber || 'W' }}</span>
+                            </div>
+                            <div>
+                                <div class="text-xs font-bold text-white flex items-center gap-2">
+                                    <span>Ringkasan Pekan Berjalan</span>
+                                    <span class="text-[10px] text-slate-400 font-mono font-normal">(@{{ currentWeekSummary.dateRange }})</span>
+                                </div>
+                                <div class="text-[11px] text-slate-300 mt-0.5 flex flex-wrap items-center gap-2 sm:gap-3">
+                                    <span>Rencana: <strong class="text-white font-mono">@{{ currentWeekSummary.plannedKm.toFixed(1) }} km</strong> <span class="text-slate-400 text-[10px]">(@{{ currentWeekSummary.sessionCount }} sesi)</span></span>
+                                    <span class="text-slate-700 hidden sm:inline">•</span>
+                                    <span>Selesai: <strong class="text-brand-lime font-mono">@{{ currentWeekSummary.completedKm.toFixed(1) }} km</strong></span>
+                                    <span class="text-slate-700 hidden sm:inline">•</span>
+                                    <span>Sisa: <strong class="text-slate-200 font-mono">@{{ currentWeekSummary.remainingKm.toFixed(1) }} km</strong></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3 w-full md:w-56 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-800">
+                            <div class="flex-1">
+                                <div class="flex justify-between items-center text-[10px] font-mono mb-1">
+                                    <span class="text-slate-400">Target Tercapai</span>
+                                    <span class="font-bold text-brand-lime">@{{ currentWeekSummary.percent }}%</span>
+                                </div>
+                                <div class="w-full h-1.5 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                                    <div class="h-full bg-brand-lime transition-all duration-500 rounded-full" :style="{ width: Math.min(100, currentWeekSummary.percent) + '%' }"></div>
+                                </div>
+                            </div>
                         </div>
                     </div>
+
                     <div id="calendar"></div>
                 </div>
             </div>
@@ -2248,27 +2284,60 @@
 
         <!-- Weekly Target Modal -->
         <div v-if="showWeeklyTargetModal" class="fixed inset-0 z-[250] overflow-y-auto">
-            <div class="fixed inset-0 bg-black/80"></div>
-            <div class="relative z-10 max-w-md mx-auto my-20 bg-slate-900 border border-slate-700 rounded-[6px] p-5 shadow-2xl">
-                <div class="flex justify-between items-center mb-4">
+            <div class="fixed inset-0 bg-black/80" @click="showWeeklyTargetModal = false"></div>
+            <div class="relative z-10 max-w-md mx-auto my-20 bg-slate-900 border border-slate-800 rounded-lg p-5 shadow-2xl">
+                <div class="flex justify-between items-center mb-4 pb-3 border-b border-slate-800">
                     <h3 class="text-white font-bold text-base flex items-center gap-2">
-                        <i class="fa-solid fa-bullseye text-neon mr-1"></i> Update Weekly Target
+                        <span>Pengaturan Target Mingguan</span>
                     </h3>
-                    <button @click="showWeeklyTargetModal = false" class="text-slate-400 hover:text-white">✕</button>
+                    <button @click="showWeeklyTargetModal = false" class="text-slate-400 hover:text-white text-xs">✕</button>
                 </div>
 
-                <div class="space-y-4">
-                    <div>
-                        <label class="text-[10px] font-bold text-slate-400 uppercase">Weekly Target (km)</label>
-                        <input type="number" step="0.1" v-model="weeklyTargetForm.weekly_km_target" class="w-full bg-slate-950 border border-slate-700 rounded-[4px] px-3 py-2 text-white text-xs">
-                        <p class="text-[10px] text-slate-500 mt-1">Set your weekly running distance goal.</p>
-                    </div>
+                <div class="space-y-3.5">
+                    <!-- Option 1: Auto Sync from Active Program -->
+                    <label class="block p-3.5 rounded-lg border transition cursor-pointer"
+                           :class="weeklyTargetForm.mode === 'auto' ? 'bg-slate-800/90 border-brand-lime/60' : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'">
+                        <div class="flex items-start gap-3">
+                            <input type="radio" value="auto" v-model="weeklyTargetForm.mode" class="mt-1 accent-[#CCFF00]">
+                            <div class="flex-1">
+                                <div class="flex items-center justify-between">
+                                    <span class="text-xs font-bold text-white">Otomatis dari Program Aktif</span>
+                                    <span class="text-xs font-mono font-black text-brand-lime">@{{ autoTargetKm }} km</span>
+                                </div>
+                                <p class="text-[11px] text-slate-300 mt-1 leading-relaxed">
+                                    Target jarak mingguan otomatis disinkronkan dari akumulasi volume sesi latihan pekan berjalan.
+                                </p>
+                            </div>
+                        </div>
+                    </label>
 
-                    <div class="flex justify-end gap-2 pt-4 border-t border-slate-700">
-                        <button type="button" class="px-3.5 py-2 rounded-[6px] bg-slate-800 text-slate-300 border border-slate-700 text-xs hover:text-white font-bold uppercase tracking-wider" @click="showWeeklyTargetModal = false">Cancel</button>
-                        <button type="button" @click="updateWeeklyTarget" class="px-5 py-2 rounded-[6px] bg-neon text-dark font-bold text-xs hover:bg-neon/90 shadow-lg shadow-neon/20 flex items-center gap-2 uppercase tracking-wider" :disabled="weeklyTargetLoading">
+                    <!-- Option 2: Custom Manual Target -->
+                    <label class="block p-3.5 rounded-lg border transition cursor-pointer"
+                           :class="weeklyTargetForm.mode === 'manual' ? 'bg-slate-800/90 border-brand-lime/60' : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'">
+                        <div class="flex items-start gap-3">
+                            <input type="radio" value="manual" v-model="weeklyTargetForm.mode" class="mt-1 accent-[#CCFF00]">
+                            <div class="flex-1">
+                                <span class="text-xs font-bold text-white block">Target Kustom (Manual)</span>
+                                <p class="text-[11px] text-slate-300 mt-0.5 leading-relaxed">
+                                    Tentukan sendiri batas target jarak lari mingguan Anda secara mandiri.
+                                </p>
+                                <div v-if="weeklyTargetForm.mode === 'manual'" class="mt-3">
+                                    <div class="flex items-center gap-2">
+                                        <input type="number" step="0.5" min="1" max="300" v-model.number="weeklyTargetForm.weekly_km_target" 
+                                               placeholder="Contoh: 35.0"
+                                               class="w-full bg-slate-950 border border-slate-700 focus:border-brand-lime rounded-md px-3 py-2 text-white text-xs font-mono font-bold outline-none">
+                                        <span class="text-xs font-mono text-slate-300 font-bold">KM</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </label>
+
+                    <div class="flex justify-end gap-2 pt-3 border-t border-slate-800">
+                        <button type="button" class="px-3.5 py-2 rounded-md bg-slate-800 text-slate-300 border border-slate-700 text-xs hover:text-white font-bold" @click="showWeeklyTargetModal = false">Batal</button>
+                        <button type="button" @click="updateWeeklyTarget" class="px-5 py-2 rounded-md bg-brand-lime text-slate-950 font-extrabold text-xs hover:bg-[#b8e600] transition flex items-center gap-2 cursor-pointer" :disabled="weeklyTargetLoading">
                             <span v-if="weeklyTargetLoading" class="animate-spin">⟳</span>
-                            Save Target
+                            Simpan Target
                         </button>
                     </div>
                 </div>

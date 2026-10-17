@@ -497,6 +497,19 @@ class DashboardController extends Controller
 
         // Training Profile Data via service
         $trainingProfile = app(\App\Services\RunningProfileService::class)->getProfile($user);
+        $hasActiveProgram = $activeEnrollments->isNotEmpty();
+        $isAutoTarget = empty($user->weekly_km_target);
+        $effectiveTarget = ($user->weekly_km_target && (float)$user->weekly_km_target > 0)
+            ? (float)$user->weekly_km_target
+            : round($weeklyPlannedKm, 1);
+
+        $trainingProfile['weekly_planned_km'] = round($weeklyPlannedKm, 1);
+        $trainingProfile['weekly_completed_km'] = round($weeklyCompletedKm, 1);
+        $trainingProfile['auto_weekly_km_target'] = round($weeklyPlannedKm, 1);
+        $trainingProfile['is_auto_target'] = $isAutoTarget;
+        $trainingProfile['has_active_program'] = $hasActiveProgram;
+        $trainingProfile['weekly_km_target'] = $effectiveTarget;
+        $trainingProfile['manual_weekly_km_target'] = $user->weekly_km_target ? (float)$user->weekly_km_target : null;
 
         // Check 40 Days Challenge Enrollment
         $isEnrolled40Days = $enrollments->contains(function ($enrollment) {

@@ -593,4 +593,21 @@ body {
     opacity: 0.5;
     cursor: not-allowed;
 }
+
+/* Weekly Mileage Badge on Sunday cells in Month Grid */
+.fc-daygrid-day.fc-day-sun .fc-daygrid-day-top {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    padding: 2px 4px !important;
+}
+.rl-weekly-mileage-badge {
+    margin-right: auto;
+    line-height: 1;
+    z-index: 2;
+    pointer-events: auto;
+}
+.rl-weekly-mileage-badge span {
+    letter-spacing: -0.02em;
+}
 </style>

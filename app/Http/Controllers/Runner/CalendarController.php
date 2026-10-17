@@ -1727,15 +1727,23 @@ class CalendarController extends Controller
     {
         $validated = $request->validate([
             'weekly_km_target' => 'nullable|numeric|min:0|max:999.99',
+            'mode' => 'nullable|string|in:auto,manual',
         ]);
 
         $user = auth()->user();
-        $user->update($validated);
+        $target = ($request->input('mode') === 'auto' || empty($validated['weekly_km_target']))
+            ? null
+            : (float) $validated['weekly_km_target'];
+
+        $user->update([
+            'weekly_km_target' => $target,
+        ]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Weekly target updated',
-            'weekly_km_target' => $user->weekly_km_target,
+            'message' => $target ? 'Target mingguan manual berhasil disimpan.' : 'Target mingguan otomatis disinkronkan dengan program aktif.',
+            'weekly_km_target' => $target,
+            'is_auto_target' => is_null($target),
         ]);
     }
 
