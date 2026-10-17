@@ -36,14 +36,17 @@ body {
 
 .fc-event {
     cursor: pointer;
-    border: 1px solid rgba(255, 255, 255, 0.05) !important;
+    background-color: #121c2e !important;
+    border: 1px solid rgba(255, 255, 255, 0.06) !important;
+    border-left: 3px solid #64748b !important;
     border-radius: 6px !important;
     padding: 2px 4px !important;
     font-size: 0.72rem !important;
     font-weight: 500 !important;
+    color: #f8fafc !important;
 }
 .fc-event-main, .fc-event-title {
-    color: #f8fafc !important;
+    color: inherit !important;
 }
 .fc-event.difficulty-easy{border-left:3px solid #10b981 !important}
 .fc-event.difficulty-moderate{border-left:3px solid #f59e0b !important}
@@ -80,6 +83,11 @@ body {
   background-color: rgba(59, 130, 246, 0.06) !important;
   color: #3b82f6 !important;
 }
+.fc-event.workout-long_run_quality, .fc-event[class*="workout-long_run_q"] {
+  border-left: 3px solid #0284c7 !important;
+  background-color: rgba(2, 132, 199, 0.08) !important;
+  color: #38bdf8 !important;
+}
 .fc-event.workout-interval {
   border-left: 3px solid #ef4444 !important;
   background-color: rgba(239, 68, 68, 0.06) !important;
@@ -100,10 +108,32 @@ body {
   background-color: rgba(100, 116, 139, 0.06) !important;
   color: #94a3b8 !important;
 }
-.fc-event.workout-marathon {
+/* Pace-based Workouts (Marathon Pace, Half Marathon Pace, 10K Pace, 5K Pace, Threshold Pace, Race Pace, etc.) */
+.fc-event.workout-pace,
+.fc-event[class*="workout-"][class*="_pace"],
+.fc-event[class*="workout-"][class*="-pace"],
+.fc-event.workout-marathon,
+.fc-event.workout-marathon_pace,
+.fc-event[class*="workout-marathon"] {
   border-left: 3px solid #06b6d4 !important;
-  background-color: rgba(6, 182, 212, 0.06) !important;
-  color: #06b6d4 !important;
+  background-color: rgba(6, 182, 212, 0.08) !important;
+  color: #22d3ee !important;
+}
+.fc-event.workout-progression, .fc-event[class*="workout-progr"] {
+  border-left: 3px solid #818cf8 !important;
+  background-color: rgba(129, 140, 248, 0.08) !important;
+  color: #a5b4fc !important;
+}
+.fc-event.workout-stride, .fc-event.workout-strides, .fc-event[class*="workout-stride"] {
+  border-left: 3px solid #f59e0b !important;
+  background-color: rgba(245, 158, 11, 0.08) !important;
+  color: #fbbf24 !important;
+}
+.fc-event.workout-plyometrics, .fc-event.workout-plyometric, .fc-event[class*="workout-plyom"],
+.fc-event.workout-yoga, .fc-event.workout-cycling, .fc-event.workout-cross_training {
+  border-left: 3px solid #a855f7 !important;
+  background-color: rgba(168, 85, 247, 0.08) !important;
+  color: #c084fc !important;
 }
 .fc-event.workout-repetition, .fc-event.workout-hill, .fc-event.workout-hill_repeats, .fc-event.workout-hill_repeat, .fc-event[class*="workout-hill"] {
   border-left: 3px solid #d946ef !important;
@@ -160,12 +190,22 @@ body {
 /* Color coding for list view by workout type */
 .fc-list-event.workout-easy_run { border-left: 3px solid #10b981 !important; }
 .fc-list-event.workout-long_run { border-left: 3px solid #3b82f6 !important; }
+.fc-list-event.workout-long_run_quality, .fc-list-event[class*="workout-long_run_q"] { border-left: 3px solid #0284c7 !important; }
 .fc-list-event.workout-interval { border-left: 3px solid #ef4444 !important; }
 .fc-list-event.workout-tempo, .fc-list-event.workout-tempo_run, .fc-list-event[class*="workout-tempo"] { border-left: 3px solid #f59e0b !important; }
 .fc-list-event.workout-strength { border-left: 3px solid #8b5cf6 !important; }
 .fc-list-event.workout-race { border-left: 3px solid #f97316 !important; }
 .fc-list-event.workout-rest { border-left: 3px solid #64748b !important; }
-.fc-list-event.workout-marathon { border-left: 3px solid #06b6d4 !important; }
+.fc-list-event.workout-pace,
+.fc-list-event[class*="workout-"][class*="_pace"],
+.fc-list-event[class*="workout-"][class*="-pace"],
+.fc-list-event.workout-marathon,
+.fc-list-event.workout-marathon_pace,
+.fc-list-event[class*="workout-marathon"] { border-left: 3px solid #06b6d4 !important; }
+.fc-list-event.workout-progression, .fc-list-event[class*="workout-progr"] { border-left: 3px solid #818cf8 !important; }
+.fc-list-event.workout-stride, .fc-list-event.workout-strides, .fc-list-event[class*="workout-stride"] { border-left: 3px solid #f59e0b !important; }
+.fc-list-event.workout-plyometrics, .fc-list-event.workout-plyometric, .fc-list-event[class*="workout-plyom"],
+.fc-list-event.workout-yoga, .fc-list-event.workout-cycling, .fc-list-event.workout-cross_training { border-left: 3px solid #a855f7 !important; }
 .fc-list-event.workout-repetition, .fc-list-event.workout-hill, .fc-list-event.workout-hill_repeats, .fc-list-event.workout-hill_repeat, .fc-list-event[class*="workout-hill"] { border-left: 3px solid #d946ef !important; }
 .fc-list-event.workout-threshold, .fc-list-event.workout-treshold { border-left: 3px solid #ec4899 !important; }
 .fc-list-event.workout-recovery_run { border-left: 3px solid #14b8a6 !important; }
@@ -597,17 +637,20 @@ body {
 /* Weekly Mileage Badge on Sunday cells in Month Grid */
 .fc-daygrid-day.fc-day-sun .fc-daygrid-day-top {
     display: flex !important;
+    flex-direction: row !important;
     align-items: center !important;
     justify-content: space-between !important;
     padding: 2px 4px !important;
 }
 .rl-weekly-mileage-badge {
-    margin-right: auto;
-    line-height: 1;
+    margin-right: auto !important;
+    line-height: 1 !important;
+    white-space: nowrap !important;
     z-index: 2;
     pointer-events: auto;
 }
 .rl-weekly-mileage-badge span {
+    white-space: nowrap !important;
     letter-spacing: -0.02em;
 }
 </style>

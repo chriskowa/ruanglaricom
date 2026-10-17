@@ -159,6 +159,9 @@ class CalendarController extends Controller
                             $classes[] = 'workout-repetition';
                             $classes[] = 'workout-interval';
                         }
+                        if (str_contains($clean, 'pace')) {
+                            $classes[] = 'workout-pace';
+                        }
                         return array_values(array_unique($classes));
                     })(),
                     'extendedProps' => [
@@ -220,6 +223,9 @@ class CalendarController extends Controller
                     if (in_array($clean, ['hill', 'hill_repeats', 'hill_repeat'])) {
                         $classes[] = 'workout-repetition';
                         $classes[] = 'workout-interval';
+                    }
+                    if (str_contains($clean, 'pace')) {
+                        $classes[] = 'workout-pace';
                     }
                     return array_values(array_unique($classes));
                 })(),
@@ -415,27 +421,19 @@ class CalendarController extends Controller
      */
     private function getEventColors(string $difficulty, ?string $phase = null): array
     {
-        // Phase colors (background)
-        $phaseColors = [
-            'foundation' => '#E3F2FD',      // Light blue
-            'early_quality' => '#F3E5F5',   // Light purple
-            'quality' => '#FFF3E0',         // Light orange
-            'final_prep' => '#E8F5E9',      // Light green
-        ];
-
-        // Difficulty colors (border)
+        // Dark theme friendly difficulty colors
         $difficultyColors = [
-            'beginner' => '#4CAF50',        // Green
-            'easy' => '#4CAF50',            // Green
-            'intermediate' => '#FF9800',    // Orange
-            'moderate' => '#FF9800',        // Orange
-            'advanced' => '#F44336',        // Red
-            'hard' => '#F44336',            // Red
+            'beginner' => '#10B981',        // Green
+            'easy' => '#10B981',            // Green
+            'intermediate' => '#F59E0B',    // Amber
+            'moderate' => '#F59E0B',        // Amber
+            'advanced' => '#EF4444',        // Red
+            'hard' => '#EF4444',            // Red
         ];
 
-        $background = $phase ? ($phaseColors[$phase] ?? '#F5F5F5') : '#F5F5F5';
-        $border = $difficultyColors[$difficulty] ?? '#9E9E9E';
-        $text = '#212529';
+        $background = '#121C2E';
+        $border = $difficultyColors[$difficulty] ?? '#64748B';
+        $text = '#F8FAFC';
 
         return [
             'background' => $background,

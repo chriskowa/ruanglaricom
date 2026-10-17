@@ -2246,6 +2246,9 @@ const runnerCalendarApp = createApp({
                             cls.push('workout-repetition');
                             cls.push('workout-interval');
                         }
+                        if (clean.includes('pace')) {
+                            cls.push('workout-pace');
+                        }
                     }
                     return cls;
                 },

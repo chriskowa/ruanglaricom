@@ -1002,6 +1002,7 @@
                                 </svg>
                                 PDF
                             </button>
+                        </div>
                     </div>
 
                     <!-- Telemetry Progress Bar Pekan Ini -->
