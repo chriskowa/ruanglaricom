@@ -37,20 +37,22 @@ body {
 .fc-event {
     cursor: pointer;
     background-color: #121c2e !important;
-    border: 1px solid rgba(255, 255, 255, 0.06) !important;
-    border-left: 3px solid #64748b !important;
-    border-radius: 6px !important;
-    padding: 2px 4px !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-left: 3.5px solid #64748b !important;
+    border-radius: 5px !important;
+    padding: 2px 5px !important;
     font-size: 0.72rem !important;
-    font-weight: 500 !important;
-    color: #f8fafc !important;
+    font-weight: 600 !important;
+    color: #ffffff !important;
 }
 .fc-event-main, .fc-event-title {
-    color: inherit !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    letter-spacing: -0.01em !important;
 }
-.fc-event.difficulty-easy{border-left:3px solid #10b981 !important}
-.fc-event.difficulty-moderate{border-left:3px solid #f59e0b !important}
-.fc-event.difficulty-hard{border-left:3px solid #ef4444 !important}
+.fc-event.difficulty-easy{border-left:3.5px solid #10b981 !important}
+.fc-event.difficulty-moderate{border-left:3.5px solid #f59e0b !important}
+.fc-event.difficulty-hard{border-left:3.5px solid #ef4444 !important}
 
 /* Locked session styling */
 .fc-event.locked-session {
@@ -72,41 +74,38 @@ body {
     gap: 4px;
 }
 
-/* Workout Type Color Coding (Calm & Proportional) */
+/* Workout Type Color Coding (High Contrast: Pure White Text + Distinct Vibrant Left Accent Border) */
 .fc-event.workout-easy_run {
-  border-left: 3px solid #10b981 !important;
-  background-color: rgba(16, 185, 129, 0.06) !important;
-  color: #10b981 !important;
+  border-left: 3.5px solid #10b981 !important;
+  background-color: rgba(16, 185, 129, 0.12) !important;
+}
+.fc-event.workout-recovery_run {
+  border-left: 3.5px solid #14b8a6 !important;
+  background-color: rgba(20, 184, 166, 0.12) !important;
 }
 .fc-event.workout-long_run {
-  border-left: 3px solid #3b82f6 !important;
-  background-color: rgba(59, 130, 246, 0.06) !important;
-  color: #3b82f6 !important;
+  border-left: 3.5px solid #38bdf8 !important;
+  background-color: rgba(56, 189, 248, 0.12) !important;
 }
 .fc-event.workout-long_run_quality, .fc-event[class*="workout-long_run_q"] {
-  border-left: 3px solid #0284c7 !important;
-  background-color: rgba(2, 132, 199, 0.08) !important;
-  color: #38bdf8 !important;
+  border-left: 3.5px solid #0ea5e9 !important;
+  background-color: rgba(14, 165, 233, 0.12) !important;
 }
 .fc-event.workout-interval {
-  border-left: 3px solid #ef4444 !important;
-  background-color: rgba(239, 68, 68, 0.06) !important;
-  color: #ef4444 !important;
+  border-left: 3.5px solid #ef4444 !important;
+  background-color: rgba(239, 68, 68, 0.12) !important;
 }
 .fc-event.workout-tempo, .fc-event.workout-tempo_run, .fc-event[class*="workout-tempo"] {
-  border-left: 3px solid #f59e0b !important;
-  background-color: rgba(245, 158, 11, 0.06) !important;
-  color: #f59e0b !important;
+  border-left: 3.5px solid #f59e0b !important;
+  background-color: rgba(245, 158, 11, 0.12) !important;
 }
 .fc-event.workout-strength {
-  border-left: 3px solid #8b5cf6 !important;
-  background-color: rgba(139, 92, 246, 0.06) !important;
-  color: #8b5cf6 !important;
+  border-left: 3.5px solid #a855f7 !important;
+  background-color: rgba(168, 85, 247, 0.12) !important;
 }
 .fc-event.workout-rest {
-  border-left: 3px solid #64748b !important;
-  background-color: rgba(100, 116, 139, 0.06) !important;
-  color: #94a3b8 !important;
+  border-left: 3.5px solid #64748b !important;
+  background-color: rgba(100, 116, 139, 0.10) !important;
 }
 /* Pace-based Workouts (Marathon Pace, Half Marathon Pace, 10K Pace, 5K Pace, Threshold Pace, Race Pace, etc.) */
 .fc-event.workout-pace,
@@ -115,50 +114,37 @@ body {
 .fc-event.workout-marathon,
 .fc-event.workout-marathon_pace,
 .fc-event[class*="workout-marathon"] {
-  border-left: 3px solid #06b6d4 !important;
-  background-color: rgba(6, 182, 212, 0.08) !important;
-  color: #22d3ee !important;
+  border-left: 3.5px solid #06b6d4 !important;
+  background-color: rgba(6, 182, 212, 0.14) !important;
 }
 .fc-event.workout-progression, .fc-event[class*="workout-progr"] {
-  border-left: 3px solid #818cf8 !important;
-  background-color: rgba(129, 140, 248, 0.08) !important;
-  color: #a5b4fc !important;
+  border-left: 3.5px solid #818cf8 !important;
+  background-color: rgba(129, 140, 248, 0.12) !important;
 }
 .fc-event.workout-stride, .fc-event.workout-strides, .fc-event[class*="workout-stride"] {
-  border-left: 3px solid #f59e0b !important;
-  background-color: rgba(245, 158, 11, 0.08) !important;
-  color: #fbbf24 !important;
+  border-left: 3.5px solid #eab308 !important;
+  background-color: rgba(234, 179, 8, 0.12) !important;
 }
 .fc-event.workout-plyometrics, .fc-event.workout-plyometric, .fc-event[class*="workout-plyom"],
 .fc-event.workout-yoga, .fc-event.workout-cycling, .fc-event.workout-cross_training {
-  border-left: 3px solid #a855f7 !important;
-  background-color: rgba(168, 85, 247, 0.08) !important;
-  color: #c084fc !important;
+  border-left: 3.5px solid #c084fc !important;
+  background-color: rgba(192, 132, 252, 0.12) !important;
 }
 .fc-event.workout-repetition, .fc-event.workout-hill, .fc-event.workout-hill_repeats, .fc-event.workout-hill_repeat, .fc-event[class*="workout-hill"] {
-  border-left: 3px solid #d946ef !important;
-  background-color: rgba(217, 70, 239, 0.06) !important;
-  color: #d946ef !important;
+  border-left: 3.5px solid #ec4899 !important;
+  background-color: rgba(236, 72, 153, 0.12) !important;
 }
 .fc-event.workout-race {
-  border-left: 3px solid #f97316 !important;
-  background-color: rgba(249, 115, 22, 0.08) !important;
-  color: #f97316 !important;
+  border-left: 3.5px solid #f97316 !important;
+  background-color: rgba(249, 115, 22, 0.14) !important;
 }
 .fc-event.workout-threshold, .fc-event.workout-treshold {
-  border-left: 3px solid #ec4899 !important;
-  background-color: rgba(236, 72, 153, 0.08) !important;
-  color: #ec4899 !important;
-}
-.fc-event.workout-recovery_run {
-  border-left: 3px solid #14b8a6 !important;
-  background-color: rgba(20, 184, 166, 0.08) !important;
-  color: #14b8a6 !important;
+  border-left: 3.5px solid #ec4899 !important;
+  background-color: rgba(236, 72, 153, 0.12) !important;
 }
 .fc-event.workout-time_trial {
-  border-left: 3px solid #ff5722 !important;
-  background-color: rgba(255, 87, 34, 0.08) !important;
-  color: #ff5722 !important;
+  border-left: 3.5px solid #ff5722 !important;
+  background-color: rgba(255, 87, 34, 0.14) !important;
 }
 
 
