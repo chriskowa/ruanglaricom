@@ -307,7 +307,7 @@
     <!-- Notification Toast -->
     <transition name="fade">
         <div v-if="notification" class="fixed top-6 right-4 z-[100] max-w-sm w-full">
-            <div :class="notification.type === 'error' ? 'bg-red-950 border-red-800 text-red-100' : 'bg-slate-900 border-emerald-600 text-emerald-100'" 
+            <div :class="notification.type === 'error' ? 'bg-red-950 border-red-800 text-red-100' : 'bg-slate-900 border-brand-lime/60 text-slate-100'" 
                  class="p-4 rounded-md border shadow-lg flex items-start gap-3">
                 <div class="flex-1 text-xs font-medium">@{{ notification.message }}</div>
                 <button @click="notification = null" class="text-slate-400 hover:text-slate-200 text-xs">✕</button>
@@ -355,7 +355,18 @@
     </transition>
 
     <!-- SECTION 1: HERO VIEWPORT -->
-    <header class="relative w-full border-b border-slate-800 bg-slate-950 text-white py-12 sm:py-16">
+    <header class="relative w-full border-b border-slate-800 bg-slate-950 text-white py-12 sm:py-16 overflow-hidden">
+        <!-- Editorial Background Image with Athletic Gradients -->
+        <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none select-none">
+            <img src="{{ asset('images/hero/vdot-runner-training.jpg') }}"
+                 alt="Program Lari VDOT RuangLari"
+                 class="w-full h-full object-cover object-center"
+                 style="filter: brightness(0.22) contrast(1.15);"
+                 fetchpriority="high"
+                 decoding="async">
+            <div class="absolute inset-0 bg-gradient-to-r from-slate-950 via-slate-950/85 to-slate-950/70"></div>
+            <div class="absolute inset-0 bg-gradient-to-b from-slate-950/50 via-transparent to-slate-950"></div>
+        </div>
         <div class="relative z-10 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
 
             <!-- Left Column: Focused Copy, 3 Micro Steps, 1 Primary CTA -->
@@ -483,89 +494,91 @@
                     </div>
 
                     <!-- Result Display Box (Revealed on calculate) -->
-                    <div v-show="heroVdotCalculated" class="border-t border-slate-800 bg-slate-950 p-5 space-y-4">
-                        <!-- VDOT Score Strip -->
-                        <div class="p-3.5 rounded-md bg-slate-900 border border-slate-800 flex items-center justify-between">
-                            <div>
-                                <span class="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Estimasi VDOT Score</span>
-                                <span class="text-2xl font-black text-brand-lime mt-0.5 block">@{{ (heroVdotCompute.vdot || 0).toFixed(1) }}</span>
+                    <transition name="fade">
+                        <div v-if="heroVdotCalculated" class="border-t border-slate-800 bg-slate-950 p-5 space-y-4">
+                            <!-- VDOT Score Strip -->
+                            <div class="p-3.5 rounded-md bg-slate-900 border border-slate-800 flex items-center justify-between">
+                                <div>
+                                    <span class="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Estimasi VDOT Score</span>
+                                    <span class="text-2xl font-black text-brand-lime mt-0.5 block">@{{ (heroVdotCompute.vdot || 0).toFixed(1) }}</span>
+                                </div>
+                                <div class="text-right">
+                                    <span class="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Level Kebugaran</span>
+                                    <span class="text-xs sm:text-sm font-bold text-white mt-0.5 block">@{{ heroVdotLevel }}</span>
+                                </div>
                             </div>
-                            <div class="text-right">
-                                <span class="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Level Kebugaran</span>
-                                <span class="text-xs sm:text-sm font-bold text-white mt-0.5 block">@{{ heroVdotLevel }}</span>
-                            </div>
-                        </div>
 
-                        <!-- Tab Buttons -->
-                        <div class="grid grid-cols-2 gap-1.5 p-1 rounded-md bg-slate-900 border border-slate-800 text-xs font-semibold">
-                            <button type="button" @click="heroVdotTab = 'paces'"
-                                    :class="heroVdotTab === 'paces' ? 'bg-brand-lime text-slate-950 font-bold' : 'text-slate-300 hover:text-white'"
-                                    class="py-1.5 px-3 rounded text-center transition">
-                                Pace Latihan (min/km)
-                            </button>
-                            <button type="button" @click="heroVdotTab = 'races'"
-                                    :class="heroVdotTab === 'races' ? 'bg-brand-lime text-slate-950 font-bold' : 'text-slate-300 hover:text-white'"
-                                    class="py-1.5 px-3 rounded text-center transition">
-                                Prediksi Race
-                            </button>
-                        </div>
+                            <!-- Tab Buttons -->
+                            <div class="grid grid-cols-2 gap-1.5 p-1 rounded-md bg-slate-900 border border-slate-800 text-xs font-semibold">
+                                <button type="button" @click="heroVdotTab = 'paces'"
+                                        :class="heroVdotTab === 'paces' ? 'bg-brand-lime text-slate-950 font-bold' : 'text-slate-300 hover:text-white'"
+                                        class="py-1.5 px-3 rounded text-center transition">
+                                    Pace Latihan (min/km)
+                                </button>
+                                <button type="button" @click="heroVdotTab = 'races'"
+                                        :class="heroVdotTab === 'races' ? 'bg-brand-lime text-slate-950 font-bold' : 'text-slate-300 hover:text-white'"
+                                        class="py-1.5 px-3 rounded text-center transition">
+                                    Prediksi Race
+                                </button>
+                            </div>
 
-                        <!-- Tab 1: Paces -->
-                        <div v-show="heroVdotTab === 'paces'" class="space-y-2 text-xs">
-                            <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
-                                <span class="text-slate-300 font-medium">Easy / Recovery (Zone 2)</span>
-                                <strong class="text-white font-mono font-bold">@{{ heroFormatPaceRange(heroVdotCompute.easy_high, heroVdotCompute.easy_low) }}</strong>
+                            <!-- Tab 1: Paces -->
+                            <div v-show="heroVdotTab === 'paces'" class="space-y-2 text-xs">
+                                <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
+                                    <span class="text-slate-300 font-medium">Easy / Recovery (Zone 2)</span>
+                                    <strong class="text-white font-mono font-bold">@{{ heroFormatPaceRange(heroVdotCompute.easy_high, heroVdotCompute.easy_low) }}</strong>
+                                </div>
+                                <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
+                                    <span class="text-slate-300 font-medium">Marathon Pace</span>
+                                    <strong class="text-white font-mono font-bold">@{{ heroFormatPace(heroVdotCompute.marathon) }}</strong>
+                                </div>
+                                <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
+                                    <span class="text-slate-300 font-medium">Threshold / Tempo</span>
+                                    <strong class="text-white font-mono font-bold">@{{ heroFormatPace(heroVdotCompute.threshold) }}</strong>
+                                </div>
+                                <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
+                                    <span class="text-slate-300 font-medium">Interval (VO2max)</span>
+                                    <strong class="text-white font-mono font-bold">@{{ heroFormatPace(heroVdotCompute.interval) }} <span class="text-slate-400 font-normal text-[11px]">(@{{ heroVdotCompute.interval_400 }}s/400m)</span></strong>
+                                </div>
+                                <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
+                                    <span class="text-slate-300 font-medium">Repetition (Speed Form)</span>
+                                    <strong class="text-white font-mono font-bold">@{{ heroFormatPace(heroVdotCompute.repetition) }} <span class="text-slate-400 font-normal text-[11px]">(@{{ heroVdotCompute.repetition_400 }}s/400m)</span></strong>
+                                </div>
                             </div>
-                            <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
-                                <span class="text-slate-300 font-medium">Marathon Pace</span>
-                                <strong class="text-white font-mono font-bold">@{{ heroFormatPace(heroVdotCompute.marathon) }}</strong>
-                            </div>
-                            <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
-                                <span class="text-slate-300 font-medium">Threshold / Tempo</span>
-                                <strong class="text-white font-mono font-bold">@{{ heroFormatPace(heroVdotCompute.threshold) }}</strong>
-                            </div>
-                            <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
-                                <span class="text-slate-300 font-medium">Interval (VO2max)</span>
-                                <strong class="text-white font-mono font-bold">@{{ heroFormatPace(heroVdotCompute.interval) }} <span class="text-slate-400 font-normal text-[11px]">(@{{ heroVdotCompute.interval_400 }}s/400m)</span></strong>
-                            </div>
-                            <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
-                                <span class="text-slate-300 font-medium">Repetition (Speed Form)</span>
-                                <strong class="text-white font-mono font-bold">@{{ heroFormatPace(heroVdotCompute.repetition) }} <span class="text-slate-400 font-normal text-[11px]">(@{{ heroVdotCompute.repetition_400 }}s/400m)</span></strong>
-                            </div>
-                        </div>
 
-                        <!-- Tab 2: Races -->
-                        <div v-show="heroVdotTab === 'races'" class="space-y-2 text-xs">
-                            <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
-                                <span class="text-slate-300 font-medium">5K Race Target</span>
-                                <strong class="text-white font-mono font-bold">@{{ heroFormatDur(heroVdotCompute.r_5k) }}</strong>
+                            <!-- Tab 2: Races -->
+                            <div v-show="heroVdotTab === 'races'" class="space-y-2 text-xs">
+                                <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
+                                    <span class="text-slate-300 font-medium">5K Race Target</span>
+                                    <strong class="text-white font-mono font-bold">@{{ heroFormatDur(heroVdotCompute.r_5k) }}</strong>
+                                </div>
+                                <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
+                                    <span class="text-slate-300 font-medium">10K Race Target</span>
+                                    <strong class="text-white font-mono font-bold">@{{ heroFormatDur(heroVdotCompute.r_10k) }}</strong>
+                                </div>
+                                <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
+                                    <span class="text-slate-300 font-medium">Half Marathon (21.1K)</span>
+                                    <strong class="text-white font-mono font-bold">@{{ heroFormatDur(heroVdotCompute.r_21k) }}</strong>
+                                </div>
+                                <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
+                                    <span class="text-slate-300 font-medium">Marathon (42.2K)</span>
+                                    <strong class="text-white font-mono font-bold">@{{ heroFormatDur(heroVdotCompute.r_42k) }}</strong>
+                                </div>
                             </div>
-                            <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
-                                <span class="text-slate-300 font-medium">10K Race Target</span>
-                                <strong class="text-white font-mono font-bold">@{{ heroFormatDur(heroVdotCompute.r_10k) }}</strong>
-                            </div>
-                            <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
-                                <span class="text-slate-300 font-medium">Half Marathon (21.1K)</span>
-                                <strong class="text-white font-mono font-bold">@{{ heroFormatDur(heroVdotCompute.r_21k) }}</strong>
-                            </div>
-                            <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
-                                <span class="text-slate-300 font-medium">Marathon (42.2K)</span>
-                                <strong class="text-white font-mono font-bold">@{{ heroFormatDur(heroVdotCompute.r_42k) }}</strong>
-                            </div>
-                        </div>
 
-                        <!-- Action Buttons: CTA sync ke Wizard Step 1 (auto scroll ke tool-container) -->
-                        <div class="flex flex-col sm:flex-row gap-2 pt-1">
-                            <button type="button" @click="heroApplyToWizard"
-                                    class="flex-1 btn-lime-primary py-2.5 px-4 rounded-md text-slate-950 text-xs font-bold uppercase tracking-wider transition cursor-pointer text-center">
-                                Buat Program
-                            </button>
-                            <a href="#dasar-vdot"
-                               class="flex-1 text-center py-2.5 px-4 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-xs uppercase tracking-wider transition cursor-pointer">
-                                Lihat Metodologi
-                            </a>
+                            <!-- Action Buttons: CTA sync ke Wizard Step 1 (auto scroll ke tool-container) -->
+                            <div class="flex flex-col sm:flex-row gap-2 pt-1">
+                                <button type="button" @click="heroApplyToWizard"
+                                        class="flex-1 btn-lime-primary py-2.5 px-4 rounded-md text-slate-950 text-xs font-bold uppercase tracking-wider transition cursor-pointer text-center">
+                                    Buat Program
+                                </button>
+                                <a href="#dasar-vdot"
+                                   class="flex-1 text-center py-2.5 px-4 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-xs uppercase tracking-wider transition cursor-pointer">
+                                    Lihat Metodologi
+                                </a>
+                            </div>
                         </div>
-                    </div>
+                    </transition>
                 </div>
             </div>
 
@@ -656,7 +669,7 @@
                     </div>
                     <div class="p-4 rounded-md surface-nested space-y-1">
                         <span class="text-[10px] font-bold uppercase text-slate-400 tracking-wider">Kelayakan Target:</span>
-                        <div class="text-sm font-bold text-emerald-400">Realistis</div>
+                        <div class="text-sm font-bold text-brand-lime">Realistis</div>
                         <div class="text-[11px] text-slate-400">+4.2% peningkatan terukur</div>
                     </div>
                 </div>
@@ -666,7 +679,7 @@
                     <div class="text-xs font-bold text-slate-300 uppercase tracking-wider">5 Zona Pace Latihan Terkalibrasi:</div>
                     <div class="grid grid-cols-2 sm:grid-cols-5 gap-3 text-xs">
                         <div class="p-2.5 rounded bg-slate-900 border border-slate-800">
-                            <span class="text-emerald-400 font-bold block text-[11px]">Easy (E)</span>
+                            <span class="text-sky-400 font-bold block text-[11px]">Easy (E)</span>
                             <span class="text-white text-xs mt-0.5 block font-bold">06:45–07:15 min/km</span>
                             <span class="text-[10px] text-slate-400">65–78% HR Max</span>
                         </div>
@@ -921,7 +934,7 @@
                                                 <div class="text-2xl font-black text-white">@{{ realism.score }}<span class="text-sm font-semibold text-slate-500">/100</span></div>
                                                 <div class="w-24 h-1.5 mt-1.5 bg-slate-800 rounded-full overflow-hidden">
                                                     <div class="h-full transition-all duration-500 rounded-full" :class="{
-                                                        'bg-emerald-500': realism.feasibility === 'FEASIBLE',
+                                                        'bg-brand-lime': realism.feasibility === 'FEASIBLE',
                                                         'bg-amber-500': realism.feasibility === 'AGGRESSIVE',
                                                         'bg-orange-500': realism.feasibility === 'HIGH_RISK',
                                                         'bg-red-500': realism.feasibility === 'INFEASIBLE'
@@ -935,7 +948,7 @@
                                             <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 mb-2 block">Tingkat Agresivitas Latihan</span>
                                             <div class="grid grid-cols-3 gap-2">
                                                 <button type="button" @click="formAggressiveness = 'conservative'"
-                                                        :class="formAggressiveness === 'conservative' ? 'bg-emerald-900/40 border-emerald-500/50 text-emerald-300 font-bold' : 'bg-slate-800/50 border-slate-700/60 text-slate-300'"
+                                                        :class="formAggressiveness === 'conservative' ? 'bg-slate-800 border-brand-lime/60 text-brand-lime font-bold' : 'bg-slate-800/50 border-slate-700/60 text-slate-300'"
                                                         class="py-2 px-2 rounded-md text-[11px] border transition cursor-pointer">
                                                     <div class="font-bold">Konservatif</div>
                                                     <div class="text-[10px] opacity-70 mt-0.5">Beban -8%, Minggu +15%</div>
@@ -995,7 +1008,7 @@
                             <div>
                                 <div class="flex justify-between items-center mb-1">
                                     <label class="label-text !mb-0">Mileage Mingguan Puncak (Km)</label>
-                                    <span class="text-[11px] font-semibold" :class="coachAssessment && coachAssessment.color === 'emerald' ? 'text-emerald-300' : (coachAssessment && coachAssessment.color === 'red' ? 'text-red-300' : 'text-brand-lime')">Saran: @{{ idealMileage }} km · Min: @{{ coachAssessment.min_required_peak_mileage || '-' }} km</span>
+                                    <span class="text-[11px] font-semibold" :class="coachAssessment && (coachAssessment.color === 'emerald' || coachAssessment.color === 'lime') ? 'text-brand-lime' : (coachAssessment && coachAssessment.color === 'red' ? 'text-red-300' : 'text-brand-lime')">Saran: @{{ idealMileage }} km · Min: @{{ coachAssessment.min_required_peak_mileage || '-' }} km</span>
                                 </div>
                                 <div class="flex items-center gap-2">
                                     <input v-model.number="form.weekly_mileage" type="number" :min="minMileageDynamic" max="150" step="1"
@@ -1012,7 +1025,7 @@
 
                                 <div v-if="coachAssessment && form.weekly_mileage > 0" class="mt-3 p-3 rounded-md border text-xs leading-relaxed"
                                      :class="{
-                                        'bg-emerald-900/15 border-emerald-600/30 text-slate-200': coachAssessment.feasibility === 'FEASIBLE',
+                                        'bg-slate-900/90 border-brand-lime/30 text-slate-200': coachAssessment.feasibility === 'FEASIBLE',
                                         'bg-amber-900/15 border-amber-600/30 text-slate-200': coachAssessment.feasibility === 'AGGRESSIVE',
                                         'bg-orange-900/15 border-orange-600/30 text-slate-200': coachAssessment.feasibility === 'HIGH_RISK',
                                         'bg-red-900/15 border-red-600/50 text-slate-200': coachAssessment.feasibility === 'INFEASIBLE'
@@ -1020,7 +1033,7 @@
                                     <div class="flex items-start gap-2">
                                         <span class="inline-flex items-center justify-center shrink-0 w-5 h-5 rounded-full font-bold mt-0.5"
                                               :class="{
-                                                'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40': coachAssessment.feasibility === 'FEASIBLE',
+                                                'bg-brand-lime/20 text-brand-lime border border-brand-lime/40': coachAssessment.feasibility === 'FEASIBLE',
                                                 'bg-amber-500/20 text-amber-300 border border-amber-500/40': coachAssessment.feasibility === 'AGGRESSIVE',
                                                 'bg-orange-500/20 text-orange-300 border border-orange-500/40': coachAssessment.feasibility === 'HIGH_RISK',
                                                 'bg-red-500/20 text-red-300 border border-red-500/40': coachAssessment.feasibility === 'INFEASIBLE'
@@ -1088,7 +1101,7 @@
                                         <input type="checkbox" v-model="form.include_strength" class="w-4 h-4 accent-[#CCFF00] rounded">
                                         <span class="text-xs sm:text-sm font-semibold text-slate-200">Sertakan Strength Training</span>
                                     </label>
-                                    <span v-if="form.include_strength" class="text-[10px] text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded font-semibold border border-emerald-800/40">2x/Mgg</span>
+                                    <span v-if="form.include_strength" class="text-[10px] text-brand-lime bg-slate-800 px-2 py-0.5 rounded font-semibold border border-brand-lime/30">2x/Mgg</span>
                                 </div>
                                 <div v-if="form.include_strength" class="pt-1 space-y-2.5">
                                     <div>
@@ -1229,13 +1242,13 @@
                                         <span class="text-slate-400 font-semibold uppercase tracking-wider text-[10px]">Status Kelayakan Program</span>
                                         <div class="flex items-center gap-2">
                                             <span class="font-black text-lg text-white">@{{ realism?.score || coachAssessment?.score || '-' }}<span class="text-[10px] font-semibold text-slate-500">/100</span></span>
-                                            <span class="inline-flex items-center px-2 py-1 rounded-md text-[10px] font-bold border" :class="realism?.color || 'bg-emerald-900/20 text-emerald-300 border-emerald-500/30'">@{{ realism?.label || coachAssessment?.label || 'Realistis' }}</span>
+                                            <span class="inline-flex items-center px-2 py-1 rounded-md text-[10px] font-bold border" :class="realism?.color || 'bg-slate-800 text-brand-lime border-brand-lime/40'">@{{ realism?.label || coachAssessment?.label || 'Realistis' }}</span>
                                         </div>
                                     </div>
                                     <div class="w-full h-1.5 bg-slate-800 rounded-full overflow-hidden">
                                         <div class="h-full rounded-full transition-all duration-500"
                                              :class="{
-                                                'bg-emerald-500': (realism?.feasibility || coachAssessment?.feasibility) === 'FEASIBLE',
+                                                'bg-brand-lime': (realism?.feasibility || coachAssessment?.feasibility) === 'FEASIBLE',
                                                 'bg-amber-500': (realism?.feasibility || coachAssessment?.feasibility) === 'AGGRESSIVE',
                                                 'bg-orange-500': (realism?.feasibility || coachAssessment?.feasibility) === 'HIGH_RISK',
                                                 'bg-red-500': (realism?.feasibility || coachAssessment?.feasibility) === 'INFEASIBLE'
@@ -1430,7 +1443,7 @@
                                     Pekan @{{ weekNum }}
                                 </h3>
                                 <span v-if="weekSessions && weekSessions.length > 0 && weekSessions[0].is_deload" 
-                                      class="px-2 py-0.5 bg-emerald-950/40 text-emerald-400 text-[10px] font-semibold rounded border border-emerald-500/30 uppercase tracking-wider">
+                                      class="px-2 py-0.5 bg-slate-800 text-sky-300 text-[10px] font-semibold rounded border border-sky-500/30 uppercase tracking-wider">
                                     De-load / Pemulihan
                                 </span>
                             </div>
@@ -1630,7 +1643,7 @@
                             </thead>
                             <tbody class="divide-y divide-slate-800 text-slate-300">
                                 <tr>
-                                    <td class="py-2.5 px-3 font-bold text-emerald-400">Easy (E)</td>
+                                    <td class="py-2.5 px-3 font-bold text-sky-400">Easy (E)</td>
                                     <td class="py-2.5 px-3">59% - 74%</td>
                                     <td class="py-2.5 px-3">65% - 78%</td>
                                     <td class="py-2.5 px-3">Kapilarisasi otot, mitokondria, pemulihan aktif.</td>
@@ -1961,7 +1974,11 @@
             const heroVdotH = ref(1);
             const heroVdotM = ref(55);
             const heroVdotS = ref(0);
-            const heroVdotCalculated = ref(true);
+            const heroVdotCalculated = ref(false);
+
+            watch([heroVdotDistance, heroVdotH, heroVdotM, heroVdotS], () => {
+                heroVdotCalculated.value = false;
+            });
             const heroVdotCompute = reactive({
                 vdot: 0,
                 pbSec: 0,
@@ -2193,14 +2210,14 @@
                 score = Math.max(0, Math.min(100, Math.round(score)));
 
                 let feasibility = 'FEASIBLE';
-                let color = 'emerald';
+                let color = 'lime';
                 let label = 'Realistis';
 
                 if (weeklyMileage > 0 && weeklyMileage < minMileage * 0.85) {
                     feasibility = 'INFEASIBLE'; color = 'red'; label = 'Tidak Realistis';
                 } else if (finalRequiredWeeksByVdot > 0 && weeks < finalRequiredWeeksByVdot * 0.8) {
                     feasibility = 'INFEASIBLE'; color = 'red'; label = 'Tidak Realistis';
-                } else if (score >= 70) { feasibility = 'FEASIBLE'; color = 'emerald'; label = 'Realistis'; }
+                } else if (score >= 70) { feasibility = 'FEASIBLE'; color = 'lime'; label = 'Realistis'; }
                 else if (score >= 40) { feasibility = 'AGGRESSIVE'; color = 'amber'; label = 'Agresif'; }
                 else if (score >= 20) { feasibility = 'HIGH_RISK'; color = 'orange'; label = 'Risiko Tinggi'; }
                 else { feasibility = 'INFEASIBLE'; color = 'red'; label = 'Tidak Realistis'; }
@@ -2906,7 +2923,6 @@
             });
 
             onMounted(() => {
-                heroCalculateVdot();
                 const params = new URLSearchParams(window.location.search);
                 let dist = params.get('distance');
                 const time = params.get('time');
@@ -2965,14 +2981,15 @@
                 const ca = coachAssessment.value;
                 if (!ca) return null;
                 const badgeClassMap = {
-                    emerald: 'bg-emerald-900/20 text-emerald-300 border-emerald-500/30',
-                    amber: 'bg-amber-900/20 text-amber-300 border-amber-500/30',
-                    orange: 'bg-orange-900/20 text-orange-300 border-orange-500/30',
-                    red: 'bg-red-900/20 text-red-300 border-red-500/30',
+                    lime: 'bg-slate-800 text-brand-lime border-brand-lime/40',
+                    emerald: 'bg-slate-800 text-brand-lime border-brand-lime/40',
+                    amber: 'bg-amber-950/40 text-amber-300 border-amber-600/40',
+                    orange: 'bg-orange-950/40 text-orange-300 border-orange-600/40',
+                    red: 'bg-red-950/40 text-red-300 border-red-600/40',
                 };
                 return {
                     label: ca.label + ' · Skor ' + ca.score + '/100',
-                    color: badgeClassMap[ca.color] || badgeClassMap.emerald,
+                    color: badgeClassMap[ca.color] || badgeClassMap.lime || badgeClassMap.emerald,
                     description: ca.reason,
                     options: ca.options || [],
                     feasibility: ca.feasibility,
@@ -2990,7 +3007,7 @@
                 const b = bmi.value;
                 if (!b) return null;
                 if (b < 18.5) return { label: 'Kurus', color: 'text-blue-400', badgeClass: 'bg-blue-500/10 border-blue-500/30' };
-                if (b < 25)   return { label: 'Normal', color: 'text-emerald-400', badgeClass: 'bg-emerald-500/10 border-emerald-500/30' };
+                if (b < 25)   return { label: 'Normal', color: 'text-brand-lime', badgeClass: 'bg-slate-800 text-brand-lime border-brand-lime/40' };
                 if (b < 30)   return { label: 'Overweight', color: 'text-amber-400', badgeClass: 'bg-amber-500/10 border-amber-500/30' };
                 return { label: 'Obese', color: 'text-red-400', badgeClass: 'bg-red-500/10 border-red-500/30' };
             });
@@ -3237,7 +3254,7 @@
 
             const getPaceColor = (type) => {
                 const colors = { 
-                    'E': 'text-emerald-400', 
+                    'E': 'text-sky-400', 
                     'M': 'text-blue-400', 
                     'T': 'text-amber-400', 
                     'I': 'text-rose-400', 
@@ -3267,7 +3284,7 @@
 
             const getSessionClass = (type) => {
                 const classes = {
-                    'easy_run': 'bg-emerald-950/20 border-emerald-500/20 text-emerald-400',
+                    'easy_run': 'bg-sky-950/20 border-sky-500/20 text-sky-400',
                     'run_walk': 'bg-teal-950/20 border-teal-500/20 text-teal-400',
                     'long_run': 'bg-blue-950/20 border-blue-500/20 text-blue-400',
                     'marathon': 'bg-cyan-950/20 border-cyan-500/20 text-cyan-400',
