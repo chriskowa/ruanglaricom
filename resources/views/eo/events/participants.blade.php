@@ -811,7 +811,8 @@
                                     <div class="text-xs text-red-400 font-bold mt-0.5">
                                         Pending > 1 Hari
                                     </div>
-                                                     </div>
+                                @endif
+                            </div>
                         </td>
                         <td class="px-6 py-4 col-approval" onclick="event.stopPropagation()">
                             @php
