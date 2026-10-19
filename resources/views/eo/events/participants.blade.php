@@ -390,8 +390,9 @@
                     <label class="block text-xs font-medium text-slate-400 mb-1">Approval Review</label>
                     <select name="approval_status" class="bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 focus:border-yellow-400 focus:outline-none">
                         <option value="">All Approval</option>
+                        <option value="approved" {{ request('approval_status') == 'approved' ? 'selected' : '' }}>Approved (Lunas)</option>
+                        <option value="awaiting_payment" {{ request('approval_status') == 'awaiting_payment' ? 'selected' : '' }}>Awaiting Payment</option>
                         <option value="pending_approval" {{ request('approval_status') == 'pending_approval' ? 'selected' : '' }}>Perlu Review (Pending)</option>
-                        <option value="approved" {{ request('approval_status') == 'approved' ? 'selected' : '' }}>Disetujui (Approved)</option>
                         <option value="rejected" {{ request('approval_status') == 'rejected' ? 'selected' : '' }}>Ditolak (Rejected)</option>
                     </select>
                 </div>
@@ -668,8 +669,8 @@
                             'payment_status' => $participant->transaction->payment_status ?? 'pending',
                             'is_picked_up' => $participant->is_picked_up,
                             'picked_up_by' => $participant->picked_up_by,
-                            'isApproved' => (bool)$participant->isApproved,
-                            'status' => $participant->status,
+                            'isApproved' => in_array($participant->transaction->payment_status ?? '', ['failed', 'expired']) ? false : (bool)$participant->isApproved,
+                            'status' => in_array($participant->transaction->payment_status ?? '', ['failed', 'expired']) ? 'cancelled' : $participant->status,
                             'coupon_id' => $participant->transaction->coupon_id ?? null,
                             'coupon_code' => $participant->transaction->coupon->code ?? null,
                             'addons' => $participant->addons,
@@ -810,19 +811,33 @@
                                     <div class="text-xs text-red-400 font-bold mt-0.5">
                                         Pending > 1 Hari
                                     </div>
-                                @endif
-                            </div>
+                                                     </div>
                         </td>
                         <td class="px-6 py-4 col-approval" onclick="event.stopPropagation()">
-                            @if($participant->isApproved)
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-950 text-emerald-300 border border-emerald-700/60">
-                                    <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
-                                    Approved
+                            @php
+                                $payStatus = $participant->transaction->payment_status ?? 'pending';
+                                $isPaymentFailed = in_array($payStatus, ['failed', 'expired']);
+                                $isPaid = ($payStatus === 'paid');
+                            @endphp
+                            @if($isPaymentFailed)
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-rose-950 text-rose-300 border border-rose-700/60" title="Pembayaran {{ ucfirst($payStatus) }}">
+                                    <svg class="w-3.5 h-3.5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
+                                    Rejected ({{ ucfirst($payStatus) }})
                                 </span>
                             @elseif($participant->status === 'cancelled' || $participant->status === 'rejected')
                                 <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-rose-950 text-rose-300 border border-rose-700/60" title="{{ $participant->notes }}">
                                     <svg class="w-3.5 h-3.5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
                                     Rejected
+                                </span>
+                            @elseif($participant->isApproved && $isPaid)
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-950 text-emerald-300 border border-emerald-700/60">
+                                    <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
+                                    Approved
+                                </span>
+                            @elseif($participant->isApproved && !$isPaid)
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-amber-950 text-amber-300 border border-amber-700/60" title="Data registrasi disetujui, menunggu pembayaran lunas">
+                                    <svg class="w-3.5 h-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                    Awaiting Payment
                                 </span>
                             @else
                                 <div class="flex flex-col gap-1.5 items-start">
@@ -836,7 +851,7 @@
                                             Approve
                                         </button>
                                         <button type="button" onclick="rejectParticipant({{ $participant->id }}, '{{ addslashes($participant->name) }}')" class="px-1.5 py-1 bg-slate-800 hover:bg-rose-900/60 text-slate-300 hover:text-rose-200 border border-slate-700 rounded text-[11px] font-bold transition-colors shadow-sm" title="Tolak Peserta">
-                                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                            <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg>
                                         </button>
                                     </div>
                                 </div>
@@ -2665,8 +2680,8 @@
                     payment_update_url: p.payment_update_url,
                     is_picked_up: p.is_picked_up,
                     picked_up_by: p.picked_up_by,
-                    isApproved: (p.isApproved == 1 || p.isApproved === true || p.isApproved === '1') ? 1 : 0,
-                    status: p.status,
+                    isApproved: (p.payment_status === 'failed' || p.payment_status === 'expired') ? 0 : ((p.isApproved == 1 || p.isApproved === true || p.isApproved === '1') ? 1 : 0),
+                    status: (p.payment_status === 'failed' || p.payment_status === 'expired') ? 'cancelled' : p.status,
                     coupon_code: p.coupon_code,
                     coupon_id: p.coupon_id,
                     addons: p.addons,
@@ -2681,16 +2696,25 @@
                 }).replace(/'/g, "&#39;");
 
                 var approvalBadge = '';
-                if (p.isApproved) {
-                    approvalBadge = '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-950 text-emerald-300 border border-emerald-700/60"><svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>Approved</span>';
-                } else if (p.status === 'cancelled' || p.status === 'rejected') {
+                var isPayFailed = (p.payment_status === 'failed' || p.payment_status === 'expired');
+                var isPaid = (p.payment_status === 'paid');
+                var isCancelled = (p.status === 'cancelled' || p.status === 'rejected');
+                var isApproved = !isPayFailed && (p.isApproved == 1 || p.isApproved === true || p.isApproved === '1');
+
+                if (isPayFailed) {
+                    approvalBadge = '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-rose-950 text-rose-300 border border-rose-700/60" title="Pembayaran '+ escapeHtml(p.payment_status || 'failed') +'"><svg class="w-3.5 h-3.5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg>Rejected ('+ (p.payment_status === 'expired' ? 'Expired' : 'Failed') +')</span>';
+                } else if (isCancelled) {
                     approvalBadge = '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-rose-950 text-rose-300 border border-rose-700/60" title="'+ escapeHtml(p.notes || '') +'"><svg class="w-3.5 h-3.5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg>Rejected</span>';
+                } else if (isApproved && isPaid) {
+                    approvalBadge = '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-950 text-emerald-300 border border-emerald-700/60"><svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>Approved</span>';
+                } else if (isApproved && !isPaid) {
+                    approvalBadge = '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-amber-950 text-amber-300 border border-amber-700/60" title="Data registrasi disetujui, menunggu pembayaran lunas"><svg class="w-3.5 h-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>Awaiting Payment</span>';
                 } else {
                     approvalBadge = '<div class="flex flex-col gap-1.5 items-start">' +
                         '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-amber-950 text-amber-300 border border-amber-700/60"><svg class="w-3 h-3 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>Pending Review</span>' +
                         '<div class="flex items-center gap-1">' +
                             '<button type="button" onclick="approveParticipant('+ p.id +', \''+ safeName +'\')" class="px-2 py-1 bg-emerald-700 hover:bg-emerald-600 text-white rounded text-[11px] font-bold transition-colors flex items-center gap-1 shadow-sm" title="Setujui & Kirim E-Tiket"><svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>Approve</button>' +
-                            '<button type="button" onclick="rejectParticipant('+ p.id +', \''+ safeName +'\')" class="px-1.5 py-1 bg-slate-800 hover:bg-rose-900/60 text-slate-300 hover:text-rose-200 border border-slate-700 rounded text-[11px] font-bold transition-colors shadow-sm" title="Tolak Peserta"><svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg></button>' +
+                            '<button type="button" onclick="rejectParticipant('+ p.id +', \''+ safeName +'\')" class="px-1.5 py-1 bg-slate-800 hover:bg-rose-900/60 text-slate-300 hover:text-rose-200 border border-slate-700 rounded text-[11px] font-bold transition-colors shadow-sm" title="Tolak Peserta"><svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg></button>' +
                         '</div>' +
                     '</div>';
                 }
@@ -3483,7 +3507,14 @@
         .then(function(res) {
             if (res && res.success) {
                 currentParticipantData.payment_status = newStatus;
+                if (newStatus === 'failed' || newStatus === 'expired') {
+                    currentParticipantData.isApproved = 0;
+                    currentParticipantData.status = 'cancelled';
+                }
                 updateModalPaymentBadge(newStatus);
+                if (typeof updateDetailApprovalUI === 'function') {
+                    updateDetailApprovalUI(currentParticipantData);
+                }
                 setValue('edit_payment_status', newStatus);
                 var p = (typeof window.currentParticipantsPage !== 'undefined') ? window.currentParticipantsPage : 1;
                 if (typeof window.fetchParticipants === 'function') {
@@ -3845,6 +3876,13 @@
                 // Update Payment Status Badge
                 if (res.data.payment_status) {
                     updateModalPaymentBadge(res.data.payment_status);
+                    if (res.data.payment_status === 'failed' || res.data.payment_status === 'expired') {
+                        currentParticipantData.isApproved = 0;
+                        currentParticipantData.status = 'cancelled';
+                    }
+                    if (typeof updateDetailApprovalUI === 'function') {
+                        updateDetailApprovalUI(currentParticipantData);
+                    }
                 }
                 
                 // Update Coupon View
@@ -4566,17 +4604,28 @@
         
         if (!approvalBadge || !data) return;
 
-        var isApproved = (data.isApproved == 1 || data.isApproved === true || data.isApproved === '1');
-        var isCancelled = (data.status === 'cancelled' || data.status === 'rejected');
+        var isPaymentFailed = (data.payment_status === 'failed' || data.payment_status === 'expired');
+        var isPaid = (data.payment_status === 'paid');
+        var isApproved = !isPaymentFailed && (data.isApproved == 1 || data.isApproved === true || data.isApproved === '1');
+        var isCancelled = isPaymentFailed || (data.status === 'cancelled' || data.status === 'rejected');
 
-        if (isApproved) {
-            approvalBadge.innerHTML = '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-bold bg-emerald-950 text-emerald-300 border border-emerald-700/60"><svg class="w-3 h-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>Approved</span>';
+        if (isPaymentFailed) {
+            var failLabel = data.payment_status === 'expired' ? 'Expired' : 'Failed';
+            approvalBadge.innerHTML = '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-bold bg-rose-950 text-rose-300 border border-rose-700/60"><svg class="w-3 h-3 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg>Rejected (' + failLabel + ')</span>';
             if (btnApprove) btnApprove.classList.add('hidden');
-            if (btnReject) btnReject.classList.remove('hidden');
+            if (btnReject) btnReject.classList.add('hidden');
         } else if (isCancelled) {
             approvalBadge.innerHTML = '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-bold bg-rose-950 text-rose-300 border border-rose-700/60"><svg class="w-3 h-3 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg>Rejected</span>';
             if (btnApprove) btnApprove.classList.remove('hidden');
             if (btnReject) btnReject.classList.add('hidden');
+        } else if (isApproved && isPaid) {
+            approvalBadge.innerHTML = '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-bold bg-emerald-950 text-emerald-300 border border-emerald-700/60"><svg class="w-3 h-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>Approved</span>';
+            if (btnApprove) btnApprove.classList.add('hidden');
+            if (btnReject) btnReject.classList.remove('hidden');
+        } else if (isApproved && !isPaid) {
+            approvalBadge.innerHTML = '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-bold bg-amber-950 text-amber-300 border border-amber-700/60"><svg class="w-3 h-3 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>Awaiting Payment</span>';
+            if (btnApprove) btnApprove.classList.add('hidden');
+            if (btnReject) btnReject.classList.remove('hidden');
         } else {
             approvalBadge.innerHTML = '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-bold bg-amber-950 text-amber-300 border border-amber-700/60"><svg class="w-3 h-3 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>Pending Review</span>';
             if (btnApprove) btnApprove.classList.remove('hidden');
@@ -4586,6 +4635,11 @@
     window.updateDetailApprovalUI = updateDetailApprovalUI;
 
     window.approveParticipant = function(id, name) {
+        if (currentParticipantData && currentParticipantData.id == id && (currentParticipantData.payment_status === 'failed' || currentParticipantData.payment_status === 'expired')) {
+            alert('Tidak dapat menyetujui peserta dengan status pembayaran gagal atau kedaluwarsa.');
+            return;
+        }
+
         if (!confirm(`Setujui pendaftaran ${name || 'peserta'} dan kirim email konfirmasi e-Tiket resmi?`)) return;
 
         fetch(`{{ url('eo/events/' . $event->id . '/participants') }}/${id}/approve`, {
@@ -4658,13 +4712,38 @@
     };
 
     window.bulkApprove = function(btn) {
-        const selected = Array.from(document.querySelectorAll('.participant-checkbox:checked')).map(cb => cb.value);
-        if (selected.length === 0) {
+        const selectedCheckboxes = Array.from(document.querySelectorAll('.participant-checkbox:checked'));
+        if (selectedCheckboxes.length === 0) {
             alert('Silakan pilih minimal 1 peserta terlebih dahulu.');
             return;
         }
 
-        if (!confirm(`Setujui ${selected.length} peserta terpilih dan kirimkan email konfirmasi e-Tiket resmi?`)) return;
+        let invalidCount = 0;
+        const validIds = [];
+        selectedCheckboxes.forEach(cb => {
+            const tr = cb.closest('tr');
+            if (tr && tr.dataset && tr.dataset.json) {
+                try {
+                    const data = JSON.parse(tr.dataset.json);
+                    if (data.payment_status === 'failed' || data.payment_status === 'expired') {
+                        invalidCount++;
+                        return;
+                    }
+                } catch(e){}
+            }
+            validIds.push(cb.value);
+        });
+
+        if (invalidCount > 0 && validIds.length === 0) {
+            alert('Semua peserta yang dipilih memiliki status pembayaran gagal atau kedaluwarsa, sehingga tidak dapat disetujui.');
+            return;
+        }
+
+        const confirmMsg = invalidCount > 0
+            ? `Terdapat ${invalidCount} peserta dengan pembayaran gagal/kedaluwarsa yang akan dilewati.\n\nSetujui ${validIds.length} peserta yang valid dan kirimkan email konfirmasi e-Tiket resmi?`
+            : `Setujui ${validIds.length} peserta terpilih dan kirimkan email konfirmasi e-Tiket resmi?`;
+
+        if (!confirm(confirmMsg)) return;
 
         const originalText = btn ? btn.innerHTML : '';
         if (btn) {
@@ -4679,7 +4758,7 @@
                 'Content-Type': 'application/json',
                 'Accept': 'application/json'
             },
-            body: JSON.stringify({ participant_ids: selected })
+            body: JSON.stringify({ participant_ids: validIds })
         })
         .then(r => r.json())
         .then(res => {

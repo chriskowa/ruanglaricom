@@ -1148,11 +1148,34 @@ class EventController extends Controller
         if (request()->filled('approval_status')) {
             $appStatus = request('approval_status');
             if ($appStatus === 'pending_approval') {
-                $query->where('participants.isApproved', 0)->where('participants.status', '!=', 'cancelled');
+                $query->where('participants.isApproved', 0)
+                    ->where('participants.status', '!=', 'cancelled')
+                    ->where('participants.status', '!=', 'rejected')
+                    ->whereHas('transaction', function ($q) {
+                        $q->whereNotIn('payment_status', ['failed', 'expired']);
+                    });
+            } elseif ($appStatus === 'awaiting_payment') {
+                $query->where('participants.isApproved', 1)
+                    ->where('participants.status', '!=', 'cancelled')
+                    ->where('participants.status', '!=', 'rejected')
+                    ->whereHas('transaction', function ($q) {
+                        $q->whereNotIn('payment_status', ['paid', 'failed', 'expired']);
+                    });
             } elseif ($appStatus === 'approved') {
-                $query->where('participants.isApproved', 1);
+                $query->where('participants.isApproved', 1)
+                    ->where('participants.status', '!=', 'cancelled')
+                    ->where('participants.status', '!=', 'rejected')
+                    ->whereHas('transaction', function ($q) {
+                        $q->where('payment_status', 'paid');
+                    });
             } elseif ($appStatus === 'rejected') {
-                $query->where('participants.status', 'cancelled');
+                $query->where(function ($q) {
+                    $q->where('participants.status', 'cancelled')
+                        ->orWhere('participants.status', 'rejected')
+                        ->orWhereHas('transaction', function ($t) {
+                            $t->whereIn('payment_status', ['failed', 'expired']);
+                        });
+                });
             }
         }
 
@@ -1284,8 +1307,8 @@ class EventController extends Controller
                     'proof_notes' => $p->transaction->proof_notes ?? null,
                     'is_picked_up' => $p->is_picked_up,
                     'picked_up_by' => $p->picked_up_by,
-                    'isApproved' => (bool) $p->isApproved,
-                    'status' => $p->status,
+                    'isApproved' => in_array($p->transaction->payment_status ?? '', ['failed', 'expired']) ? false : (bool) $p->isApproved,
+                    'status' => in_array($p->transaction->payment_status ?? '', ['failed', 'expired']) ? 'cancelled' : $p->status,
                     'category_quota' => $p->category ? $p->category->quota : 0,
                     'blood_type' => $p->blood_type,
                     'payment_update_url' => route('eo.events.transactions.payment-status', [$event, $p->transaction->id]),
@@ -1525,11 +1548,34 @@ class EventController extends Controller
         if ($request->filled('approval_status')) {
             $appStatus = $request->query('approval_status');
             if ($appStatus === 'pending_approval') {
-                $query->where('participants.isApproved', 0)->where('participants.status', '!=', 'cancelled');
+                $query->where('participants.isApproved', 0)
+                    ->where('participants.status', '!=', 'cancelled')
+                    ->where('participants.status', '!=', 'rejected')
+                    ->whereHas('transaction', function ($q) {
+                        $q->whereNotIn('payment_status', ['failed', 'expired']);
+                    });
+            } elseif ($appStatus === 'awaiting_payment') {
+                $query->where('participants.isApproved', 1)
+                    ->where('participants.status', '!=', 'cancelled')
+                    ->where('participants.status', '!=', 'rejected')
+                    ->whereHas('transaction', function ($q) {
+                        $q->whereNotIn('payment_status', ['paid', 'failed', 'expired']);
+                    });
             } elseif ($appStatus === 'approved') {
-                $query->where('participants.isApproved', 1);
+                $query->where('participants.isApproved', 1)
+                    ->where('participants.status', '!=', 'cancelled')
+                    ->where('participants.status', '!=', 'rejected')
+                    ->whereHas('transaction', function ($q) {
+                        $q->where('payment_status', 'paid');
+                    });
             } elseif ($appStatus === 'rejected') {
-                $query->where('participants.status', 'cancelled');
+                $query->where(function ($q) {
+                    $q->where('participants.status', 'cancelled')
+                        ->orWhere('participants.status', 'rejected')
+                        ->orWhereHas('transaction', function ($t) {
+                            $t->whereIn('payment_status', ['failed', 'expired']);
+                        });
+                });
             }
         }
 
@@ -1863,6 +1909,11 @@ class EventController extends Controller
                 ]);
                 if ($newPaymentStatus === 'paid') {
                     \App\Jobs\ProcessPaidEventTransaction::dispatchAfterResponse($participant->transaction);
+                } elseif (in_array($newPaymentStatus, ['failed', 'expired', 'cancelled'])) {
+                    $participant->update([
+                        'isApproved' => 0,
+                        'status' => 'cancelled',
+                    ]);
                 }
             }
         }
@@ -2169,6 +2220,13 @@ class EventController extends Controller
             ], 404);
         }
 
+        if ($participant->transaction && in_array($participant->transaction->payment_status, ['failed', 'expired'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal menyetujui: Status pembayaran peserta adalah ' . $participant->transaction->payment_status . '.',
+            ], 422);
+        }
+
         // Validate category quota before approving (Option A quota control)
         if ($participant->category && $participant->category->quota !== null) {
             $catId = $participant->category->id;
@@ -2320,6 +2378,11 @@ class EventController extends Controller
         $affectedCategories = [];
 
         foreach ($participants as $participant) {
+            if ($participant->transaction && in_array($participant->transaction->payment_status, ['failed', 'expired'])) {
+                $errors[] = "Pembayaran untuk {$participant->name} berstatus {$participant->transaction->payment_status}";
+                continue;
+            }
+
             if ($participant->category && $participant->category->quota !== null) {
                 $catId = $participant->category->id;
                 $approvedCountInCat = \App\Models\Participant::where('race_category_id', $catId)
@@ -3776,6 +3839,11 @@ class EventController extends Controller
 
         if ($validated['payment_status'] === 'paid') {
             \App\Jobs\ProcessPaidEventTransaction::dispatchAfterResponse($transaction);
+        } elseif (in_array($validated['payment_status'], ['failed', 'expired'])) {
+            $transaction->participants()->update([
+                'isApproved' => 0,
+                'status' => 'cancelled',
+            ]);
         }
 
         // Always return JSON for AJAX requests

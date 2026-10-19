@@ -159,5 +159,10 @@ class Transaction extends Model
             'midtrans_order_id' => $midtransOrderId ?? $this->midtrans_order_id,
             'midtrans_transaction_status' => $transactionStatus ?? $this->midtrans_transaction_status,
         ]);
+
+        $this->participants()->update([
+            'isApproved' => 0,
+            'status' => 'cancelled',
+        ]);
     }
 }
