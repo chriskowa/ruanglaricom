@@ -138,6 +138,33 @@
         $midtransDemoMode = filter_var($event->payment_config['midtrans_demo_mode'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
         $midtransUrl = $midtransDemoMode ? config('midtrans.base_url_sandbox') : 'https://app.midtrans.com';
         $midtransClientKey = $midtransDemoMode ? config('midtrans.client_key_sandbox') : config('midtrans.client_key');
+
+        // Master Event Palette Setup
+        $themeColors = is_array($event->theme_colors) ? $event->theme_colors : (is_string($event->theme_colors) ? json_decode($event->theme_colors, true) : []);
+        if (!is_array($themeColors)) {
+            $themeColors = [];
+        }
+        $primaryColor = !empty($themeColors['primary']) ? $themeColors['primary'] : '#f1631e';
+        $primaryDark = !empty($themeColors['primary_dark']) ? $themeColors['primary_dark'] : null;
+        $accentColor = !empty($themeColors['accent']) ? $themeColors['accent'] : (!empty($themeColors['secondary']) ? $themeColors['secondary'] : '#f97316');
+        $darkColor = !empty($themeColors['dark']) ? $themeColors['dark'] : '#0f172a';
+
+        // Calculate RGB & Dark Fallbacks
+        $hexToRgb = function($hex) {
+            $hex = ltrim($hex, '#');
+            if (strlen($hex) === 3) {
+                $hex = $hex[0].$hex[0].$hex[1].$hex[1].$hex[2].$hex[2];
+            }
+            if (strlen($hex) !== 6) return [241, 99, 30];
+            return [
+                hexdec(substr($hex, 0, 2)),
+                hexdec(substr($hex, 2, 2)),
+                hexdec(substr($hex, 4, 2))
+            ];
+        };
+        $rgb = $hexToRgb($primaryColor);
+        $primaryRgb = implode(',', $rgb);
+        $primaryDarkCalculated = sprintf('#%02x%02x%02x', max(0, (int)($rgb[0] * 0.8)), max(0, (int)($rgb[1] * 0.8)), max(0, (int)($rgb[2] * 0.8)));
     @endphp
     <script type="text/javascript" src="{{ $midtransUrl }}/snap/snap.js" data-client-key="{{ $midtransClientKey }}"></script>
     
@@ -152,20 +179,20 @@
                 extend: {
                     colors: {
                         brand: {
-                            50: '#eff6ff',
-                            100: '#dbeafe',
-                            200: '#bfdbfe',
-                            300: '#93c5fd',
-                            400: '#60a5fa',
-                            500: '#3b82f6',
-                            600: '#1e40af', /* Royal Blue */
-                            700: '#1d4ed8',
-                            800: '#1e3a8a',
-                            900: '#172554',
+                            50: 'rgba({{ $primaryRgb }}, 0.08)',
+                            100: 'rgba({{ $primaryRgb }}, 0.15)',
+                            200: 'rgba({{ $primaryRgb }}, 0.3)',
+                            300: 'rgba({{ $primaryRgb }}, 0.45)',
+                            400: 'rgba({{ $primaryRgb }}, 0.65)',
+                            500: '{{ $primaryColor }}',
+                            600: '{{ $primaryColor }}',
+                            700: '{{ $primaryDark ?? $primaryDarkCalculated }}',
+                            800: '{{ $primaryDark ?? $primaryDarkCalculated }}',
+                            900: '{{ $darkColor }}',
                         },
                         accent: {
-                            500: '#f97316', /* Orange */
-                            600: '#ea580c',
+                            500: '{{ $accentColor }}',
+                            600: '{{ $accentColor }}',
                         }
                     },
                     fontFamily: {
@@ -173,7 +200,7 @@
                     },
                     boxShadow: {
                         'soft': '0 10px 40px -10px rgba(0,0,0,0.08)',
-                        'glow': '0 0 20px rgba(59, 130, 246, 0.5)',
+                        'glow': '0 0 20px rgba({{ $primaryRgb }}, 0.5)',
                         'card': '0 0 0 1px rgba(0,0,0,0.03), 0 4px 20px rgba(0,0,0,0.08)',
                     },
                     animation: {
@@ -204,6 +231,72 @@
     </script>
 
     <style>
+        /* Dynamic Master Event Palette */
+        :root {
+            --theme-primary: {{ $primaryColor }};
+            --theme-primary-rgb: {{ $primaryRgb }};
+            --theme-primary-dark: {{ $primaryDark ?? $primaryDarkCalculated }};
+            --theme-primary-light: rgba({{ $primaryRgb }}, 0.1);
+            --theme-primary-surface: rgba({{ $primaryRgb }}, 0.05);
+            --theme-primary-border: rgba({{ $primaryRgb }}, 0.25);
+            --theme-accent: {{ $accentColor }};
+            --theme-dark: {{ $darkColor }};
+        }
+
+        /* Dynamic Button & Brand Utilities */
+        .btn-theme-primary,
+        .bg-brand-600,
+        .bg-brand-500 {
+            background-color: var(--theme-primary) !important;
+            color: #ffffff !important;
+        }
+        .btn-theme-primary:hover,
+        .hover\:bg-brand-700:hover,
+        .hover\:bg-brand-600:hover,
+        .hover\:bg-brand-500:hover {
+            background-color: var(--theme-primary-dark) !important;
+            color: #ffffff !important;
+        }
+        .text-brand-600,
+        .text-brand-500 {
+            color: var(--theme-primary) !important;
+        }
+        .hover\:text-brand-700:hover,
+        .hover\:text-brand-600:hover {
+            color: var(--theme-primary-dark) !important;
+        }
+        .border-brand-600,
+        .border-brand-500 {
+            border-color: var(--theme-primary) !important;
+        }
+        .focus\:ring-brand-600:focus,
+        .focus\:ring-brand-500:focus {
+            --tw-ring-color: var(--theme-primary) !important;
+        }
+        .focus\:border-brand-600:focus,
+        .focus\:border-brand-500:focus {
+            border-color: var(--theme-primary) !important;
+        }
+        .shadow-brand-600\/20,
+        .shadow-brand-600\/30,
+        .shadow-brand-500\/40 {
+            box-shadow: 0 10px 25px -5px rgba({{ $primaryRgb }}, 0.35) !important;
+        }
+        .hover\:shadow-brand-600\/30:hover,
+        .hover\:shadow-brand-600\/40:hover,
+        .hover\:shadow-brand-500\/50:hover {
+            box-shadow: 0 15px 30px -5px rgba({{ $primaryRgb }}, 0.45) !important;
+        }
+        .bg-brand-50 {
+            background-color: rgba({{ $primaryRgb }}, 0.08) !important;
+        }
+        .hover\:bg-brand-50:hover {
+            background-color: rgba({{ $primaryRgb }}, 0.12) !important;
+        }
+        .bg-brand-100 {
+            background-color: rgba({{ $primaryRgb }}, 0.16) !important;
+        }
+
         /* Custom Styles */
         @keyframes heartbeat {
             0%, 100% { transform: scale(1); }
@@ -650,13 +743,7 @@
                         </p>
                     </div>                    
 
-                    @if($isRegOpen)
-                    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-red-500/20 border border-red-500/30 text-red-400 text-sm font-bold mb-6 animate-pulse">
-                        <i class="fas fa-fire"></i> TIKET SEMAKIN MENIPIS! BURUAN REGISTER
-                    </div>
-                    @endif
-
-                    <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start mb-12">
+                   <div class="flex flex-col sm:flex-row gap-4 justify-center md:justify-start mb-12">
                         @if($isRegOpen)
                         <a href="#register" class="group px-8 py-4 bg-brand-600 text-white font-bold rounded-2xl shadow-lg shadow-brand-600/30 hover:bg-brand-500 hover:shadow-brand-500/50 transition-all duration-300 hover:-translate-y-1 flex items-center justify-center gap-2">
                             Amankan Slot
@@ -728,7 +815,7 @@
                         
                         <div class="space-y-4">
                             <div class="bg-slate-900/50 p-5 rounded-2xl border border-white/5 flex items-center gap-4">
-                                <div class="w-10 h-10 rounded-full bg-accent-500/20 flex items-center justify-center text-accent-500">
+                                <div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white">
                                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                                 </div>
                                 <div>
@@ -747,18 +834,10 @@
                             </div>
                         </div>
 
-                        <div class="mt-8 pt-8 border-t border-white/10 grid grid-cols-3 gap-4 text-center">
+                        <div class="mt-8 pt-8 border-t border-white/10 flex justify-center text-center">
                             <div>
                                 <span class="block text-2xl font-bold text-white">{{ $categories->count() }}</span>
                                 <span class="text-[10px] text-slate-400 font-bold uppercase">Kategori</span>
-                            </div>
-                            <div>
-                                <span class="block text-2xl font-bold text-white">1000+</span>
-                                <span class="text-[10px] text-slate-400 font-bold uppercase">Runners</span>
-                            </div>
-                            <div>
-                                <span class="block text-2xl font-bold text-white">5+</span>
-                                <span class="text-[10px] text-slate-400 font-bold uppercase">Sponsor</span>
                             </div>
                         </div>
                     </div>
@@ -2087,7 +2166,7 @@
                                 </div>
                                 @endif
 
-                                <button type="submit" id="submitBtn" class="w-full py-4 bg-white text-brand-900 font-bold rounded-xl hover:bg-slate-100 transition shadow-lg relative z-10">
+                                <button type="submit" id="submitBtn" class="w-full py-4 btn-theme-primary text-white font-bold rounded-xl transition shadow-lg relative z-10 hover:brightness-110 shadow-brand-600/30">
                                     Lanjut Pembayaran
                                 </button>
                                 <p class="text-[10px] text-center text-slate-500 mt-4 uppercase tracking-widest relative z-10">Secure Payment by Midtrans</p>

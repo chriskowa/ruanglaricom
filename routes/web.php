@@ -1573,6 +1573,7 @@ Route::get('/run-queue-worker', function () {
     // Security: Only allow admin or secure usage (optional, for now open for debug)
 
     $exitCode = Illuminate\Support\Facades\Artisan::call('queue:work', [
+        '--queue' => 'emails-tickets,default,emails-reports,emails-blast',
         '--stop-when-empty' => true,
     ]);
 

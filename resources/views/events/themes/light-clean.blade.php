@@ -31,6 +31,21 @@
         $seoUrl = isset($seo['url']) && $seo['url'] ? $seo['url'] : route('events.show', $event->slug);
         $seoImage = isset($seo['image']) && $seo['image'] ? $seo['image'] : ($event->hero_image ? asset('storage/' . $event->hero_image) : asset('images/ruanglari_green.png'));
 
+        $rawGallery = is_array($event->gallery ?? null) ? $event->gallery : (is_string($event->gallery ?? null) ? json_decode($event->gallery, true) : []);
+        if (!is_array($rawGallery)) {
+            $rawGallery = [];
+        }
+        $galleryUrls = [];
+        foreach ($rawGallery as $gItem) {
+            if (!empty($gItem)) {
+                if (str_starts_with($gItem, 'http://') || str_starts_with($gItem, 'https://')) {
+                    $galleryUrls[] = $gItem;
+                } else {
+                    $galleryUrls[] = asset('storage/' . ltrim($gItem, '/'));
+                }
+            }
+        }
+
         $now = now();
         $isComingSoon = ($event->registration_open_at && $now < $event->registration_open_at);
         $isNaturallyClosed = ($event->registration_close_at && $now > $event->registration_close_at);
@@ -904,6 +919,83 @@
         <!-- Section: Tentang Event -->
         <section id="about" class="py-20 bg-slate-50 border-b border-slate-200">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                @if(count($galleryUrls) > 0)
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start mb-12">
+                    <!-- Left: Profil & Visi Event -->
+                    <div class="lg:col-span-7 space-y-4">
+                        <span class="text-xs font-bold uppercase tracking-wider text-theme-primary">Profil & Visi Event</span>
+                        <h2 class="text-3xl sm:text-4xl font-heading text-slate-900 mt-1">Tentang {{ $event->name }}</h2>
+                        <div class="text-slate-600 text-sm sm:text-base leading-relaxed mt-4 prose prose-slate max-w-none">
+                            {!! $event->full_description ?: $event->short_description ?: 'Event lari ini didesain untuk menghadirkan pengalaman kompetisi yang adil, jalur aman terarah, serta fasilitas pelari yang lengkap dan berkualitas tinggi.' !!}
+                        </div>
+                    </div>
+
+                    <!-- Right: Event Galeri (Mobile-safe, touch-friendly) -->
+                    <div class="lg:col-span-5 w-full">
+                        <div class="bg-white border border-slate-200 rounded-lg p-3 sm:p-4 shadow-sm space-y-3">
+                            <div class="flex items-center justify-between border-b border-slate-100 pb-2.5">
+                                <div class="flex items-center gap-2">
+                                    <span class="w-6 h-6 rounded bg-theme-light text-theme-primary flex items-center justify-center text-xs">
+                                        <i class="fas fa-images"></i>
+                                    </span>
+                                    <h3 class="text-xs sm:text-sm font-bold text-slate-900 uppercase tracking-wider">Galeri Event</h3>
+                                </div>
+                                <span class="text-[11px] font-mono text-slate-500 font-semibold" id="aboutGalleryCounter">1 / {{ count($galleryUrls) }}</span>
+                            </div>
+
+                            <!-- Main Featured Image with Click-to-Zoom Lightbox -->
+                            <div class="relative w-full aspect-[4/3] sm:aspect-[16/10] overflow-hidden rounded-md bg-slate-100 border border-slate-100 group">
+                                <img id="aboutGalleryMainImg" 
+                                     src="{{ $galleryUrls[0] }}" 
+                                     alt="Galeri {{ $event->name }}" 
+                                     class="w-full h-full object-cover transition-all duration-300 cursor-zoom-in group-hover:scale-105"
+                                     onclick="openLightbox(this.src)"
+                                     loading="lazy">
+                                
+                                <!-- Zoom overlay badge -->
+                                <button type="button" 
+                                        onclick="openLightbox(document.getElementById('aboutGalleryMainImg').src)"
+                                        class="absolute top-2.5 right-2.5 px-2.5 py-1 rounded bg-slate-900/75 hover:bg-slate-900 text-white text-[11px] font-medium backdrop-blur-sm shadow transition flex items-center gap-1.5"
+                                        title="Perbesar Foto">
+                                    <i class="fas fa-search-plus text-xs"></i>
+                                    <span class="hidden sm:inline">Perbesar</span>
+                                </button>
+
+                                @if(count($galleryUrls) > 1)
+                                <!-- Prev / Next Navigation Controls -->
+                                <button type="button" 
+                                        id="aboutGalleryPrev"
+                                        class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-900/70 hover:bg-slate-900 text-white flex items-center justify-center text-xs transition shadow-md focus:outline-none"
+                                        aria-label="Foto Sebelumnya">
+                                    <i class="fas fa-chevron-left text-xs"></i>
+                                </button>
+                                <button type="button" 
+                                        id="aboutGalleryNext"
+                                        class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-slate-900/70 hover:bg-slate-900 text-white flex items-center justify-center text-xs transition shadow-md focus:outline-none"
+                                        aria-label="Foto Berikutnya">
+                                    <i class="fas fa-chevron-right text-xs"></i>
+                                </button>
+                                @endif
+                            </div>
+
+                            @if(count($galleryUrls) > 1)
+                            <!-- Thumbnails Strip (Touch friendly, overflow-x scroll on mobile) -->
+                            <div class="flex items-center gap-2 overflow-x-auto pb-1 pt-0.5 custom-scrollbar" id="aboutGalleryThumbs">
+                                @foreach($galleryUrls as $gIdx => $gUrl)
+                                    <button type="button"
+                                            class="about-gallery-thumb-btn shrink-0 w-14 h-11 sm:w-16 sm:h-12 rounded overflow-hidden border-2 transition-all duration-150 {{ $gIdx === 0 ? 'border-theme-primary ring-1 ring-theme-primary/30' : 'border-slate-200 opacity-60 hover:opacity-100 hover:border-slate-400' }}"
+                                            onclick="switchAboutGalleryImage({{ $gIdx }})"
+                                            data-idx="{{ $gIdx }}"
+                                            aria-label="Lihat Foto {{ $gIdx + 1 }}">
+                                        <img src="{{ $gUrl }}" alt="Thumb {{ $gIdx + 1 }}" class="w-full h-full object-cover">
+                                    </button>
+                                @endforeach
+                            </div>
+                            @endif
+                        </div>
+                    </div>
+                </div>
+                @else
                 <div class="max-w-3xl mb-12">
                     <span class="text-xs font-bold uppercase tracking-wider text-theme-primary">Profil & Visi Event</span>
                     <h2 class="text-3xl sm:text-4xl font-heading text-slate-900 mt-1">Tentang {{ $event->name }}</h2>
@@ -911,6 +1003,7 @@
                         {!! $event->full_description ?: $event->short_description ?: 'Event lari ini didesain untuk menghadirkan pengalaman kompetisi yang adil, jalur aman terarah, serta fasilitas pelari yang lengkap dan berkualitas tinggi.' !!}
                     </p>
                 </div>
+                @endif
 
                 <!-- 4 Highlight Cards -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -2303,6 +2396,58 @@
                 document.body.classList.remove('overflow-hidden');
             }
         };
+
+        // About Section Gallery Controller
+        (function() {
+            const galleryImages = @json($galleryUrls ?? []);
+            if (!Array.isArray(galleryImages) || galleryImages.length <= 1) return;
+
+            let currentIndex = 0;
+            const mainImg = document.getElementById('aboutGalleryMainImg');
+            const counter = document.getElementById('aboutGalleryCounter');
+            const prevBtn = document.getElementById('aboutGalleryPrev');
+            const nextBtn = document.getElementById('aboutGalleryNext');
+            const thumbs = document.querySelectorAll('.about-gallery-thumb-btn');
+
+            window.switchAboutGalleryImage = function(index) {
+                if (index < 0) index = galleryImages.length - 1;
+                if (index >= galleryImages.length) index = 0;
+                currentIndex = index;
+
+                if (mainImg) {
+                    mainImg.style.opacity = '0.4';
+                    mainImg.src = galleryImages[currentIndex];
+                    setTimeout(() => { mainImg.style.opacity = '1'; }, 120);
+                }
+                if (counter) {
+                    counter.textContent = `${currentIndex + 1} / ${galleryImages.length}`;
+                }
+
+                thumbs.forEach((thumb, idx) => {
+                    if (idx === currentIndex) {
+                        thumb.classList.add('border-theme-primary', 'ring-1', 'ring-theme-primary/30');
+                        thumb.classList.remove('border-slate-200', 'opacity-60');
+                        thumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+                    } else {
+                        thumb.classList.remove('border-theme-primary', 'ring-1', 'ring-theme-primary/30');
+                        thumb.classList.add('border-slate-200', 'opacity-60');
+                    }
+                });
+            };
+
+            if (prevBtn) {
+                prevBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    window.switchAboutGalleryImage(currentIndex - 1);
+                });
+            }
+            if (nextBtn) {
+                nextBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    window.switchAboutGalleryImage(currentIndex + 1);
+                });
+            }
+        })();
 
         // Global Terms Modal
         window.openTermsModal = function() {

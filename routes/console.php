@@ -19,8 +19,8 @@ Schedule::command('programs:schedule-reminders')
     ->timezone('Asia/Jakarta');
 
 // Process queue jobs automatically (Shared Hosting friendly)
-// Runs worker every minute, processes all jobs, then stops.
-Schedule::command('queue:work --stop-when-empty')
+// Runs worker every minute, processes all jobs in priority order, then stops.
+Schedule::command('queue:work --queue=emails-tickets,default,emails-reports,emails-blast --stop-when-empty')
     ->everyMinute()
     ->withoutOverlapping();
 
