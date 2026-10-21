@@ -6,6 +6,15 @@
         if (!empty($oldAmenities)) {
             return isset($oldAmenities[$key]['enabled']);
         }
+        if ($key === 'surat_kuasa') {
+            return !empty($dbAmenities['surat_kuasa']['enabled']) || !empty($dbAmenities['surat_kuasa']['file_path']) || !empty($dbAmenities['surat_kuasa']['external_url']);
+        }
+        if ($key === 'rundown') {
+            return !empty($dbAmenities['rundown']['enabled']) || !empty($dbAmenities['rundown']['items']);
+        }
+        if ($key === 'benefits') {
+            return !empty($dbAmenities['benefits']['enabled']) || !empty($dbAmenities['benefits']['items']);
+        }
         return isset($dbAmenities[$key]['enabled']) && $dbAmenities[$key]['enabled'];
     };
 @endphp
@@ -14,6 +23,9 @@
     amenities: {
         jersey: {{ $isEnabled('jersey') ? 'true' : 'false' }},
         medal: {{ $isEnabled('medal') ? 'true' : 'false' }},
+        benefits: {{ $isEnabled('benefits') ? 'true' : 'false' }},
+        rundown: {{ $isEnabled('rundown') ? 'true' : 'false' }},
+        surat_kuasa: {{ $isEnabled('surat_kuasa') ? 'true' : 'false' }},
         faq: {{ $isEnabled('faq') ? 'true' : 'false' }},
         rpc: {{ $isEnabled('rpc') ? 'true' : 'false' }},
         venue: {{ $isEnabled('venue') ? 'true' : 'false' }},
@@ -28,6 +40,9 @@
     <div class="space-y-4">
         @include('eo.events.partials.amenities.jersey')
         @include('eo.events.partials.amenities.medal')
+        @include('eo.events.partials.amenities.benefits')
+        @include('eo.events.partials.amenities.rundown')
+        @include('eo.events.partials.amenities.surat-kuasa')
         @include('eo.events.partials.amenities.faq')
         @include('eo.events.partials.amenities.rpc')
         @include('eo.events.partials.amenities.venue')

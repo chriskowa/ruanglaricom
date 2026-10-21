@@ -94,6 +94,45 @@
     $validFaqs = is_array($rawFaqs) ? array_values(array_filter($rawFaqs, function($f) {
         return !empty(trim($f['question'] ?? '')) && !empty(trim($f['answer'] ?? ''));
     })) : [];
+
+    // Rundown Amenity
+    $rundownAmenity = $event->premium_amenities['rundown'] ?? [];
+    $dynamicRundowns = [];
+    if (!empty($rundownAmenity['items']) && is_array($rundownAmenity['items'])) {
+        $dynamicRundowns = $rundownAmenity['items'];
+    }
+    if (empty($dynamicRundowns)) {
+        $flagOffTime = $event->start_at ? $event->start_at->format('H:i') . ' WIB' : '05:30 WIB';
+        $dynamicRundowns = [
+            ['time' => '04:30 WIB', 'title' => 'Open Gate & Drop Bag', 'description' => null, 'is_highlight' => false],
+            ['time' => '05:00 WIB', 'title' => 'Pemanasan Bersama', 'description' => null, 'is_highlight' => false],
+            ['time' => $flagOffTime, 'title' => 'Flag Off Start Lomba', 'description' => null, 'is_highlight' => true],
+            ['time' => '07:00 WIB', 'title' => 'Cut Off Time (COT)', 'description' => null, 'is_highlight' => false],
+            ['time' => '07:15 WIB', 'title' => 'Cooling Down & Zumba', 'description' => null, 'is_highlight' => false],
+            ['time' => '07:45 - 09:00 WIB', 'title' => 'Hiburan, Doorprize & Podium', 'description' => null, 'is_highlight' => false],
+        ];
+    }
+    $isRundownEnabled = isset($rundownAmenity['enabled']) ? (bool) $rundownAmenity['enabled'] : true;
+
+    // Dokumen Peserta / Surat Kuasa Amenity
+    $suratKuasaAmenity = $event->premium_amenities['surat_kuasa'] ?? [];
+    $docFilePath = $suratKuasaAmenity['file_path'] ?? null;
+    $docExternalUrl = $suratKuasaAmenity['external_url'] ?? null;
+    $docUrl = $docFilePath ? asset('storage/' . $docFilePath) : $docExternalUrl;
+    if (!$docUrl && ($event->slug === 'polkesma-olympic-action-run-2025' || ($event->hardcoded ?? '') === 'polkesma-run')) {
+        $docUrl = 'https://res.cloudinary.com/dqm0gzjmu/raw/upload/v1791536264/Surat-Kuasa-Polkesma_hlyx7w.docx';
+    }
+    $docTitle = !empty($suratKuasaAmenity['title']) ? $suratKuasaAmenity['title'] : 'Surat Kuasa Pengambilan Race Pack';
+    $docDesc = !empty($suratKuasaAmenity['description']) ? $suratKuasaAmenity['description'] : 'Surat kuasa resmi bermaterai untuk pengambilan race pack (RPC) oleh perwakilan.';
+    $isDocEnabled = !empty($suratKuasaAmenity['enabled']) || $docFilePath || $docExternalUrl || ($event->slug === 'polkesma-olympic-action-run-2025' || ($event->hardcoded ?? '') === 'polkesma-run');
+
+    // Benefits Amenity
+    $benefitsAmenity = $event->premium_amenities['benefits'] ?? [];
+    $benefitItems = [];
+    if (!empty($benefitsAmenity['items']) && is_array($benefitsAmenity['items'])) {
+        $benefitItems = $benefitsAmenity['items'];
+    }
+    $isBenefitsEnabled = !empty($benefitsAmenity['enabled']) || count($benefitItems) > 0;
     $schemaDescription = $shortDescription !== '' ? $shortDescription : trim(strip_tags((string) ($event->full_description ?? '')));
     if ($schemaDescription === '') {
         $schemaDescription = $event->name;
@@ -535,6 +574,157 @@
                             Description
                         </div>
                         <p class="text-slate-700 leading-relaxed text-sm">{{ $event->short_description }}</p>
+                    </div>
+                @endif
+
+                <!-- Finisher Medal & Jersey Section -->
+                @if($event->medal_image || $event->jersey_image)
+                    <div class="pro-card p-5 sm:p-6 max-w-full overflow-hidden">
+                        <div class="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center justify-between gap-2 mb-4">
+                            <div class="flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-md bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
+                                    <i class="fa-solid fa-award text-white"></i>
+                                </span>
+                                <span>Reward & Perlengkapan Lomba</span>
+                            </div>
+                            <span class="text-[11px] font-mono text-slate-500 font-semibold">{{ $event->start_at ? $event->start_at->format('Y') : date('Y') }} Official Edition</span>
+                        </div>
+
+                        <div class="grid grid-cols-1 {{ ($event->medal_image && $event->jersey_image) ? 'sm:grid-cols-2' : '' }} gap-4">
+                            @if($event->medal_image)
+                                <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-4 text-center relative group">
+                                    <div class="aspect-square max-w-[220px] mx-auto flex items-center justify-center cursor-zoom-in relative" onclick="openSingleLightbox('{{ asset('storage/' . $event->medal_image) }}')">
+                                        <img src="{{ asset('storage/' . $event->medal_image) }}" alt="Medali Finisher {{ $event->name }}" class="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-300 drop-shadow-md" loading="lazy">
+                                        <button type="button" class="absolute top-1 right-1 px-2 py-0.5 rounded bg-slate-900/80 hover:bg-slate-900 text-white text-[10px] font-medium flex items-center gap-1 transition">
+                                            <i class="fa-solid fa-magnifying-glass-plus text-white text-[10px]"></i>
+                                            <span>Zoom</span>
+                                        </button>
+                                    </div>
+                                    <div class="mt-3 pt-3 border-t border-slate-200">
+                                        <div class="text-xs font-bold text-slate-900">Medali Finisher Resmi</div>
+                                        <p class="text-[11px] text-slate-500 mt-0.5">Diberikan kepada pelari yang finis sebelum Cut Off Time (COT).</p>
+                                    </div>
+                                </div>
+                            @endif
+
+                            @if($event->jersey_image)
+                                <div class="rounded-xl border border-slate-200 bg-slate-50/60 p-4 text-center relative group">
+                                    <div class="aspect-square max-w-[220px] mx-auto flex items-center justify-center cursor-zoom-in relative" onclick="openSingleLightbox('{{ asset('storage/' . $event->jersey_image) }}')">
+                                        <img src="{{ asset('storage/' . $event->jersey_image) }}" alt="Jersey Resmi {{ $event->name }}" class="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-300 drop-shadow-md" loading="lazy">
+                                        <button type="button" class="absolute top-1 right-1 px-2 py-0.5 rounded bg-slate-900/80 hover:bg-slate-900 text-white text-[10px] font-medium flex items-center gap-1 transition">
+                                            <i class="fa-solid fa-magnifying-glass-plus text-white text-[10px]"></i>
+                                            <span>Zoom</span>
+                                        </button>
+                                    </div>
+                                    <div class="mt-3 pt-3 border-t border-slate-200">
+                                        <div class="text-xs font-bold text-slate-900">Official Running Jersey</div>
+                                        <p class="text-[11px] text-slate-500 mt-0.5">Jersey lari berkualitas tinggi bahan breathable & quick dry.</p>
+                                    </div>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Fasilitas & Benefit Peserta Section -->
+                @if($isBenefitsEnabled && count($benefitItems) > 0)
+                    <div class="pro-card p-5 sm:p-6 max-w-full overflow-hidden" id="benefits-section">
+                        <div class="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center justify-between gap-2 mb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-md bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
+                                    <i class="fa-solid fa-gift text-white"></i>
+                                </span>
+                                <span>Fasilitas & Benefit Peserta</span>
+                            </div>
+                            <span class="text-[11px] text-slate-500 font-semibold">{{ count($benefitItems) }} Paket Kelengkapan</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mb-4">Setiap peserta resmi berhak memperoleh fasilitas lomba dan paket benefit berikut:</p>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                            @foreach($benefitItems as $bItem)
+                                @php
+                                    $bIcon = !empty($bItem['icon']) ? $bItem['icon'] : 'fas fa-award';
+                                    $bTitle = $bItem['title'] ?? ($bItem['name'] ?? '');
+                                    $bDesc = $bItem['description'] ?? '';
+                                    $bTag = $bItem['tag'] ?? '';
+                                @endphp
+                                <div class="rounded-xl border border-slate-200 bg-white p-4 flex items-start gap-3.5 hover:border-slate-300 transition-colors shadow-sm">
+                                    <div class="w-9 h-9 rounded-lg bg-slate-900 text-white flex items-center justify-center shrink-0 text-sm shadow-sm">
+                                        <i class="{{ $bIcon }} text-white text-xs"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <div class="flex items-center justify-between gap-2">
+                                            <h4 class="text-xs sm:text-sm font-bold text-slate-900 truncate">{{ $bTitle }}</h4>
+                                            @if($bTag)
+                                                <span class="text-[10px] font-bold text-slate-600 px-2 py-0.5 rounded bg-slate-100 shrink-0 uppercase tracking-wider">{{ $bTag }}</span>
+                                            @endif
+                                        </div>
+                                        @if($bDesc)
+                                            <p class="text-xs text-slate-500 mt-1 leading-relaxed">{{ $bDesc }}</p>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Dokumen Peserta / Surat Kuasa Section -->
+                @if($docUrl && $isDocEnabled)
+                    <div class="pro-card p-5 sm:p-6 max-w-full overflow-hidden bg-slate-50/70 border border-slate-200">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div class="flex items-start gap-3.5">
+                                <div class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center text-sm shrink-0 mt-0.5 shadow-sm">
+                                    <i class="fa-solid fa-file-arrow-down text-white"></i>
+                                </div>
+                                <div>
+                                    <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Dokumen Resmi Peserta</span>
+                                    <h3 class="text-sm font-bold text-slate-900 mt-0.5">{{ $docTitle }}</h3>
+                                    <p class="text-xs text-slate-600 mt-1 max-w-xl">{{ $docDesc }}</p>
+                                </div>
+                            </div>
+                            <a href="{{ $docUrl }}" target="_blank" download class="shrink-0 inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-100 text-slate-900 text-xs font-bold transition shadow-sm">
+                                <i class="fa-solid fa-download text-xs text-slate-600"></i>
+                                <span>Unduh Dokumen</span>
+                            </a>
+                        </div>
+                    </div>
+                @endif
+
+                <!-- Rundown Acara Section -->
+                @if($isRundownEnabled && count($dynamicRundowns) > 0)
+                    <div class="pro-card p-5 sm:p-6 max-w-full overflow-hidden" id="rundown-section">
+                        <div class="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center justify-between gap-2 mb-3">
+                            <div class="flex items-center gap-2">
+                                <span class="w-6 h-6 rounded-md bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
+                                    <i class="fa-solid fa-calendar-check text-white"></i>
+                                </span>
+                                <span>Rundown Kegiatan (Race Day)</span>
+                            </div>
+                            <span class="text-[11px] text-slate-500">Zona Waktu WIB</span>
+                        </div>
+                        <p class="text-xs text-slate-500 mb-4">Jadwal pelaksanaan lomba lari pada hari H acara. Waktu dapat disesuaikan panitia:</p>
+
+                        <div class="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white overflow-hidden text-sm">
+                            @foreach($dynamicRundowns as $item)
+                                @php
+                                    $isHighlight = !empty($item['is_highlight']);
+                                @endphp
+                                <div class="px-4 py-3 flex items-center justify-between gap-3 {{ $isHighlight ? 'bg-amber-50/70 border-l-4 border-l-amber-500' : 'hover:bg-slate-50/60' }} transition-colors">
+                                    <div class="flex flex-col">
+                                        <span class="font-bold {{ $isHighlight ? 'text-amber-900 font-mono text-xs sm:text-sm' : 'text-slate-900 text-xs sm:text-sm' }}">
+                                            {{ $item['time'] ?? '' }}
+                                        </span>
+                                        @if(!empty($item['description']))
+                                            <span class="text-[11px] text-slate-500 mt-0.5">{{ $item['description'] }}</span>
+                                        @endif
+                                    </div>
+                                    <span class="{{ $isHighlight ? 'font-bold text-amber-950' : 'font-semibold text-slate-700' }} text-xs text-right max-w-[55%]">
+                                        {{ $item['title'] ?? '' }}
+                                    </span>
+                                </div>
+                            @endforeach
+                        </div>
                     </div>
                 @endif
 
@@ -1953,7 +2143,20 @@
                 if (!lightbox) return;
                 lightbox.classList.add('hidden');
                 document.body.style.overflow = '';
+                if (lightboxCounter && items.length > 1) lightboxCounter.style.display = '';
+                if (lightboxPrev && items.length > 1) lightboxPrev.style.display = '';
+                if (lightboxNext && items.length > 1) lightboxNext.style.display = '';
             }
+
+            window.openSingleLightbox = function (src) {
+                if (!lightbox || !lightboxImg) return;
+                lightboxImg.src = src;
+                if (lightboxCounter) lightboxCounter.style.display = 'none';
+                if (lightboxPrev) lightboxPrev.style.display = 'none';
+                if (lightboxNext) lightboxNext.style.display = 'none';
+                lightbox.classList.remove('hidden');
+                document.body.style.overflow = 'hidden';
+            };
 
             function updateLightboxView() {
                 if (!lightboxImg || items.length === 0) return;

@@ -1355,13 +1355,20 @@
                                         <div class="text-[10px] text-slate-500 group-hover:text-brand-400 mt-0.5">Download .docx</div>
                                     </div>
                                 </a>
-                                <a href="https://res.cloudinary.com/dslfarxct/raw/upload/v1769990790/Surat-Kuasa-Paolorunfest_thhu6w.docx" class="group flex items-center gap-3 p-3 rounded-xl bg-dark-800 hover:bg-dark-700 border border-white/10 hover:border-brand-500/30 transition-all">
+                                @php
+                                    $goldenDocAmenity = $event->premium_amenities['surat_kuasa'] ?? [];
+                                    $goldenDocFile = $goldenDocAmenity['file_path'] ?? null;
+                                    $goldenDocUrl = $goldenDocFile ? asset('storage/' . $goldenDocFile) : ($goldenDocAmenity['external_url'] ?? 'https://res.cloudinary.com/dslfarxct/raw/upload/v1769990790/Surat-Kuasa-Paolorunfest_thhu6w.docx');
+                                    $goldenDocTitle = !empty($goldenDocAmenity['title']) ? $goldenDocAmenity['title'] : 'Surat Kuasa RCP';
+                                    $goldenDocExt = $goldenDocFile ? ('.' . pathinfo($goldenDocFile, PATHINFO_EXTENSION)) : '.docx';
+                                @endphp
+                                <a href="{{ $goldenDocUrl }}" target="_blank" download class="group flex items-center gap-3 p-3 rounded-xl bg-dark-800 hover:bg-dark-700 border border-white/10 hover:border-brand-500/30 transition-all">
                                     <div class="w-8 h-8 bg-white/10 rounded-lg flex items-center justify-center text-slate-400 group-hover:text-brand-400 shadow-sm shrink-0">
                                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                                     </div>
                                     <div>
-                                        <div class="text-sm font-bold text-slate-300 group-hover:text-white leading-tight">Surat Kuasa RCP</div>
-                                        <div class="text-[10px] text-slate-500 group-hover:text-brand-400 mt-0.5">Download .docx</div>
+                                        <div class="text-sm font-bold text-slate-300 group-hover:text-white leading-tight">{{ $goldenDocTitle }}</div>
+                                        <div class="text-[10px] text-slate-500 group-hover:text-brand-400 mt-0.5">Download {{ $goldenDocExt }}</div>
                                     </div>
                                 </a>
                             </div>
@@ -1489,36 +1496,34 @@
                         <h2 class="text-2xl font-bold text-white">Jadwal Kegiatan</h2>
                     </div>
                     <div class="bg-white/5 rounded-3xl p-8 border border-white/10">
-                        <p class="text-slate-400 mb-6">Rencana jadwal pelaksanaan (rundown) event lari Malang:</p>
+                        @php
+                            $goldenRundownAmenity = $event->premium_amenities['rundown'] ?? [];
+                            $goldenRundowns = [];
+                            if (!empty($goldenRundownAmenity['items']) && is_array($goldenRundownAmenity['items'])) {
+                                $goldenRundowns = $goldenRundownAmenity['items'];
+                            }
+                            if (empty($goldenRundowns)) {
+                                $goldenRundowns = [
+                                    ['time' => '05:00 WIB', 'title' => 'Open Gate & Berkumpul', 'description' => 'Peserta memasuki area venue utama', 'is_highlight' => false],
+                                    ['time' => '05:30 WIB', 'title' => 'Warming Up & Briefing', 'description' => 'Pemanasan bersama instruktur & briefing rute', 'is_highlight' => false],
+                                    ['time' => '06:00 WIB', 'title' => 'Flag Off Lomba', 'description' => 'Pelepasan resmi seluruh kategori lari', 'is_highlight' => true],
+                                    ['time' => '07:30 WIB', 'title' => 'DJ Performance & Pemenang', 'description' => 'Hiburan DJ run, pembagian medali, & doorprize', 'is_highlight' => false],
+                                ];
+                            }
+                        @endphp
+                        <p class="text-slate-400 mb-6">Rencana jadwal pelaksanaan (rundown) event lari:</p>
                         <ul class="space-y-4">
-                            <li class="flex gap-4 border-b border-white/5 pb-3">
-                                <span class="text-brand-400 font-bold font-mono">05:00 WIB</span>
-                                <div>
-                                    <strong class="block text-white">Open Gate & Berkumpul</strong>
-                                    <span class="text-slate-400 text-sm">Peserta memasuki area venue utama</span>
-                                </div>
-                            </li>
-                            <li class="flex gap-4 border-b border-white/5 pb-3">
-                                <span class="text-brand-400 font-bold font-mono">05:30 WIB</span>
-                                <div>
-                                    <strong class="block text-white">Warming Up & Briefing</strong>
-                                    <span class="text-slate-400 text-sm">Pemanasan bersama instruktur & briefing rute</span>
-                                </div>
-                            </li>
-                            <li class="flex gap-4 border-b border-white/5 pb-3">
-                                <span class="text-brand-400 font-bold font-mono">06:00 WIB</span>
-                                <div>
-                                    <strong class="block text-white">Flag Off Lomba</strong>
-                                    <span class="text-slate-400 text-sm">Pelepasan resmi seluruh kategori lari</span>
-                                </div>
-                            </li>
-                            <li class="flex gap-4">
-                                <span class="text-brand-400 font-bold font-mono">07:30 WIB</span>
-                                <div>
-                                    <strong class="block text-white">DJ Performance & Pemenang</strong>
-                                    <span class="text-slate-400 text-sm">Hiburan DJ run, pembagian medali, & doorprize</span>
-                                </div>
-                            </li>
+                            @foreach($goldenRundowns as $index => $gItem)
+                                <li class="flex gap-4 {{ $index < count($goldenRundowns) - 1 ? 'border-b border-white/5 pb-3' : '' }} {{ !empty($gItem['is_highlight']) ? 'bg-brand-500/10 p-2.5 rounded-xl border border-brand-500/20' : '' }}">
+                                    <span class="text-brand-400 font-bold font-mono shrink-0">{{ $gItem['time'] ?? '' }}</span>
+                                    <div>
+                                        <strong class="block text-white">{{ $gItem['title'] ?? '' }}</strong>
+                                        @if(!empty($gItem['description']))
+                                            <span class="text-slate-400 text-sm">{{ $gItem['description'] }}</span>
+                                        @endif
+                                    </div>
+                                </li>
+                            @endforeach
                         </ul>
                     </div>
                 </div>

@@ -1341,13 +1341,20 @@
                                         <div class="text-[10px] text-slate-500 group-hover:text-emerald-600 mt-0.5">Download .docx</div>
                                     </div>
                                 </a>
-                                <a href="https://res.cloudinary.com/dslfarxct/raw/upload/v1769990790/Surat-Kuasa-Paolorunfest_thhu6w.docx" class="group flex items-center gap-3 p-3 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-100 hover:border-emerald-100 transition-all">
+                                @php
+                                    $paoloDocAmenity = $event->premium_amenities['surat_kuasa'] ?? [];
+                                    $paoloDocFile = $paoloDocAmenity['file_path'] ?? null;
+                                    $paoloDocUrl = $paoloDocFile ? asset('storage/' . $paoloDocFile) : ($paoloDocAmenity['external_url'] ?? 'https://res.cloudinary.com/dslfarxct/raw/upload/v1769990790/Surat-Kuasa-Paolorunfest_thhu6w.docx');
+                                    $paoloDocTitle = !empty($paoloDocAmenity['title']) ? $paoloDocAmenity['title'] : 'Surat Kuasa RCP';
+                                    $paoloDocExt = $paoloDocFile ? ('.' . pathinfo($paoloDocFile, PATHINFO_EXTENSION)) : '.docx';
+                                @endphp
+                                <a href="{{ $paoloDocUrl }}" target="_blank" download class="group flex items-center gap-3 p-3 rounded-xl bg-slate-50 hover:bg-emerald-50 border border-slate-100 hover:border-emerald-100 transition-all">
                                     <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-slate-400 group-hover:text-emerald-600 shadow-sm shrink-0">
                                         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
                                     </div>
                                     <div>
-                                        <div class="text-sm font-bold text-slate-700 group-hover:text-emerald-700 leading-tight">Surat Kuasa RCP</div>
-                                        <div class="text-[10px] text-slate-500 group-hover:text-emerald-600 mt-0.5">Download .docx</div>
+                                        <div class="text-sm font-bold text-slate-700 group-hover:text-emerald-700 leading-tight">{{ $paoloDocTitle }}</div>
+                                        <div class="text-[10px] text-slate-500 group-hover:text-emerald-600 mt-0.5">Download {{ $paoloDocExt }}</div>
                                     </div>
                                 </a>
                             </div>

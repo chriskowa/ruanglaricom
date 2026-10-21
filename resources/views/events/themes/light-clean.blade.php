@@ -1145,109 +1145,94 @@
                     <p class="text-slate-600 text-sm mt-2">Seluruh peserta resmi berhak mendapatkan paket benefit eksklusif perlombaan untuk mendukung kenyamanan dan performa terbaik.</p>
                 </div>
 
-                <!-- 6 Highlight Benefit Cards -->
-                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-5 mb-10">
-                    <!-- 1. Medali -->
-                    <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm hover:border-theme-primary transition duration-150 flex flex-col justify-between">
-                        <div>
-                            <div class="w-10 h-10 rounded-md bg-theme-light text-theme-primary flex items-center justify-center mb-3.5">
-                                <i class="fas fa-medal text-base"></i>
+                @php
+                    $benefitsAmenity = $event->premium_amenities['benefits'] ?? [];
+                    $benefitItems = [];
+                    if (!empty($benefitsAmenity['items']) && is_array($benefitsAmenity['items'])) {
+                        $benefitItems = $benefitsAmenity['items'];
+                    }
+                    if (empty($benefitItems)) {
+                        $benefitItems = [
+                            [
+                                'title' => 'Medali Finisher',
+                                'description' => 'Medali cetak logam cor eksklusif dengan pita bergradien warna untuk seluruh peserta yang menyelesaikan rute lomba dalam batas waktu Cut Off Time (COT).',
+                                'tag' => 'All Finisher COT',
+                                'icon' => 'fas fa-medal',
+                            ],
+                            [
+                                'title' => 'Jersey Resmi',
+                                'description' => 'Jersey lari berbahan Dry-Fit premium berpori mikro yang ringan, sejuk di iklim tropis, dan dirancang khusus mengikuti pola gerak atletik.',
+                                'tag' => 'Dry-Fit Atletik',
+                                'icon' => 'fas fa-tshirt',
+                            ],
+                            [
+                                'title' => 'Refreshment',
+                                'description' => 'Pos hidrasi berkala berisi air mineral segar dan isotonik di sepanjang rute, serta camilan pemulihan nutrisi di tenda garis finish.',
+                                'tag' => 'Rute & Garis Finish',
+                                'icon' => 'fas fa-tint',
+                            ],
+                            [
+                                'title' => 'Nomor BIB',
+                                'description' => 'Nomor dada cetak presisi tahan air sebagai identitas atlet resmi yang memuat nama pelari, kategori lomba, dan data darurat.',
+                                'tag' => 'Nomor Dada Resmi',
+                                'icon' => 'fas fa-id-card',
+                            ],
+                            [
+                                'title' => 'Dokumentasi',
+                                'description' => 'Foto aksi lari dan momen berharga di sepanjang jalur serta garis finish oleh tim fotografer profesional, dapat diunduh gratis pasca-event.',
+                                'tag' => 'Akses Foto Gratis',
+                                'icon' => 'fas fa-camera',
+                            ],
+                            [
+                                'title' => 'Race Pack',
+                                'description' => 'Paket perlengkapan lari eksklusif berupa tas serut (drawstring bag), produk suplemen, voucher mitra, dan merchandise pendukung dari sponsor.',
+                                'tag' => 'Paket Eksklusif RPC',
+                                'icon' => 'fas fa-box-open',
+                            ],
+                        ];
+                    }
+                    $benefitCount = count($benefitItems);
+                    $gridColClass = 'xl:grid-cols-6';
+                    if ($benefitCount === 1) $gridColClass = 'xl:grid-cols-1 max-w-md mx-auto';
+                    elseif ($benefitCount === 2) $gridColClass = 'xl:grid-cols-2 max-w-2xl mx-auto';
+                    elseif ($benefitCount === 3) $gridColClass = 'xl:grid-cols-3';
+                    elseif ($benefitCount === 4) $gridColClass = 'xl:grid-cols-4';
+                    elseif ($benefitCount === 5) $gridColClass = 'xl:grid-cols-5';
+                @endphp
+
+                <!-- Highlight Benefit Cards (Dinamis dari Master Event) -->
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 {{ $gridColClass }} gap-5 mb-10">
+                    @foreach($benefitItems as $bItem)
+                        @php
+                            $bIcon = !empty($bItem['icon']) ? $bItem['icon'] : 'fas fa-award';
+                            $bTitle = $bItem['title'] ?? ($bItem['name'] ?? '');
+                            $bDesc = $bItem['description'] ?? '';
+                            $bTag = $bItem['tag'] ?? '';
+                            $isMedalBenefit = stripos($bTitle, 'medali') !== false || stripos($bIcon, 'medal') !== false;
+                        @endphp
+                        <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm hover:border-theme-primary transition duration-150 flex flex-col justify-between">
+                            <div>
+                                <div class="w-10 h-10 rounded-md bg-theme-light text-theme-primary flex items-center justify-center mb-3.5">
+                                    <i class="{{ $bIcon }} text-base"></i>
+                                </div>
+                                <h3 class="text-base font-heading text-slate-900 mb-1.5">{{ $bTitle }}</h3>
+                                <p class="text-xs text-slate-600 leading-relaxed">
+                                    {{ $bDesc }}
+                                </p>
                             </div>
-                            <h3 class="text-base font-heading text-slate-900 mb-1.5">Medali Finisher</h3>
-                            <p class="text-xs text-slate-600 leading-relaxed">
-                                Medali cetak logam cor eksklusif dengan pita bergradien warna untuk seluruh peserta yang menyelesaikan rute lomba dalam batas waktu Cut Off Time (COT).
-                            </p>
-                        </div>
-                        <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
-                            <span class="text-[11px] font-bold text-theme-primary uppercase">All Finisher COT</span>
-                            @if($event->medal_image)
-                                <a href="#medal" class="text-[11px] font-bold text-slate-500 hover:text-theme-primary transition flex items-center gap-1">
-                                    <span>Lihat Medali</span>
-                                    <i class="fas fa-arrow-down text-[10px]"></i>
-                                </a>
+                            @if($bTag || ($isMedalBenefit && $event->medal_image))
+                            <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
+                                <span class="text-[11px] font-bold text-theme-primary uppercase">{{ $bTag ?: 'Benefit Resmi' }}</span>
+                                @if($isMedalBenefit && $event->medal_image)
+                                    <a href="#medal" class="text-[11px] font-bold text-slate-500 hover:text-theme-primary transition flex items-center gap-1">
+                                        <span>Lihat Medali</span>
+                                        <i class="fas fa-arrow-down text-[10px]"></i>
+                                    </a>
+                                @endif
+                            </div>
                             @endif
                         </div>
-                    </div>
-
-                    <!-- 2. Jersey -->
-                    <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm hover:border-theme-primary transition duration-150 flex flex-col justify-between">
-                        <div>
-                            <div class="w-10 h-10 rounded-md bg-theme-light text-theme-primary flex items-center justify-center mb-3.5">
-                                <i class="fas fa-tshirt text-base"></i>
-                            </div>
-                            <h3 class="text-base font-heading text-slate-900 mb-1.5">Jersey Resmi</h3>
-                            <p class="text-xs text-slate-600 leading-relaxed">
-                                Jersey lari berbahan Dry-Fit premium berpori mikro yang ringan, sejuk di iklim tropis, dan dirancang khusus mengikuti pola gerak atletik.
-                            </p>
-                        </div>
-                        <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
-                            <span class="text-[11px] font-bold text-theme-primary uppercase">Dry-Fit Atletik</span>
-                        </div>
-                    </div>
-
-                    <!-- 3. Refreshment -->
-                    <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm hover:border-theme-primary transition duration-150 flex flex-col justify-between">
-                        <div>
-                            <div class="w-10 h-10 rounded-md bg-theme-light text-theme-primary flex items-center justify-center mb-3.5">
-                                <i class="fas fa-tint text-base"></i>
-                            </div>
-                            <h3 class="text-base font-heading text-slate-900 mb-1.5">Refreshment</h3>
-                            <p class="text-xs text-slate-600 leading-relaxed">
-                                Pos hidrasi berkala berisi air mineral segar dan isotonik di sepanjang rute, serta camilan pemulihan nutrisi di tenda garis finish.
-                            </p>
-                        </div>
-                        <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
-                            <span class="text-[11px] font-bold text-theme-primary uppercase">Rute & Garis Finish</span>
-                        </div>
-                    </div>
-
-                    <!-- 4. Nomor BIB -->
-                    <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm hover:border-theme-primary transition duration-150 flex flex-col justify-between">
-                        <div>
-                            <div class="w-10 h-10 rounded-md bg-theme-light text-theme-primary flex items-center justify-center mb-3.5">
-                                <i class="fas fa-id-card text-base"></i>
-                            </div>
-                            <h3 class="text-base font-heading text-slate-900 mb-1.5">Nomor BIB</h3>
-                            <p class="text-xs text-slate-600 leading-relaxed">
-                                Nomor dada cetak presisi tahan air sebagai identitas atlet resmi yang memuat nama pelari, kategori lomba, dan data darurat.
-                            </p>
-                        </div>
-                        <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
-                            <span class="text-[11px] font-bold text-theme-primary uppercase">Nomor Dada Resmi</span>
-                        </div>
-                    </div>
-
-                    <!-- 5. Dokumentasi -->
-                    <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm hover:border-theme-primary transition duration-150 flex flex-col justify-between">
-                        <div>
-                            <div class="w-10 h-10 rounded-md bg-theme-light text-theme-primary flex items-center justify-center mb-3.5">
-                                <i class="fas fa-camera text-base"></i>
-                            </div>
-                            <h3 class="text-base font-heading text-slate-900 mb-1.5">Dokumentasi</h3>
-                            <p class="text-xs text-slate-600 leading-relaxed">
-                                Foto aksi lari dan momen berharga di sepanjang jalur serta garis finish oleh tim fotografer profesional, dapat diunduh gratis pasca-event.
-                            </p>
-                        </div>
-                        <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
-                            <span class="text-[11px] font-bold text-theme-primary uppercase">Akses Foto Gratis</span>
-                        </div>
-                    </div>
-
-                    <!-- 6. Race Pack -->
-                    <div class="bg-white border border-slate-200 rounded-lg p-5 shadow-sm hover:border-theme-primary transition duration-150 flex flex-col justify-between">
-                        <div>
-                            <div class="w-10 h-10 rounded-md bg-theme-light text-theme-primary flex items-center justify-center mb-3.5">
-                                <i class="fas fa-box-open text-base"></i>
-                            </div>
-                            <h3 class="text-base font-heading text-slate-900 mb-1.5">Race Pack</h3>
-                            <p class="text-xs text-slate-600 leading-relaxed">
-                                Paket perlengkapan lari eksklusif berupa tas serut (drawstring bag), produk suplemen, voucher mitra, dan merchandise pendukung dari sponsor.
-                            </p>
-                        </div>
-                        <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
-                            <span class="text-[11px] font-bold text-theme-primary uppercase">Paket Eksklusif RPC</span>
-                        </div>
-                    </div>
+                    @endforeach
                 </div>
 
                 <!-- Showcase Jersey & Dokumen Tambahan -->
@@ -1302,18 +1287,36 @@
                             </p>
                         </div>
 
-                        <!-- Documents Download Card -->
+                        <!-- Documents Download Card (Dinamis dari Master Event) -->
+                        @php
+                            $suratKuasaAmenity = $event->premium_amenities['surat_kuasa'] ?? [];
+                            $docFilePath = $suratKuasaAmenity['file_path'] ?? null;
+                            $docExternalUrl = $suratKuasaAmenity['external_url'] ?? null;
+                            $docUrl = $docFilePath ? asset('storage/' . $docFilePath) : $docExternalUrl;
+                            
+                            // Legacy fallback if this specific historical event
+                            if (!$docUrl && ($event->slug === 'polkesma-olympic-action-run-2025' || $event->hardcoded === 'polkesma-run')) {
+                                $docUrl = 'https://res.cloudinary.com/dqm0gzjmu/raw/upload/v1791536264/Surat-Kuasa-Polkesma_hlyx7w.docx';
+                            }
+                            
+                            $docTitle = !empty($suratKuasaAmenity['title']) ? $suratKuasaAmenity['title'] : 'Surat Kuasa';
+                            $docDesc = !empty($suratKuasaAmenity['description']) ? $suratKuasaAmenity['description'] : 'Surat kuasa untuk pengambilan racepack oleh perwakilan/orang lain.';
+                            $isDocEnabled = !empty($suratKuasaAmenity['enabled']) || $docFilePath || $docExternalUrl || ($event->slug === 'polkesma-olympic-action-run-2025' || $event->hardcoded === 'polkesma-run');
+                        @endphp
+
+                        @if($docUrl && $isDocEnabled)
                         <div class="sm:col-span-2 bg-theme-light border border-theme-light rounded-lg p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                             <div>
                                 <span class="text-xs font-bold text-theme-primary uppercase">Dokumen Peserta</span>
-                                <h4 class="text-sm font-heading text-slate-900 mt-0.5">Surat Kuasa</h4>
-                                <p class="text-xs text-slate-600 mt-1">Surat kuasa untuk pengambilan racepack oleh orang lain.</p>
+                                <h4 class="text-sm font-heading text-slate-900 mt-0.5">{{ $docTitle }}</h4>
+                                <p class="text-xs text-slate-600 mt-1">{{ $docDesc }}</p>
                             </div>
-                            <a href="https://res.cloudinary.com/dqm0gzjmu/raw/upload/v1791536264/Surat-Kuasa-Polkesma_hlyx7w.docx" class="shrink-0 px-4 py-2 rounded-md bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 text-xs font-bold transition flex items-center justify-center gap-2">
+                            <a href="{{ $docUrl }}" target="_blank" download class="shrink-0 px-4 py-2 rounded-md bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 text-xs font-bold transition flex items-center justify-center gap-2">
                                 <i class="fas fa-download text-xs text-slate-500"></i>
                                 <span>Unduh Formulir</span>
                             </a>
                         </div>
+                        @endif
                     </div>
 
                 </div>
@@ -1744,31 +1747,41 @@
                             <h2 class="text-2xl sm:text-3xl font-heading text-slate-900 mt-1">Jadwal Race Day</h2>
                             <p class="text-slate-600 text-xs sm:text-sm mt-1">Waktu dapat disesuaikan dengan pengumuman panitia di area lomba.</p>
                         </div>
+                        @php
+                            $rundownAmenity = $event->premium_amenities['rundown'] ?? [];
+                            $dynamicRundowns = [];
+                            if (!empty($rundownAmenity['items']) && is_array($rundownAmenity['items'])) {
+                                $dynamicRundowns = $rundownAmenity['items'];
+                            }
+                            // Default fallback if no custom rundown items defined
+                            if (empty($dynamicRundowns)) {
+                                $flagOffTime = $event->start_at ? $event->start_at->format('H:i') . ' WIB' : '05:30 WIB';
+                                $dynamicRundowns = [
+                                    ['time' => '04:30 WIB', 'title' => 'Open Gate', 'description' => null, 'is_highlight' => false],
+                                    ['time' => '05:00 WIB', 'title' => 'Pemanasan', 'description' => null, 'is_highlight' => false],
+                                    ['time' => $flagOffTime, 'title' => 'Flag Off Start Lomba', 'description' => null, 'is_highlight' => true],
+                                    ['time' => '07:00 WIB', 'title' => 'Cut Off Time (COT)', 'description' => null, 'is_highlight' => false],
+                                    ['time' => '07:00 WIB', 'title' => 'Zumba', 'description' => null, 'is_highlight' => false],
+                                    ['time' => '07:30 - 09:00 WIB', 'title' => 'Hiburan, Doorprize dan Podium', 'description' => null, 'is_highlight' => false],
+                                ];
+                            }
+                        @endphp
+
                         <div class="bg-white border border-slate-200 rounded-lg p-5 divide-y divide-slate-100 shadow-sm text-sm">
-                            <div class="py-3 flex justify-between items-center">
-                                <span class="font-bold text-slate-900">04:30 WIB</span>
-                                <span class="text-slate-600 text-xs">Open Gate</span>
-                            </div>
-                            <div class="py-3 flex justify-between items-center">
-                                <span class="font-bold text-slate-900">05:00 WIB</span>
-                                <span class="text-slate-600 text-xs">Pemanasan</span>
-                            </div>
-                            <div class="py-3 flex justify-between items-center bg-theme-surface border border-theme-light -mx-5 px-5 rounded">
-                                <span class="font-bold text-theme-primary font-mono">{{ $event->start_at ? $event->start_at->format('H:i') : '05:30' }} WIB</span>
-                                <span class="font-bold text-slate-900 text-xs">Flag Off Start Lomba</span>
-                            </div>
-                            <div class="py-3 flex justify-between items-center">
-                                <span class="font-bold text-slate-900">07:00 WIB</span>
-                                <span class="text-slate-600 text-xs">Cut Off Time (COT)</span>
-                            </div>
-                            <div class="py-3 flex justify-between items-center">
-                                <span class="font-bold text-slate-900">07:00 WIB</span>
-                                <span class="text-slate-600 text-xs">Zumba</span>
-                            </div>
-                            <div class="py-3 flex justify-between items-center">
-                                <span class="font-bold text-slate-900">07:30 - 09:00 WIB</span>
-                                <span class="text-slate-600 text-xs">Hiburan, Doorprize dan Podium</span>
-                            </div>
+                            @foreach($dynamicRundowns as $item)
+                                @php
+                                    $isHighlight = !empty($item['is_highlight']);
+                                @endphp
+                                <div class="py-3 flex justify-between items-center {{ $isHighlight ? 'bg-theme-surface border border-theme-light -mx-5 px-5 rounded my-1' : '' }}">
+                                    <div class="flex flex-col">
+                                        <span class="font-bold {{ $isHighlight ? 'text-theme-primary font-mono' : 'text-slate-900' }}">{{ $item['time'] ?? '' }}</span>
+                                        @if(!empty($item['description']))
+                                            <span class="text-[11px] text-slate-500 mt-0.5">{{ $item['description'] }}</span>
+                                        @endif
+                                    </div>
+                                    <span class="{{ $isHighlight ? 'font-bold text-slate-900' : 'text-slate-600' }} text-xs text-right max-w-[55%]">{{ $item['title'] ?? '' }}</span>
+                                </div>
+                            @endforeach
                         </div>
 
                         <!-- Race Rules Button -->

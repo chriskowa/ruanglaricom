@@ -226,6 +226,7 @@ class EventController extends Controller
             'addons.*.name' => 'required_with:addons|string|max:255',
             'addons.*.price' => 'nullable|numeric|min:0',
             'premium_amenities' => 'nullable|array',
+            'surat_kuasa_file' => 'nullable|file|mimes:pdf,doc,docx,zip,jpeg,jpg,png|max:10240',
             'template' => 'nullable|string|in:modern-dark,light-clean,simple-minimal,paolo-fest,paolo-fest-dark,professional-city-run,golden-run,quick-light',
             'platform_fee' => 'nullable|numeric|min:0',
             'categories' => 'required|array|min:1',
@@ -317,6 +318,19 @@ class EventController extends Controller
                     $amenity['items'] = array_values($amenity['items']);
                 }
             }
+        }
+
+        // Handle Surat Kuasa / Dokumen Peserta upload
+        if ($request->hasFile('surat_kuasa_file')) {
+            $file = $request->file('surat_kuasa_file');
+            $fileName = time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
+            $filePath = $file->storeAs('events/documents', $fileName, 'public');
+
+            if (! isset($validated['premium_amenities']['surat_kuasa'])) {
+                $validated['premium_amenities']['surat_kuasa'] = [];
+            }
+            $validated['premium_amenities']['surat_kuasa']['file_path'] = $filePath;
+            $validated['premium_amenities']['surat_kuasa']['original_name'] = $file->getClientOriginalName();
         }
 
         // Auto-generate slug if not provided
@@ -596,6 +610,8 @@ class EventController extends Controller
             'addons.*.name' => 'required_with:addons|string|max:255',
             'addons.*.price' => 'nullable|numeric|min:0',
             'premium_amenities' => 'nullable|array',
+            'surat_kuasa_file' => 'nullable|file|mimes:pdf,doc,docx,zip,jpeg,jpg,png|max:10240',
+            'remove_surat_kuasa_file' => 'nullable|boolean',
             'template' => 'nullable|string|in:modern-dark,light-clean,simple-minimal,professional-city-run,paolo-fest,paolo-fest-dark,golden-run,quick-light',
             'platform_fee' => 'nullable|numeric|min:0',
             'categories' => 'sometimes|array',
@@ -686,6 +702,40 @@ class EventController extends Controller
                 if (isset($amenity['items']) && is_array($amenity['items'])) {
                     $amenity['items'] = array_values($amenity['items']);
                 }
+            }
+        }
+
+        // Handle Surat Kuasa / Dokumen Peserta file upload and deletion
+        $existingDoc = $event->premium_amenities['surat_kuasa'] ?? [];
+        $existingFilePath = $existingDoc['file_path'] ?? null;
+        $existingOriginalName = $existingDoc['original_name'] ?? null;
+
+        if ($request->boolean('remove_surat_kuasa_file')) {
+            if ($existingFilePath && Storage::disk('public')->exists($existingFilePath)) {
+                Storage::disk('public')->delete($existingFilePath);
+            }
+            if (isset($validated['premium_amenities']['surat_kuasa'])) {
+                $validated['premium_amenities']['surat_kuasa']['file_path'] = null;
+                $validated['premium_amenities']['surat_kuasa']['original_name'] = null;
+            }
+        } elseif ($request->hasFile('surat_kuasa_file')) {
+            if ($existingFilePath && Storage::disk('public')->exists($existingFilePath)) {
+                Storage::disk('public')->delete($existingFilePath);
+            }
+            $file = $request->file('surat_kuasa_file');
+            $fileName = time() . '_' . Str::slug(pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME)) . '.' . $file->getClientOriginalExtension();
+            $filePath = $file->storeAs('events/documents', $fileName, 'public');
+
+            if (! isset($validated['premium_amenities']['surat_kuasa'])) {
+                $validated['premium_amenities']['surat_kuasa'] = [];
+            }
+            $validated['premium_amenities']['surat_kuasa']['file_path'] = $filePath;
+            $validated['premium_amenities']['surat_kuasa']['original_name'] = $file->getClientOriginalName();
+        } else {
+            // Keep existing file if not removed and no new file uploaded
+            if ($existingFilePath && isset($validated['premium_amenities']['surat_kuasa'])) {
+                $validated['premium_amenities']['surat_kuasa']['file_path'] = $existingFilePath;
+                $validated['premium_amenities']['surat_kuasa']['original_name'] = $existingOriginalName;
             }
         }
 
