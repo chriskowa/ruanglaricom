@@ -716,6 +716,11 @@
                     <a href="#benefits" class="px-2.5 lg:px-3 xl:px-3.5 py-1.5 xl:py-2 rounded-md text-xs xl:text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 hover-text-theme-primary transition duration-150 whitespace-nowrap">
                         Benefit Peserta
                     </a>
+                    @if($event->medal_image)
+                        <a href="#medal" class="px-2.5 lg:px-3 xl:px-3.5 py-1.5 xl:py-2 rounded-md text-xs xl:text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 hover-text-theme-primary transition duration-150 whitespace-nowrap">
+                            Medali
+                        </a>
+                    @endif
                     @if(!empty($gpxDataList))
                         <a href="#route" class="px-2.5 lg:px-3 xl:px-3.5 py-1.5 xl:py-2 rounded-md text-xs xl:text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 hover-text-theme-primary transition duration-150 whitespace-nowrap">
                             Rute & Elevasi
@@ -766,6 +771,9 @@
             <a href="#about" class="block text-sm font-semibold text-slate-700 p-2 hover:bg-slate-50 rounded-md">Tentang Event</a>
             <a href="#categories" class="block text-sm font-semibold text-slate-700 p-2 hover:bg-slate-50 rounded-md">Kategori Lomba</a>
             <a href="#benefits" class="block text-sm font-semibold text-slate-700 p-2 hover:bg-slate-50 rounded-md">Benefit Peserta</a>
+            @if($event->medal_image)
+                <a href="#medal" class="block text-sm font-semibold text-slate-700 p-2 hover:bg-slate-50 rounded-md">Medali Finisher</a>
+            @endif
             @if(!empty($gpxDataList))
                 <a href="#route" class="block text-sm font-semibold text-slate-700 p-2 hover:bg-slate-50 rounded-md">Rute & Elevasi</a>
             @endif
@@ -1152,6 +1160,12 @@
                         </div>
                         <div class="pt-4 mt-4 border-t border-slate-100 flex items-center justify-between">
                             <span class="text-[11px] font-bold text-theme-primary uppercase">All Finisher COT</span>
+                            @if($event->medal_image)
+                                <a href="#medal" class="text-[11px] font-bold text-slate-500 hover:text-theme-primary transition flex items-center gap-1">
+                                    <span>Lihat Medali</span>
+                                    <i class="fas fa-arrow-down text-[10px]"></i>
+                                </a>
+                            @endif
                         </div>
                     </div>
 
@@ -1305,6 +1319,115 @@
                 </div>
             </div>
         </section>
+
+        @if($event->medal_image)
+        <!-- Section: Medali Finisher Resmi -->
+        <section id="medal" class="py-20 bg-white border-b border-slate-200 scroll-mt-16">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="text-center max-w-2xl mx-auto mb-12 sm:mb-14">
+                    <span class="text-xs font-bold uppercase tracking-wider text-theme-primary">Finisher Reward</span>
+                    <h2 class="text-3xl sm:text-4xl font-heading text-slate-900 mt-1">Medali Finisher Resmi</h2>
+                    <p class="text-slate-600 text-sm mt-2">Apresiasi tertinggi bagi setiap pelari yang menaklukkan rute dan berhasil melintasi garis finis sebelum batas waktu Cut Off Time (COT).</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+                    
+                    <!-- Left: Medal Image Showcase Card -->
+                    <div class="lg:col-span-5 w-full">
+                        <div class="bg-slate-50 border border-slate-200 rounded-lg p-6 sm:p-8 text-center shadow-sm relative group overflow-hidden">
+                            <div class="relative aspect-square max-w-sm mx-auto flex items-center justify-center cursor-zoom-in" onclick="openLightbox('{{ asset('storage/' . $event->medal_image) }}')">
+                                <img src="{{ asset('storage/' . $event->medal_image) }}" 
+                                     alt="Medali Finisher {{ $event->name }}" 
+                                     class="w-full h-full object-contain p-2 group-hover:scale-105 transition-transform duration-300 drop-shadow-xl"
+                                     loading="lazy">
+                                
+                                <!-- Zoom Badge -->
+                                <button type="button" 
+                                        onclick="openLightbox('{{ asset('storage/' . $event->medal_image) }}')" 
+                                        class="absolute top-2 right-2 px-2.5 py-1 rounded bg-slate-900/80 hover:bg-slate-900 text-white text-[11px] font-medium backdrop-blur-sm shadow flex items-center gap-1.5 transition">
+                                    <i class="fas fa-search-plus text-xs"></i>
+                                    <span class="hidden sm:inline">Perbesar</span>
+                                </button>
+                            </div>
+
+                            <div class="mt-4 pt-4 border-t border-slate-200/80 flex items-center justify-between">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-xs font-bold bg-theme-light text-theme-primary border border-theme-light">
+                                    <i class="fas fa-award text-xs"></i>
+                                    Finisher Official Medal
+                                </span>
+                                <span class="text-xs font-mono text-slate-500 font-semibold">{{ $event->start_at ? $event->start_at->format('Y') : date('Y') }} Edition</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right: Features & Specs -->
+                    <div class="lg:col-span-7 space-y-6">
+                        <div>
+                            <span class="text-xs font-bold uppercase tracking-wider text-theme-primary">Desain & Kualitas</span>
+                            <h3 class="text-2xl sm:text-3xl font-heading text-slate-900 mt-1">Bukti Nyata Pencapaian Anda</h3>
+                            <p class="text-slate-600 text-sm leading-relaxed mt-3">
+                                Medali penamat dirancang secara tematik dengan detail artistik khas event, material padat berkualitas, dan lapisan warna tahan pudar sebagai kenang-kenangan bersejarah perjuangan lari Anda.
+                            </p>
+                        </div>
+
+                        <!-- 4 Spec Cards -->
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="bg-white border border-slate-200 rounded-lg p-4 shadow-sm flex items-start gap-3.5">
+                                <div class="w-9 h-9 rounded-md bg-theme-light text-theme-primary flex items-center justify-center shrink-0 text-sm">
+                                    <i class="fas fa-cube"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-heading text-slate-900">Material Zinc Alloy 3D</h4>
+                                    <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">Cetak timbul presisi dengan bobot kokoh dan sentuhan logam halus.</p>
+                                </div>
+                            </div>
+
+                            <div class="bg-white border border-slate-200 rounded-lg p-4 shadow-sm flex items-start gap-3.5">
+                                <div class="w-9 h-9 rounded-md bg-theme-light text-theme-primary flex items-center justify-center shrink-0 text-sm">
+                                    <i class="fas fa-ribbon"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-heading text-slate-900">Pita Leher Sublimasi</h4>
+                                    <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">Pita tenun lembut bermotif resmi yang nyaman dan tahan keringat.</p>
+                                </div>
+                            </div>
+
+                            <div class="bg-white border border-slate-200 rounded-lg p-4 shadow-sm flex items-start gap-3.5">
+                                <div class="w-9 h-9 rounded-md bg-theme-light text-theme-primary flex items-center justify-center shrink-0 text-sm">
+                                    <i class="fas fa-stopwatch"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-heading text-slate-900">Kualifikasi Finisher COT</h4>
+                                    <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">Dianugerahkan di garis finish bagi peserta resmi dalam batas waktu.</p>
+                                </div>
+                            </div>
+
+                            <div class="bg-white border border-slate-200 rounded-lg p-4 shadow-sm flex items-start gap-3.5">
+                                <div class="w-9 h-9 rounded-md bg-theme-light text-theme-primary flex items-center justify-center shrink-0 text-sm">
+                                    <i class="fas fa-certificate"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-heading text-slate-900">Hasil & E-Certificate</h4>
+                                    <p class="text-xs text-slate-500 mt-0.5 leading-relaxed">Terhubung langsung dengan rekapitulasi waktu resmi lomba.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Important Note Notice -->
+                        <div class="p-4 rounded-lg bg-slate-50 border border-slate-200 flex items-start gap-3">
+                            <div class="w-7 h-7 rounded-md bg-slate-200 text-slate-700 flex items-center justify-center shrink-0 text-xs mt-0.5">
+                                <i class="fas fa-info"></i>
+                            </div>
+                            <p class="text-xs text-slate-600 leading-relaxed">
+                                <strong class="text-slate-800">Ketentuan Medali:</strong> Medali finisher hanya diserahkan secara langsung di area race village pasca-finish. Panitia tidak melayani pengiriman medali untuk peserta yang tidak memulai lari (DNS) atau tidak menyelesaikan rute (DNF).
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+        @endif
 
         @if(!empty($gpxDataList))
         <!-- Section: Rute Lomba & Profil Elevasi (GPX) -->
