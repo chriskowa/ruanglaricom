@@ -36,11 +36,13 @@ class Event extends Model
         'hardcoded',
         'hero_image_url',
         'hero_image',
+        'hero_images',
         'logo_image',
         'favicon_image',
         'floating_image',
         'medal_image',
         'jersey_image',
+        'jersey_chart_image',
         'twibbon_image',
         'map_embed_url',
         'google_calendar_url',
@@ -92,6 +94,7 @@ class Event extends Model
         'addons' => 'array',
         'jersey_sizes' => 'array',
         'gallery' => 'array',
+        'hero_images' => 'array',
         'theme_colors' => 'array',
         'premium_amenities' => 'array',
         'sponsors' => 'array',
@@ -283,6 +286,35 @@ class Event extends Model
         }
 
         return null;
+    }
+
+    /**
+     * Get list of hero images (supports up to 5 slider images, fallbacks to single hero_image)
+     *
+     * @return array
+     */
+    public function getHeroImagesListAttribute(): array
+    {
+        $images = $this->hero_images;
+        if (is_array($images) && count($images) > 0) {
+            return array_values(array_filter($images));
+        }
+
+        return $this->hero_image ? [$this->hero_image] : [];
+    }
+
+    /**
+     * Get jersey chart image URL (with fallback to default RuangLari size chart)
+     *
+     * @return string
+     */
+    public function getJerseyChartUrlAttribute(): string
+    {
+        if ($this->jersey_chart_image) {
+            return asset('storage/'.$this->jersey_chart_image);
+        }
+
+        return 'https://res.cloudinary.com/dqm0gzjmu/image/upload/v1791534615/size_jersey_new_xlqovf.webp';
     }
 
     /**
@@ -567,5 +599,75 @@ class Event extends Model
                 $q->whereNull('max_uses')->orWhereRaw('used_count < max_uses');
             })
             ->exists();
+    }
+
+    /**
+     * Get event addons with calculated sold and remaining quota status.
+     *
+     * @return array
+     */
+    public function getAddonsWithQuotaAttribute(): array
+    {
+        $addons = is_array($this->addons) ? $this->addons : (is_string($this->addons) ? json_decode($this->addons, true) : []);
+        if (empty($addons) || ! is_array($addons)) {
+            return [];
+        }
+
+        $soldStatuses = ['paid', 'settlement', 'capture', 'cod'];
+        $requiresApproval = ! empty($this->premium_amenities['requires_approval']);
+
+        $query = \App\Models\Participant::query()
+            ->join('transactions', 'transactions.id', '=', 'participants.transaction_id')
+            ->where('transactions.event_id', $this->id)
+            ->whereNotNull('participants.addons')
+            ->where('participants.status', '!=', 'cancelled');
+
+        if ($requiresApproval) {
+            $query->where('participants.isApproved', 1);
+        } else {
+            $query->whereIn('transactions.payment_status', $soldStatuses);
+        }
+
+        $addonCounts = [];
+        $rows = $query->select('participants.addons')->get();
+        foreach ($rows as $row) {
+            $pAddons = is_array($row->addons) ? $row->addons : (is_string($row->addons) ? json_decode($row->addons, true) : []);
+            if (! is_array($pAddons)) {
+                continue;
+            }
+            foreach ($pAddons as $a) {
+                if (! is_array($a)) {
+                    continue;
+                }
+                $name = trim((string) ($a['name'] ?? ''));
+                if ($name !== '') {
+                    $addonCounts[$name] = ($addonCounts[$name] ?? 0) + 1;
+                }
+            }
+        }
+
+        $result = [];
+        foreach ($addons as $idx => $addon) {
+            if (! is_array($addon) || empty($addon['name'])) {
+                continue;
+            }
+            $name = trim($addon['name']);
+            $quota = (isset($addon['quota']) && $addon['quota'] !== '' && $addon['quota'] !== null) ? max(0, (int) $addon['quota']) : null;
+            $sold = $addonCounts[$name] ?? 0;
+            $remaining = $quota !== null ? max(0, $quota - $sold) : null;
+            $isSoldOut = $quota !== null && $remaining <= 0;
+
+            $result[] = [
+                'index' => $idx,
+                'name' => $name,
+                'price' => isset($addon['price']) ? (int) $addon['price'] : 0,
+                'quota' => $quota,
+                'sold' => $sold,
+                'remaining' => $remaining,
+                'is_sold_out' => $isSoldOut,
+            ];
+        }
+
+        return $result;
     }
 }

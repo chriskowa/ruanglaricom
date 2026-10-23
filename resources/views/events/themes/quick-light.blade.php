@@ -35,7 +35,7 @@
             'elevation_gain_m' => $cat->masterGpx->elevation_gain_m ?? null,
         ];
     })->values() : collect());
-    $addons = is_array($event->addons ?? null) ? $event->addons : [];
+    $addons = $event->addons_with_quota ?? (is_array($event->addons ?? null) ? $event->addons : []);
     $isRegOpen = method_exists($event, 'isRegistrationOpen') ? $event->isRegistrationOpen() : true;
     $heroImage = $event->getHeroImageUrl() ?? asset('images/ruanglari_green.png');
     $rawGallery = is_array($event->gallery ?? null) ? $event->gallery : [];
@@ -309,6 +309,12 @@
             border-color: var(--primary); 
             background: var(--primary-light); 
             box-shadow: 0 0 0 3px var(--primary-ring); 
+        }
+        .choice input[disabled] + .choice-box {
+            opacity: 0.6;
+            background: #f8fafc;
+            border-color: #e2e8f0;
+            cursor: not-allowed;
         }
         .submit-btn[disabled] { opacity: 0.65; cursor: not-allowed; }
         .content-html p { margin-top: 0; margin-bottom: 1rem; line-height: 1.75; color: #334155; font-size: 0.925rem; }
@@ -921,23 +927,38 @@
                                                     <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Add-on Opsional</label>
                                                     <div class="mt-2 grid gap-2">
                                                         @foreach($addons as $idx => $addon)
-                                                            <label class="choice relative block cursor-pointer">
-                                                                <input type="checkbox" data-addon-index="{{ $idx }}" name="participants[0][addons][{{ $idx }}][selected]" value="1" data-addon-price="{{ (int) ($addon['price'] ?? 0) }}">
+                                                            @php
+                                                                $isSoldOut = !empty($addon['is_sold_out']);
+                                                                $hasQuota = ($addon['quota'] ?? null) !== null;
+                                                            @endphp
+                                                            <label class="choice relative block {{ $isSoldOut ? 'cursor-not-allowed opacity-60 select-none' : 'cursor-pointer' }}">
+                                                                <input type="checkbox" data-addon-index="{{ $idx }}" name="participants[0][addons][{{ $idx }}][selected]" value="1" data-addon-price="{{ (int) ($addon['price'] ?? 0) }}" {{ $isSoldOut ? 'disabled' : '' }}>
                                                                 <div class="choice-box flex items-center justify-between gap-3">
                                                                     <div class="min-w-0">
-                                                                        <div class="text-xs font-bold text-slate-900 truncate">{{ $addon['name'] }}</div>
-                                                                        <div class="mt-0.5 text-[10px] text-slate-500">Opsional</div>
-                                                                    </div>
-                                                                    <div class="text-xs font-bold text-slate-900 shrink-0">
-                                                                        @if((int) ($addon['price'] ?? 0) > 0)
-                                                                            +Rp {{ number_format((int) ($addon['price'] ?? 0), 0, ',', '.') }}
+                                                                        <div class="text-xs font-bold {{ $isSoldOut ? 'text-slate-500' : 'text-slate-900' }} truncate">{{ $addon['name'] }}</div>
+                                                                        @if($hasQuota)
+                                                                            <div class="mt-0.5 text-[10px] font-semibold {{ $isSoldOut ? 'text-rose-600' : 'text-slate-500' }}">
+                                                                                {{ $isSoldOut ? 'Stok Habis' : 'Sisa kuota: ' . $addon['remaining'] }}
+                                                                            </div>
                                                                         @else
-                                                                            Gratis
+                                                                            <div class="mt-0.5 text-[10px] text-slate-500">Opsional</div>
                                                                         @endif
                                                                     </div>
+                                                                    <div class="text-xs font-bold {{ $isSoldOut ? 'text-slate-400' : 'text-slate-900' }} shrink-0 flex items-center gap-1.5">
+                                                                        @if($isSoldOut)
+                                                                            <span class="text-[10px] font-bold text-rose-600 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded">Habis</span>
+                                                                        @endif
+                                                                        <span>
+                                                                            @if((int) ($addon['price'] ?? 0) > 0)
+                                                                                +Rp {{ number_format((int) ($addon['price'] ?? 0), 0, ',', '.') }}
+                                                                            @else
+                                                                                Gratis
+                                                                            @endif
+                                                                        </span>
+                                                                    </div>
                                                                 </div>
-                                                                <input type="hidden" data-addon-name="{{ $idx }}" name="participants[0][addons][{{ $idx }}][name]" value="{{ $addon['name'] }}">
-                                                                <input type="hidden" data-addon-price-hidden="{{ $idx }}" name="participants[0][addons][{{ $idx }}][price]" value="{{ (int) ($addon['price'] ?? 0) }}">
+                                                                <input type="hidden" data-addon-name="{{ $idx }}" name="participants[0][addons][{{ $idx }}][name]" value="{{ $addon['name'] }}" {{ $isSoldOut ? 'disabled' : '' }}>
+                                                                <input type="hidden" data-addon-price-hidden="{{ $idx }}" name="participants[0][addons][{{ $idx }}][price]" value="{{ (int) ($addon['price'] ?? 0) }}" {{ $isSoldOut ? 'disabled' : '' }}>
                                                             </label>
                                                         @endforeach
                                                     </div>
@@ -1184,23 +1205,38 @@
                                                     <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">Add-on</label>
                                                     <div class="mt-2 grid gap-2">
                                                         @foreach($addons as $idx => $addon)
-                                                            <label class="choice relative block cursor-pointer">
-                                                                <input type="checkbox" data-addon-index="{{ $idx }}" value="1" data-addon-price="{{ (int) ($addon['price'] ?? 0) }}">
+                                                            @php
+                                                                $isSoldOut = !empty($addon['is_sold_out']);
+                                                                $hasQuota = ($addon['quota'] ?? null) !== null;
+                                                            @endphp
+                                                            <label class="choice relative block {{ $isSoldOut ? 'cursor-not-allowed opacity-60 select-none' : 'cursor-pointer' }}">
+                                                                <input type="checkbox" data-addon-index="{{ $idx }}" value="1" data-addon-price="{{ (int) ($addon['price'] ?? 0) }}" {{ $isSoldOut ? 'disabled' : '' }}>
                                                                 <div class="choice-box flex items-center justify-between gap-3">
                                                                     <div class="min-w-0">
-                                                                        <div class="text-xs font-bold text-slate-900 truncate">{{ $addon['name'] }}</div>
-                                                                        <div class="mt-0.5 text-[10px] text-slate-500">Opsional</div>
-                                                                    </div>
-                                                                    <div class="text-xs font-bold text-slate-900 shrink-0">
-                                                                        @if((int) ($addon['price'] ?? 0) > 0)
-                                                                            +Rp {{ number_format((int) ($addon['price'] ?? 0), 0, ',', '.') }}
+                                                                        <div class="text-xs font-bold {{ $isSoldOut ? 'text-slate-500' : 'text-slate-900' }} truncate">{{ $addon['name'] }}</div>
+                                                                        @if($hasQuota)
+                                                                            <div class="mt-0.5 text-[10px] font-semibold {{ $isSoldOut ? 'text-rose-600' : 'text-slate-500' }}">
+                                                                                {{ $isSoldOut ? 'Stok Habis' : 'Sisa kuota: ' . $addon['remaining'] }}
+                                                                            </div>
                                                                         @else
-                                                                            Gratis
+                                                                            <div class="mt-0.5 text-[10px] text-slate-500">Opsional</div>
                                                                         @endif
                                                                     </div>
+                                                                    <div class="text-xs font-bold {{ $isSoldOut ? 'text-slate-400' : 'text-slate-900' }} shrink-0 flex items-center gap-1.5">
+                                                                        @if($isSoldOut)
+                                                                            <span class="text-[10px] font-bold text-rose-600 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded">Habis</span>
+                                                                        @endif
+                                                                        <span>
+                                                                            @if((int) ($addon['price'] ?? 0) > 0)
+                                                                                +Rp {{ number_format((int) ($addon['price'] ?? 0), 0, ',', '.') }}
+                                                                            @else
+                                                                                Gratis
+                                                                            @endif
+                                                                        </span>
+                                                                    </div>
                                                                 </div>
-                                                                <input type="hidden" data-addon-name="{{ $idx }}" value="{{ $addon['name'] }}">
-                                                                <input type="hidden" data-addon-price-hidden="{{ $idx }}" value="{{ (int) ($addon['price'] ?? 0) }}">
+                                                                <input type="hidden" data-addon-name="{{ $idx }}" value="{{ $addon['name'] }}" {{ $isSoldOut ? 'disabled' : '' }}>
+                                                                <input type="hidden" data-addon-price-hidden="{{ $idx }}" value="{{ (int) ($addon['price'] ?? 0) }}" {{ $isSoldOut ? 'disabled' : '' }}>
                                                             </label>
                                                         @endforeach
                                                     </div>

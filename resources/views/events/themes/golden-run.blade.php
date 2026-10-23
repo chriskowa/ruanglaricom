@@ -2092,32 +2092,51 @@
                                         </div>
                                         @endif
 
-                                        @if(!empty($event->addons) && is_array($event->addons))
+                                        @php
+                                            $goldenAddonsList = $event->addons_with_quota ?? [];
+                                        @endphp
+                                        @if(!empty($goldenAddonsList))
                                         <div class="mt-4 border-t border-white/10 pt-4">
                                             <label class="block text-sm font-bold text-slate-300 mb-3 flex items-center gap-2">
                                                 <i class="fas fa-plus-circle text-accent-500"></i> Add-Ons (Opsional)
                                             </label>
                                             <div class="grid grid-cols-1 gap-3">
-                                                @foreach($event->addons as $idx => $addon)
-                                                    <label class="flex items-center justify-between p-3 bg-dark-900 border border-white/10 rounded-xl hover:border-brand-400 transition cursor-pointer group">
+                                                @foreach($goldenAddonsList as $addon)
+                                                    @php
+                                                        $idx = $addon['index'];
+                                                        $isSoldOut = !empty($addon['is_sold_out']);
+                                                        $hasQuota = ($addon['quota'] ?? null) !== null;
+                                                    @endphp
+                                                    <label class="flex items-center justify-between p-3 bg-dark-900 border rounded-xl transition {{ $isSoldOut ? 'border-white/5 opacity-50 cursor-not-allowed select-none' : 'border-white/10 hover:border-brand-400 cursor-pointer group' }}">
                                                         <div class="flex items-center gap-3">
                                                              <div class="relative flex items-center">
                                                                 <input type="checkbox" 
                                                                     name="participants[0][addons][{{ $idx }}][selected]" 
                                                                     value="1" 
-                                                                    class="addon-checkbox w-5 h-5 rounded text-brand-500 focus:ring-brand-500 border-slate-600 bg-dark-800 group-hover:bg-dark-700 transition"
-                                                                    data-price="{{ $addon['price'] ?? 0 }}">
+                                                                    class="addon-checkbox w-5 h-5 rounded text-brand-500 focus:ring-brand-500 border-slate-600 bg-dark-800 {{ $isSoldOut ? 'cursor-not-allowed' : 'group-hover:bg-dark-700' }} transition"
+                                                                    data-price="{{ $addon['price'] ?? 0 }}"
+                                                                    {{ $isSoldOut ? 'disabled' : '' }}>
                                                              </div>
-                                                             <input type="hidden" name="participants[0][addons][{{ $idx }}][name]" value="{{ $addon['name'] }}">
-                                                             <input type="hidden" name="participants[0][addons][{{ $idx }}][price]" value="{{ $addon['price'] ?? 0 }}">
+                                                             <input type="hidden" name="participants[0][addons][{{ $idx }}][name]" value="{{ $addon['name'] }}" {{ $isSoldOut ? 'disabled' : '' }}>
+                                                             <input type="hidden" name="participants[0][addons][{{ $idx }}][price]" value="{{ $addon['price'] ?? 0 }}" {{ $isSoldOut ? 'disabled' : '' }}>
                                                              
                                                              <div>
-                                                                <span class="block text-sm font-bold text-white group-hover:text-brand-400 transition">{{ $addon['name'] }}</span>
+                                                                <span class="block text-sm font-bold {{ $isSoldOut ? 'text-slate-500' : 'text-white group-hover:text-brand-400' }} transition">{{ $addon['name'] }}</span>
+                                                                @if($hasQuota)
+                                                                    <span class="block text-xs font-semibold {{ $isSoldOut ? 'text-rose-400' : 'text-slate-400' }}">
+                                                                        {{ $isSoldOut ? 'Stok Habis' : 'Sisa kuota: ' . $addon['remaining'] }}
+                                                                    </span>
+                                                                @endif
                                                              </div>
                                                         </div>
-                                                        <span class="text-sm font-bold text-accent-400">
-                                                            +Rp {{ number_format($addon['price'] ?? 0, 0, ',', '.') }}
-                                                        </span>
+                                                        <div class="flex items-center gap-2">
+                                                            @if($isSoldOut)
+                                                                <span class="text-xs font-bold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded">Habis</span>
+                                                            @endif
+                                                            <span class="text-sm font-bold {{ $isSoldOut ? 'text-slate-500' : 'text-accent-400' }}">
+                                                                +Rp {{ number_format($addon['price'] ?? 0, 0, ',', '.') }}
+                                                            </span>
+                                                        </div>
                                                     </label>
                                                 @endforeach
                                             </div>
@@ -3355,7 +3374,7 @@
                         if (nameParts && nameParts[1]) {
                             const addonIdx = nameParts[1];
                             const targetCb = currentItem.querySelector(`input[name*="[addons][${addonIdx}][selected]"]`);
-                            if (targetCb) {
+                            if (targetCb && !targetCb.disabled) {
                                 targetCb.checked = true;
                             }
                         }

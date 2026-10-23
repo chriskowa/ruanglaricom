@@ -200,6 +200,7 @@
                                 <option value="golden-run" {{ old('template', $event->template) == 'golden-run' ? 'selected' : '' }}>Golden Run</option>
                                 <option value="latbar" {{ old('template', $event->template) == 'latbar' ? 'selected' : '' }}>Latbar</option>
                                 <option value="light-clean" {{ old('template', $event->template) == 'light-clean' ? 'selected' : '' }}>Light Clean</option>
+                                <option value="beach-theme" {{ old('template', $event->template) == 'beach-theme' ? 'selected' : '' }}>Beach Theme</option>
                                 <option value="modern-dark" {{ old('template', $event->template) == 'modern-dark' ? 'selected' : '' }}>Modern Dark</option>
                                 <option value="paolo-fest-dark" {{ old('template', $event->template) == 'paolo-fest-dark' ? 'selected' : '' }}>Paolo Fest Dark</option>
                                 <option value="professional-city-run" {{ old('template', $event->template) == 'professional-city-run' ? 'selected' : '' }}>Professional City Run</option>

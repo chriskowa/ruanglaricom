@@ -199,6 +199,7 @@
                                 <option value="golden-run" {{ old('template') == 'golden-run' ? 'selected' : '' }}>Golden Run</option>
                                 <option value="latbar" {{ old('template') == 'latbar' ? 'selected' : '' }}>Latbar</option>
                                 <option value="light-clean" {{ old('template') == 'light-clean' ? 'selected' : '' }}>Light Clean</option>
+                                <option value="beach-theme" {{ old('template') == 'beach-theme' ? 'selected' : '' }}>Beach Theme</option>
                                 <option value="modern-dark" {{ old('template') == 'modern-dark' ? 'selected' : '' }}>Modern Dark</option>
                                 <option value="paolo-fest-dark" {{ old('template') == 'paolo-fest-dark' ? 'selected' : '' }}>Paolo Fest Dark</option>
                                 <option value="professional-city-run" {{ old('template') == 'professional-city-run' ? 'selected' : '' }}>Professional City Run</option>

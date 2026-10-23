@@ -308,6 +308,30 @@
                             </label>
 
                             <label class="relative cursor-pointer group">
+                                <input type="radio" name="template" value="beach-theme" class="peer sr-only" {{ old('template') == 'beach-theme' ? 'checked' : '' }}>
+                                <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800 transition-all hover:border-slate-500 h-full flex flex-col">
+                                    <div class="bg-slate-800 h-24 rounded-lg mb-3 border border-slate-700 flex items-center justify-center overflow-hidden">
+                                        <div class="w-full h-full relative flex flex-col items-center justify-center overflow-hidden" style="background-color: #f6f3eb;">
+                                            <div class="absolute inset-0 bg-gradient-to-b from-teal-950/80 via-teal-900/50 to-transparent"></div>
+                                            <div class="absolute bottom-0 w-full h-5 bg-amber-200"></div>
+                                            <div class="absolute bottom-4 w-full h-2 bg-emerald-200/80"></div>
+                                            <div class="relative z-10 text-center px-2">
+                                                <span class="text-[9px] font-bold text-amber-100 uppercase tracking-widest block">Coastal & Beach</span>
+                                                <span class="text-xs font-extrabold text-white">Beach Theme</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <h4 class="font-bold text-white mb-1">Beach Theme</h4>
+                                    <p class="text-xs text-slate-400">Nuansa pantai dan pesisir dengan estetika coastal run, hero visual sinematik, dan palet hangat.</p>
+                                </div>
+                                <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
+                                    <div class="bg-yellow-400 rounded-full p-1">
+                                        <svg class="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
+                                    </div>
+                                </div>
+                            </label>
+
+                            <label class="relative cursor-pointer group">
                                 <input type="radio" name="template" value="simple-minimal" class="peer sr-only" {{ old('template') == 'simple-minimal' ? 'checked' : '' }}>
                                 <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800 transition-all hover:border-slate-500 h-full flex flex-col">
                                     <div class="bg-slate-800 h-24 rounded-lg mb-3 border border-slate-700 flex items-center justify-center overflow-hidden">
@@ -962,15 +986,21 @@
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                        <label class="block text-sm font-medium text-slate-300 mb-2">Hero Image <span class="text-red-400">*</span></label>
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-sm font-medium text-slate-300">Hero Images / Banner Slider <span class="text-red-400">*</span></label>
+                            <span class="text-xs text-slate-400">Maks. 5 Foto (16:9)</span>
+                        </div>
                         <div id="hero-dropzone" class="dropzone bg-slate-900 border-2 border-dashed border-slate-700 rounded-xl hover:border-yellow-400 transition-colors">
                             <div class="dz-message text-center py-8">
                                 <svg class="w-10 h-10 text-slate-500 mx-auto mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                                <p class="text-sm text-slate-400">Click or Drag Image (16:9)</p>
+                                <p class="text-sm text-slate-400 font-medium">Klik atau Tarik Foto Banner (Maks. 5)</p>
+                                <p class="text-xs text-slate-500 mt-1">Foto pertama otomatis menjadi banner utama event</p>
                             </div>
                         </div>
-                        <input type="hidden" name="hero_image" id="hero_image_input">
+                        <div id="hero_images-inputs"></div>
+                        <input type="hidden" name="hero_image" id="hero_image_input" value="{{ old('hero_image') }}">
                         @error('hero_image') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                        @error('hero_images') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
 
                     <div>
@@ -1055,13 +1085,17 @@
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
                     </button>
                     <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
-                        <div class="md:col-span-6">
+                        <div class="md:col-span-5">
                             <label class="block text-xs font-medium text-slate-400 mb-1">Addon Name <span class="text-red-400">*</span></label>
                             <input type="text" class="addon-name w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400" placeholder="e.g. Jersey Finisher" required>
                         </div>
-                        <div class="md:col-span-6">
+                        <div class="md:col-span-4">
                             <label class="block text-xs font-medium text-slate-400 mb-1">Price (IDR)</label>
                             <input type="number" class="addon-price w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400" placeholder="150000">
+                        </div>
+                        <div class="md:col-span-3">
+                            <label class="block text-xs font-medium text-slate-400 mb-1">Quota <span class="text-slate-500 text-[10px]">(Opsional)</span></label>
+                            <input type="number" class="addon-quota w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400" placeholder="Unlimited" min="0">
                         </div>
                     </div>
                 </div>
@@ -1295,6 +1329,12 @@
         input.className = 'dz-hidden-input'; // Marker
         input.dataset.path = value;
         container.appendChild(input);
+
+        if (name === 'hero_images[]') {
+            const first = container.querySelector('.dz-hidden-input');
+            const mainHero = document.getElementById('hero_image_input');
+            if (first && mainHero) mainHero.value = first.value;
+        }
     }
 
     function removeHiddenInput(name, value) {
@@ -1309,6 +1349,12 @@
 
         const input = container.querySelector(`input[value="${value}"]`);
         if (input) input.remove();
+
+        if (name === 'hero_images[]') {
+            const first = container.querySelector('.dz-hidden-input');
+            const mainHero = document.getElementById('hero_image_input');
+            if (mainHero) mainHero.value = first ? first.value : '';
+        }
     }
 
     function reorderInputs(dropzoneInstance, inputName) {
@@ -1340,15 +1386,22 @@
                 container.appendChild(input);
             }
         });
+
+        if (inputName === 'hero_images[]') {
+            const first = container.querySelector('.dz-hidden-input');
+            const mainHero = document.getElementById('hero_image_input');
+            if (first && mainHero) mainHero.value = first.value;
+        }
     }
 
     // Initialize Dropzones
     document.addEventListener("DOMContentLoaded", function() {
-        initDropzone('hero-dropzone', 'hero_image', 1);
+        initDropzone('hero-dropzone', 'hero_images[]', 5);
         initDropzone('logo-dropzone', 'logo_image', 1);
         initDropzone('favicon-dropzone', 'favicon_image', 1);
         initDropzone('twibbon-dropzone', 'twibbon_image', 1);
         initDropzone('jersey-dropzone', 'jersey_image', 1);
+        initDropzone('jersey-chart-dropzone', 'jersey_chart_image', 1);
         initDropzone('medal-dropzone', 'medal_image', 1);
         initDropzone('gallery-dropzone', 'gallery[]', 10);
         initDropzone('sponsors-dropzone', 'sponsors[]', 30);
@@ -1497,13 +1550,14 @@
         // Set names with index
         const inputs = {
             'addon-name': 'name',
-            'addon-price': 'price'
+            'addon-price': 'price',
+            'addon-quota': 'quota'
         };
         
         for (const [cls, field] of Object.entries(inputs)) {
             const input = item.querySelector(`.${cls}`);
             input.name = `addons[${addonIndex}][${field}]`;
-            if (data) input.value = data[field];
+            if (data && data[field] !== undefined && data[field] !== null) input.value = data[field];
         }
 
         // Remove button

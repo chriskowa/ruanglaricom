@@ -46,6 +46,33 @@
             }
         }
 
+        $rawHeroImages = is_array($event->hero_images ?? null) ? $event->hero_images : (is_string($event->hero_images ?? null) ? json_decode($event->hero_images, true) : []);
+        if (!is_array($rawHeroImages)) {
+            $rawHeroImages = [];
+        }
+        $heroImages = [];
+        foreach ($rawHeroImages as $hItem) {
+            if (!empty($hItem)) {
+                if (str_starts_with($hItem, 'http://') || str_starts_with($hItem, 'https://')) {
+                    $heroImages[] = $hItem;
+                } else {
+                    $heroImages[] = asset('storage/' . ltrim($hItem, '/'));
+                }
+            }
+        }
+        if (empty($heroImages) && !empty($event->hero_image)) {
+            $heroImages[] = (str_starts_with($event->hero_image, 'http://') || str_starts_with($event->hero_image, 'https://'))
+                ? $event->hero_image
+                : asset('storage/' . ltrim($event->hero_image, '/'));
+        }
+        if (empty($heroImages) && !empty($event->hero_image_url)) {
+            $heroImages[] = $event->hero_image_url;
+        }
+
+        $hasMultipleHeroImages = count($heroImages) > 1;
+        $heroSliderImages = $hasMultipleHeroImages ? $heroImages : array_slice(array_values(array_unique(array_merge($heroImages, $galleryUrls))), 0, 5);
+        $useHeroSlider = count($heroSliderImages) > 1;
+
         $now = now();
         $isComingSoon = ($event->registration_open_at && $now < $event->registration_open_at);
         $isNaturallyClosed = ($event->registration_close_at && $now > $event->registration_close_at);
@@ -798,43 +825,59 @@
 
     <main id="top" class="flex-grow pt-0">
         <!-- Hero Section -->
-        <section class="relative pt-24 pb-16 md:pt-32 md:pb-24 bg-white border-b border-slate-200 overflow-hidden">
-            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+        <section id="heroSection" class="relative pt-24 pb-16 md:pt-32 md:pb-24 bg-white border-b border-slate-200 overflow-hidden">
+            @if($useHeroSlider)
+                <!-- Hero Background Slider (Active when hero images > 1) -->
+                <div class="absolute inset-0 overflow-hidden pointer-events-none select-none z-0" id="heroSliderTrack" aria-hidden="true">
+                    @foreach($heroSliderImages as $sIdx => $sImg)
+                        <div class="hero-slide-item absolute inset-0 transition-opacity duration-1000 ease-in-out {{ $sIdx === 0 ? 'opacity-100 z-1' : 'opacity-0 z-0' }}" data-hero-slide-index="{{ $sIdx }}">
+                            <img src="{{ $sImg }}" alt="{{ $event->name }}" class="w-full h-full object-cover object-center {{ $sIdx === 0 ? 'scale-100' : 'scale-105' }} transition-transform duration-7000 ease-out" @if($sIdx === 0) fetchpriority="high" @else loading="lazy" @endif>
+                        </div>
+                    @endforeach
+                </div>
+
+                <!-- Gradient Scrim: Solid white on left, gentle fade on right for maximum clarity -->
+                <div class="absolute inset-0 bg-gradient-to-r from-white via-white/95 to-white/70 lg:to-white/40 pointer-events-none z-0"></div>
+                <div class="absolute inset-0 bg-gradient-to-t from-white via-white/20 to-white/40 pointer-events-none z-0"></div>
+            @endif
+
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
                     
                     <!-- Left Hero Details -->
-                    <div class="lg:col-span-7 space-y-6">
-                        <!-- Top Meta Chips -->
-                        <div class="flex flex-wrap items-center gap-2">
-                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded text-xs font-bold bg-theme-light text-theme-primary border border-theme-light">
-                                <span class="w-2 h-2 rounded-full bg-theme-primary"></span>
-                                {{ $event->start_at ? $event->start_at->format('d F Y') : 'Tanggal Diumumkan' }}
-                            </span>
-                            @if($event->location_name)
-                            <span class="inline-flex items-center px-3 py-1 rounded text-xs font-semibold bg-slate-100 text-slate-700 border border-slate-200">
-                                <i class="fas fa-map-marker-alt text-slate-400 mr-1.5"></i>
-                                {{ $event->location_name }}
-                            </span>
-                            @endif
-                            @if($isRegOpen)
-                            <span class="inline-flex items-center px-3 py-1 rounded text-xs font-bold bg-amber-50 text-amber-800 border border-amber-200">
-                                Kuota Terbatas
-                            </span>
-                            @endif
-                        </div>
-
-                        <!-- H1 Heading -->
-                        <h1 class="text-4xl sm:text-6xl lg:text-7xl font-heading text-slate-900 tracking-tight leading-[1.05]">
+                    <div class="lg:col-span-7 space-y-5">
+                        <!-- H1 Heading: Direct, Bold, Clean (No Pill Chips Above) -->
+                        <h1 class="text-3xl sm:text-5xl lg:text-6xl font-heading text-slate-900 tracking-tight leading-[1.08] font-extrabold">
                             {{ strtoupper($event->name) }}
                         </h1>
 
                         <!-- Description -->
                         <p class="text-base sm:text-lg text-slate-600 leading-relaxed max-w-2xl">
-                            {!! $event->short_description ?: 'Bergabunglah dalam event lari resmi yang kompetitif, dan aman di rute terbaik.' !!}
+                            {!! $event->short_description ?: 'Bergabunglah dalam event lari resmi yang kompetitif dan aman di rute terbaik.' !!}
                         </p>
 
-                        <!-- CTA Row -->
-                        <div class="flex flex-wrap items-center gap-3 pt-2">
+                        <!-- Structured Event Facts Bar (Anti-AI Slop, No Pills) -->
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 py-3.5 border-y border-slate-200/90 my-5 bg-white/75 backdrop-blur-xs rounded-lg px-4 shadow-2xs">
+                            <div>
+                                <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Tanggal</span>
+                                <span class="text-xs sm:text-sm font-bold text-slate-900">{{ $event->start_at ? $event->start_at->translatedFormat('d F Y') : 'Segera Diumumkan' }}</span>
+                            </div>
+                            <div>
+                                <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Lokasi</span>
+                                <span class="text-xs sm:text-sm font-bold text-slate-900 truncate block" title="{{ $event->location_name }}">{{ $event->location_name ?: 'Indonesia' }}</span>
+                            </div>
+                            <div>
+                                <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Flag Off</span>
+                                <span class="text-xs sm:text-sm font-bold text-slate-900">{{ $event->start_at ? $event->start_at->format('H:i') . ' WIB' : 'TBA' }}</span>
+                            </div>
+                            <div>
+                                <span class="block text-[11px] font-bold text-slate-400 uppercase tracking-wider">Kategori</span>
+                                <span class="text-xs sm:text-sm font-bold text-theme-primary">{{ $categories->count() }} Pilihan Jarak</span>
+                            </div>
+                        </div>
+
+                        <!-- CTA Row & Clean Status Indicator -->
+                        <div class="flex flex-wrap items-center gap-3 pt-1">
                             @if($isRegOpen)
                                 <a href="#register" class="px-8 py-3.5 rounded-md bg-theme-primary hover-bg-theme-primary text-white font-bold text-sm transition shadow-sm flex items-center gap-2">
                                     <span>Daftar Sekarang</span>
@@ -850,31 +893,35 @@
                                 </button>
                             @endif
                          
-                            <a href="#about" class="px-5 py-3.5 rounded-md text-slate-600 hover:text-slate-900 font-semibold text-sm transition">
+                            <a href="#about" class="px-5 py-3.5 rounded-md border border-slate-200 bg-white/80 hover:bg-white text-slate-700 hover:text-slate-900 font-semibold text-sm transition shadow-2xs">
                                 Pelajari Acara
                             </a>
+
+                            <span class="text-xs font-semibold px-2.5 py-1.5 rounded-md border {{ $isRegOpen ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : ($isComingSoon ? 'bg-amber-50 text-amber-700 border-amber-200' : 'bg-slate-100 text-slate-600 border-slate-200') }}">
+                                {{ $isRegOpen ? 'Pendaftaran Dibuka' : ($isComingSoon ? 'Segera Dibuka' : 'Pendaftaran Ditutup') }}
+                            </span>
                         </div>
 
                         <!-- Countdown Timer Container -->
                         @if($countdownTarget)
-                        <div class="pt-6 border-t border-slate-100">
-                            <span class="block text-xs font-bold uppercase text-slate-500 tracking-wider mb-3">
+                        <div class="pt-5 border-t border-slate-200/80">
+                            <span class="block text-xs font-bold uppercase text-slate-500 tracking-wider mb-2.5">
                                 {{ $countdownLabel }}
                             </span>
                             <div class="grid grid-cols-4 gap-2 sm:gap-4 max-w-md">
-                                <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 text-center">
+                                <div class="bg-white/85 border border-slate-200 rounded-lg p-3 text-center shadow-2xs">
                                     <span class="block text-2xl sm:text-3xl font-heading text-slate-900 font-mono" id="cd-days">00</span>
                                     <span class="text-[11px] font-semibold text-slate-500 uppercase">Hari</span>
                                 </div>
-                                <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 text-center">
+                                <div class="bg-white/85 border border-slate-200 rounded-lg p-3 text-center shadow-2xs">
                                     <span class="block text-2xl sm:text-3xl font-heading text-slate-900 font-mono" id="cd-hours">00</span>
                                     <span class="text-[11px] font-semibold text-slate-500 uppercase">Jam</span>
                                 </div>
-                                <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 text-center">
+                                <div class="bg-white/85 border border-slate-200 rounded-lg p-3 text-center shadow-2xs">
                                     <span class="block text-2xl sm:text-3xl font-heading text-slate-900 font-mono" id="cd-minutes">00</span>
                                     <span class="text-[11px] font-semibold text-slate-500 uppercase">Menit</span>
                                 </div>
-                                <div class="bg-slate-50 border border-slate-200 rounded-lg p-3 text-center">
+                                <div class="bg-white/85 border border-slate-200 rounded-lg p-3 text-center shadow-2xs">
                                     <span class="block text-2xl sm:text-3xl font-heading text-theme-primary font-mono" id="cd-seconds">00</span>
                                     <span class="text-[11px] font-semibold text-slate-500 uppercase">Detik</span>
                                 </div>
@@ -885,39 +932,90 @@
 
                     <!-- Right Hero Visual Card -->
                     <div class="lg:col-span-5">
-                        <div class="bg-white border border-slate-200 rounded-lg p-3 shadow-sm relative">
-                            <div class="aspect-[4/3] rounded-md overflow-hidden bg-slate-100 border border-slate-100 relative {{ $event->hero_image ? 'cursor-pointer group' : '' }}" @if($event->hero_image) onclick="openLightbox('{{ asset('storage/' . $event->hero_image) }}')" title="Klik untuk memperbesar" @endif>
-                                @if($event->hero_image)
-                                    <img src="{{ asset('storage/' . $event->hero_image) }}" alt="{{ $event->name }}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
-                                    <div class="absolute bottom-3 right-3 bg-slate-900/80 hover:bg-slate-900 text-white w-8 h-8 rounded-md flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition shadow-sm pointer-events-none">
-                                        <i class="fas fa-search-plus text-[11px]"></i>
+                        @if($useHeroSlider)
+                            <!-- Slider Interactive Showcase & Controls -->
+                            <div class="bg-white/95 backdrop-blur-md border border-slate-200 rounded-lg p-4 sm:p-5 shadow-sm space-y-4">
+                                <!-- Active Photo Preview with Lightbox trigger -->
+                                <div class="aspect-[16/10] sm:aspect-[4/3] rounded-md overflow-hidden bg-slate-100 border border-slate-100 relative cursor-pointer group" onclick="openCurrentHeroLightbox()" title="Klik untuk memperbesar foto">
+                                    <img id="heroActiveSlideImg" src="{{ $heroSliderImages[0] }}" alt="{{ $event->name }}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
+                                    <div class="absolute bottom-2.5 right-2.5 bg-slate-900/80 hover:bg-slate-900 text-white w-7 h-7 rounded-md flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition shadow-sm pointer-events-none">
+                                        <i class="fas fa-search-plus text-[10px]"></i>
                                     </div>
-                                @else
-                                    <div class="w-full h-full flex items-center justify-center text-slate-400 font-bold bg-slate-100">
-                                        Foto Resmi Event
+                                    <div class="absolute top-2.5 left-2.5 bg-white/95 border border-slate-200 px-2.5 py-0.5 rounded text-[11px] font-bold text-slate-800 shadow-sm pointer-events-none">
+                                        Official Race Visual
                                     </div>
-                                @endif
-                                <div class="absolute top-3 left-3 bg-white/95 border border-slate-200 px-3 py-1 rounded text-xs font-bold text-slate-800 shadow-sm pointer-events-none">
-                                    Official Race
                                 </div>
-                            </div>
 
-                            <!-- Fast telemetry summary bar -->
-                            <div class="grid grid-cols-3 gap-3 p-4 bg-slate-50 rounded-md border border-slate-200 mt-3 text-center">
-                                <div>
-                                    <span class="block text-[11px] text-slate-500 uppercase font-semibold">Kategori</span>
-                                    <span class="text-lg font-heading text-slate-900">{{ $categories->count() }} Pilihan</span>
+                                <!-- Slider Controls & Indicators -->
+                                <div class="flex items-center justify-between pt-0.5">
+                                    <div class="flex items-center gap-1.5">
+                                        <button type="button" id="heroPrevBtn" class="w-8 h-8 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 flex items-center justify-center text-xs transition shadow-2xs cursor-pointer" aria-label="Foto Sebelumnya">
+                                            <i class="fas fa-chevron-left text-[10px]"></i>
+                                        </button>
+                                        <button type="button" id="heroNextBtn" class="w-8 h-8 rounded-md border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 flex items-center justify-center text-xs transition shadow-2xs cursor-pointer" aria-label="Foto Berikutnya">
+                                            <i class="fas fa-chevron-right text-[10px]"></i>
+                                        </button>
+                                        <span id="heroSlideCounter" class="text-xs font-mono font-bold text-slate-600 ml-2">01 / {{ sprintf('%02d', count($heroSliderImages)) }}</span>
+                                    </div>
+                                    <div class="flex items-center gap-1.5">
+                                        @foreach($heroSliderImages as $hDotIdx => $hDotImg)
+                                            <button type="button" class="hero-dot-btn h-2 rounded-full transition-all duration-200 cursor-pointer {{ $hDotIdx === 0 ? 'bg-theme-primary w-6' : 'bg-slate-300 hover:bg-slate-400 w-2' }}" data-hero-dot-index="{{ $hDotIdx }}" aria-label="Slide {{ $hDotIdx + 1 }}"></button>
+                                        @endforeach
+                                    </div>
                                 </div>
-                                <div class="border-x border-slate-200">
-                                    <span class="block text-[11px] text-slate-500 uppercase font-semibold">Flag Off</span>
-                                    <span class="text-lg font-heading text-slate-900">{{ $event->start_at ? $event->start_at->format('H:i') : 'TBA' }} WIB</span>
-                                </div>
-                                <div>
-                                    <span class="block text-[11px] text-slate-500 uppercase font-semibold">Peserta</span>
-                                    <span class="text-lg font-heading text-theme-primary">Terbuka</span>
+
+                                <!-- Fast Telemetry Summary Bar -->
+                                <div class="grid grid-cols-3 gap-2 p-3 bg-slate-50 rounded-md border border-slate-100 text-center">
+                                    <div>
+                                        <span class="block text-[10px] text-slate-400 uppercase font-semibold">Kategori</span>
+                                        <span class="text-xs sm:text-sm font-heading text-slate-900 font-bold">{{ $categories->count() }} Pilihan</span>
+                                    </div>
+                                    <div class="border-x border-slate-200">
+                                        <span class="block text-[10px] text-slate-400 uppercase font-semibold">Flag Off</span>
+                                        <span class="text-xs sm:text-sm font-heading text-slate-900 font-bold">{{ $event->start_at ? $event->start_at->format('H:i') : 'TBA' }} WIB</span>
+                                    </div>
+                                    <div>
+                                        <span class="block text-[10px] text-slate-400 uppercase font-semibold">Status Slot</span>
+                                        <span class="text-xs sm:text-sm font-heading text-theme-primary font-bold">{{ $isRegOpen ? 'Terbuka' : 'Tutup' }}</span>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
+                        @else
+                            <!-- Single Visual Card -->
+                            <div class="bg-white border border-slate-200 rounded-lg p-3 shadow-sm relative">
+                                <div class="aspect-[4/3] rounded-md overflow-hidden bg-slate-100 border border-slate-100 relative {{ $event->hero_image ? 'cursor-pointer group' : '' }}" @if($event->hero_image) onclick="openLightbox('{{ asset('storage/' . $event->hero_image) }}')" title="Klik untuk memperbesar" @endif>
+                                    @if($event->hero_image)
+                                        <img src="{{ asset('storage/' . $event->hero_image) }}" alt="{{ $event->name }}" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105">
+                                        <div class="absolute bottom-3 right-3 bg-slate-900/80 hover:bg-slate-900 text-white w-8 h-8 rounded-md flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition shadow-sm pointer-events-none">
+                                            <i class="fas fa-search-plus text-[11px]"></i>
+                                        </div>
+                                    @else
+                                        <div class="w-full h-full flex items-center justify-center text-slate-400 font-bold bg-slate-100">
+                                            Foto Resmi Event
+                                        </div>
+                                    @endif
+                                    <div class="absolute top-3 left-3 bg-white/95 border border-slate-200 px-3 py-1 rounded text-xs font-bold text-slate-800 shadow-sm pointer-events-none">
+                                        Official Race
+                                    </div>
+                                </div>
+
+                                <!-- Fast telemetry summary bar -->
+                                <div class="grid grid-cols-3 gap-3 p-4 bg-slate-50 rounded-md border border-slate-200 mt-3 text-center">
+                                    <div>
+                                        <span class="block text-[11px] text-slate-500 uppercase font-semibold">Kategori</span>
+                                        <span class="text-lg font-heading text-slate-900">{{ $categories->count() }} Pilihan</span>
+                                    </div>
+                                    <div class="border-x border-slate-200">
+                                        <span class="block text-[11px] text-slate-500 uppercase font-semibold">Flag Off</span>
+                                        <span class="text-lg font-heading text-slate-900">{{ $event->start_at ? $event->start_at->format('H:i') : 'TBA' }} WIB</span>
+                                    </div>
+                                    <div>
+                                        <span class="block text-[11px] text-slate-500 uppercase font-semibold">Peserta</span>
+                                        <span class="text-lg font-heading text-theme-primary">Terbuka</span>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
                     </div>
 
                 </div>
@@ -1139,18 +1237,22 @@
         <section id="benefits" class="py-20 bg-slate-50 border-b border-slate-200 scroll-mt-16 relative">
             <span id="racepack" class="absolute -top-16 sr-only"></span>
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="text-center max-w-2xl mx-auto mb-12 sm:mb-14">
-                    <span class="text-xs font-bold uppercase tracking-wider text-theme-primary">Fasilitas & Kelengkapan Lari</span>
-                    <h2 class="text-3xl sm:text-4xl font-heading text-slate-900 mt-1">Benefit untuk Peserta</h2>
-                    <p class="text-slate-600 text-sm mt-2">Seluruh peserta resmi berhak mendapatkan paket benefit eksklusif perlombaan untuk mendukung kenyamanan dan performa terbaik.</p>
-                </div>
-
                 @php
                     $benefitsAmenity = $event->premium_amenities['benefits'] ?? [];
+                    $benefitTitle = !empty($benefitsAmenity['title']) ? $benefitsAmenity['title'] : 'Benefit untuk Peserta';
+                    $benefitDesc = !empty($benefitsAmenity['description']) ? $benefitsAmenity['description'] : 'Seluruh peserta resmi berhak mendapatkan paket benefit eksklusif perlombaan untuk mendukung kenyamanan dan performa terbaik.';
                     $benefitItems = [];
                     if (!empty($benefitsAmenity['items']) && is_array($benefitsAmenity['items'])) {
                         $benefitItems = $benefitsAmenity['items'];
                     }
+                @endphp
+                <div class="text-center max-w-2xl mx-auto mb-12 sm:mb-14">
+                    <span class="text-xs font-bold uppercase tracking-wider text-theme-primary">Fasilitas & Kelengkapan Lari</span>
+                    <h2 class="text-3xl sm:text-4xl font-heading text-slate-900 mt-1">{{ $benefitTitle }}</h2>
+                    <p class="text-slate-600 text-sm mt-2">{{ $benefitDesc }}</p>
+                </div>
+
+                @php
                     if (empty($benefitItems)) {
                         $benefitItems = [
                             [
@@ -2131,19 +2233,39 @@
                                                 @endif
 
                                                 <!-- Add-ons (If available) -->
-                                                @if(!empty($event->addons) && is_array($event->addons))
+                                                @php
+                                                    $eventAddonsList = $event->addons_with_quota ?? [];
+                                                @endphp
+                                                @if(!empty($eventAddonsList))
                                                 <div class="border-t border-slate-200 pt-3">
                                                     <label class="block text-xs font-bold text-slate-700 uppercase mb-2">Pilihan Add-On Tambahan</label>
                                                     <div class="space-y-2">
-                                                        @foreach($event->addons as $aIdx => $addon)
-                                                        <label class="flex items-center justify-between p-2.5 rounded-md bg-white border border-slate-200 hover:border-theme-primary cursor-pointer transition">
+                                                        @foreach($eventAddonsList as $addon)
+                                                        @php
+                                                            $aIdx = $addon['index'];
+                                                            $isSoldOut = !empty($addon['is_sold_out']);
+                                                            $hasQuota = ($addon['quota'] ?? null) !== null;
+                                                        @endphp
+                                                        <label class="flex items-center justify-between p-2.5 rounded-md border transition {{ $isSoldOut ? 'bg-slate-50 border-slate-200 opacity-60 cursor-not-allowed select-none' : 'bg-white border-slate-200 hover:border-theme-primary cursor-pointer' }}">
                                                             <div class="flex items-center gap-2.5">
-                                                                <input type="checkbox" name="participants[0][addons][{{ $aIdx }}][selected]" value="1" class="addon-checkbox w-4 h-4 rounded text-theme-primary border-slate-300" data-price="{{ $addon['price'] ?? 0 }}">
-                                                                <input type="hidden" name="participants[0][addons][{{ $aIdx }}][name]" value="{{ $addon['name'] }}">
-                                                                <input type="hidden" name="participants[0][addons][{{ $aIdx }}][price]" value="{{ $addon['price'] ?? 0 }}">
-                                                                <span class="text-xs font-bold text-slate-800">{{ $addon['name'] }}</span>
+                                                                <input type="checkbox" name="participants[0][addons][{{ $aIdx }}][selected]" value="1" class="addon-checkbox w-4 h-4 rounded text-theme-primary border-slate-300 {{ $isSoldOut ? 'cursor-not-allowed' : '' }}" data-price="{{ $addon['price'] ?? 0 }}" {{ $isSoldOut ? 'disabled' : '' }}>
+                                                                <input type="hidden" name="participants[0][addons][{{ $aIdx }}][name]" value="{{ $addon['name'] }}" {{ $isSoldOut ? 'disabled' : '' }}>
+                                                                <input type="hidden" name="participants[0][addons][{{ $aIdx }}][price]" value="{{ $addon['price'] ?? 0 }}" {{ $isSoldOut ? 'disabled' : '' }}>
+                                                                <div class="flex flex-col">
+                                                                    <span class="text-xs font-bold {{ $isSoldOut ? 'text-slate-500' : 'text-slate-800' }}">{{ $addon['name'] }}</span>
+                                                                    @if($hasQuota)
+                                                                        <span class="text-[10px] font-semibold {{ $isSoldOut ? 'text-rose-600' : 'text-slate-500' }}">
+                                                                            {{ $isSoldOut ? 'Stok Habis' : 'Sisa kuota: ' . $addon['remaining'] }}
+                                                                        </span>
+                                                                    @endif
+                                                                </div>
                                                             </div>
-                                                            <span class="text-xs font-mono font-bold text-theme-primary">+Rp {{ number_format($addon['price'] ?? 0, 0, ',', '.') }}</span>
+                                                            <div class="flex items-center gap-2">
+                                                                @if($isSoldOut)
+                                                                    <span class="text-[10px] font-bold text-rose-600 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded">Habis</span>
+                                                                @endif
+                                                                <span class="text-xs font-mono font-bold {{ $isSoldOut ? 'text-slate-400' : 'text-theme-primary' }}">+Rp {{ number_format($addon['price'] ?? 0, 0, ',', '.') }}</span>
+                                                            </div>
                                                         </label>
                                                         @endforeach
                                                     </div>
@@ -2532,6 +2654,114 @@
                 document.body.classList.remove('overflow-hidden');
             }
         };
+
+        // Hero Background Slider Controller
+        (function() {
+            const slides = document.querySelectorAll('.hero-slide-item');
+            if (!slides || slides.length <= 1) return;
+
+            let currentSlide = 0;
+            const totalSlides = slides.length;
+            const counterEl = document.getElementById('heroSlideCounter');
+            const previewImg = document.getElementById('heroActiveSlideImg');
+            const dotBtns = document.querySelectorAll('.hero-dot-btn');
+            const prevBtn = document.getElementById('heroPrevBtn');
+            const nextBtn = document.getElementById('heroNextBtn');
+            const heroSection = document.getElementById('heroSection');
+
+            const heroImagesData = @json($heroSliderImages ?? []);
+
+            window.openCurrentHeroLightbox = function() {
+                if (heroImagesData && heroImagesData[currentSlide] && window.openLightbox) {
+                    window.openLightbox(heroImagesData[currentSlide]);
+                }
+            };
+
+            function showSlide(index) {
+                if (index < 0) index = totalSlides - 1;
+                if (index >= totalSlides) index = 0;
+                currentSlide = index;
+
+                slides.forEach((slide, idx) => {
+                    const img = slide.querySelector('img');
+                    if (idx === currentSlide) {
+                        slide.classList.remove('opacity-0', 'z-0');
+                        slide.classList.add('opacity-100', 'z-1');
+                        if (img) {
+                            img.classList.remove('scale-105');
+                            img.classList.add('scale-100');
+                        }
+                    } else {
+                        slide.classList.remove('opacity-100', 'z-1');
+                        slide.classList.add('opacity-0', 'z-0');
+                        if (img) {
+                            img.classList.remove('scale-100');
+                            img.classList.add('scale-105');
+                        }
+                    }
+                });
+
+                if (counterEl) {
+                    counterEl.textContent = String(currentSlide + 1).padStart(2, '0') + ' / ' + String(totalSlides).padStart(2, '0');
+                }
+
+                if (previewImg && heroImagesData[currentSlide]) {
+                    previewImg.style.opacity = '0.5';
+                    previewImg.src = heroImagesData[currentSlide];
+                    setTimeout(() => { previewImg.style.opacity = '1'; }, 150);
+                }
+
+                dotBtns.forEach((dot, idx) => {
+                    if (idx === currentSlide) {
+                        dot.classList.add('bg-theme-primary', 'w-6');
+                        dot.classList.remove('bg-slate-300', 'w-2');
+                    } else {
+                        dot.classList.remove('bg-theme-primary', 'w-6');
+                        dot.classList.add('bg-slate-300', 'w-2');
+                    }
+                });
+            }
+
+            if (prevBtn) {
+                prevBtn.addEventListener('click', () => {
+                    showSlide(currentSlide - 1);
+                    resetAutoSlide();
+                });
+            }
+
+            if (nextBtn) {
+                nextBtn.addEventListener('click', () => {
+                    showSlide(currentSlide + 1);
+                    resetAutoSlide();
+                });
+            }
+
+            dotBtns.forEach(dot => {
+                dot.addEventListener('click', () => {
+                    const idx = parseInt(dot.getAttribute('data-hero-dot-index'), 10);
+                    if (!isNaN(idx)) {
+                        showSlide(idx);
+                        resetAutoSlide();
+                    }
+                });
+            });
+
+            let autoSlideInterval = setInterval(() => {
+                showSlide(currentSlide + 1);
+            }, 6000);
+
+            function resetAutoSlide() {
+                clearInterval(autoSlideInterval);
+                autoSlideInterval = setInterval(() => {
+                    showSlide(currentSlide + 1);
+                }, 6000);
+            }
+
+            if (heroSection) {
+                heroSection.addEventListener('mouseenter', () => clearInterval(autoSlideInterval));
+                heroSection.addEventListener('mouseleave', () => resetAutoSlide());
+            }
+        })();
 
         // About Section Gallery Controller
         (function() {

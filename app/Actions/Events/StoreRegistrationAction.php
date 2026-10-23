@@ -274,6 +274,28 @@ class StoreRegistrationAction
             $participantsWithAddons[$pIndex] = $pAddons;
         }
 
+        // Validate Addon Quotas
+        if (! empty($allSelectedAddonsForPic)) {
+            $requestedAddonCounts = [];
+            foreach ($allSelectedAddonsForPic as $selected) {
+                $name = $selected['name'];
+                $requestedAddonCounts[$name] = ($requestedAddonCounts[$name] ?? 0) + 1;
+            }
+
+            $addonsStatus = collect($event->addons_with_quota)->keyBy('name');
+            foreach ($requestedAddonCounts as $addonName => $qty) {
+                $status = $addonsStatus->get($addonName);
+                if ($status && $status['quota'] !== null) {
+                    $remaining = $status['remaining'];
+                    if ($qty > $remaining) {
+                        throw \Illuminate\Validation\ValidationException::withMessages([
+                            'addons' => ["Kuota untuk add-on '{$addonName}' sudah habis atau tidak mencukupi (sisa: {$remaining}, diminta: {$qty})."],
+                        ]);
+                    }
+                }
+            }
+        }
+
         // Special flow for latbarkamis: auto-create runner accounts
         $createdUsers = [];
         if ($event->hardcoded === 'latbarkamis') {

@@ -1,5 +1,7 @@
 @if($event->template === 'light-clean')
     @include('events.themes.light-clean')
+@elseif($event->template === 'beach-theme')
+    @include('events.themes.beach-theme')
 @elseif($event->template === 'simple-minimal')
     @include('events.themes.simple-minimal')
 @elseif($event->template === 'professional-city-run' || $event->template === 'profesional-city-run')

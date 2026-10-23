@@ -177,11 +177,14 @@ class EventController extends Controller
             'rpc_longitude' => 'nullable|numeric',
             'hero_image_url' => 'nullable|url',
             'hero_image' => 'nullable|string', // Changed to string (path)
+            'hero_images' => 'nullable|array|max:5',
+            'hero_images.*' => 'nullable|string',
             'logo_image' => 'nullable|string',
             'favicon_image' => 'nullable|string',
             'floating_image' => 'nullable|string',
             'medal_image' => 'nullable|string',
             'jersey_image' => 'nullable|string',
+            'jersey_chart_image' => 'nullable|string',
             'twibbon_image' => 'nullable|string',
             'map_embed_url' => 'nullable|string',
             'google_calendar_url' => 'nullable|url',
@@ -225,9 +228,10 @@ class EventController extends Controller
             'addons' => 'nullable|array',
             'addons.*.name' => 'required_with:addons|string|max:255',
             'addons.*.price' => 'nullable|numeric|min:0',
+            'addons.*.quota' => 'nullable|integer|min:0',
             'premium_amenities' => 'nullable|array',
             'surat_kuasa_file' => 'nullable|file|mimes:pdf,doc,docx,zip,jpeg,jpg,png|max:10240',
-            'template' => 'nullable|string|in:modern-dark,light-clean,simple-minimal,paolo-fest,paolo-fest-dark,professional-city-run,golden-run,quick-light',
+            'template' => 'nullable|string|in:modern-dark,light-clean,beach-theme,simple-minimal,paolo-fest,paolo-fest-dark,professional-city-run,golden-run,quick-light',
             'platform_fee' => 'nullable|numeric|min:0',
             'categories' => 'required|array|min:1',
             'categories.*.master_gpx_id' => 'nullable|exists:master_gpxes,id',
@@ -379,6 +383,19 @@ class EventController extends Controller
             // Ideally uploadMedia should accept a folder.
         }
 
+        // Process Hero Images (Slider max 5)
+        if ($request->has('hero_images')) {
+            $heroImages = (array) $request->input('hero_images', []);
+            $heroImages = array_values(array_filter($heroImages));
+            $heroImages = array_slice($heroImages, 0, 5);
+            $validated['hero_images'] = ! empty($heroImages) ? $heroImages : null;
+            if (! empty($heroImages)) {
+                $validated['hero_image'] = $heroImages[0];
+            }
+        } elseif (! empty($validated['hero_image'])) {
+            $validated['hero_images'] = [$validated['hero_image']];
+        }
+
         // Process Sponsors (Already paths)
         // No processing needed
 
@@ -421,6 +438,23 @@ class EventController extends Controller
         }
 
         // Single images are now paths from Dropzone
+        // Process addons
+        if (isset($validated['addons']) && is_array($validated['addons'])) {
+            $processedAddons = [];
+            foreach ($validated['addons'] as $addon) {
+                if (! empty($addon['name'])) {
+                    $processedAddons[] = [
+                        'name' => trim($addon['name']),
+                        'price' => isset($addon['price']) ? (int) $addon['price'] : 0,
+                        'quota' => (isset($addon['quota']) && $addon['quota'] !== '' && $addon['quota'] !== null) ? max(0, (int) $addon['quota']) : null,
+                    ];
+                }
+            }
+            $validated['addons'] = ! empty($processedAddons) ? $processedAddons : null;
+        } else {
+            $validated['addons'] = null;
+        }
+
         if (isset($validated['hero_image'])) {
             $validated['hero_image_url'] = null;
         }
@@ -560,11 +594,14 @@ class EventController extends Controller
             'rpc_longitude' => 'nullable|numeric',
             'hero_image_url' => 'nullable|url',
             'hero_image' => 'nullable|string',
+            'hero_images' => 'nullable|array|max:5',
+            'hero_images.*' => 'nullable|string',
             'logo_image' => 'nullable|string',
             'favicon_image' => 'nullable|string',
             'floating_image' => 'nullable|string',
             'medal_image' => 'nullable|string',
             'jersey_image' => 'nullable|string',
+            'jersey_chart_image' => 'nullable|string',
             'twibbon_image' => 'nullable|string',
             'map_embed_url' => 'nullable|string',
             'google_calendar_url' => 'nullable|url',
@@ -609,10 +646,11 @@ class EventController extends Controller
             'addons' => 'nullable|array',
             'addons.*.name' => 'required_with:addons|string|max:255',
             'addons.*.price' => 'nullable|numeric|min:0',
+            'addons.*.quota' => 'nullable|integer|min:0',
             'premium_amenities' => 'nullable|array',
             'surat_kuasa_file' => 'nullable|file|mimes:pdf,doc,docx,zip,jpeg,jpg,png|max:10240',
             'remove_surat_kuasa_file' => 'nullable|boolean',
-            'template' => 'nullable|string|in:modern-dark,light-clean,simple-minimal,professional-city-run,paolo-fest,paolo-fest-dark,golden-run,quick-light',
+            'template' => 'nullable|string|in:modern-dark,light-clean,beach-theme,simple-minimal,professional-city-run,paolo-fest,paolo-fest-dark,golden-run,quick-light',
             'platform_fee' => 'nullable|numeric|min:0',
             'categories' => 'sometimes|array',
             'categories.*.id' => 'nullable|exists:race_categories,id',
@@ -820,8 +858,9 @@ class EventController extends Controller
             foreach ($validated['addons'] as $addon) {
                 if (! empty($addon['name'])) {
                     $processedAddons[] = [
-                        'name' => $addon['name'],
+                        'name' => trim($addon['name']),
                         'price' => isset($addon['price']) ? (int) $addon['price'] : 0,
+                        'quota' => (isset($addon['quota']) && $addon['quota'] !== '' && $addon['quota'] !== null) ? max(0, (int) $addon['quota']) : null,
                     ];
                 }
             }
@@ -855,10 +894,23 @@ class EventController extends Controller
 
         // Explicitly handle image updates if present in request but not in validated (though validate should catch them)
         // This ensures that if the frontend sends a new path, it overrides whatever was there
-        foreach (['hero_image', 'logo_image', 'favicon_image', 'floating_image', 'medal_image', 'jersey_image'] as $imgField) {
+        foreach (['hero_image', 'logo_image', 'favicon_image', 'floating_image', 'medal_image', 'jersey_image', 'jersey_chart_image', 'twibbon_image'] as $imgField) {
             if ($request->has($imgField)) {
                 $validated[$imgField] = $request->input($imgField);
             }
+        }
+
+        // Process Hero Images (Slider max 5)
+        if ($request->has('hero_images')) {
+            $heroImages = (array) $request->input('hero_images', []);
+            $heroImages = array_values(array_filter($heroImages));
+            $heroImages = array_slice($heroImages, 0, 5);
+            $validated['hero_images'] = ! empty($heroImages) ? $heroImages : null;
+            if (! empty($heroImages)) {
+                $validated['hero_image'] = $heroImages[0];
+            }
+        } elseif (! empty($validated['hero_image'])) {
+            $validated['hero_images'] = [$validated['hero_image']];
         }
 
         // Process payment_config (Handle 'all' option)

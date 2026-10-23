@@ -149,9 +149,13 @@ class EventRegistrationController extends Controller
             }
         }
 
+        $event = Event::where('slug', $slug)->first();
+        $addonQuotas = $event ? $event->addons_with_quota : [];
+
         return response()->json([
             'success' => true,
             'quotas' => $quotas,
+            'addons' => $addonQuotas,
         ]);
     }
 
