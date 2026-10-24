@@ -213,6 +213,22 @@
                         <input type="text" name="hardcoded" value="{{ old('hardcoded') }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors" placeholder="misal: latbarkamis">
                         @error('hardcoded') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
                     </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-300 mb-2">Nama Penyelenggara / EO <span class="text-slate-500 text-xs">(Opsional)</span></label>
+                        <input type="text" name="organizer_name" value="{{ old('organizer_name') }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors" placeholder="e.g. RuangLari Community / Dinas Pemuda & Olahraga">
+                        @error('organizer_name') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
+                    <div class="md:col-span-2">
+                        <label class="block text-sm font-medium text-slate-300 mb-2 flex items-center justify-between">
+                            <span>Kontak Person / WhatsApp Bantuan Panitia <span class="text-slate-500 text-xs">(Opsional)</span></span>
+                            <span class="text-emerald-400 text-xs font-semibold flex items-center gap-1">
+                                <i class="fab fa-whatsapp"></i> Floating Button WA di Landing Page
+                            </span>
+                        </label>
+                        <input type="text" name="organizer_contact" value="{{ old('organizer_contact') }}" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors" placeholder="e.g. 08123456789 atau wa.me/628123456789">
+                        <p class="text-xs text-slate-500 mt-1.5">Bila nomor WhatsApp diisi, tombol bantuan melayang (floating WA) otomatis muncul di sudut kanan bawah halaman publik event (Beach Theme, Light Clean, dll) untuk mempermudah calon peserta bertanya.</p>
+                        @error('organizer_contact') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
+                    </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-900/60 p-3.5 rounded-xl border border-slate-800 md:col-span-2">
                         <div>

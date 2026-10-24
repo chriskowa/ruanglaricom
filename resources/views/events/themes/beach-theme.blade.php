@@ -2738,6 +2738,9 @@
         'modalCloseClass' => 'bg-theme-primary text-white hover-bg-theme-primary rounded-md',
     ])
 
+    <!-- Floating WhatsApp Helpdesk Button -->
+    @include('events.partials.floating-whatsapp', ['event' => $event])
+
     <!-- Scripts Section -->
     @if(($hasPaidParticipants ?? false) && $event->show_participant_list)
         <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
