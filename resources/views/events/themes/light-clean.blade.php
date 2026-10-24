@@ -1169,6 +1169,13 @@
         <!-- Section: Kategori Lomba -->
         <section id="categories" class="py-20 bg-white border-b border-slate-200">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                @if(count($categories) === 1)
+                <div class="text-center mb-10 max-w-2xl mx-auto">
+                    <span class="text-xs font-bold uppercase tracking-wider text-theme-primary">Pilihan Jarak Lomba</span>
+                    <h2 class="text-3xl sm:text-4xl font-heading text-slate-900 mt-1">Kategori Lomba</h2>
+                    <p class="text-slate-600 text-sm mt-2">Pilih tantangan yang sesuai dengan target kecepatan dan jarak Anda.</p>
+                </div>
+                @else
                 <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
                     <div>
                         <span class="text-xs font-bold uppercase tracking-wider text-theme-primary">Pilihan Jarak Lomba</span>
@@ -1181,8 +1188,9 @@
                     </a>
                     @endif
                 </div>
+                @endif
 
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div class="{{ count($categories) === 1 ? 'max-w-md mx-auto' : (count($categories) === 2 ? 'grid grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto gap-6' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6') }}">
                     @foreach($categories as $cat)
                     @php
                         $priceRegular = (int) ($cat->price_regular ?? 0);
