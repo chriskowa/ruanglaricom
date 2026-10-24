@@ -1995,7 +1995,7 @@
                     
                     <!-- Alert Status Banner -->
                     @if(request('payment') === 'pending')
-                    <div class="max-w-5xl mx-auto mb-8 bg-amber-50 border border-amber-300 text-amber-900 rounded-lg p-5 shadow-sm">
+                    <div id="pendingPaymentAlert" class="max-w-5xl mx-auto mb-8 bg-amber-50 border border-amber-300 text-amber-900 rounded-lg p-5 shadow-sm scroll-mt-28">
                         <div class="flex items-start gap-4">
                             <div class="w-8 h-8 rounded-md bg-amber-200 text-amber-800 flex items-center justify-center shrink-0">
                                 <i class="fas fa-hourglass-half text-sm"></i>
@@ -4465,6 +4465,24 @@
 
         // Auto-load on scroll intersection (Load saat dibuka / saat section terlihat)
         document.addEventListener('DOMContentLoaded', function() {
+            // Auto scroll to pending payment alert if ?payment=pending
+            const urlParams = new URLSearchParams(window.location.search);
+            if (urlParams.get('payment') === 'pending') {
+                const scrollToPending = function() {
+                    const pendingAlert = document.getElementById('pendingPaymentAlert');
+                    if (pendingAlert) {
+                        pendingAlert.scrollIntoView({
+                            behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth',
+                            block: 'center'
+                        });
+                    }
+                };
+                setTimeout(scrollToPending, 300);
+                window.addEventListener('load', function() {
+                    setTimeout(scrollToPending, 150);
+                });
+            }
+
             const routeSec = document.getElementById('route');
             if (routeSec && 'IntersectionObserver' in window) {
                 const routeObs = new IntersectionObserver((entries, obs) => {
