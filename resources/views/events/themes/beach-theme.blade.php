@@ -1469,7 +1469,7 @@
                                 <span class="text-xs font-bold text-theme-primary uppercase">Desain Perlengkapan</span>
                                 <h3 class="text-xl font-heading text-slate-900">Official Running Jersey</h3>
                             </div>
-                            <button type="button" onclick="openLightbox('https://ruanglari.com/storage/blog/media/SEIthtxRb1p8CPI9wjjYfkiWYzcuzFek7tTVbrqq.webp')" class="text-xs font-bold text-theme-primary hover:underline">
+                            <button type="button" onclick="openLightbox('{{ $event->jersey_chart_url }}')" class="text-xs font-bold text-theme-primary hover:underline">
                                 Panduan Ukuran
                             </button>
                         </div>
@@ -2319,7 +2319,7 @@
                                                     <div>
                                                         <div class="flex justify-between items-center mb-1">
                                                             <label class="text-xs font-bold text-slate-700 uppercase">Ukuran Jersey</label>
-                                                            <button type="button" onclick="openLightbox('https://res.cloudinary.com/dqm0gzjmu/image/upload/v1791534615/size_jersey_new_xlqovf.webp')" class="text-[11px] font-bold text-theme-primary hover:underline">
+                                                            <button type="button" onclick="openLightbox('{{ $event->jersey_chart_url }}')" class="text-[11px] font-bold text-theme-primary hover:underline">
                                                                 Panduan Ukuran
                                                             </button>
                                                         </div>
