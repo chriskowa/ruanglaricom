@@ -912,7 +912,14 @@
                         <input type="text" id="location_search" class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-white focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors" placeholder="Search location (e.g. GBK Jakarta)...">
                     </div>
                     
-                    <div id="map" class="w-full h-80 rounded-xl border border-slate-600 mb-4 z-0"></div>
+                    <div class="relative mb-4">
+                        <div id="map" class="w-full h-80 rounded-xl border border-slate-600 z-0"></div>
+                        <div class="absolute top-3 left-3 bg-slate-900/90 backdrop-blur-md border border-slate-700 rounded-lg p-1 flex items-center gap-1 shadow-md z-10 text-xs">
+                            <button type="button" class="map-style-btn px-2.5 py-1 rounded font-medium transition bg-yellow-500/20 text-yellow-400 border border-yellow-500/40" data-style="mapbox://styles/mapbox/streets-v12">Standar</button>
+                            <button type="button" class="map-style-btn px-2.5 py-1 rounded font-medium transition text-slate-300 hover:text-white hover:bg-slate-800" data-style="mapbox://styles/mapbox/outdoors-v12">Outdoors</button>
+                            <button type="button" class="map-style-btn px-2.5 py-1 rounded font-medium transition text-slate-300 hover:text-white hover:bg-slate-800" data-style="mapbox://styles/mapbox/satellite-streets-v12">Satelit</button>
+                        </div>
+                    </div>
                     
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -1251,7 +1258,8 @@
                        (id.includes('twibbon') ? 'events/twibbon' : 
                        (id.includes('gallery') ? 'events/gallery' : 
                        (id.includes('jersey') ? 'events/jersey' : 
-                       (id.includes('medal') ? 'events/medal' : 'events/sponsors')))))
+                       (id.includes('medal') ? 'events/medal' : 
+                       (id.includes('custom') ? 'events/custom' : 'events/sponsors'))))))
             },
             success: function(file, response) {
                 if (response.success) {
@@ -1303,6 +1311,14 @@
         });
     }
 
+    function getDropzoneContainer(name) {
+        let container = document.getElementById(name.replace('[]', '') + '-inputs');
+        if (!container && name.includes('custom_section')) {
+            container = document.getElementById('custom-section-images-inputs');
+        }
+        return container;
+    }
+
     function addHiddenInput(name, value) {
         // For single file, replace value
         if (!name.includes('[]')) {
@@ -1319,7 +1335,7 @@
         }
 
         // For array
-        const container = document.getElementById(name.replace('[]', '') + '-inputs');
+        const container = getDropzoneContainer(name);
         if (!container) return; // Should exist
 
         const input = document.createElement('input');
@@ -1344,7 +1360,7 @@
             return;
         }
 
-        const container = document.getElementById(name.replace('[]', '') + '-inputs');
+        const container = getDropzoneContainer(name);
         if (!container) return;
 
         const input = container.querySelector(`input[value="${value}"]`);
@@ -1358,7 +1374,7 @@
     }
 
     function reorderInputs(dropzoneInstance, inputName) {
-        const container = document.getElementById(inputName.replace('[]', '') + '-inputs');
+        const container = getDropzoneContainer(inputName);
         if (!container) return;
 
         // Get all preview elements in current order
@@ -1369,14 +1385,6 @@
 
         // Re-add inputs in order
         previews.forEach(preview => {
-            // Find the file object corresponding to this preview
-            // Dropzone doesn't link DOM to File object easily in reverse, 
-            // but we can assume the preview element has the image src or we can use the file object if we can find it.
-            // Actually, Sortable sorts the DOM elements.
-            // We need to find which file corresponds to this DOM element.
-            
-            // Simpler approach: Dropzone attaches 'file' property to previewElement? No.
-            // But we can iterate through dropzone.files and match previewElement.
             const file = dropzoneInstance.files.find(f => f.previewElement === preview);
             if (file && file.serverPath) {
                 const input = document.createElement('input');
@@ -1405,6 +1413,7 @@
         initDropzone('medal-dropzone', 'medal_image', 1);
         initDropzone('gallery-dropzone', 'gallery[]', 10);
         initDropzone('sponsors-dropzone', 'sponsors[]', 30);
+        initDropzone('custom-section-dropzone', 'premium_amenities[custom_section][images][]', 6);
 
         const form = document.getElementById('eventForm');
         const errorEl = document.getElementById('ticketEmailQrError');
@@ -1769,9 +1778,21 @@
         
         const map = new mapboxgl.Map({
             container: 'map',
-            style: 'mapbox://styles/mapbox/light-v11', // dark style to match dashboard
+            style: 'mapbox://styles/mapbox/streets-v12',
             center: [defaultLng, defaultLat],
             zoom: 13
+        });
+
+        // Map Style Switcher (Standar, Outdoors, Satelit)
+        document.querySelectorAll('.map-style-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const styleUrl = this.getAttribute('data-style');
+                map.setStyle(styleUrl);
+                document.querySelectorAll('.map-style-btn').forEach(b => {
+                    b.className = 'map-style-btn px-2.5 py-1 rounded font-medium transition text-slate-300 hover:text-white hover:bg-slate-800';
+                });
+                this.className = 'map-style-btn px-2.5 py-1 rounded font-medium transition bg-yellow-500/20 text-yellow-400 border border-yellow-500/40';
+            });
         });
 
         // Add navigation controls (zoom, rotate)

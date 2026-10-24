@@ -321,6 +321,9 @@ class EventController extends Controller
                 if (isset($amenity['items']) && is_array($amenity['items'])) {
                     $amenity['items'] = array_values($amenity['items']);
                 }
+                if (isset($amenity['images']) && is_array($amenity['images'])) {
+                    $amenity['images'] = array_values(array_filter($amenity['images']));
+                }
             }
         }
 
@@ -739,6 +742,9 @@ class EventController extends Controller
             foreach ($validated['premium_amenities'] as $key => &$amenity) {
                 if (isset($amenity['items']) && is_array($amenity['items'])) {
                     $amenity['items'] = array_values($amenity['items']);
+                }
+                if (isset($amenity['images']) && is_array($amenity['images'])) {
+                    $amenity['images'] = array_values(array_filter($amenity['images']));
                 }
             }
         }

@@ -756,6 +756,11 @@
                     <a href="#venue" class="px-2.5 lg:px-3 xl:px-3.5 py-1.5 xl:py-2 rounded-md text-xs xl:text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 hover-text-theme-primary transition duration-150 whitespace-nowrap">
                         Lokasi
                     </a>
+                    @if(!empty($event->premium_amenities['custom_section']['enabled']) && (!empty($event->premium_amenities['custom_section']['title']) || !empty($event->premium_amenities['custom_section']['description'])))
+                        <a href="#custom-info" class="px-2.5 lg:px-3 xl:px-3.5 py-1.5 xl:py-2 rounded-md text-xs xl:text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 hover-text-theme-primary transition duration-150 whitespace-nowrap">
+                            {{ Str::limit($event->premium_amenities['custom_section']['title'] ?? 'Info Tambahan', 16) }}
+                        </a>
+                    @endif
                     <a href="#info" class="px-2.5 lg:px-3 xl:px-3.5 py-1.5 xl:py-2 rounded-md text-xs xl:text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 hover-text-theme-primary transition duration-150 whitespace-nowrap">
                         Info
                     </a>
@@ -805,6 +810,11 @@
                 <a href="#route" class="block text-sm font-semibold text-slate-700 p-2 hover:bg-slate-50 rounded-md">Rute & Elevasi</a>
             @endif
             <a href="#venue" class="block text-sm font-semibold text-slate-700 p-2 hover:bg-slate-50 rounded-md">Lokasi & Venue</a>
+            @if(!empty($event->premium_amenities['custom_section']['enabled']) && (!empty($event->premium_amenities['custom_section']['title']) || !empty($event->premium_amenities['custom_section']['description'])))
+                <a href="#custom-info" class="block text-sm font-semibold text-slate-700 p-2 hover:bg-slate-50 rounded-md">
+                    {{ $event->premium_amenities['custom_section']['title'] ?? 'Info Tambahan' }}
+                </a>
+            @endif
             <a href="#info" class="block text-sm font-semibold text-slate-700 p-2 hover:bg-slate-50 rounded-md">Info & Jadwal</a>
             <a href="#faq" class="block text-sm font-semibold text-slate-700 p-2 hover:bg-slate-50 rounded-md">FAQ</a>
             @if(($hasPaidParticipants ?? false) && $event->show_participant_list)
@@ -1836,6 +1846,9 @@
 
         <!-- Section: Hadiah Pemenang -->
         @include('events.partials.prizes-section', ['categories' => $categories, 'isDark' => false, 'variant' => 'light-clean'])
+
+        <!-- Section: Custom Section (e.g. Free Shuttle / Info Tambahan) -->
+        @include('events.partials.custom-section', ['event' => $event, 'isDark' => false, 'variant' => 'light-clean'])
 
         <!-- Section: Info, Rundown & FAQ -->
         <section id="info" class="py-20 bg-slate-50 border-b border-slate-200">

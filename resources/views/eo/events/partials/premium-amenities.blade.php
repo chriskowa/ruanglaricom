@@ -15,6 +15,9 @@
         if ($key === 'benefits') {
             return !empty($dbAmenities['benefits']['enabled']) || !empty($dbAmenities['benefits']['items']);
         }
+        if ($key === 'custom_section') {
+            return !empty($dbAmenities['custom_section']['enabled']);
+        }
         return isset($dbAmenities[$key]['enabled']) && $dbAmenities[$key]['enabled'];
     };
 @endphp
@@ -29,7 +32,8 @@
         faq: {{ $isEnabled('faq') ? 'true' : 'false' }},
         rpc: {{ $isEnabled('rpc') ? 'true' : 'false' }},
         venue: {{ $isEnabled('venue') ? 'true' : 'false' }},
-        what_to_bring: {{ $isEnabled('what_to_bring') ? 'true' : 'false' }}
+        what_to_bring: {{ $isEnabled('what_to_bring') ? 'true' : 'false' }},
+        custom_section: {{ $isEnabled('custom_section') ? 'true' : 'false' }}
     }
 }" class="border-b border-slate-700 pb-8">
     <h3 class="text-xl font-bold text-white mb-6 flex items-center gap-2">
@@ -47,6 +51,7 @@
         @include('eo.events.partials.amenities.rpc')
         @include('eo.events.partials.amenities.venue')
         @include('eo.events.partials.amenities.what-to-bring')
+        @include('eo.events.partials.amenities.custom-section')
     </div>
 
     <!-- Form Fields Configuration -->
