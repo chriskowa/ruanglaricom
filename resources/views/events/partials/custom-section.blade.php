@@ -36,6 +36,16 @@
 @endphp
 
 <section id="custom-info" class="py-20 {{ $sectionBg }} border-b {{ $borderColor }} scroll-mt-16 relative">
+    <style>
+        .custom-section-prose ul { list-style-type: disc !important; padding-left: 1.25rem !important; margin-top: 0.5rem !important; margin-bottom: 0.5rem !important; }
+        .custom-section-prose ol { list-style-type: decimal !important; padding-left: 1.25rem !important; margin-top: 0.5rem !important; margin-bottom: 0.5rem !important; }
+        .custom-section-prose li { margin-top: 0.25rem !important; margin-bottom: 0.25rem !important; }
+        .custom-section-prose p { margin-top: 0.5rem !important; margin-bottom: 0.5rem !important; }
+        .custom-section-prose strong { font-weight: 700 !important; color: inherit !important; }
+        .custom-section-prose a { color: var(--theme-primary, #0284c7) !important; text-decoration: underline !important; }
+        .custom-section-prose table { width: 100% !important; border-collapse: collapse !important; margin: 1rem 0 !important; }
+        .custom-section-prose th, .custom-section-prose td { border: 1px solid rgba(148, 163, 184, 0.25) !important; padding: 0.5rem 0.75rem !important; text-align: left !important; }
+    </style>
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             
@@ -53,8 +63,12 @@
                     {{ $title }}
                 </h2>
 
-                <div class="{{ $textColor }} text-sm sm:text-base leading-relaxed space-y-3 prose prose-slate max-w-none {{ $isDark ? 'prose-invert' : '' }}">
-                    {!! nl2br(e($desc)) !!}
+                @php
+                    $isHtml = strip_tags($desc) !== $desc;
+                    $renderedDesc = $isHtml ? $desc : nl2br(e($desc));
+                @endphp
+                <div class="{{ $textColor }} text-sm sm:text-base leading-relaxed prose prose-slate max-w-none {{ $isDark ? 'prose-invert !text-slate-300' : '' }} custom-section-prose">
+                    {!! $renderedDesc !!}
                 </div>
 
                 @if(!empty($buttonUrl))

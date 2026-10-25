@@ -10,13 +10,17 @@
 <div class="bg-slate-800/50 border border-slate-700 rounded-xl p-4" x-data="{
     tag: @js($csTag),
     title: @js($csTitle),
-    desc: @js($csDesc),
     btnText: @js($csBtnText),
     btnUrl: @js($csBtnUrl),
     fillShuttlePreset() {
         this.tag = 'Fasilitas & Transportasi';
         this.title = 'Layanan Free Shuttle Bus';
-        this.desc = 'Panitia menyediakan fasilitas armada shuttle bus gratis pulang-pergi khusus peserta lomba terdaftar dari stasiun/terminal transit utama menuju area race village.\n\nPanduan & Syarat Naik Shuttle:\n1. Tunjukkan e-ticket atau BIB number kepada kru shuttle di halte penjemputan.\n2. Harap tiba di titik kumpul paling lambat 20 menit sebelum jadwal keberangkatan bus.\n3. Kapasitas tempat duduk first-come first-served sesuai antrean pelari.';
+        const shuttleHtml = '<p>Panitia menyediakan fasilitas armada shuttle bus gratis pulang-pergi khusus peserta lomba terdaftar dari stasiun/terminal transit utama menuju area race village.</p><p><strong>Panduan &amp; Syarat Naik Shuttle:</strong></p><ol><li>Tunjukkan e-ticket atau BIB number kepada kru shuttle di halte penjemputan.</li><li>Harap tiba di titik kumpul paling lambat 20 menit sebelum jadwal keberangkatan bus.</li><li>Kapasitas tempat duduk <em>first-come first-served</em> sesuai antrean pelari.</li></ol>';
+        if (window.editors && window.editors['custom_section_desc']) {
+            window.editors['custom_section_desc'].setData(shuttleHtml);
+        }
+        const ta = document.getElementById('custom_section_desc');
+        if (ta) ta.value = shuttleHtml;
         this.btnText = 'Lihat Titik Jemput di Google Maps';
         this.btnUrl = 'https://maps.google.com';
     }
@@ -49,7 +53,7 @@
          class="mt-4 border-t border-slate-700 pt-4 space-y-4">
         
         <p class="text-xs text-slate-400">
-            Tambahkan section khusus pada halaman event (misal info layanan shuttle bus, fasilitas penginapan, panduan khusus, dll). Sisi kiri menampilkan heading, deskripsi, dan tombol tautan. Sisi kanan menampilkan galeri foto showcase.
+            Tambahkan section khusus pada halaman event (misal info layanan shuttle bus, fasilitas penginapan, panduan khusus, dll). Sisi kiri menampilkan heading, deskripsi berformat HTML, dan tombol tautan. Sisi kanan menampilkan galeri foto showcase.
         </p>
 
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -75,12 +79,15 @@
 
         <div>
             <label class="block text-sm font-medium text-slate-300 mb-1.5">Informasi / Deskripsi Lengkap <span class="text-red-400">*</span></label>
-            <textarea name="premium_amenities[custom_section][description]" 
-                      x-model="desc" 
-                      id="custom_section_desc"
-                      rows="4" 
-                      class="w-full bg-slate-900 border border-slate-700 rounded-md px-3.5 py-2.5 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400 transition-colors leading-relaxed" 
-                      placeholder="Jelaskan detail fasilitas, lokasi keberangkatan, syarat peserta, jadwal bus, atau kontak koordinator..."></textarea>
+            <div class="rounded-xl overflow-hidden border border-slate-700">
+                <div id="custom_section_desc_editor"></div>
+                <textarea name="premium_amenities[custom_section][description]" 
+                          id="custom_section_desc" 
+                          class="hidden">{!! $csDesc !!}</textarea>
+            </div>
+            <p class="text-xs text-slate-400 mt-1.5 leading-relaxed">
+                Editor teks kaya (CKEditor): Mendukung format paragraf, teks tebal/miring, daftar bernomor/bullet, tabel, dan tautan. Otomatis dirender dalam format HTML di halaman depan.
+            </p>
         </div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">

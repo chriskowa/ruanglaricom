@@ -386,7 +386,7 @@
                       <div class="space-y-3 font-mono text-sm border-t border-slate-700 pt-4">
                           <div class="flex justify-between">
                               <span class="text-slate-400">Flag Off</span>
-                              <span class="text-white font-bold">{{ $cat->start_time ? \Carbon\Carbon::parse($cat->start_time)->format('H:i') : 'TBA' }} WIB</span>
+                              <span class="text-white font-bold">{{ $cat->start_time ? \Carbon\Carbon::parse($cat->start_time)->format('H:i') . ' WIB' : ($event->start_at ? $event->start_at->format('H:i') . ' WIB' : 'TBA') }}</span>
                           </div>
                           <div class="flex justify-between">
                               <span class="text-slate-400">Cut Off Time (COT)</span>

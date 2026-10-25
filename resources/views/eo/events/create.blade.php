@@ -28,6 +28,9 @@
         #full_description_editor .ck-editor__editable_inline {
             min-height: 450px !important;
         }
+        #custom_section_desc_editor .ck-editor__editable_inline {
+            min-height: 180px !important;
+        }
         .ck.ck-editor__main>.ck-editor__editable:not(.ck-focused) {
             border-color: #334155 !important;
         }
@@ -1690,6 +1693,39 @@
                 });
             })
             .catch(error => console.error(error));
+    }
+
+    // Custom Section Description
+    if (document.querySelector('#custom_section_desc_editor') && EditorClass) {
+        EditorClass
+            .create(document.querySelector('#custom_section_desc_editor'), commonConfig)
+            .then(editor => {
+                window.editors['custom_section_desc'] = editor;
+                const existingVal = document.querySelector('#custom_section_desc')?.value || '';
+                if (existingVal) {
+                    editor.setData(existingVal);
+                }
+                editor.model.document.on('change:data', () => {
+                    const descEl = document.querySelector('#custom_section_desc');
+                    if (descEl) descEl.value = editor.getData();
+                });
+            })
+            .catch(error => console.error('Custom section editor init error:', error));
+    }
+
+    // Sync all CKEditors before form submit
+    const createEventForm = document.getElementById('eventForm');
+    if (createEventForm) {
+        createEventForm.addEventListener('submit', function() {
+            if (window.editors) {
+                Object.keys(window.editors).forEach(key => {
+                    const textarea = document.querySelector('#' + key);
+                    if (textarea && window.editors[key]) {
+                        textarea.value = window.editors[key].getData();
+                    }
+                });
+            }
+        });
     }
 
     function openLivePreview() {

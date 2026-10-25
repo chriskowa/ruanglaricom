@@ -1327,7 +1327,7 @@
 
                             <h3 class="text-xl font-heading text-slate-900 mb-2">{{ $cat->name }}</h3>
                             <p class="text-xs text-slate-500 mb-6">
-                                Start: {{ $cat->start_time ? \Carbon\Carbon::parse($cat->start_time)->format('H:i') : 'TBA' }} WIB
+                                Start: {{ $cat->start_time ? \Carbon\Carbon::parse($cat->start_time)->format('H:i') . ' WIB' : ($event->start_at ? $event->start_at->format('H:i') . ' WIB' : 'TBA') }}
                             </p>
 
                             <div class="space-y-2 border-t border-slate-100 pt-4 text-xs text-slate-600">
