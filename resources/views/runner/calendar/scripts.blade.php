@@ -24,6 +24,9 @@ const runnerCalendarApp = createApp({
 
         const filter = ref('unfinished');
         const plans = ref([]);
+        const isExporting = ref(false);
+        const exportType = ref(null);
+        const exportProgressText = ref('');
         const pageSize = 10;
         const visibleCount = ref(pageSize);
         const notification = ref(null);
@@ -461,9 +464,6 @@ const runnerCalendarApp = createApp({
         const aiAnalysisLoading = ref(false);
         const aiAnalysisError = ref('');
         let stravaChart = null;
-        const ttsSupported = computed(() => typeof window !== 'undefined' && 'speechSynthesis' in window);
-        const isSpeaking = ref(false);
-        let ttsVoice = null;
         const displayPace = computed(() => {
             const t = String(detail.type || '').toLowerCase();
             if (['rest', 'rest_day', 'strength', 'yoga'].includes(t)) {
@@ -707,59 +707,7 @@ const runnerCalendarApp = createApp({
             notes: ''
         });
 
-        const loadTtsVoices = () => {
-            if (!ttsSupported.value) return;
-            const voices = window.speechSynthesis.getVoices();
-            if (!voices || !voices.length) return;
-            // Prioritize Indonesian voices: Google Bahasa Indonesia, id-ID, or Indonesian locale
-            const idVoices = voices.filter(v => /^id/i.test(v.lang) || /indonesia/i.test(v.name || '') || /id_id/i.test(v.lang || ''));
-            const googleIdVoice = idVoices.find(v => /google/i.test(v.name || ''));
-            const maleIdVoice = idVoices.find(v => /male|laki/i.test((v.name || '') + ' ' + (v.voiceURI || '')));
-            
-            ttsVoice = googleIdVoice || maleIdVoice || idVoices[0] || voices.find(v => /^en/i.test(v.lang)) || voices[0];
-        };
 
-        if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-            window.speechSynthesis.onvoiceschanged = () => {
-                loadTtsVoices();
-            };
-        }
-
-        const stopDetailSpeech = () => {
-            if (!ttsSupported.value) return;
-            window.speechSynthesis.cancel();
-            isSpeaking.value = false;
-            currentUtterance = null;
-        };
-
-        const speakDetailDescription = () => {
-            if (!ttsSupported.value) return;
-            const text = detail.description || '';
-            if (!text) return;
-            if (isSpeaking.value) {
-                stopDetailSpeech();
-                return;
-            }
-            loadTtsVoices();
-            const utterance = new SpeechSynthesisUtterance(text);
-            utterance.lang = 'id-ID'; // Force Indonesian language locale
-            if (ttsVoice) {
-                utterance.voice = ttsVoice;
-            }
-            utterance.rate = 0.95; // Natural speaking tempo
-            utterance.pitch = 1.0;
-            isSpeaking.value = true;
-            utterance.onend = () => {
-                isSpeaking.value = false;
-                currentUtterance = null;
-            };
-            utterance.onerror = () => {
-                isSpeaking.value = false;
-                currentUtterance = null;
-            };
-            currentUtterance = utterance;
-            window.speechSynthesis.speak(utterance);
-        };
         
         // Workout Builder Helper Methods
         const addStep = (type) => {
@@ -3552,22 +3500,32 @@ const runnerCalendarApp = createApp({
         };
 
         const exportCalendar = async (type) => {
+            if (isExporting.value) return;
+
             const list = plans.value || [];
             if (list.length === 0) {
                 alert('Tidak ada data program aktif untuk diekspor.');
                 return;
             }
 
+            isExporting.value = true;
+            exportType.value = type;
+            exportProgressText.value = type === 'image' ? 'Menyiapkan gambar...' : 'Menyiapkan dokumen PDF...';
+
+            // Allow Vue to render the loading state on the button
+            await new Promise(resolve => setTimeout(resolve, 50));
+
             const activeEnrollment = enrollments.value?.find(e => e.status === 'active');
             const programTitle = activeEnrollment?.program?.title || 'Program Latihan';
             const runnerName = '{{ auth()->user()->name }}';
             const sortedPlans = [...list].sort((a, b) => new Date(a.date) - new Date(b.date));
 
+            // Optimized scale 1.5: 44% of scale 2.0 pixels, cutting RAM and rendering time in half
             const opt = {
                 useCORS: true,
                 allowTaint: true,
                 backgroundColor: '#0b1220',
-                scale: 2,
+                scale: 1.5,
                 logging: false
             };
 
@@ -3607,18 +3565,18 @@ const runnerCalendarApp = createApp({
 
                 return `
                     <tr style="border-bottom: 1px solid #1e293b;">
-                        <td style="padding: 12px 8px; font-size: 12px; color: #64748b; font-family: monospace;">${globalIdx + 1}</td>
-                        <td style="padding: 12px 8px; font-size: 12px; font-weight: bold; color: #ccff00;">${dayStr}</td>
-                        <td style="padding: 12px 8px; font-size: 12px; color: #cbd5e1;">${dateStr}</td>
-                        <td style="padding: 12px 8px; font-size: 12px; font-weight: bold; color: #ffffff;">
+                        <td style="padding: 10px 8px; font-size: 11px; color: #64748b; font-family: monospace;">${globalIdx + 1}</td>
+                        <td style="padding: 10px 8px; font-size: 11px; font-weight: bold; color: #ccff00;">${dayStr}</td>
+                        <td style="padding: 10px 8px; font-size: 11px; color: #cbd5e1;">${dateStr}</td>
+                        <td style="padding: 10px 8px; font-size: 11px; font-weight: bold; color: #ffffff;">
                             ${title}
                             <span style="display: inline-block; font-size: 9px; font-weight: bold; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; background-color: ${typeColor}15; color: ${typeColor}; border: 1px solid ${typeColor}30; margin-left: 8px;">
                                 ${wType}
                             </span>
                         </td>
-                        <td style="padding: 12px 8px; font-size: 12px; font-weight: bold; color: #ccff00; text-align: center;">${target}</td>
-                        <td style="padding: 12px 8px; text-align: center;">
-                            <span style="display: inline-block; font-size: 10px; font-weight: bold; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; background-color: ${statusBg}; color: ${statusColor}; border: 1px solid ${statusColor}30;">
+                        <td style="padding: 10px 8px; font-size: 11px; font-weight: bold; color: #ccff00; text-align: center;">${target}</td>
+                        <td style="padding: 10px 8px; text-align: center;">
+                            <span style="display: inline-block; font-size: 9px; font-weight: bold; text-transform: uppercase; padding: 2px 8px; border-radius: 4px; background-color: ${statusBg}; color: ${statusColor}; border: 1px solid ${statusColor}30;">
                                 ${statusTextStr}
                             </span>
                         </td>
@@ -3641,138 +3599,146 @@ const runnerCalendarApp = createApp({
                     <tbody>
             `;
 
-            if (type === 'image') {
-                // Image option renders everything in a single long scrollable canvas
-                const container = document.createElement('div');
-                container.style.position = 'absolute';
-                container.style.left = '-9999px';
-                container.style.top = '-9999px';
-                container.style.width = '800px';
-                container.style.padding = '40px';
-                container.style.backgroundColor = '#0b1220';
-                container.style.color = '#e2e8f0';
-                container.style.fontFamily = 'system-ui, -apple-system, sans-serif';
-
-                const headerHtml = `
-                    <div style="border-bottom: 2px solid #ccff00; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-end;">
-                        <div>
-                            <h1 style="color: #ffffff; font-size: 24px; font-weight: 900; margin: 0; text-transform: uppercase; font-style: italic;">Ruang Lari</h1>
-                            <p style="color: #94a3b8; font-size: 11px; margin: 5px 0 0 0; text-transform: uppercase; letter-spacing: 2px;">Rencana Program Latihan</p>
-                        </div>
-                        <div style="text-align: right;">
-                            <h3 style="color: #ccff00; font-size: 14px; font-weight: 800; margin: 0;">${programTitle}</h3>
-                            <p style="color: #94a3b8; font-size: 11px; margin: 3px 0 0 0;">Runner: ${runnerName}</p>
-                        </div>
-                    </div>
-                `;
-
-                let tableRows = '';
-                sortedPlans.forEach((plan, idx) => {
-                    tableRows += getRowHtml(plan, idx);
-                });
-
-                container.innerHTML = headerHtml + getTableHeaderHtml() + tableRows + '</tbody></table>';
-                document.body.appendChild(container);
-
-                html2canvas(container, opt).then(canvas => {
-                    document.body.removeChild(container);
-                    const imgData = canvas.toDataURL('image/png');
-                    const link = document.createElement('a');
-                    link.download = `kalender-latihan-${programTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.png`;
-                    link.href = imgData;
-                    link.click();
-                }).catch(err => {
-                    if (document.body.contains(container)) document.body.removeChild(container);
-                    console.error('Export image failed:', err);
-                    alert('Gagal mengekspor gambar.');
-                });
-
-            } else if (type === 'pdf') {
-                // PDF option renders page-by-page (15 rows per page) to prevent row splitting across pages
-                const rowsPerPage = 15;
-                const totalPages = Math.ceil(sortedPlans.length / rowsPerPage);
-                const { jsPDF } = window.jspdf;
-                const pdf = new jsPDF('p', 'mm', 'a4');
-                const imgWidth = 190;
-
-                const renderPage = async (pageIdx) => {
-                    const startIdx = pageIdx * rowsPerPage;
-                    const endIdx = Math.min(startIdx + rowsPerPage, sortedPlans.length);
-                    const pagePlans = sortedPlans.slice(startIdx, endIdx);
+            try {
+                if (type === 'image') {
+                    exportProgressText.value = 'Merender gambar...';
+                    await new Promise(r => setTimeout(r, 40));
 
                     const container = document.createElement('div');
                     container.style.position = 'absolute';
                     container.style.left = '-9999px';
                     container.style.top = '-9999px';
                     container.style.width = '800px';
-                    container.style.height = '1120px'; // Fixed A4 proportional height
-                    container.style.padding = '40px';
+                    container.style.padding = '35px';
                     container.style.backgroundColor = '#0b1220';
                     container.style.color = '#e2e8f0';
                     container.style.fontFamily = 'system-ui, -apple-system, sans-serif';
-                    container.style.boxSizing = 'border-box';
-                    container.style.display = 'flex';
-                    container.style.flexDirection = 'column';
 
                     const headerHtml = `
-                        <div style="border-bottom: 2px solid #ccff00; padding-bottom: 15px; margin-bottom: 25px; display: flex; justify-content: space-between; align-items: flex-end;">
+                        <div style="border-bottom: 2px solid #ccff00; padding-bottom: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end;">
                             <div>
-                                <h1 style="color: #ffffff; font-size: 24px; font-weight: 900; margin: 0; text-transform: uppercase; font-style: italic;">Ruang Lari</h1>
-                                <p style="color: #94a3b8; font-size: 11px; margin: 5px 0 0 0; text-transform: uppercase; letter-spacing: 2px;">Rencana Program Latihan</p>
+                                <h1 style="color: #ffffff; font-size: 22px; font-weight: 900; margin: 0; text-transform: uppercase; font-style: italic;">Ruang Lari</h1>
+                                <p style="color: #94a3b8; font-size: 10px; margin: 4px 0 0 0; text-transform: uppercase; letter-spacing: 2px;">Rencana Program Latihan</p>
                             </div>
                             <div style="text-align: right;">
-                                <h3 style="color: #ccff00; font-size: 14px; font-weight: 800; margin: 0;">${programTitle}</h3>
-                                <p style="color: #94a3b8; font-size: 11px; margin: 3px 0 0 0;">Halaman ${pageIdx + 1} dari ${totalPages}</p>
+                                <h3 style="color: #ccff00; font-size: 13px; font-weight: 800; margin: 0;">${programTitle}</h3>
+                                <p style="color: #94a3b8; font-size: 10px; margin: 2px 0 0 0;">Runner: ${runnerName}</p>
                             </div>
                         </div>
                     `;
 
                     let tableRows = '';
-                    pagePlans.forEach((plan, localIdx) => {
-                        tableRows += getRowHtml(plan, startIdx + localIdx);
+                    sortedPlans.forEach((plan, idx) => {
+                        tableRows += getRowHtml(plan, idx);
                     });
 
-                    // Add content
                     container.innerHTML = headerHtml + getTableHeaderHtml() + tableRows + '</tbody></table>';
-                    
-                    // Add footer pushing it to bottom of A4
-                    const footerDiv = document.createElement('div');
-                    footerDiv.style.marginTop = 'auto';
-                    footerDiv.style.paddingTop = '15px';
-                    footerDiv.style.borderTop = '1px solid #1e293b';
-                    footerDiv.style.display = 'flex';
-                    footerDiv.style.justifyContent = 'space-between';
-                    footerDiv.style.fontSize = '10px';
-                    footerDiv.style.color = '#64748b';
-                    footerDiv.innerHTML = `
-                        <span>Runner: ${runnerName}</span>
-                        <span>Generated via Ruang Lari</span>
-                    `;
-                    container.appendChild(footerDiv);
-
                     document.body.appendChild(container);
-                    const canvas = await html2canvas(container, opt);
-                    document.body.removeChild(container);
-                    return canvas.toDataURL('image/png');
-                };
 
-                // Sequential rendering of pages
-                (async () => {
-                    for (let i = 0; i < totalPages; i++) {
-                        if (i > 0) pdf.addPage();
-                        const imgData = await renderPage(i);
-                        pdf.addImage(imgData, 'PNG', 10, 8.5, imgWidth, 280);
+                    try {
+                        const canvas = await html2canvas(container, opt);
+                        const imgData = canvas.toDataURL('image/png');
+                        const link = document.createElement('a');
+                        link.download = `kalender-latihan-${programTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.png`;
+                        link.href = imgData;
+                        link.click();
+                    } finally {
+                        if (document.body.contains(container)) document.body.removeChild(container);
                     }
+
+                } else if (type === 'pdf') {
+                    // 18 rows per page for better A4 layout utilization (reduces total page count)
+                    const rowsPerPage = 18;
+                    const totalPages = Math.ceil(sortedPlans.length / rowsPerPage);
+                    const { jsPDF } = window.jspdf;
+                    const pdf = new jsPDF('p', 'mm', 'a4');
+                    const imgWidth = 190;
+
+                    for (let i = 0; i < totalPages; i++) {
+                        exportProgressText.value = `Merender Hal. ${i + 1} dari ${totalPages}...`;
+                        // Yield thread so progress text updates visually
+                        await new Promise(r => setTimeout(r, 40));
+
+                        const startIdx = i * rowsPerPage;
+                        const endIdx = Math.min(startIdx + rowsPerPage, sortedPlans.length);
+                        const pagePlans = sortedPlans.slice(startIdx, endIdx);
+
+                        const container = document.createElement('div');
+                        container.style.position = 'absolute';
+                        container.style.left = '-9999px';
+                        container.style.top = '-9999px';
+                        container.style.width = '800px';
+                        container.style.height = '1120px';
+                        container.style.padding = '35px';
+                        container.style.backgroundColor = '#0b1220';
+                        container.style.color = '#e2e8f0';
+                        container.style.fontFamily = 'system-ui, -apple-system, sans-serif';
+                        container.style.boxSizing = 'border-box';
+                        container.style.display = 'flex';
+                        container.style.flexDirection = 'column';
+
+                        const headerHtml = `
+                            <div style="border-bottom: 2px solid #ccff00; padding-bottom: 12px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: flex-end;">
+                                <div>
+                                    <h1 style="color: #ffffff; font-size: 22px; font-weight: 900; margin: 0; text-transform: uppercase; font-style: italic;">Ruang Lari</h1>
+                                    <p style="color: #94a3b8; font-size: 10px; margin: 3px 0 0 0; text-transform: uppercase; letter-spacing: 2px;">Rencana Program Latihan</p>
+                                </div>
+                                <div style="text-align: right;">
+                                    <h3 style="color: #ccff00; font-size: 13px; font-weight: 800; margin: 0;">${programTitle}</h3>
+                                    <p style="color: #94a3b8; font-size: 10px; margin: 2px 0 0 0;">Halaman ${i + 1} dari ${totalPages}</p>
+                                </div>
+                            </div>
+                        `;
+
+                        let tableRows = '';
+                        pagePlans.forEach((plan, localIdx) => {
+                            tableRows += getRowHtml(plan, startIdx + localIdx);
+                        });
+
+                        container.innerHTML = headerHtml + getTableHeaderHtml() + tableRows + '</tbody></table>';
+
+                        const footerDiv = document.createElement('div');
+                        footerDiv.style.marginTop = 'auto';
+                        footerDiv.style.paddingTop = '12px';
+                        footerDiv.style.borderTop = '1px solid #1e293b';
+                        footerDiv.style.display = 'flex';
+                        footerDiv.style.justifyContent = 'space-between';
+                        footerDiv.style.fontSize = '10px';
+                        footerDiv.style.color = '#64748b';
+                        footerDiv.innerHTML = `
+                            <span>Runner: ${runnerName}</span>
+                            <span>Generated via Ruang Lari</span>
+                        `;
+                        container.appendChild(footerDiv);
+
+                        document.body.appendChild(container);
+                        try {
+                            const canvas = await html2canvas(container, opt);
+                            // Using JPEG 0.90 is 5-8x faster to encode and much smaller than PNG
+                            const imgData = canvas.toDataURL('image/jpeg', 0.90);
+                            if (i > 0) pdf.addPage();
+                            pdf.addImage(imgData, 'JPEG', 10, 8.5, imgWidth, 280, undefined, 'FAST');
+                        } finally {
+                            if (document.body.contains(container)) document.body.removeChild(container);
+                        }
+                    }
+
+                    exportProgressText.value = 'Menyimpan file PDF...';
+                    await new Promise(r => setTimeout(r, 40));
                     pdf.save(`kalender-latihan-${programTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-')}.pdf`);
-                })().catch(err => {
-                    console.error('PDF generation failed:', err);
-                    alert('Gagal mengekspor PDF.');
-                });
+                }
+            } catch (err) {
+                console.error('Export failed:', err);
+                alert('Gagal mengekspor: ' + (err.message || 'Terjadi kesalahan sistem.'));
+            } finally {
+                isExporting.value = false;
+                exportType.value = null;
+                exportProgressText.value = '';
             }
         };
 
         return { filter, plans, plansLoading, enrollments, programBag, setFilter, dayName, statusText, statusClass, activityLabel, formatDate,
-            showDetailModal, detail, detailTitle, closeDetail, deleteCustomWorkout, deleteProgramSession, deleteWorkout, exportCalendar,
+            showDetailModal, detail, detailTitle, closeDetail, deleteCustomWorkout, deleteProgramSession, deleteWorkout, exportCalendar, isExporting, exportType, exportProgressText,
             showFormModal, form, openFormForToday, closeForm, saveCustomWorkout, showPlanDetail, updateSessionStatus, deleteEnrollment,
             resetPlan, applyProgram, showVdotModal, openVdotModal, vdotForm, vdotLoading, generateVdot, resetPlanList,
             trainingProfile, formatPace, showPbModal, openPbModal, pbForm, pbLoading, updatePb, bagTab, cancelledPrograms, restoreProgram,
@@ -3802,7 +3768,7 @@ const runnerCalendarApp = createApp({
             showStravaAnalysisModal, stravaAnalysisLoading, stravaAnalysisRange, stravaAnalysisResult, straCustomStartDate, straCustomEndDate,
             stravaStatus, stravaStatusLoading, connectStravaFirst, syncStravaFirst,
             openStravaAnalysisModal, runStravaAnalysis, applyAnalysisToGenerator, parseMarkdown,
-            ttsSupported, speakDetailDescription, truncatePlanDesc,
+            truncatePlanDesc,
             // Adaptive Run Intelligence & Check-in
             showAdaptivePopup, adaptiveHasBeenShown, adaptiveLoading, adaptiveApplying, adaptiveStatus, checkinForm, selectFeeling,
             fetchTrainingStatus, openAdaptivePopup, closeAdaptivePopup, applyAdaptiveProgram
