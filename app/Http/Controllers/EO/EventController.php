@@ -1294,27 +1294,33 @@ class EventController extends Controller
         if (request()->has('search') && trim(request()->search) !== '') {
             $search = trim(request()->search);
             $query->where(function ($qq) use ($search) {
-                $qq->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%")
-                    ->orWhere('bib_number', 'like', "%{$search}%")
-                    ->orWhere('id_card', 'like', "%{$search}%")
+                $qq->where('participants.name', 'like', "%{$search}%")
+                    ->orWhere('participants.email', 'like', "%{$search}%")
+                    ->orWhere('participants.phone', 'like', "%{$search}%")
+                    ->orWhere('participants.bib_number', 'like', "%{$search}%")
+                    ->orWhere('participants.id_card', 'like', "%{$search}%")
+                    ->orWhere('participants.address', 'like', "%{$search}%")
+                    ->orWhere('participants.city', 'like', "%{$search}%")
                     ->orWhereHas('category', function ($q) use ($search) {
                         $q->where('name', 'like', "%{$search}%");
                     })
                     ->orWhereHas('transaction', function ($t) use ($search) {
-                        $t->where('public_ref', 'like', "%{$search}%")
-                            ->orWhere('unique_code', $search)
-                            ->orWhere(function ($jt) use ($search) {
-                                $jt->where('pic_data->name', 'like', "%{$search}%")
-                                    ->orWhere('pic_data->email', 'like', "%{$search}%")
-                                    ->orWhere('pic_data->phone', 'like', "%{$search}%")
-                                    ->orWhere('pic_data', 'like', "%{$search}%");
-                            })->orWhereHas('user', function ($u) use ($search) {
-                                $u->where('name', 'like', "%{$search}%")
-                                    ->orWhere('email', 'like', "%{$search}%")
-                                    ->orWhere('phone', 'like', "%{$search}%");
-                            });
+                        $t->where(function ($st) use ($search) {
+                            $st->where('public_ref', 'like', "%{$search}%");
+                            if (is_numeric($search) && (int) $search > 0) {
+                                $st->orWhere('unique_code', (int) $search);
+                            }
+                        })
+                        ->orWhere(function ($jt) use ($search) {
+                            $jt->where('pic_data->name', 'like', "%{$search}%")
+                                ->orWhere('pic_data->email', 'like', "%{$search}%")
+                                ->orWhere('pic_data->phone', 'like', "%{$search}%")
+                                ->orWhere('pic_data', 'like', "%{$search}%");
+                        })->orWhereHas('user', function ($u) use ($search) {
+                            $u->where('name', 'like', "%{$search}%")
+                                ->orWhere('email', 'like', "%{$search}%")
+                                ->orWhere('phone', 'like', "%{$search}%");
+                        });
                     });
             });
         }
@@ -1412,6 +1418,7 @@ class EventController extends Controller
                     'created_at' => $p->created_at ? $p->created_at->format('d M Y') : '',
                     'payment_status' => $p->transaction->payment_status ?? 'pending',
                     'transaction_id' => $p->transaction->id,
+                    'public_ref' => $p->transaction->public_ref ?? ('REG-'.$p->transaction_id),
                     'unique_code' => $p->transaction->unique_code ?? 0,
                     'final_amount' => (float) ($p->transaction->final_amount ?? 0),
                     'payment_proof' => $p->transaction->payment_proof ? asset('storage/'.$p->transaction->payment_proof) : null,
@@ -1694,17 +1701,23 @@ class EventController extends Controller
         if ($request->filled('search')) {
             $search = trim((string) $request->query('search'));
             $query->where(function ($qq) use ($search) {
-                $qq->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%")
-                    ->orWhere('bib_number', 'like', "%{$search}%")
-                    ->orWhere('id_card', 'like', "%{$search}%")
-                    ->orWhere('address', 'like', "%{$search}%")
+                $qq->where('participants.name', 'like', "%{$search}%")
+                    ->orWhere('participants.email', 'like', "%{$search}%")
+                    ->orWhere('participants.phone', 'like', "%{$search}%")
+                    ->orWhere('participants.bib_number', 'like', "%{$search}%")
+                    ->orWhere('participants.id_card', 'like', "%{$search}%")
+                    ->orWhere('participants.address', 'like', "%{$search}%")
+                    ->orWhere('participants.city', 'like', "%{$search}%")
                     ->orWhereHas('category', function ($q) use ($search) {
                         $q->where('name', 'like', "%{$search}%");
                     })
                     ->orWhereHas('transaction', function ($t) use ($search) {
-                        $t->where(function ($jt) use ($search) {
+                        $t->where(function ($st) use ($search) {
+                            $st->where('public_ref', 'like', "%{$search}%");
+                            if (is_numeric($search) && (int) $search > 0) {
+                                $st->orWhere('unique_code', (int) $search);
+                            }
+                        })->orWhere(function ($jt) use ($search) {
                             $jt->where('pic_data->name', 'like', "%{$search}%")
                                 ->orWhere('pic_data->email', 'like', "%{$search}%")
                                 ->orWhere('pic_data->phone', 'like', "%{$search}%")
@@ -2773,13 +2786,27 @@ class EventController extends Controller
         if (request()->has('search') && trim(request()->search) !== '') {
             $search = trim(request()->search);
             $query->where(function ($qq) use ($search) {
-                $qq->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%")
-                    ->orWhere('bib_number', 'like', "%{$search}%")
-                    ->orWhere('id_card', 'like', "%{$search}%")
+                $qq->where('participants.name', 'like', "%{$search}%")
+                    ->orWhere('participants.email', 'like', "%{$search}%")
+                    ->orWhere('participants.phone', 'like', "%{$search}%")
+                    ->orWhere('participants.bib_number', 'like', "%{$search}%")
+                    ->orWhere('participants.id_card', 'like', "%{$search}%")
+                    ->orWhere('participants.address', 'like', "%{$search}%")
+                    ->orWhere('participants.city', 'like', "%{$search}%")
                     ->orWhereHas('category', function ($q) use ($search) {
                         $q->where('name', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('transaction', function ($t) use ($search) {
+                        $t->where(function ($st) use ($search) {
+                            $st->where('public_ref', 'like', "%{$search}%");
+                            if (is_numeric($search) && (int) $search > 0) {
+                                $st->orWhere('unique_code', (int) $search);
+                            }
+                        })->orWhere(function ($jt) use ($search) {
+                            $jt->where('pic_data->name', 'like', "%{$search}%")
+                                ->orWhere('pic_data->email', 'like', "%{$search}%")
+                                ->orWhere('pic_data->phone', 'like', "%{$search}%");
+                        });
                     });
             });
         }
@@ -2999,13 +3026,27 @@ class EventController extends Controller
         if (request()->has('search') && trim(request()->search) !== '') {
             $search = trim(request()->search);
             $query->where(function ($qq) use ($search) {
-                $qq->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%")
-                    ->orWhere('phone', 'like', "%{$search}%")
-                    ->orWhere('bib_number', 'like', "%{$search}%")
-                    ->orWhere('id_card', 'like', "%{$search}%")
+                $qq->where('participants.name', 'like', "%{$search}%")
+                    ->orWhere('participants.email', 'like', "%{$search}%")
+                    ->orWhere('participants.phone', 'like', "%{$search}%")
+                    ->orWhere('participants.bib_number', 'like', "%{$search}%")
+                    ->orWhere('participants.id_card', 'like', "%{$search}%")
+                    ->orWhere('participants.address', 'like', "%{$search}%")
+                    ->orWhere('participants.city', 'like', "%{$search}%")
                     ->orWhereHas('category', function ($q) use ($search) {
                         $q->where('name', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('transaction', function ($t) use ($search) {
+                        $t->where(function ($st) use ($search) {
+                            $st->where('public_ref', 'like', "%{$search}%");
+                            if (is_numeric($search) && (int) $search > 0) {
+                                $st->orWhere('unique_code', (int) $search);
+                            }
+                        })->orWhere(function ($jt) use ($search) {
+                            $jt->where('pic_data->name', 'like', "%{$search}%")
+                                ->orWhere('pic_data->email', 'like', "%{$search}%")
+                                ->orWhere('pic_data->phone', 'like', "%{$search}%");
+                        });
                     });
             });
         }
@@ -3235,13 +3276,27 @@ class EventController extends Controller
                 if ($request->filled('search')) {
                     $search = trim($request->search);
                     $query->where(function ($qq) use ($search) {
-                        $qq->where('name', 'like', "%{$search}%")
-                            ->orWhere('email', 'like', "%{$search}%")
-                            ->orWhere('phone', 'like', "%{$search}%")
-                            ->orWhere('bib_number', 'like', "%{$search}%")
-                            ->orWhere('id_card', 'like', "%{$search}%")
+                        $qq->where('participants.name', 'like', "%{$search}%")
+                            ->orWhere('participants.email', 'like', "%{$search}%")
+                            ->orWhere('participants.phone', 'like', "%{$search}%")
+                            ->orWhere('participants.bib_number', 'like', "%{$search}%")
+                            ->orWhere('participants.id_card', 'like', "%{$search}%")
+                            ->orWhere('participants.address', 'like', "%{$search}%")
+                            ->orWhere('participants.city', 'like', "%{$search}%")
                             ->orWhereHas('category', function ($q) use ($search) {
                                 $q->where('name', 'like', "%{$search}%");
+                            })
+                            ->orWhereHas('transaction', function ($t) use ($search) {
+                                $t->where(function ($st) use ($search) {
+                                    $st->where('public_ref', 'like', "%{$search}%");
+                                    if (is_numeric($search) && (int) $search > 0) {
+                                        $st->orWhere('unique_code', (int) $search);
+                                    }
+                                })->orWhere(function ($jt) use ($search) {
+                                    $jt->where('pic_data->name', 'like', "%{$search}%")
+                                        ->orWhere('pic_data->email', 'like', "%{$search}%")
+                                        ->orWhere('pic_data->phone', 'like', "%{$search}%");
+                                });
                             });
                     });
                 }

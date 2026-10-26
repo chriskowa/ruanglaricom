@@ -134,6 +134,7 @@ class PublicEventReportController extends Controller
                     'transactions.payment_gateway',
                     'transactions.created_at as transaction_created_at',
                     'transactions.pic_data',
+                    'transactions.public_ref',
                     DB::raw('COALESCE(coupons.code, "") as coupon_code'),
                 ]);
 

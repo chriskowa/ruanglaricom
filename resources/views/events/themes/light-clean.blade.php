@@ -761,9 +761,11 @@
                             {{ Str::limit($event->premium_amenities['custom_section']['title'] ?? 'Info Tambahan', 16) }}
                         </a>
                     @endif
-                    <a href="#info" class="px-2.5 lg:px-3 xl:px-3.5 py-1.5 xl:py-2 rounded-md text-xs xl:text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 hover-text-theme-primary transition duration-150 whitespace-nowrap">
-                        Info
-                    </a>
+                    @if(!empty($event->premium_amenities['rundown']['enabled']))
+                        <a href="#info" class="px-2.5 lg:px-3 xl:px-3.5 py-1.5 xl:py-2 rounded-md text-xs xl:text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 hover-text-theme-primary transition duration-150 whitespace-nowrap">
+                            Rundown
+                        </a>
+                    @endif
                     <a href="#faq" class="px-2.5 lg:px-3 xl:px-3.5 py-1.5 xl:py-2 rounded-md text-xs xl:text-sm font-semibold text-slate-600 hover:text-slate-900 hover:bg-slate-100 hover-text-theme-primary transition duration-150 whitespace-nowrap">
                         FAQ
                     </a>
@@ -815,7 +817,9 @@
                     {{ $event->premium_amenities['custom_section']['title'] ?? 'Info Tambahan' }}
                 </a>
             @endif
-            <a href="#info" class="block text-sm font-semibold text-slate-700 p-2 hover:bg-slate-50 rounded-md">Info & Jadwal</a>
+            @if(!empty($event->premium_amenities['rundown']['enabled']))
+                <a href="#info" class="block text-sm font-semibold text-slate-700 p-2 hover:bg-slate-50 rounded-md">Rundown Acara</a>
+            @endif
             <a href="#faq" class="block text-sm font-semibold text-slate-700 p-2 hover:bg-slate-50 rounded-md">FAQ</a>
             @if(($hasPaidParticipants ?? false) && $event->show_participant_list)
                 <a href="#participants-list" class="block text-sm font-semibold text-slate-700 p-2 hover:bg-slate-50 rounded-md">Daftar Peserta</a>
@@ -1858,37 +1862,54 @@
         <!-- Section: Custom Section (e.g. Free Shuttle / Info Tambahan) -->
         @include('events.partials.custom-section', ['event' => $event, 'isDark' => false, 'variant' => 'light-clean'])
 
+        @php
+            $rundownAmenity = $event->premium_amenities['rundown'] ?? [];
+            $isRundownEnabled = !empty($rundownAmenity['enabled']);
+            $dynamicRundowns = [];
+            if ($isRundownEnabled && !empty($rundownAmenity['items']) && is_array($rundownAmenity['items'])) {
+                $dynamicRundowns = $rundownAmenity['items'];
+            }
+            if ($isRundownEnabled && empty($dynamicRundowns)) {
+                $flagOffTime = $event->start_at ? $event->start_at->format('H:i') . ' WIB' : '05:30 WIB';
+                $dynamicRundowns = [
+                    ['time' => '04:30 WIB', 'title' => 'Open Gate', 'description' => null, 'is_highlight' => false],
+                    ['time' => '05:00 WIB', 'title' => 'Pemanasan', 'description' => null, 'is_highlight' => false],
+                    ['time' => $flagOffTime, 'title' => 'Flag Off Start Lomba', 'description' => null, 'is_highlight' => true],
+                    ['time' => '07:00 WIB', 'title' => 'Cut Off Time (COT)', 'description' => null, 'is_highlight' => false],
+                    ['time' => '07:00 WIB', 'title' => 'Zumba', 'description' => null, 'is_highlight' => false],
+                    ['time' => '07:30 - 09:00 WIB', 'title' => 'Hiburan, Doorprize dan Podium', 'description' => null, 'is_highlight' => false],
+                ];
+            }
+
+            $rawFaqs = $event->premium_amenities['faq']['items'] ?? [];
+            $isFaqEnabled = isset($event->premium_amenities['faq']['enabled']) ? !empty($event->premium_amenities['faq']['enabled']) : true;
+            $faqs = is_array($rawFaqs) ? $rawFaqs : [];
+            if (empty($faqs) && $isFaqEnabled) {
+                $faqs = [
+                    ['question' => 'Bagaimana cara konfirmasi pembayaran?', 'answer' => 'Pembayaran melalui Payment Gateway terverifikasi secara otomatis. Setelah pembayaran berhasil, E-Ticket langsung dikirim ke email penanggung jawab.'],
+                    ['question' => 'Apakah satu orang bisa mendaftarkan beberapa peserta?', 'answer' => 'Bisa. Gunakan tombol Tambah Peserta di formulir pendaftaran untuk mendaftarkan teman, keluarga, atau komunitas dalam satu transaksi.'],
+                    ['question' => 'Apakah nomor dada (BIB) bisa dipindahtangankan?', 'answer' => 'Demi keselamatan dan keabsahan pencatatan waktu resmi, nomor BIB tidak dapat dipindahtangankan kepada pihak lain tanpa persetujuan panitia.'],
+                    ['question' => 'Bagaimana jika saya tidak sempat mengambil race pack di jadwal RPC?', 'answer' => 'Pengambilan dapat diwakilkan dengan membawa surat kuasa bertandatangan dan fotokopi E-Ticket serta KTP peserta yang bersangkutan.']
+                ];
+            }
+            $hasRundown = $isRundownEnabled && !empty($dynamicRundowns);
+            $hasFaq = $isFaqEnabled && !empty($faqs);
+        @endphp
+
+        @if($hasRundown || $hasFaq)
         <!-- Section: Info, Rundown & FAQ -->
         <section id="info" class="py-20 bg-slate-50 border-b border-slate-200">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div class="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                <div class="{{ ($hasRundown && $hasFaq) ? 'grid grid-cols-1 lg:grid-cols-12 gap-12' : 'max-w-4xl mx-auto' }}">
                     
+                    @if($hasRundown)
                     <!-- Rundown Column -->
-                    <div class="lg:col-span-5 space-y-6">
+                    <div class="{{ $hasFaq ? 'lg:col-span-5' : 'w-full' }} space-y-6">
                         <div>
                             <span class="text-xs font-bold uppercase tracking-wider text-theme-primary">Rundown Kegiatan</span>
                             <h2 class="text-2xl sm:text-3xl font-heading text-slate-900 mt-1">Jadwal Race Day</h2>
                             <p class="text-slate-600 text-xs sm:text-sm mt-1">Waktu dapat disesuaikan dengan pengumuman panitia di area lomba.</p>
                         </div>
-                        @php
-                            $rundownAmenity = $event->premium_amenities['rundown'] ?? [];
-                            $dynamicRundowns = [];
-                            if (!empty($rundownAmenity['items']) && is_array($rundownAmenity['items'])) {
-                                $dynamicRundowns = $rundownAmenity['items'];
-                            }
-                            // Default fallback if no custom rundown items defined
-                            if (empty($dynamicRundowns)) {
-                                $flagOffTime = $event->start_at ? $event->start_at->format('H:i') . ' WIB' : '05:30 WIB';
-                                $dynamicRundowns = [
-                                    ['time' => '04:30 WIB', 'title' => 'Open Gate', 'description' => null, 'is_highlight' => false],
-                                    ['time' => '05:00 WIB', 'title' => 'Pemanasan', 'description' => null, 'is_highlight' => false],
-                                    ['time' => $flagOffTime, 'title' => 'Flag Off Start Lomba', 'description' => null, 'is_highlight' => true],
-                                    ['time' => '07:00 WIB', 'title' => 'Cut Off Time (COT)', 'description' => null, 'is_highlight' => false],
-                                    ['time' => '07:00 WIB', 'title' => 'Zumba', 'description' => null, 'is_highlight' => false],
-                                    ['time' => '07:30 - 09:00 WIB', 'title' => 'Hiburan, Doorprize dan Podium', 'description' => null, 'is_highlight' => false],
-                                ];
-                            }
-                        @endphp
 
                         <div class="bg-white border border-slate-200 rounded-lg p-5 divide-y divide-slate-100 shadow-sm text-sm">
                             @foreach($dynamicRundowns as $item)
@@ -1917,26 +1938,16 @@
                         </div>
                         @endif
                     </div>
+                    @endif
 
+                    @if($hasFaq)
                     <!-- FAQ Column -->
-                    <div class="lg:col-span-7 space-y-6" id="faq">
+                    <div class="{{ $hasRundown ? 'lg:col-span-7' : 'w-full' }} space-y-6" id="faq">
                         <div>
                             <span class="text-xs font-bold uppercase tracking-wider text-theme-primary">Pertanyaan Umum</span>
                             <h2 class="text-2xl sm:text-3xl font-heading text-slate-900 mt-1">Frequently Asked Questions</h2>
                             <p class="text-slate-600 text-xs sm:text-sm mt-1">Jawaban cepat atas pertanyaan seputar pendaftaran dan hari lomba.</p>
                         </div>
-
-                        @php
-                            $faqs = $event->premium_amenities['faq']['items'] ?? [];
-                            if(empty($faqs)) {
-                                $faqs = [
-                                    ['question' => 'Bagaimana cara konfirmasi pembayaran?', 'answer' => 'Pembayaran melalui Payment Gateway terverifikasi secara otomatis. Setelah pembayaran berhasil, E-Ticket langsung dikirim ke email penanggung jawab.'],
-                                    ['question' => 'Apakah satu orang bisa mendaftarkan beberapa peserta?', 'answer' => 'Bisa. Gunakan tombol Tambah Peserta di formulir pendaftaran untuk mendaftarkan teman, keluarga, atau komunitas dalam satu transaksi.'],
-                                    ['question' => 'Apakah nomor dada (BIB) bisa dipindahtangankan?', 'answer' => 'Demi keselamatan dan keabsahan pencatatan waktu resmi, nomor BIB tidak dapat dipindahtangankan kepada pihak lain tanpa persetujuan panitia.'],
-                                    ['question' => 'Bagaimana jika saya tidak sempat mengambil race pack di jadwal RPC?', 'answer' => 'Pengambilan dapat diwakilkan dengan membawa surat kuasa bertandatangan dan fotokopi E-Ticket serta KTP peserta yang bersangkutan.']
-                                ];
-                            }
-                        @endphp
 
                         <div class="space-y-3">
                             @foreach($faqs as $f)
@@ -1951,11 +1962,22 @@
                             </div>
                             @endforeach
                         </div>
+
+                        @if(!$hasRundown && $event->terms_and_conditions)
+                        <div class="pt-2">
+                            <button type="button" onclick="openTermsModal()" class="w-full py-3 rounded-md border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold transition flex items-center justify-center gap-2">
+                                <i class="fas fa-file-shield text-slate-500"></i>
+                                <span>Lihat Peraturan & Syarat Ketentuan Lomba</span>
+                            </button>
+                        </div>
+                        @endif
                     </div>
+                    @endif
 
                 </div>
             </div>
         </section>
+        @endif
 
         <!-- Section: Daftar Peserta (Jika Diaktifkan) -->
         @if(($hasPaidParticipants ?? false) && $event->show_participant_list)
@@ -2285,7 +2307,9 @@
                                                                 @if($isSoldOut)
                                                                     <span class="text-[10px] font-bold text-rose-600 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded">Habis</span>
                                                                 @endif
-                                                                <span class="text-xs font-mono font-bold {{ $isSoldOut ? 'text-slate-400' : 'text-theme-primary' }}">+Rp {{ number_format($addon['price'] ?? 0, 0, ',', '.') }}</span>
+                                                                @if(($addon['price'] ?? 0) > 0)
+                                                                    <span class="text-xs font-mono font-bold {{ $isSoldOut ? 'text-slate-400' : 'text-theme-primary' }}">+Rp {{ number_format($addon['price'] ?? 0, 0, ',', '.') }}</span>
+                                                                @endif
                                                             </div>
                                                         </label>
                                                         @endforeach
@@ -2524,6 +2548,32 @@
         </div>
     </div>
 
+    @php
+        $successTicketsData = null;
+        if (isset($successTransaction) && $successTransaction) {
+            $successTicketsData = [
+                'transaction_id' => $successTransaction->id,
+                'ref' => $successTransaction->public_ref ?? $successTransaction->id,
+                'event_id' => $event->id,
+                'event_name' => $event->name,
+                'event_date' => $ticketDate,
+                'event_location' => $ticketLocation,
+                'participants' => $successTransaction->participants->map(function($p) use ($successTransaction) {
+                    $qrCode = 'TICKET-' . $p->id . '-' . $successTransaction->id;
+                    return [
+                        'id' => $p->id,
+                        'participant_name' => $p->name,
+                        'jersey_size_label' => $p->jersey_size ?? '-',
+                        'category_label' => $p->category->name ?? '-',
+                        'bib' => $p->bib_number ?? null,
+                        'qr_data' => $qrCode,
+                        'qr_url' => 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' . urlencode($qrCode),
+                    ];
+                })->values()->toArray(),
+            ];
+        }
+    @endphp
+
     <!-- MODAL: Success E-Ticket Generator -->
     <div id="registrationSuccessModal" class="fixed inset-0 z-[100] hidden items-center justify-center p-4">
         <div class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm" id="registrationSuccessModalBackdrop"></div>
@@ -2533,6 +2583,7 @@
             data-event-date="{{ $ticketDate }}"
             data-event-location="{{ $ticketLocation }}"
             @if($event->logo_image) data-event-logo="{{ asset('storage/' . $event->logo_image) }}" @endif
+            @if($successTicketsData) data-server-tickets="{{ htmlspecialchars(json_encode($successTicketsData), ENT_QUOTES, 'UTF-8') }}" @endif
         >
             <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
                 <h3 class="font-heading text-sm text-slate-900 uppercase">Pendaftaran Berhasil</h3>
@@ -3794,14 +3845,30 @@
                         catName = catRadio.closest('label').querySelector('.font-bold')?.textContent || '-';
                     }
 
+                    // Selected Addons
+                    const checkedAddonElements = item.querySelectorAll('input.addon-checkbox:checked');
+                    let addonsHtml = '';
+                    if (checkedAddonElements.length > 0) {
+                        const badges = [];
+                        checkedAddonElements.forEach(cb => {
+                            const lbl = cb.closest('label');
+                            const aName = lbl?.querySelector('input[name*="[name]"]')?.value || lbl?.querySelector('.text-xs.font-bold')?.textContent?.trim() || 'Addon';
+                            const aPrice = parseFloat(cb.dataset.price || '0');
+                            const priceText = aPrice > 0 ? ` (+Rp ${aPrice.toLocaleString('id-ID')})` : '';
+                            badges.push(`<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">+ ${aName}${priceText}</span>`);
+                        });
+                        addonsHtml = `<div class="mt-1.5 flex flex-wrap gap-1 items-center"><span class="text-[10px] font-bold text-slate-500">Addon:</span> ${badges.join('')}</div>`;
+                    }
+
                     const row = document.createElement('div');
-                    row.className = 'bg-white border border-slate-200 rounded p-2.5 text-xs flex justify-between items-center';
+                    row.className = 'bg-white border border-slate-200 rounded p-2.5 text-xs flex justify-between items-start gap-2';
                     row.innerHTML = `
-                        <div>
-                            <span class="font-bold text-slate-900 block">${i + 1}. ${pName}</span>
-                            <span class="text-[11px] text-slate-500">NIK: ${pNik} • Jersey: ${pSize}</span>
+                        <div class="min-w-0 flex-1">
+                            <span class="font-bold text-slate-900 block truncate">${i + 1}. ${pName}</span>
+                            <span class="text-[11px] text-slate-500 block">NIK: ${pNik} • Jersey: ${pSize}</span>
+                            ${addonsHtml}
                         </div>
-                        <span class="font-bold text-theme-primary text-xs">${catName}</span>
+                        <span class="font-bold text-theme-primary text-xs shrink-0 text-right">${catName}</span>
                     `;
                     listContainer.appendChild(row);
                 });
@@ -3908,24 +3975,35 @@
 
                         // Cache participant info for E-ticket
                         try {
-                            const participantsData = [];
-                            document.querySelectorAll('.participant-item').forEach(item => {
-                                const n = item.querySelector('input[name*="[name]"]')?.value;
-                                const sz = item.querySelector('select[name*="[jersey_size]"]')?.value;
-                                const catRadio = item.querySelector('input[type="radio"].cat-radio:checked');
-                                const catLabel = catRadio ? catRadio.closest('label').querySelector('.font-bold')?.textContent : '';
-                                const ph = item.querySelector('input[name*="[phone]"]')?.value;
-                                const idc = item.querySelector('input[name*="[id_card]"]')?.value;
-                                if (n) {
-                                    participantsData.push({
-                                        participant_name: n,
-                                        jersey_size_label: sz,
-                                        category_label: catLabel,
-                                        phone: ph,
-                                        id_card: idc
-                                    });
-                                }
-                            });
+                            let participantsData = [];
+                            if (Array.isArray(data.participants) && data.participants.length > 0) {
+                                participantsData = data.participants.map(p => ({
+                                    id: p.id,
+                                    participant_name: p.participant_name || p.name,
+                                    jersey_size_label: p.jersey_size_label || p.jersey_size || '-',
+                                    category_label: p.category_label || p.category || '-',
+                                    qr_data: p.qr_data || (p.id ? `TICKET-${p.id}-${data.transaction_id || ''}` : ''),
+                                    qr_url: p.qr_url || (p.qr_data ? `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(p.qr_data)}` : (p.id ? `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=TICKET-${p.id}-${data.transaction_id || ''}` : ''))
+                                }));
+                            } else {
+                                document.querySelectorAll('.participant-item').forEach(item => {
+                                    const n = item.querySelector('input[name*="[name]"]')?.value;
+                                    const sz = item.querySelector('select[name*="[jersey_size]"]')?.value;
+                                    const catRadio = item.querySelector('input[type="radio"].cat-radio:checked');
+                                    const catLabel = catRadio ? catRadio.closest('label').querySelector('.font-bold')?.textContent : '';
+                                    const ph = item.querySelector('input[name*="[phone]"]')?.value;
+                                    const idc = item.querySelector('input[name*="[id_card]"]')?.value;
+                                    if (n) {
+                                        participantsData.push({
+                                            participant_name: n,
+                                            jersey_size_label: sz,
+                                            category_label: catLabel,
+                                            phone: ph,
+                                            id_card: idc
+                                        });
+                                    }
+                                });
+                            }
 
                             const cachePayload = {
                                 participants: participantsData,
@@ -3940,10 +4018,10 @@
                         if (data.success && data.snap_token) {
                             snap.pay(data.snap_token, {
                                 onSuccess: function() {
-                                    window.location.href = `{{ route("events.show", $event->slug) }}?payment=success&ref=` + (data.registration_id || '');
+                                    window.location.href = `{{ route("events.show", $event->slug) }}?payment=success&tx=` + (data.transaction_id || '') + `&ref=` + (data.registration_id || '');
                                 },
                                 onPending: function() {
-                                    window.location.href = `{{ route("events.show", $event->slug) }}?payment=pending&tx=` + (data.transaction_id || '');
+                                    window.location.href = `{{ route("events.show", $event->slug) }}?payment=pending&tx=` + (data.transaction_id || '') + `&ref=` + (data.registration_id || '');
                                 },
                                 onError: function() {
                                     alert('Pembayaran tidak berhasil diselesaikan.');
@@ -4035,19 +4113,32 @@
             let cachedParticipants = [];
             let currentParticipantIdx = 0;
             let ticketNumber = '';
+            const qrCache = {};
 
             function loadTicketCache() {
                 try {
+                    const serverTicketsRaw = container?.dataset.serverTickets;
+                    if (serverTicketsRaw) {
+                        const parsed = JSON.parse(serverTicketsRaw);
+                        ticketNumber = parsed.ref || parsed.registration_id || parsed.transaction_id || '';
+                        if (Array.isArray(parsed.participants) && parsed.participants.length > 0) {
+                            cachedParticipants = parsed.participants;
+                            return;
+                        }
+                    }
+
                     const eventId = container?.dataset.eventId || '{{ $event->id }}';
                     const raw = localStorage.getItem('ruanglari_last_ticket_' + eventId);
                     if (raw) {
                         const parsed = JSON.parse(raw);
-                        ticketNumber = parsed.registration_id || '';
+                        ticketNumber = parsed.registration_id || parsed.transaction_id || '';
                         if (Array.isArray(parsed.participants)) {
                             cachedParticipants = parsed.participants;
                         }
                     }
-                } catch(e) {}
+                } catch(e) {
+                    console.warn('loadTicketCache error:', e);
+                }
             }
 
             function drawTicket(idx) {
@@ -4063,12 +4154,21 @@
                 let pName = '-';
                 let pSize = '-';
                 let pCat = '-';
+                let pId = null;
+                let pQrData = '';
+                let pQrUrl = '';
 
                 if (cachedParticipants.length > 0) {
                     const p = cachedParticipants[idx] || cachedParticipants[0];
-                    pName = p.participant_name || '-';
-                    pSize = p.jersey_size_label || '-';
-                    pCat = p.category_label || '-';
+                    pName = p.participant_name || p.name || '-';
+                    pSize = p.jersey_size_label || p.jersey_size || '-';
+                    pCat = p.category_label || p.category || '-';
+                    pId = p.id || null;
+                    pQrData = p.qr_data || (pId ? `TICKET-${pId}-${p.transaction_id || ticketNumber || ''}` : (ticketNumber ? `TICKET-${ticketNumber}` : 'TICKET-RL'));
+                    pQrUrl = p.qr_url || `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(pQrData)}`;
+                } else {
+                    pQrData = ticketNumber ? `TICKET-${ticketNumber}` : 'TICKET-RL';
+                    pQrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(pQrData)}`;
                 }
 
                 if (participantLabel) participantLabel.textContent = pName;
@@ -4147,24 +4247,101 @@
 
                 // Right Section: Stub
                 ctx.fillStyle = '#10b981';
-                ctx.font = '800 22px "Plus Jakarta Sans", sans-serif';
-                ctx.fillText('CONFIRMED', cutX + 35, 80);
+                ctx.font = '800 20px "Plus Jakarta Sans", sans-serif';
+                ctx.fillText('CONFIRMED', cutX + 35, 70);
 
                 ctx.fillStyle = '#64748b';
-                ctx.font = '600 12px "Plus Jakarta Sans", sans-serif';
-                ctx.fillText('UKURAN JERSEY', cutX + 35, 125);
-
+                ctx.font = '600 11px "Plus Jakarta Sans", sans-serif';
+                ctx.fillText('JERSEY', cutX + 35, 102);
                 ctx.fillStyle = primaryColor;
-                ctx.font = '800 24px "Plus Jakarta Sans", sans-serif';
-                ctx.fillText(pSize, cutX + 35, 155);
+                ctx.font = '800 18px "Plus Jakarta Sans", sans-serif';
+                ctx.fillText(pSize, cutX + 35, 124);
 
                 ctx.fillStyle = '#64748b';
-                ctx.font = '600 12px "Plus Jakarta Sans", sans-serif';
-                ctx.fillText('NO. REGISTRASI', cutX + 35, 205);
-
+                ctx.font = '600 11px "Plus Jakarta Sans", sans-serif';
+                ctx.fillText('NO. REGISTRASI', cutX + 135, 102);
                 ctx.fillStyle = '#0f172a';
-                ctx.font = '700 14px "JetBrains Mono", monospace';
-                ctx.fillText(ticketNumber || 'VERIFIED', cutX + 35, 228);
+                ctx.font = '700 12px "JetBrains Mono", monospace';
+                ctx.fillText(ticketNumber || 'VERIFIED', cutX + 135, 124);
+
+                // QR Code Card Container
+                const cardX = 654;
+                const cardY = 142;
+                const cardW = 205;
+                const cardH = 210;
+
+                ctx.fillStyle = '#f8fafc';
+                ctx.fillRect(cardX, cardY, cardW, cardH);
+                ctx.strokeStyle = '#e2e8f0';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(cardX, cardY, cardW, cardH);
+
+                // QR Code Image & Label
+                const qrSize = 130;
+                const qrX = cardX + (cardW - qrSize) / 2;
+                const qrY = cardY + 12;
+                const cardCenterX = cardX + cardW / 2;
+                const currentTicketIdx = idx;
+
+                if (qrCache[pQrUrl] && qrCache[pQrUrl].complete) {
+                    try {
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillRect(qrX, qrY, qrSize, qrSize);
+                        ctx.drawImage(qrCache[pQrUrl], qrX, qrY, qrSize, qrSize);
+                    } catch(e) {
+                        console.warn('Canvas drawImage error:', e);
+                    }
+                } else {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.fillRect(qrX, qrY, qrSize, qrSize);
+                    ctx.fillStyle = '#94a3b8';
+                    ctx.font = '600 10px "Plus Jakarta Sans", sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('MEMUAT QR...', cardCenterX, qrY + 68);
+                    ctx.textAlign = 'left';
+
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.onload = function() {
+                        qrCache[pQrUrl] = img;
+                        if (currentParticipantIdx === currentTicketIdx) {
+                            ctx.fillStyle = '#ffffff';
+                            ctx.fillRect(qrX, qrY, qrSize, qrSize);
+                            try {
+                                ctx.drawImage(img, qrX, qrY, qrSize, qrSize);
+                            } catch(e) {
+                                console.warn('Canvas drawImage error:', e);
+                            }
+                        }
+                    };
+                    img.onerror = function() {
+                        if (currentParticipantIdx === currentTicketIdx) {
+                            ctx.fillStyle = '#f1f5f9';
+                            ctx.fillRect(qrX, qrY, qrSize, qrSize);
+                            ctx.fillStyle = '#64748b';
+                            ctx.font = '700 10px "JetBrains Mono", monospace';
+                            ctx.textAlign = 'center';
+                            ctx.fillText('QR OFFLINE', cardCenterX, qrY + 68);
+                            ctx.textAlign = 'left';
+                        }
+                    };
+                    img.src = pQrUrl;
+                }
+
+                // QR Code Subtitle text (Matches Email QR Code)
+                ctx.fillStyle = '#0f172a';
+                ctx.font = '700 10px "JetBrains Mono", monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(pQrData, cardCenterX, cardY + 162);
+
+                ctx.fillStyle = '#64748b';
+                ctx.font = '600 9px "Plus Jakarta Sans", sans-serif';
+                ctx.fillText('SCAN DI RACE PACK COLLECTION', cardCenterX, cardY + 180);
+
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '500 10px "Plus Jakarta Sans", sans-serif';
+                ctx.fillText('Official Digital E-Ticket', cardCenterX, 380);
+                ctx.textAlign = 'left';
 
                 // Instructions footer
                 ctx.fillStyle = '#94a3b8';
@@ -4208,10 +4385,30 @@
 
             downloadBtn?.addEventListener('click', function() {
                 if (!canvas) return;
-                const link = document.createElement('a');
-                link.download = 'eticket-' + '{{ Str::slug($event->name) }}' + '-' + (currentParticipantIdx + 1) + '.png';
-                link.href = canvas.toDataURL('image/png');
-                link.click();
+                const p = cachedParticipants[currentParticipantIdx] || cachedParticipants[0] || {};
+                const pQrData = p.qr_data || (p.id ? `TICKET-${p.id}-${p.transaction_id || ticketNumber || ''}` : (ticketNumber ? `TICKET-${ticketNumber}` : 'TICKET-RL'));
+                const pQrUrl = p.qr_url || `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(pQrData)}`;
+
+                const triggerDownload = () => {
+                    const link = document.createElement('a');
+                    link.download = 'eticket-' + '{{ Str::slug($event->name) }}' + '-' + (currentParticipantIdx + 1) + '.png';
+                    link.href = canvas.toDataURL('image/png');
+                    link.click();
+                };
+
+                if (pQrUrl && (!qrCache[pQrUrl] || !qrCache[pQrUrl].complete)) {
+                    const img = new Image();
+                    img.crossOrigin = 'anonymous';
+                    img.onload = function() {
+                        qrCache[pQrUrl] = img;
+                        drawTicket(currentParticipantIdx);
+                        triggerDownload();
+                    };
+                    img.onerror = triggerDownload;
+                    img.src = pQrUrl;
+                } else {
+                    triggerDownload();
+                }
             });
 
             // Check URL param payment=success

@@ -97,11 +97,12 @@
 
     // Rundown Amenity
     $rundownAmenity = $event->premium_amenities['rundown'] ?? [];
+    $isRundownEnabled = !empty($rundownAmenity['enabled']);
     $dynamicRundowns = [];
-    if (!empty($rundownAmenity['items']) && is_array($rundownAmenity['items'])) {
+    if ($isRundownEnabled && !empty($rundownAmenity['items']) && is_array($rundownAmenity['items'])) {
         $dynamicRundowns = $rundownAmenity['items'];
     }
-    if (empty($dynamicRundowns)) {
+    if ($isRundownEnabled && empty($dynamicRundowns)) {
         $flagOffTime = $event->start_at ? $event->start_at->format('H:i') . ' WIB' : '05:30 WIB';
         $dynamicRundowns = [
             ['time' => '04:30 WIB', 'title' => 'Open Gate & Drop Bag', 'description' => null, 'is_highlight' => false],
@@ -112,7 +113,6 @@
             ['time' => '07:45 - 09:00 WIB', 'title' => 'Hiburan, Doorprize & Podium', 'description' => null, 'is_highlight' => false],
         ];
     }
-    $isRundownEnabled = isset($rundownAmenity['enabled']) ? (bool) $rundownAmenity['enabled'] : true;
 
     // Dokumen Peserta / Surat Kuasa Amenity
     $suratKuasaAmenity = $event->premium_amenities['surat_kuasa'] ?? [];
@@ -388,6 +388,13 @@
                 <h1 class="text-2xl sm:text-4xl md:text-5xl font-black text-white tracking-tight leading-tight sm:leading-tight drop-shadow-md">
                     {{ $event->name }}
                 </h1>
+
+                @if(!empty($event->organizer_name))
+                    <div class="mt-2 text-xs sm:text-sm font-semibold text-slate-300 flex items-center gap-1.5">
+                        <i class="fa-solid fa-shield-halved text-theme-primary"></i>
+                        <span>Diselenggarakan oleh <strong class="text-white">{{ $event->organizer_name }}</strong></span>
+                    </div>
+                @endif
 
                 <!-- Event Quick Info Line -->
                 <div class="mt-4 flex flex-wrap items-center gap-y-2 gap-x-4 sm:gap-x-6 text-xs sm:text-sm text-slate-200 font-medium">
@@ -800,6 +807,25 @@
                         </div>
                     </div>
                 @endif
+
+                <!-- Official Partners & Sponsors -->
+                @if(!empty($sponsorUrls) && count($sponsorUrls) > 0)
+                    <div class="pro-card p-5 sm:p-6">
+                        <div class="text-xs font-bold uppercase tracking-wider text-slate-900 flex items-center gap-2 mb-4">
+                            <span class="w-6 h-6 rounded-md bg-slate-900 text-white inline-flex items-center justify-center text-[10px]">
+                                <i class="fa-solid fa-handshake text-white"></i>
+                            </span>
+                            Official Partners & Sponsors
+                        </div>
+                        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+                            @foreach($sponsorUrls as $sUrl)
+                                <div class="h-16 sm:h-20 bg-slate-50 border border-slate-200 rounded-lg p-2.5 flex items-center justify-center hover:border-slate-300 transition">
+                                    <img src="{{ $sUrl }}" alt="Sponsor" class="max-h-full max-w-full object-contain filter grayscale hover:grayscale-0 transition duration-200" loading="lazy">
+                                </div>
+                            @endforeach
+                        </div>
+                    </div>
+                @endif
                 
             </section>
 
@@ -948,13 +974,9 @@
                                                                         @if($isSoldOut)
                                                                             <span class="text-[10px] font-bold text-rose-600 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded">Habis</span>
                                                                         @endif
-                                                                        <span>
-                                                                            @if((int) ($addon['price'] ?? 0) > 0)
-                                                                                +Rp {{ number_format((int) ($addon['price'] ?? 0), 0, ',', '.') }}
-                                                                            @else
-                                                                                Gratis
-                                                                            @endif
-                                                                        </span>
+                                                                        @if((int) ($addon['price'] ?? 0) > 0)
+                                                                            <span>+Rp {{ number_format((int) ($addon['price'] ?? 0), 0, ',', '.') }}</span>
+                                                                        @endif
                                                                     </div>
                                                                 </div>
                                                                 <input type="hidden" data-addon-name="{{ $idx }}" name="participants[0][addons][{{ $idx }}][name]" value="{{ $addon['name'] }}" {{ $isSoldOut ? 'disabled' : '' }}>
@@ -1226,13 +1248,9 @@
                                                                         @if($isSoldOut)
                                                                             <span class="text-[10px] font-bold text-rose-600 bg-rose-50 border border-rose-200 px-1.5 py-0.5 rounded">Habis</span>
                                                                         @endif
-                                                                        <span>
-                                                                            @if((int) ($addon['price'] ?? 0) > 0)
-                                                                                +Rp {{ number_format((int) ($addon['price'] ?? 0), 0, ',', '.') }}
-                                                                            @else
-                                                                                Gratis
-                                                                            @endif
-                                                                        </span>
+                                                                        @if((int) ($addon['price'] ?? 0) > 0)
+                                                                            <span>+Rp {{ number_format((int) ($addon['price'] ?? 0), 0, ',', '.') }}</span>
+                                                                        @endif
                                                                     </div>
                                                                 </div>
                                                                 <input type="hidden" data-addon-name="{{ $idx }}" value="{{ $addon['name'] }}" {{ $isSoldOut ? 'disabled' : '' }}>
@@ -1524,6 +1542,12 @@
             </aside>
         </div>
 
+        <!-- Custom Section (Full Width if Enabled) -->
+        @include('events.partials.custom-section', ['event' => $event, 'isDark' => false, 'variant' => 'quick-light'])
+
+        <!-- Hadiah Pemenang (Full Width if Configured) -->
+        @include('events.partials.prizes-section', ['categories' => $categories, 'isDark' => false, 'variant' => 'quick-light'])
+
         <!-- Participants List Table (Full Width Below 2-Column Grid) -->
         @if(($hasPaidParticipants ?? false) && $event->show_participant_list)
             <div class="pro-card p-5 sm:p-6 max-w-full overflow-hidden mt-8 sm:mt-10" id="participants-list">
@@ -1744,6 +1768,31 @@
                         @endif
                     </div>
 
+                    @if(!empty($successTransaction) && $successTransaction->participants->count() > 0)
+                        <div class="mt-4 p-4 rounded-xl bg-slate-50 border border-slate-200 text-center space-y-3">
+                            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">E-Ticket Digital Resmi</span>
+                            <div class="space-y-4 divide-y divide-slate-200">
+                                @foreach($successTransaction->participants as $idx => $p)
+                                    @php
+                                        $pQrData = 'TICKET-' . $p->id . '-' . $successTransaction->id;
+                                        $pQrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' . urlencode($pQrData);
+                                    @endphp
+                                    <div class="{{ $idx > 0 ? 'pt-4' : '' }} flex flex-col items-center">
+                                        <div class="bg-white p-2.5 rounded-lg border border-slate-200 shadow-sm inline-block">
+                                            <img src="{{ $pQrUrl }}" alt="QR E-Ticket" class="w-32 h-32 object-contain mx-auto" loading="lazy">
+                                        </div>
+                                        <div class="mt-2 text-center">
+                                            <div class="text-xs font-bold text-slate-900">{{ $p->name }}</div>
+                                            <div class="text-[11px] font-mono text-slate-500 font-bold">{{ $pQrData }}</div>
+                                            <div class="text-[10px] text-slate-400 mt-0.5">Kategori: {{ $p->category->name ?? '-' }} @if($p->jersey_size) | Jersey: {{ $p->jersey_size }} @endif</div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+                            <p class="text-[10px] text-slate-400">Tunjukkan QR code ini saat verifikasi / pengambilan Race Pack (RPC).</p>
+                        </div>
+                    @endif
+
                     <div id="modalPendingAction" class="hidden mt-4">
                         <a href="{{ route('events.payments.continue', $event->slug) }}" class="w-full inline-flex items-center justify-center gap-1.5 py-3 px-4 rounded-xl bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold transition-colors text-center shadow-sm">
                             <span>Lanjutkan Pembayaran Sekarang</span>
@@ -1765,6 +1814,78 @@
             </div>
         </div>
     </div>
+
+    @if(($event->premium_amenities['promo_modal_enabled'] ?? 0) == 1)
+    <!-- Promo Modal -->
+    <div id="promoModal" class="fixed inset-0 z-[100] hidden">
+        <div class="absolute inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity opacity-0 duration-300" id="promoBackdrop" onclick="closePromoModal()"></div>
+        <div class="absolute inset-0 flex items-center justify-center p-4">
+            <div class="bg-white rounded-2xl border border-slate-200 shadow-2xl max-w-md w-full p-6 relative transform scale-95 opacity-0 transition-all duration-300" id="promoContent">
+                <button type="button" onclick="closePromoModal()" class="absolute top-4 right-4 w-8 h-8 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+                <div class="text-center">
+                    <div class="w-14 h-14 bg-amber-50 rounded-2xl flex items-center justify-center mx-auto mb-4 border border-amber-200 text-amber-600">
+                        <i class="fa-solid fa-ticket text-2xl"></i>
+                    </div>
+                    <h3 class="text-xl font-black text-slate-900 mb-2">Master Kupon & Promo Event</h3>
+                    @if(!empty($event->premium_amenities['promo_modal_html']))
+                        <div class="mb-6 text-left text-slate-700 text-xs sm:text-sm leading-relaxed space-y-2">
+                            {!! $event->premium_amenities['promo_modal_html'] !!}
+                        </div>
+                    @else
+                        <p class="text-slate-600 mb-6 text-xs sm:text-sm leading-relaxed">
+                            Event ini menyediakan kupon diskon pendaftaran. Silakan gunakan kode kupon pada formulir pendaftaran untuk potongan harga.
+                        </p>
+                    @endif
+                    <div class="space-y-2.5">
+                        <a href="#register" onclick="closePromoModal()" class="block w-full py-3 bg-theme-primary hover-bg-theme-primary-dark text-white font-bold rounded-xl text-xs transition text-center shadow-sm">
+                            Gunakan Kupon di Pendaftaran
+                        </a>
+                        <button type="button" onclick="closePromoModal()" class="block w-full py-2 text-slate-500 font-semibold hover:text-slate-700 text-xs text-center">
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        function closePromoModal() {
+            const modal = document.getElementById('promoModal');
+            const backdrop = document.getElementById('promoBackdrop');
+            const content = document.getElementById('promoContent');
+            if (!modal) return;
+            if (backdrop) backdrop.classList.add('opacity-0');
+            if (content) {
+                content.classList.remove('scale-100', 'opacity-100');
+                content.classList.add('scale-95', 'opacity-0');
+            }
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                sessionStorage.setItem('promoModalShown', '1');
+            }, 300);
+        }
+        document.addEventListener('DOMContentLoaded', function() {
+            if (!sessionStorage.getItem('promoModalShown') && {{ $isRegOpen ? 'true' : 'false' }} && {{ ($event->premium_amenities['promo_modal_enabled'] ?? 0) == 1 ? 'true' : 'false' }}) {
+                setTimeout(function() {
+                    const modal = document.getElementById('promoModal');
+                    const backdrop = document.getElementById('promoBackdrop');
+                    const content = document.getElementById('promoContent');
+                    if (!modal) return;
+                    modal.classList.remove('hidden');
+                    requestAnimationFrame(() => {
+                        if (backdrop) backdrop.classList.remove('opacity-0');
+                        if (content) {
+                            content.classList.remove('scale-95', 'opacity-0');
+                            content.classList.add('scale-100', 'opacity-100');
+                        }
+                    });
+                }, 2000);
+            }
+        });
+    </script>
+    @endif
 
     <script>
         var routeMap = null;
@@ -3062,5 +3183,7 @@
             })();
         </script>
     @endif
+
+    @include('events.partials.floating-whatsapp', ['event' => $event])
 </body>
 </html>

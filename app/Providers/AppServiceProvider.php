@@ -61,9 +61,11 @@ class AppServiceProvider extends ServiceProvider
             return;
         }
 
-        $canonicalHost = $host;
-        if (str_starts_with($host, 'app.')) {
-            $canonicalHost = substr($host, 4);
+        $canonicalHost = str_ends_with($host, '.id') ? 'ruanglari.id' : 'ruanglari.com';
+        $subdomain = str_replace(['.ruanglari.com', '.ruanglari.id'], '', $host);
+        $allowed = (array) config('app.allowed_subdomains', []);
+        if (in_array($subdomain, $allowed, true)) {
+            $canonicalHost = $host;
         }
 
         $isSecure = $request->isSecure()

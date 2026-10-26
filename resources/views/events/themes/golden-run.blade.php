@@ -1486,7 +1486,24 @@
                 </div>
                 @endif
 
-                @if($isGoldenRun)
+                @php
+                    $goldenRundownAmenity = $event->premium_amenities['rundown'] ?? [];
+                    $isGoldenRundownEnabled = !empty($goldenRundownAmenity['enabled']);
+                    $goldenRundowns = [];
+                    if ($isGoldenRundownEnabled && !empty($goldenRundownAmenity['items']) && is_array($goldenRundownAmenity['items'])) {
+                        $goldenRundowns = $goldenRundownAmenity['items'];
+                    }
+                    if ($isGoldenRundownEnabled && empty($goldenRundowns)) {
+                        $goldenRundowns = [
+                            ['time' => '05:00 WIB', 'title' => 'Open Gate & Berkumpul', 'description' => 'Peserta memasuki area venue utama', 'is_highlight' => false],
+                            ['time' => '05:30 WIB', 'title' => 'Warming Up & Briefing', 'description' => 'Pemanasan bersama instruktur & briefing rute', 'is_highlight' => false],
+                            ['time' => '06:00 WIB', 'title' => 'Flag Off Lomba', 'description' => 'Pelepasan resmi seluruh kategori lari', 'is_highlight' => true],
+                            ['time' => '07:30 WIB', 'title' => 'DJ Performance & Pemenang', 'description' => 'Hiburan DJ run, pembagian medali, & doorprize', 'is_highlight' => false],
+                        ];
+                    }
+                @endphp
+
+                @if($isGoldenRundownEnabled && !empty($goldenRundowns))
                 <!-- Jadwal Kegiatan -->
                 <div class="reveal">
                     <div class="flex items-center gap-3 mb-6">
@@ -1496,21 +1513,6 @@
                         <h2 class="text-2xl font-bold text-white">Jadwal Kegiatan</h2>
                     </div>
                     <div class="bg-white/5 rounded-3xl p-8 border border-white/10">
-                        @php
-                            $goldenRundownAmenity = $event->premium_amenities['rundown'] ?? [];
-                            $goldenRundowns = [];
-                            if (!empty($goldenRundownAmenity['items']) && is_array($goldenRundownAmenity['items'])) {
-                                $goldenRundowns = $goldenRundownAmenity['items'];
-                            }
-                            if (empty($goldenRundowns)) {
-                                $goldenRundowns = [
-                                    ['time' => '05:00 WIB', 'title' => 'Open Gate & Berkumpul', 'description' => 'Peserta memasuki area venue utama', 'is_highlight' => false],
-                                    ['time' => '05:30 WIB', 'title' => 'Warming Up & Briefing', 'description' => 'Pemanasan bersama instruktur & briefing rute', 'is_highlight' => false],
-                                    ['time' => '06:00 WIB', 'title' => 'Flag Off Lomba', 'description' => 'Pelepasan resmi seluruh kategori lari', 'is_highlight' => true],
-                                    ['time' => '07:30 WIB', 'title' => 'DJ Performance & Pemenang', 'description' => 'Hiburan DJ run, pembagian medali, & doorprize', 'is_highlight' => false],
-                                ];
-                            }
-                        @endphp
                         <p class="text-slate-400 mb-6">Rencana jadwal pelaksanaan (rundown) event lari:</p>
                         <ul class="space-y-4">
                             @foreach($goldenRundowns as $index => $gItem)
@@ -2133,9 +2135,11 @@
                                                             @if($isSoldOut)
                                                                 <span class="text-xs font-bold text-rose-400 bg-rose-500/10 border border-rose-500/20 px-2 py-0.5 rounded">Habis</span>
                                                             @endif
-                                                            <span class="text-sm font-bold {{ $isSoldOut ? 'text-slate-500' : 'text-accent-400' }}">
-                                                                +Rp {{ number_format($addon['price'] ?? 0, 0, ',', '.') }}
-                                                            </span>
+                                                            @if(($addon['price'] ?? 0) > 0)
+                                                                <span class="text-sm font-bold {{ $isSoldOut ? 'text-slate-500' : 'text-accent-400' }}">
+                                                                    +Rp {{ number_format($addon['price'] ?? 0, 0, ',', '.') }}
+                                                                </span>
+                                                            @endif
                                                         </div>
                                                     </label>
                                                 @endforeach
@@ -5306,6 +5310,26 @@
                         </div>
                     `;
 
+                    // Selected Addons
+                    const checkedAddonElements = item.querySelectorAll('input.addon-checkbox:checked');
+                    let addonsHtml = '';
+                    if (checkedAddonElements.length > 0) {
+                        const badges = [];
+                        checkedAddonElements.forEach(cb => {
+                            const lbl = cb.closest('label');
+                            const aName = lbl?.querySelector('input[name*="[name]"]')?.value || lbl?.querySelector('.text-xs.font-bold, .font-bold')?.textContent?.trim() || 'Addon';
+                            const aPrice = parseFloat(cb.dataset.price || '0');
+                            const priceText = aPrice > 0 ? ` (+Rp ${aPrice.toLocaleString('id-ID')})` : '';
+                            badges.push(`<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">+ ${aName}${priceText}</span>`);
+                        });
+                        addonsHtml = `
+                            <div class="col-span-2 border-t border-slate-50 pt-2 mt-1">
+                                <span class="block text-[10px] uppercase text-slate-400 font-bold tracking-wider mb-1">Addon Tambahan</span>
+                                <div class="flex flex-wrap gap-1">${badges.join('')}</div>
+                            </div>
+                        `;
+                    }
+
                     // Body HTML
                     const body = document.createElement('div');
                     body.className = `px-4 py-3 text-sm space-y-2 bg-white ${isExpanded ? 'block' : 'hidden'}`;
@@ -5323,6 +5347,7 @@
                                 <span class="block text-[10px] uppercase text-slate-400 font-bold tracking-wider">Ukuran Jersey</span>
                                 <span class="block font-bold text-brand-600">${pJersey}</span>
                             </div>
+                            ${addonsHtml}
                         </div>
                     `;
 

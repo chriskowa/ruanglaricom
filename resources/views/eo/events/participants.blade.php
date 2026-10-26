@@ -664,6 +664,7 @@
                             'pic_phone' => $participant->transaction->pic_data['phone'] ?? '-',
                             'pic_email' => $participant->transaction->pic_data['email'] ?? '-',
                             'transaction_id' => $participant->transaction->id,
+                            'public_ref' => $participant->transaction->public_ref ?? ('REG-' . $participant->transaction_id),
                             'transaction_date' => $participant->transaction->created_at ? $participant->transaction->created_at->format('Y-m-d H:i:s') : '-',
                             'payment_method' => $participant->transaction->payment_gateway ?? '-',
                             'payment_status' => $participant->transaction->payment_status ?? 'pending',
@@ -889,6 +890,9 @@
                                         </svg>
                                     </button>
                                 @endif
+                                <button type="button" onclick="event.stopPropagation(); openEticketModalById({{ $participant->id }})" class="p-2 rounded-lg bg-slate-800 text-yellow-400 hover:bg-slate-700 hover:text-yellow-300 transition-colors" title="Lihat dan Cetak E-Ticket">
+                                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
+                                </button>
                                 <a href="mailto:{{ $participant->email }}" class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors" title="Email">
                                     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
                                 </a>
@@ -1864,8 +1868,25 @@
             <div class="relative transform overflow-hidden rounded-2xl bg-slate-800 border border-slate-700 text-left shadow-xl transition-all w-full max-w-2xl">
                 <!-- Header -->
                 <div class="bg-slate-900/50 px-6 py-4 border-b border-slate-700 flex justify-between items-center">
-                    <h3 class="text-lg font-bold text-white">Participant Details</h3>
+                    <div>
+                        <h3 class="text-lg font-bold text-white">Participant Details</h3>
+                        <div class="flex flex-wrap items-center gap-2 text-xs text-slate-400 mt-1">
+                            <span class="flex items-center gap-1.5">
+                                <span>No. Registrasi:</span>
+                                <span id="dm_public_ref" class="font-mono font-bold text-yellow-400 select-all cursor-pointer hover:underline" onclick="copyPublicRef()" title="Klik untuk salin No. Registrasi">-</span>
+                            </span>
+                            <span class="text-slate-600">•</span>
+                            <span class="flex items-center gap-1">
+                                <span>ID:</span>
+                                <span id="dm_participant_id" class="font-mono text-slate-300">-</span>
+                            </span>
+                        </div>
+                    </div>
                     <div class="flex items-center gap-2">
+                        <button type="button" onclick="openEticketModalFromDetail()" class="px-2.5 py-1 rounded-md bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 border border-yellow-500/30 text-xs font-semibold flex items-center gap-1.5 transition-colors" title="Lihat dan Cetak E-Ticket Peserta">
+                            <svg class="w-3.5 h-3.5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
+                            E-Ticket
+                        </button>
                         <button type="button" id="btn_edit_participant" onclick="toggleEditMode(true)" class="text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors flex items-center">
                             <svg class="w-4 h-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
                             Edit
@@ -2113,6 +2134,13 @@
                             <h4 class="text-sm font-bold text-slate-300 uppercase tracking-wider mb-3">Status & Transaksi</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                                 <div class="space-y-3">
+                                    <div>
+                                        <div class="text-xs text-slate-500">No. Registrasi (Invoice)</div>
+                                        <div class="view-mode flex items-center gap-2 mt-0.5">
+                                            <span class="font-mono font-bold text-yellow-400 text-sm select-all" id="dm_public_ref_trx">-</span>
+                                            <button type="button" onclick="copyPublicRef()" class="px-2 py-0.5 rounded bg-slate-700 hover:bg-slate-600 text-slate-300 text-[11px] font-medium transition" title="Salin No. Registrasi">Salin</button>
+                                        </div>
+                                    </div>
                                     <div><div class="text-xs text-slate-500">Transaction Date</div><div class="text-white" id="dm_trx_date"></div></div>
                                     <div><div class="text-xs text-slate-500">Payment Method</div><div class="text-white uppercase" id="dm_payment_method"></div></div>
                                     <div>
@@ -2212,6 +2240,10 @@
                         </button>
                     </div>
                     <div class="view-mode flex items-center gap-2">
+                        <button type="button" id="btn_detail_eticket" onclick="openEticketModalFromDetail()" class="px-3 py-1.5 rounded-lg bg-yellow-500/10 hover:bg-yellow-500/20 text-yellow-400 border border-yellow-500/40 text-xs font-semibold flex items-center gap-1.5 transition-colors" title="Lihat dan Cetak E-Ticket Peserta">
+                            <svg class="w-3.5 h-3.5 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg>
+                            E-Ticket
+                        </button>
                         <button type="button" id="btn_create_user" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors">
                             <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
                             Add as User
@@ -2263,7 +2295,55 @@
     </div>
 </div>
 
+<!-- E-Ticket Preview & Print Modal -->
+<div id="participantEticketModal" class="fixed inset-0 z-[110] hidden flex items-center justify-center p-4 bg-black/85 backdrop-blur-sm" onclick="closeEticketModal()">
+    <div class="relative w-full max-w-2xl bg-slate-900 border border-slate-700 rounded-lg shadow-2xl overflow-hidden flex flex-col" onclick="event.stopPropagation()">
+        <!-- Header -->
+        <div class="px-5 py-3.5 border-b border-slate-800 bg-slate-950 flex items-center justify-between">
+            <div>
+                <h3 class="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+                    <span>E-Ticket Peserta</span>
+                    <span id="eticketTemplateBadge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700"></span>
+                </h3>
+                <div class="text-xs text-slate-400 mt-0.5" id="eticketSubtitle"></div>
+            </div>
+            <button type="button" onclick="closeEticketModal()" class="w-7 h-7 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+        </div>
+
+        <!-- Content Canvas -->
+        <div class="p-5 space-y-3">
+            <div class="border border-slate-800 rounded-lg bg-slate-950 p-2 overflow-hidden flex items-center justify-center">
+                <canvas id="participantEticketCanvas" width="900" height="450" class="w-full h-auto rounded shadow-inner"></canvas>
+            </div>
+            <div class="text-[11px] text-slate-400 flex flex-wrap items-center justify-between gap-2">
+                <span>E-Ticket resmi dilengkapi QR Code scanner & nomor BIB untuk verifikasi Race Pack Collection.</span>
+                <span class="font-mono text-slate-500">Resolusi: 900x450 px</span>
+            </div>
+        </div>
+
+        <!-- Footer Actions -->
+        <div class="px-5 py-3 border-t border-slate-800 bg-slate-950 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+                <button type="button" id="btnEticketPrint" onclick="printEticketCanvas()" class="px-3.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition">
+                    <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                    Cetak E-Ticket
+                </button>
+                <button type="button" id="btnEticketDownload" onclick="downloadEticketCanvas()" class="px-3.5 py-1.5 rounded-md bg-yellow-500 hover:bg-yellow-400 text-black text-xs font-bold flex items-center gap-1.5 transition">
+                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                    Unduh PNG
+                </button>
+            </div>
+            <button type="button" onclick="closeEticketModal()" class="px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-medium transition">
+                Tutup
+            </button>
+        </div>
+    </div>
+</div>
+
 <script src="https://unpkg.com/jsqr@1.4.0/dist/jsQR.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <script>
     (function(){
         var form = document.getElementById('filtersForm');
@@ -2675,6 +2755,7 @@
                     pic_phone: p.pic_phone,
                     pic_email: p.pic_email,
                     transaction_id: p.transaction_id,
+                    public_ref: p.public_ref || ('REG-' + (p.transaction_id || p.id)),
                     transaction_date: p.transaction_date,
                     payment_method: p.payment_method,
                     payment_status: p.payment_status,
@@ -2763,6 +2844,7 @@
                     '<td class="px-6 py-4 col-approval" onclick="event.stopPropagation()">'+ approvalBadge +'</td>'+
                     '<td class="px-6 py-4 col-pickup">'+ pickedBadge +'</td>'+
                     '<td class="px-6 py-4 text-right col-actions"><div class="flex items-center justify-end gap-2">'+
+                        '<button type="button" onclick="event.stopPropagation(); openEticketModalById('+ p.id +')" class="p-2 rounded-lg bg-slate-800 text-yellow-400 hover:bg-slate-700 hover:text-yellow-300 transition-colors" title="Lihat dan Cetak E-Ticket"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" /></svg></button>'+
                         '<a href="mailto:'+ (p.email || '') +'" class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:bg-slate-700 hover:text-white transition-colors" title="Email"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg></a>'+
                         '<a href="https://wa.me/'+ phoneToWa(p.phone) +'" target="_blank" class="p-2 rounded-lg bg-slate-800 text-green-400 hover:bg-slate-700 hover:text-green-300 transition-colors" title="WhatsApp"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.536 0 1.52 1.115 2.988 1.264 3.186.149.198 2.19 3.361 5.27 4.69 2.151.928 2.988.94 3.518.865.592-.084 1.758-.717 2.006-1.41.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.381a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg></a>'+
                         (status !== 'paid' ? '<button onclick="deleteParticipant('+ p.id +')" class="p-2 rounded-lg bg-slate-800 text-red-400 hover:bg-red-900/50 hover:text-red-300 transition-colors" title="Delete"><svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg></button>' : '') +
@@ -3946,6 +4028,15 @@
         document.getElementById('edit_notification').classList.add('hidden');
         document.getElementById('edit_id').value = data.id;
 
+        // Populate Registration Number & Participant ID
+        var regNo = data.public_ref || ('REG-' + (data.transaction_id || data.id));
+        var refEl = document.getElementById('dm_public_ref');
+        if (refEl) refEl.textContent = regNo;
+        var refTrxEl = document.getElementById('dm_public_ref_trx');
+        if (refTrxEl) refTrxEl.textContent = regNo;
+        var pIdEl = document.getElementById('dm_participant_id');
+        if (pIdEl) pIdEl.textContent = '#' + data.id;
+
         // Populate Personal Info
         document.getElementById('dm_name').textContent = data.name;
         
@@ -4377,6 +4468,500 @@
 
         fallbackCopy(link);
     }
+
+    window.copyPublicRef = function () {
+        var ref = (currentParticipantData && currentParticipantData.public_ref)
+            ? currentParticipantData.public_ref
+            : (document.getElementById('dm_public_ref') ? document.getElementById('dm_public_ref').textContent : '');
+        if (!ref || ref === '-') return;
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(ref)
+                .then(function () { alert('No. Registrasi berhasil disalin: ' + ref); })
+                .catch(function () { fallbackCopy(ref); });
+            return;
+        }
+        fallbackCopy(ref);
+    }
+
+    // ========================================================
+    // E-Ticket Preview, Canvas Generator, Print & Download
+    // ========================================================
+    var EVENT_ETICKET_META = {
+        name: {!! json_encode($event->name) !!},
+        date: {!! json_encode($event->start_at ? $event->start_at->format('d F Y, H:i') : ($event->date_description ?? 'TBA')) !!},
+        location: {!! json_encode($event->location_name ?? 'Indonesia') !!},
+        template: {!! json_encode($event->template ?: 'modern-dark') !!},
+        themeColor: {!! json_encode($event->theme_color ?: '#eab308') !!},
+        logo: {!! json_encode($event->logo_image ? asset('storage/' . $event->logo_image) : '') !!}
+    };
+
+    var eticketQrCache = {};
+    var currentEticketParticipant = null;
+
+    window.openEticketModalFromDetail = function () {
+        if (!currentParticipantData) {
+            alert('Data peserta tidak tersedia.');
+            return;
+        }
+        window.openEticketModal(currentParticipantData);
+    };
+
+    window.openEticketModal = function (p) {
+        if (!p) return;
+        currentEticketParticipant = p;
+
+        var modal = document.getElementById('participantEticketModal');
+        var canvas = document.getElementById('participantEticketCanvas');
+        var badge = document.getElementById('eticketTemplateBadge');
+        var subtitle = document.getElementById('eticketSubtitle');
+
+        if (badge) {
+            badge.textContent = (EVENT_ETICKET_META.template || 'modern-dark').toUpperCase();
+        }
+        if (subtitle) {
+            var bibStr = p.bib_number ? ('BIB: ' + p.bib_number) : 'BIB: BELUM DI-ASSIGN';
+            subtitle.textContent = p.name + ' • ' + (p.category || '-') + ' • ' + bibStr;
+        }
+
+        if (modal) {
+            modal.classList.remove('hidden');
+        }
+
+        if (canvas) {
+            window.drawEticketOnCanvas(canvas, p);
+        }
+    };
+
+    window.closeEticketModal = function () {
+        var modal = document.getElementById('participantEticketModal');
+        if (modal) {
+            modal.classList.add('hidden');
+        }
+    };
+
+    window.drawEticketOnCanvas = function (canvas, p) {
+        if (!canvas) return;
+        var ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        var w = canvas.width || 900;
+        var h = canvas.height || 450;
+        ctx.clearRect(0, 0, w, h);
+
+        var tpl = String(EVENT_ETICKET_META.template || 'modern-dark').toLowerCase();
+        var isLight = ['light-clean', 'beach-theme', 'simple-minimal', 'quick-light'].indexOf(tpl) !== -1;
+        var isGolden = (tpl === 'golden-run');
+        var isBeach = (tpl === 'beach-theme');
+        var isPaolo = (tpl === 'paolo-fest' || tpl === 'paolo-fest-dark');
+        var themeColor = EVENT_ETICKET_META.themeColor || '#eab308';
+
+        var cfg = {};
+        if (isGolden) {
+            cfg = {
+                bg: '#0d0f14',
+                topBar: '#f59e0b',
+                border: '#78350f',
+                divider: '#b45309',
+                cardBg: '#171922',
+                cardBorder: '#92400e',
+                text: '#ffffff',
+                subtext: '#d97706',
+                accent: '#fbbf24',
+                bibBg: '#f59e0b',
+                bibText: '#000000',
+                statusText: '#4ade80'
+            };
+        } else if (isBeach) {
+            cfg = {
+                bg: '#ffffff',
+                topBar: '#0284c7',
+                border: '#bae6fd',
+                divider: '#38bdf8',
+                cardBg: '#f0f9ff',
+                cardBorder: '#e0f2fe',
+                text: '#0f172a',
+                subtext: '#0284c7',
+                accent: '#0369a1',
+                bibBg: '#0284c7',
+                bibText: '#ffffff',
+                statusText: '#059669'
+            };
+        } else if (isLight) {
+            var primary = (themeColor && themeColor !== '#eab308') ? themeColor : '#2563eb';
+            cfg = {
+                bg: '#ffffff',
+                topBar: primary,
+                border: '#cbd5e1',
+                divider: '#94a3b8',
+                cardBg: '#f8fafc',
+                cardBorder: '#e2e8f0',
+                text: '#0f172a',
+                subtext: '#64748b',
+                accent: primary,
+                bibBg: '#0f172a',
+                bibText: '#ffffff',
+                statusText: '#059669'
+            };
+        } else if (isPaolo) {
+            cfg = {
+                bg: '#090d14',
+                topBar: '#facc15',
+                border: '#1e293b',
+                divider: '#334155',
+                cardBg: '#111723',
+                cardBorder: '#1e293b',
+                text: '#ffffff',
+                subtext: '#94a3b8',
+                accent: '#facc15',
+                bibBg: '#facc15',
+                bibText: '#000000',
+                statusText: '#4ade80'
+            };
+        } else {
+            var accent = themeColor || '#eab308';
+            cfg = {
+                bg: '#080a0f',
+                topBar: accent,
+                border: '#1e293b',
+                divider: '#334155',
+                cardBg: '#101520',
+                cardBorder: '#1e293b',
+                text: '#ffffff',
+                subtext: '#94a3b8',
+                accent: accent,
+                bibBg: accent,
+                bibText: '#000000',
+                statusText: '#4ade80'
+            };
+        }
+
+        // Base canvas & header bar
+        ctx.fillStyle = cfg.bg;
+        ctx.fillRect(0, 0, w, h);
+        ctx.fillStyle = cfg.topBar;
+        ctx.fillRect(0, 0, w, 20);
+
+        // Outer border
+        ctx.strokeStyle = cfg.border;
+        ctx.lineWidth = 2;
+        ctx.strokeRect(1, 1, w - 2, h - 2);
+
+        // Perforated Dotted Separator Line
+        var cutX = 585;
+        ctx.strokeStyle = cfg.divider;
+        ctx.setLineDash([8, 6]);
+        ctx.beginPath();
+        ctx.moveTo(cutX, 32);
+        ctx.lineTo(cutX, h - 32);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        function drawFitted(text, x, y, maxWidth, font, color) {
+            ctx.font = font;
+            ctx.fillStyle = color;
+            var s = String(text || '-');
+            if (ctx.measureText(s).width <= maxWidth) {
+                ctx.fillText(s, x, y);
+                return;
+            }
+            var ell = '...';
+            var i = s.length;
+            while (i > 0 && ctx.measureText(s.substring(0, i) + ell).width > maxWidth) {
+                i--;
+            }
+            ctx.fillText(s.substring(0, i) + ell, x, y);
+        }
+
+        function drawRounded(x, y, width, height, radius, fillColor, strokeColor) {
+            ctx.beginPath();
+            if (ctx.roundRect) {
+                ctx.roundRect(x, y, width, height, radius);
+            } else {
+                ctx.rect(x, y, width, height);
+            }
+            if (fillColor) {
+                ctx.fillStyle = fillColor;
+                ctx.fill();
+            }
+            if (strokeColor) {
+                ctx.strokeStyle = strokeColor;
+                ctx.lineWidth = 1;
+                ctx.stroke();
+            }
+        }
+
+        // LEFT SECTION
+        var leftX = 40;
+        var leftWidth = cutX - leftX - 35; // ~510px
+
+        ctx.fillStyle = cfg.accent;
+        ctx.font = '800 11px sans-serif';
+        ctx.fillText('OFFICIAL PARTICIPANT E-TICKET', leftX, 54);
+
+        drawFitted(EVENT_ETICKET_META.name.toUpperCase(), leftX, 86, leftWidth, '800 24px "Inter Tight", "Sora", sans-serif', cfg.text);
+
+        ctx.fillStyle = cfg.subtext;
+        ctx.font = '600 10px sans-serif';
+        ctx.fillText('WAKTU & TANGGAL PELAKSANAAN', leftX, 122);
+        drawFitted(EVENT_ETICKET_META.date, leftX, 142, leftWidth, '700 14px sans-serif', cfg.text);
+
+        ctx.fillStyle = cfg.subtext;
+        ctx.font = '600 10px sans-serif';
+        ctx.fillText('LOKASI VENUE', leftX, 172);
+        drawFitted(EVENT_ETICKET_META.location, leftX, 192, leftWidth, '700 14px sans-serif', cfg.text);
+
+        // Participant Box
+        var boxY = 214;
+        var boxH = 170;
+        drawRounded(leftX, boxY, leftWidth, boxH, 8, cfg.cardBg, cfg.cardBorder);
+
+        ctx.fillStyle = cfg.subtext;
+        ctx.font = '600 10px sans-serif';
+        ctx.fillText('NAMA PESERTA', leftX + 18, boxY + 28);
+        drawFitted(p.name, leftX + 18, boxY + 54, leftWidth - 36, '800 20px "Inter Tight", sans-serif', cfg.text);
+
+        var col1X = leftX + 18;
+        var col2X = leftX + Math.floor(leftWidth * 0.55);
+
+        ctx.fillStyle = cfg.subtext;
+        ctx.font = '600 10px sans-serif';
+        ctx.fillText('KATEGORI LOMBA', col1X, boxY + 92);
+        drawFitted(p.category || '-', col1X, boxY + 116, leftWidth * 0.5 - 20, '800 16px sans-serif', cfg.accent);
+
+        ctx.fillStyle = cfg.subtext;
+        ctx.font = '600 10px sans-serif';
+        ctx.fillText('UKURAN JERSEY', col2X, boxY + 92);
+        drawFitted(p.jersey_size || '-', col2X, boxY + 116, leftWidth * 0.4 - 20, '800 16px sans-serif', cfg.text);
+
+        ctx.fillStyle = cfg.subtext;
+        ctx.font = '600 10px sans-serif';
+        ctx.fillText('NO. REGISTRASI:', col1X, boxY + 150);
+        ctx.fillStyle = cfg.text;
+        ctx.font = '700 13px "JetBrains Mono", monospace';
+        ctx.fillText(p.public_ref || ('REG-' + p.id), col1X + 105, boxY + 150);
+
+        ctx.fillStyle = cfg.subtext;
+        ctx.font = '500 11px sans-serif';
+        ctx.fillText('Harap bawa e-ticket ini (cetak / smartphone) saat pengambilan Race Pack.', leftX, 422);
+
+        // RIGHT SECTION (Stub)
+        var stubX = cutX + 32;
+        var stubW = w - stubX - 35; // ~248px
+        var stubCenterX = stubX + (stubW / 2);
+
+        var statusLabel = (p.payment_status === 'paid' || p.payment_status === 'settlement' || p.isApproved) ? 'CONFIRMED' : String(p.payment_status || 'PENDING').toUpperCase();
+        ctx.fillStyle = cfg.statusText;
+        ctx.font = '800 15px sans-serif';
+        ctx.textAlign = 'left';
+        ctx.fillText('• ' + statusLabel, stubX, 54);
+
+        // BIB NUMBER HIGHLIGHT BADGE
+        var bibBoxY = 66;
+        var bibBoxH = 58;
+        drawRounded(stubX, bibBoxY, stubW, bibBoxH, 6, cfg.bibBg, null);
+
+        ctx.fillStyle = cfg.bibText;
+        ctx.font = '700 9px sans-serif';
+        ctx.fillText('NOMOR BIB (RACE PACK)', stubX + 12, bibBoxY + 18);
+
+        var bibValue = p.bib_number ? String(p.bib_number).trim() : '';
+        if (bibValue) {
+            ctx.fillStyle = cfg.bibText;
+            ctx.font = '900 25px "JetBrains Mono", monospace';
+            ctx.fillText(bibValue, stubX + 12, bibBoxY + 48);
+        } else {
+            ctx.fillStyle = cfg.bibText;
+            ctx.font = '800 13px sans-serif';
+            ctx.fillText('BELUM DI-ASSIGN (TBD)', stubX + 12, bibBoxY + 45);
+        }
+
+        // QR Code Card Container
+        var qrCardY = 138;
+        var qrCardH = 245;
+        drawRounded(stubX, qrCardY, stubW, qrCardH, 8, '#ffffff', '#e2e8f0');
+
+        var qrSize = 138;
+        var qrX = stubX + Math.floor((stubW - qrSize) / 2);
+        var qrY = qrCardY + 14;
+
+        var qrPayload = `TICKET-${p.id}-${p.transaction_id || p.public_ref || '0'}`;
+        var qrDrawn = false;
+
+        if (typeof QRCode !== 'undefined') {
+            try {
+                var qrHolder = document.createElement('div');
+                new QRCode(qrHolder, {
+                    text: qrPayload,
+                    width: qrSize,
+                    height: qrSize,
+                    correctLevel: QRCode.CorrectLevel.M
+                });
+                var qrCanvasEl = qrHolder.querySelector('canvas');
+                if (qrCanvasEl) {
+                    ctx.drawImage(qrCanvasEl, qrX, qrY, qrSize, qrSize);
+                    qrDrawn = true;
+                }
+            } catch (err) {
+                console.warn('Local QRCode generator error:', err);
+            }
+        }
+
+        if (!qrDrawn) {
+            var qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=3&data=${encodeURIComponent(qrPayload)}`;
+            if (eticketQrCache[qrUrl] && eticketQrCache[qrUrl].complete) {
+                try {
+                    ctx.drawImage(eticketQrCache[qrUrl], qrX, qrY, qrSize, qrSize);
+                } catch(e) {}
+            } else {
+                ctx.fillStyle = '#94a3b8';
+                ctx.font = '600 11px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('MEMUAT QR CODE...', stubCenterX, qrY + 70);
+                ctx.textAlign = 'left';
+
+                var qrImg = new Image();
+                qrImg.crossOrigin = 'anonymous';
+                qrImg.onload = function () {
+                    eticketQrCache[qrUrl] = qrImg;
+                    if (currentEticketParticipant && currentEticketParticipant.id === p.id) {
+                        window.drawEticketOnCanvas(canvas, p);
+                    }
+                };
+                qrImg.onerror = function () {
+                    ctx.fillStyle = '#64748b';
+                    ctx.font = '700 10px monospace';
+                    ctx.textAlign = 'center';
+                    ctx.fillText('QR OFFLINE', stubCenterX, qrY + 70);
+                    ctx.textAlign = 'left';
+                };
+                qrImg.src = qrUrl;
+            }
+        }
+
+        ctx.fillStyle = '#0f172a';
+        ctx.font = '700 11px "JetBrains Mono", monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(qrPayload, stubCenterX, qrY + qrSize + 22);
+
+        ctx.fillStyle = '#64748b';
+        ctx.font = '700 9px sans-serif';
+        ctx.fillText('SCAN DI RACE PACK COLLECTION', stubCenterX, qrY + qrSize + 39);
+
+        ctx.fillStyle = '#94a3b8';
+        ctx.font = '600 9px "JetBrains Mono", monospace';
+        ctx.fillText('ID: #' + p.id + ' • ' + (p.public_ref || '-'), stubCenterX, qrY + qrSize + 57);
+
+        ctx.fillStyle = cfg.subtext;
+        ctx.font = '700 10px sans-serif';
+        ctx.fillText('TICKET STUB • RUANGLARI', stubCenterX, 422);
+        ctx.textAlign = 'left';
+    };
+
+    window.printEticketCanvas = function () {
+        var canvas = document.getElementById('participantEticketCanvas');
+        if (!canvas) return;
+        var p = currentEticketParticipant || currentParticipantData || {};
+        var pName = (p.name || 'Peserta').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        var pBib = p.bib_number ? ('BIB: ' + p.bib_number) : '';
+        var dataUrl = canvas.toDataURL('image/png');
+
+        var printHtml = `
+            <!DOCTYPE html>
+            <html>
+            <head>
+                <meta charset="utf-8">
+                <title>E-Ticket - ${pName} ${pBib}</title>
+                <style>
+                    @page { size: landscape; margin: 10mm; }
+                    body {
+                        margin: 0;
+                        padding: 20px;
+                        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+                        display: flex;
+                        flex-direction: column;
+                        align-items: center;
+                        justify-content: center;
+                        background: #ffffff;
+                    }
+                    .ticket-img {
+                        max-width: 100%;
+                        width: 820px;
+                        height: auto;
+                        border: 1px solid #cbd5e1;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+                    }
+                    .footer-note {
+                        margin-top: 14px;
+                        font-size: 11px;
+                        color: #64748b;
+                        text-align: center;
+                    }
+                </style>
+            </head>
+            <body>
+                <img src="${dataUrl}" class="ticket-img" alt="E-Ticket" />
+                <div class="footer-note">E-Ticket Resmi • Harap dibawa saat pengambilan Race Pack / Tiket</div>
+            </body>
+            </html>
+        `;
+
+        var printWin = window.open('', '_blank');
+        if (printWin) {
+            printWin.document.write(printHtml);
+            printWin.document.write('<script>window.onload = function() { window.print(); window.onafterprint = function() { window.close(); }; };<\/script>');
+            printWin.document.close();
+        } else {
+            var iframe = document.getElementById('eticketPrintIframe');
+            if (!iframe) {
+                iframe = document.createElement('iframe');
+                iframe.id = 'eticketPrintIframe';
+                iframe.style.position = 'fixed';
+                iframe.style.right = '0';
+                iframe.style.bottom = '0';
+                iframe.style.width = '0';
+                iframe.style.height = '0';
+                iframe.style.border = '0';
+                document.body.appendChild(iframe);
+            }
+            var doc = iframe.contentWindow.document;
+            doc.open();
+            doc.write(printHtml);
+            doc.close();
+            setTimeout(function() {
+                iframe.contentWindow.focus();
+                iframe.contentWindow.print();
+            }, 300);
+        }
+    };
+
+    window.downloadEticketCanvas = function () {
+        var canvas = document.getElementById('participantEticketCanvas');
+        if (!canvas) return;
+        var p = currentEticketParticipant || currentParticipantData || {};
+        var nameSlug = String(p.name || 'peserta').toLowerCase().replace(/[^a-z0-9]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+        var bibSlug = String(p.bib_number || 'nobib').replace(/[^a-zA-Z0-9]/g, '');
+        var filename = `eticket-${bibSlug}-${nameSlug}.png`;
+
+        var link = document.createElement('a');
+        link.download = filename;
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+    };
+
+    window.openEticketModalById = function (id) {
+        var rows = document.querySelectorAll('#participantsTableBody tr[data-json]');
+        for (var i = 0; i < rows.length; i++) {
+            try {
+                var p = JSON.parse(rows[i].getAttribute('data-json'));
+                if (p && String(p.id) === String(id)) {
+                    window.openEticketModal(p);
+                    return;
+                }
+            } catch(e) {}
+        }
+    };
 
     window.sendPendingReminder = function(e, transactionId) {
         e.preventDefault();

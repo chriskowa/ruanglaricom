@@ -235,6 +235,20 @@ class EventRegistrationController extends Controller
 
         try {
             $transaction = $this->storeAction->execute($request, $event);
+            $transaction->loadMissing(['participants.category']);
+
+            $participantsData = $transaction->participants->map(function ($p) use ($transaction) {
+                $qrData = 'TICKET-'.$p->id.'-'.$transaction->id;
+
+                return [
+                    'id' => $p->id,
+                    'participant_name' => $p->name,
+                    'jersey_size_label' => $p->jersey_size,
+                    'category_label' => $p->category->name ?? '',
+                    'qr_data' => $qrData,
+                    'qr_url' => 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data='.urlencode($qrData),
+                ];
+            })->values()->all();
 
             // Handle Free Event / Zero Amount Registration
             if ($transaction->payment_gateway === 'free' || (float) ($transaction->final_amount ?? 0) <= 0) {
@@ -249,6 +263,7 @@ class EventRegistrationController extends Controller
                             'final_amount' => 0,
                             'transaction_id' => $transaction->id,
                             'registration_id' => $transaction->public_ref,
+                            'participants' => $participantsData,
                             'redirect_url' => route('events.show', $slug).'?payment=approval_pending&tx='.$transaction->id.'&ref='.$transaction->public_ref,
                         ]);
                     }
@@ -271,6 +286,7 @@ class EventRegistrationController extends Controller
                         'final_amount' => 0,
                         'transaction_id' => $transaction->id,
                         'registration_id' => $transaction->public_ref,
+                        'participants' => $participantsData,
                         'redirect_url' => route('events.show', $slug).'?payment=success&tx='.$transaction->id.'&ref='.$transaction->public_ref,
                     ]);
                 }
@@ -293,6 +309,7 @@ class EventRegistrationController extends Controller
                         'payment_status' => $transaction->payment_status,
                         'transaction_id' => $transaction->id,
                         'registration_id' => $transaction->public_ref,
+                        'participants' => $participantsData,
                         'final_amount' => (float) ($transaction->final_amount ?? 0),
                         'unique_code' => (int) ($transaction->unique_code ?? 0),
                         'redirect_url' => route('events.payment', ['slug' => $slug, 'transaction' => $transaction->id]),
@@ -312,6 +329,7 @@ class EventRegistrationController extends Controller
                         'payment_status' => $transaction->payment_status,
                         'transaction_id' => $transaction->id,
                         'registration_id' => $transaction->public_ref,
+                        'participants' => $participantsData,
                         'redirect_url' => route('events.show', $slug).'?payment=cod_pending',
                     ]);
                 }
@@ -330,6 +348,7 @@ class EventRegistrationController extends Controller
                     'redirect_url' => $transaction->midtrans_redirect_url ?? (route('events.show', $slug).'?payment=pending&tx='.$transaction->id.'&ref='.$transaction->public_ref),
                     'transaction_id' => $transaction->id,
                     'registration_id' => $transaction->public_ref,
+                    'participants' => $participantsData,
                     'testing_mode' => config('midtrans.testing_mode', false),
                 ]);
             }

@@ -995,7 +995,14 @@
     <div class="bg-card w-full max-w-2xl rounded-lg border border-slate-800 shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
         <!-- Header -->
         <div class="flex items-center justify-between p-4 border-b border-slate-800 bg-slate-900/50">
-            <h3 class="text-base font-bold text-white">Detail Lengkap Peserta</h3>
+            <div>
+                <h3 class="text-base font-bold text-white">Detail Lengkap Peserta</h3>
+                <div class="flex items-center gap-2 text-xs text-slate-400 mt-0.5">
+                    <span>No. Registrasi: <span id="dm-public-ref" class="font-mono font-bold text-yellow-400 select-all cursor-pointer hover:underline" onclick="copyDmRef()" title="Klik untuk salin">-</span></span>
+                    <span class="text-slate-600">•</span>
+                    <span>ID: <span id="dm-participant-id" class="font-mono text-slate-300">-</span></span>
+                </div>
+            </div>
             <button type="button" onclick="closeDetailModal()" class="text-slate-400 hover:text-white transition">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
@@ -1090,6 +1097,13 @@
                 <!-- Transaction Info -->
                 <div class="space-y-2">
                     <h4 class="text-xs font-bold uppercase tracking-wider text-slate-400 pb-1.5 border-b border-slate-800">Detail Transaksi</h4>
+                    <div>
+                        <div class="text-[11px] text-slate-400">No. Registrasi / Invoice</div>
+                        <div class="flex items-center gap-2 mt-0.5">
+                            <span class="text-yellow-400 font-mono font-bold text-xs select-all" id="dm-trx-ref">-</span>
+                            <button type="button" onclick="copyDmRef()" class="px-2 py-0.5 text-[10px] rounded bg-slate-800 text-slate-300 border border-slate-700 hover:bg-slate-700 transition">Salin</button>
+                        </div>
+                    </div>
                     <div>
                         <div class="text-[11px] text-slate-400">Tanggal Transaksi</div>
                         <div class="text-white font-mono mt-0.5" id="dm-trx-date">-</div>
@@ -1863,6 +1877,15 @@
 
     function openDetailModalFromRow(tr) {
         var data = JSON.parse(tr.dataset.json || '{}');
+        window.currentReportParticipantData = data;
+
+        var regNo = data.public_ref || data.transaction_public_ref || ('REG-' + (data.transaction_id || data.id || '-'));
+        var refEl = document.getElementById('dm-public-ref');
+        if (refEl) refEl.textContent = regNo;
+        var trxRefEl = document.getElementById('dm-trx-ref');
+        if (trxRefEl) trxRefEl.textContent = regNo;
+        var pIdEl = document.getElementById('dm-participant-id');
+        if (pIdEl) pIdEl.textContent = '#' + (data.id || '-');
         
         document.getElementById('dm-name').textContent = data.name || '-';
         document.getElementById('dm-id-card').textContent = data.id_card || '-';
@@ -1945,6 +1968,21 @@
     function closeDetailModal() {
         document.getElementById('detail-modal').classList.add('hidden');
     }
+
+    window.copyDmRef = function () {
+        var ref = (window.currentReportParticipantData && (window.currentReportParticipantData.public_ref || window.currentReportParticipantData.transaction_public_ref))
+            ? (window.currentReportParticipantData.public_ref || window.currentReportParticipantData.transaction_public_ref)
+            : (document.getElementById('dm-public-ref') ? document.getElementById('dm-public-ref').textContent : '');
+        if (!ref || ref === '-') return;
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(ref)
+                .then(function () { alert('No. Registrasi berhasil disalin: ' + ref); })
+                .catch(function () { prompt('Salin No. Registrasi:', ref); });
+            return;
+        }
+        prompt('Salin No. Registrasi:', ref);
+    };
 
     function performPickupToggle(participantId, nextStatus, callback) {
         const eventId = "{{ $event->id }}";

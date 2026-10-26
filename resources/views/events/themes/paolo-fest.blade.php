@@ -2078,9 +2078,11 @@
                                                             @if($isSoldOut)
                                                                 <span class="text-xs font-bold text-rose-600 bg-rose-50 border border-rose-200 px-2 py-0.5 rounded">Habis</span>
                                                             @endif
-                                                            <span class="text-sm font-bold {{ $isSoldOut ? 'text-slate-400' : 'text-accent-600' }}">
-                                                                +Rp {{ number_format($addon['price'] ?? 0, 0, ',', '.') }}
-                                                            </span>
+                                                            @if(($addon['price'] ?? 0) > 0)
+                                                                <span class="text-sm font-bold {{ $isSoldOut ? 'text-slate-400' : 'text-accent-600' }}">
+                                                                    +Rp {{ number_format($addon['price'] ?? 0, 0, ',', '.') }}
+                                                                </span>
+                                                            @endif
                                                         </div>
                                                     </label>
                                                 @endforeach
@@ -5461,6 +5463,26 @@
                         </div>
                     `;
 
+                    // Selected Addons
+                    const checkedAddonElements = item.querySelectorAll('input.addon-checkbox:checked');
+                    let addonsHtml = '';
+                    if (checkedAddonElements.length > 0) {
+                        const badges = [];
+                        checkedAddonElements.forEach(cb => {
+                            const lbl = cb.closest('label');
+                            const aName = lbl?.querySelector('input[name*="[name]"]')?.value || lbl?.querySelector('.text-xs.font-bold, .font-bold')?.textContent?.trim() || 'Addon';
+                            const aPrice = parseFloat(cb.dataset.price || '0');
+                            const priceText = aPrice > 0 ? ` (+Rp ${aPrice.toLocaleString('id-ID')})` : '';
+                            badges.push(`<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">+ ${aName}${priceText}</span>`);
+                        });
+                        addonsHtml = `
+                            <div class="col-span-2 border-t border-slate-50 pt-2 mt-1">
+                                <span class="block text-[10px] uppercase text-slate-400 font-bold tracking-wider mb-1">Addon Tambahan</span>
+                                <div class="flex flex-wrap gap-1">${badges.join('')}</div>
+                            </div>
+                        `;
+                    }
+
                     // Body HTML
                     const body = document.createElement('div');
                     body.className = `px-4 py-3 text-sm space-y-2 bg-white ${isExpanded ? 'block' : 'hidden'}`;
@@ -5478,6 +5500,7 @@
                                 <span class="block text-[10px] uppercase text-slate-400 font-bold tracking-wider">Ukuran Jersey</span>
                                 <span class="block font-bold text-brand-600">${pJersey}</span>
                             </div>
+                            ${addonsHtml}
                         </div>
                     `;
 

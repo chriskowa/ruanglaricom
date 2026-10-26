@@ -115,11 +115,25 @@ class PublicEventController extends Controller
                 ]);
             }
 
+            $successTransaction = null;
+            if (request('payment') === 'success') {
+                $txParam = request('tx');
+                $refParam = request('ref');
+                if ($txParam || $refParam) {
+                    $successTransaction = \App\Models\Transaction::where('event_id', $event->id)
+                        ->when($txParam, fn($q) => $q->where('id', $txParam))
+                        ->when(!$txParam && $refParam, fn($q) => $q->where('public_ref', $refParam))
+                        ->with(['participants.category'])
+                        ->first();
+                }
+            }
+
             return view('events.show', [
                 'event' => $event,
                 'categories' => $categories,
                 'seo' => $seo,
                 'hasPaidParticipants' => $hasPaidParticipants,
+                'successTransaction' => $successTransaction,
             ]);
         }
 
@@ -165,11 +179,25 @@ class PublicEventController extends Controller
             ]);
         }
 
+        $successTransaction = null;
+        if (request('payment') === 'success') {
+            $txParam = request('tx');
+            $refParam = request('ref');
+            if ($txParam || $refParam) {
+                $successTransaction = \App\Models\Transaction::where('event_id', $event->id)
+                    ->when($txParam, fn($q) => $q->where('id', $txParam))
+                    ->when(!$txParam && $refParam, fn($q) => $q->where('public_ref', $refParam))
+                    ->with(['participants.category'])
+                    ->first();
+            }
+        }
+
         return view('events.show', [
             'event' => $event,
             'categories' => $categories,
             'seo' => $seo,
             'hasPaidParticipants' => $hasPaidParticipants,
+            'successTransaction' => $successTransaction,
         ]);
     }
 
