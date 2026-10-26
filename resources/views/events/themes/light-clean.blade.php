@@ -4261,8 +4261,14 @@
                 ctx.font = '600 11px "Plus Jakarta Sans", sans-serif';
                 ctx.fillText('NO. REGISTRASI', cutX + 135, 102);
                 ctx.fillStyle = '#0f172a';
-                ctx.font = '700 12px "JetBrains Mono", monospace';
-                ctx.fillText(ticketNumber || 'VERIFIED', cutX + 135, 124);
+                var regVal = String(ticketNumber || 'VERIFIED');
+                var regFontSz = 12;
+                ctx.font = '700 ' + regFontSz + 'px "JetBrains Mono", monospace';
+                while (regFontSz > 8 && ctx.measureText(regVal).width > (w - (cutX + 135) - 20)) {
+                    regFontSz--;
+                    ctx.font = '700 ' + regFontSz + 'px "JetBrains Mono", monospace';
+                }
+                ctx.fillText(regVal, cutX + 135, 124);
 
                 // QR Code Card Container
                 const cardX = 654;

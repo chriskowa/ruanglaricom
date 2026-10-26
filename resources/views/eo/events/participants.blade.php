@@ -4648,7 +4648,7 @@
         ctx.strokeRect(1, 1, w - 2, h - 2);
 
         // Perforated Dotted Separator Line
-        var cutX = 585;
+        var cutX = 555;
         ctx.strokeStyle = cfg.divider;
         ctx.setLineDash([8, 6]);
         ctx.beginPath();
@@ -4692,8 +4692,8 @@
         }
 
         // LEFT SECTION
-        var leftX = 40;
-        var leftWidth = cutX - leftX - 35; // ~510px
+        var leftX = 35;
+        var leftWidth = cutX - leftX - 25; // ~495px
 
         ctx.fillStyle = cfg.accent;
         ctx.font = '800 11px sans-serif';
@@ -4737,17 +4737,15 @@
         ctx.fillStyle = cfg.subtext;
         ctx.font = '600 10px sans-serif';
         ctx.fillText('NO. REGISTRASI:', col1X, boxY + 150);
-        ctx.fillStyle = cfg.text;
-        ctx.font = '700 13px "JetBrains Mono", monospace';
-        ctx.fillText(p.public_ref || ('REG-' + p.id), col1X + 105, boxY + 150);
+        drawFitted(p.public_ref || ('REG-' + p.id), col1X + 105, boxY + 150, leftWidth * 0.45, '700 13px "JetBrains Mono", monospace', cfg.text);
 
         ctx.fillStyle = cfg.subtext;
         ctx.font = '500 11px sans-serif';
         ctx.fillText('Harap bawa e-ticket ini (cetak / smartphone) saat pengambilan Race Pack.', leftX, 422);
 
         // RIGHT SECTION (Stub)
-        var stubX = cutX + 32;
-        var stubW = w - stubX - 35; // ~248px
+        var stubX = cutX + 24; // ~579px
+        var stubW = w - stubX - 26; // ~295px
         var stubCenterX = stubX + (stubW / 2);
 
         var statusLabel = (p.payment_status === 'paid' || p.payment_status === 'settlement' || p.isApproved) ? 'CONFIRMED' : String(p.payment_status || 'PENDING').toUpperCase();
@@ -4756,24 +4754,30 @@
         ctx.textAlign = 'left';
         ctx.fillText('• ' + statusLabel, stubX, 54);
 
-        // BIB NUMBER HIGHLIGHT BADGE
+        // BIB NUMBER HIGHLIGHT BADGE (Auto-fitted font to prevent cutoff)
         var bibBoxY = 66;
-        var bibBoxH = 58;
+        var bibBoxH = 60;
         drawRounded(stubX, bibBoxY, stubW, bibBoxH, 6, cfg.bibBg, null);
 
         ctx.fillStyle = cfg.bibText;
         ctx.font = '700 9px sans-serif';
-        ctx.fillText('NOMOR BIB (RACE PACK)', stubX + 12, bibBoxY + 18);
+        ctx.fillText('NOMOR BIB (RACE PACK)', stubX + 14, bibBoxY + 18);
 
         var bibValue = p.bib_number ? String(p.bib_number).trim() : '';
         if (bibValue) {
             ctx.fillStyle = cfg.bibText;
-            ctx.font = '900 25px "JetBrains Mono", monospace';
-            ctx.fillText(bibValue, stubX + 12, bibBoxY + 48);
+            var maxBibWidth = stubW - 28;
+            var bibFontSize = 24;
+            ctx.font = '900 ' + bibFontSize + 'px "JetBrains Mono", monospace';
+            while (bibFontSize > 10 && ctx.measureText(bibValue).width > maxBibWidth) {
+                bibFontSize--;
+                ctx.font = '900 ' + bibFontSize + 'px "JetBrains Mono", monospace';
+            }
+            ctx.fillText(bibValue, stubX + 14, bibBoxY + 47);
         } else {
             ctx.fillStyle = cfg.bibText;
             ctx.font = '800 13px sans-serif';
-            ctx.fillText('BELUM DI-ASSIGN (TBD)', stubX + 12, bibBoxY + 45);
+            ctx.fillText('BELUM DI-ASSIGN (TBD)', stubX + 14, bibBoxY + 45);
         }
 
         // QR Code Card Container
@@ -4785,7 +4789,10 @@
         var qrX = stubX + Math.floor((stubW - qrSize) / 2);
         var qrY = qrCardY + 14;
 
-        var qrPayload = `TICKET-${p.id}-${p.transaction_id || p.public_ref || '0'}`;
+        // Exact same QR format as email: TICKET-{participant_id}-{transaction_id}
+        var qrPayload = (p.id && p.transaction_id) 
+            ? `TICKET-${p.id}-${p.transaction_id}` 
+            : (p.id ? `TICKET-${p.id}-0` : `TICKET-${p.public_ref || '0'}`);
         var qrDrawn = false;
 
         if (typeof QRCode !== 'undefined') {
