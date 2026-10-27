@@ -206,10 +206,18 @@ class PublicProgramController extends Controller
             ->pluck('total', 'dist')
             ->toArray();
 
-        // If AJAX request, return JSON
-        if ($request->ajax() || $request->wantsJson()) {
-            return response()->json($programs);
-        }
+        // Hero Background Slides (Synchronized with Homepage Management)
+        $homepageContent = \Illuminate\Support\Facades\Cache::remember('home.content', 3600, function () {
+            return \App\Models\HomepageContent::first();
+        });
+
+        $heroSlides = ($homepageContent && !empty($homepageContent->hero_slides))
+            ? $homepageContent->hero_slides 
+            : [
+                'https://ruanglari.com/storage/blog/media/92e97762-78b7-48e4-8b94-176b4e7fdf95.webp',
+                'https://ruanglari.com/storage/blog/media/305fd042-17e8-4e89-86d7-8666d4e2229f.webp',
+                'https://ruanglari.com/storage/blog/media/21bb785d-d104-4129-99ce-d84ae98afd3a.webp',
+            ];
 
         return view('programs.index', [
             'programs' => $programs,
@@ -220,6 +228,7 @@ class PublicProgramController extends Controller
             'featuredProgram' => $featuredProgram,
             'coaches' => $coaches,
             'categoryCounts' => $categoryCounts,
+            'heroSlides' => $heroSlides,
         ]);
     }
 

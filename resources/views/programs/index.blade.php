@@ -8,10 +8,122 @@
 @section('og_image', asset('images/hero/indonesian-runner-sunrise.jpg'))
 
 @push('styles')
+    @php
+        $heroLcpUrl = !empty($heroSlides[0])
+            ? $heroSlides[0]
+            : 'https://ruanglari.com/storage/blog/media/92e97762-78b7-48e4-8b94-176b4e7fdf95.webp';
+    @endphp
+    <link rel="preload" as="image" href="{{ $heroLcpUrl }}" fetchpriority="high" media="(min-width: 640px)">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter+Tight:ital,wght@0,600;0,700;0,800;0,900;1,700;1,800&family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
     <style>
+        /* Ambient Parallax Background Slider (Home Parity) */
+        .rl-hero-bg-slider {
+            position: absolute;
+            inset: 0;
+            overflow: hidden;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .rl-hero-bg-slide {
+            position: absolute;
+            inset: -8% -8%;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 1.6s cubic-bezier(0.16, 1, 0.3, 1), visibility 1.6s ease;
+            will-change: transform, opacity;
+        }
+
+        .rl-hero-bg-slide.is-active {
+            opacity: 1;
+            visibility: visible;
+            z-index: 1;
+        }
+
+        .rl-hero-bg-img {
+            width: 100%;
+            height: 100%;
+            background-size: cover;
+            background-position: center 35%;
+            background-repeat: no-repeat;
+            filter: brightness(0.75) contrast(1.05) saturate(1.05);
+            transform: translate3d(0, 0, 0) scale(1.06);
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+            will-change: transform;
+        }
+
+        .rl-hero-bg-slide.is-active .rl-hero-bg-img {
+            animation: rl-bg-drift 14s ease-in-out infinite alternate;
+        }
+
+        @keyframes rl-bg-drift {
+            0% { transform: scale(1.05) translate3d(0, 0, 0); }
+            100% { transform: scale(1.1) translate3d(-15px, -8px, 0); }
+        }
+
+        /* Scrim Horizontal: Gelap pekat di sisi kiri untuk ketajaman teks, transparan di sisi kanan */
+        .rl-hero-bg-scrim {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, 
+                rgba(5, 8, 14, 0.94) 0%, 
+                rgba(5, 8, 14, 0.88) 32%, 
+                rgba(5, 8, 14, 0.50) 56%, 
+                rgba(5, 8, 14, 0.10) 78%, 
+                rgba(5, 8, 14, 0.00) 100%
+            );
+            z-index: 2;
+            pointer-events: none;
+        }
+
+        /* Gradient Vertikal: Halus di atas dan dasar agar menyatu natural dengan section bawah */
+        .rl-hero-bg-gradient {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(180deg, 
+                rgba(5, 8, 14, 0.28) 0%, 
+                transparent 30%, 
+                rgba(5, 8, 14, 0.32) 65%, 
+                #090A0E 100%
+            );
+            z-index: 3;
+            pointer-events: none;
+        }
+
+        /* Minimal Slide Indicators */
+        .rl-hero-bg-nav {
+            position: absolute;
+            top: 1.5rem;
+            right: clamp(1rem, 4vw, 3rem);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            z-index: 20;
+            pointer-events: auto;
+        }
+
+        .rl-bg-dot {
+            width: 28px;
+            height: 3px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 2px;
+            padding: 0;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .rl-bg-dot:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        .rl-bg-dot.is-active {
+            width: 44px;
+            background: #CCFF00;
+            box-shadow: 0 0 10px rgba(204, 255, 0, 0.4);
+        }
         :root {
             /* 4-Tier Ergonomic Dark Mode Palette (Comfortable, Athletic Slate, Anti-Glare) */
             --rl-canvas: #090A0E;              /* Deep athletic midnight slate */
@@ -191,7 +303,41 @@
     <!-- ====================================================================
          SECTION 1: HERO SECTION (EDITORIAL ASYMMETRIC ATHLETIC SPLIT)
          ==================================================================== -->
+    @php
+        if (!isset($heroSlides) || empty($heroSlides)) {
+            $homepageContent = \Illuminate\Support\Facades\Cache::remember('home.content', 3600, function () {
+                return \App\Models\HomepageContent::first();
+            });
+            $heroSlides = ($homepageContent && !empty($homepageContent->hero_slides))
+                ? $homepageContent->hero_slides 
+                : [
+                    'https://ruanglari.com/storage/blog/media/92e97762-78b7-48e4-8b94-176b4e7fdf95.webp',
+                    'https://ruanglari.com/storage/blog/media/305fd042-17e8-4e89-86d7-8666d4e2229f.webp',
+                    'https://ruanglari.com/storage/blog/media/21bb785d-d104-4129-99ce-d84ae98afd3a.webp',
+                ];
+        }
+    @endphp
+
     <section class="border-b border-slate-800 bg-slate-950 relative overflow-hidden">
+        {{-- Ambient Parallax Background Slider (Persis seperti di Home) --}}
+        <div class="rl-hero-bg-slider" id="heroBgSlider" aria-hidden="true">
+            @foreach($heroSlides as $sIdx => $slideUrl)
+                <div class="rl-hero-bg-slide {{ $sIdx === 0 ? 'is-active' : '' }}" data-bg-index="{{ $sIdx }}">
+                    <div class="rl-hero-bg-img" style="background-image: url('{{ $slideUrl }}');"></div>
+                </div>
+            @endforeach
+            {{-- Dark cinematic scrims to maintain pristine typography contrast --}}
+            <div class="rl-hero-bg-scrim"></div>
+            <div class="rl-hero-bg-gradient"></div>
+        </div>
+
+        {{-- Minimal Slide Indicators --}}
+        <div class="rl-hero-bg-nav font-mono" id="heroBgNav" aria-label="Background Slider Controls">
+            @foreach($heroSlides as $sIdx => $slideUrl)
+                <button type="button" class="rl-bg-dot {{ $sIdx === 0 ? 'is-active' : '' }}" data-slide-to="{{ $sIdx }}" aria-label="Slide {{ $sIdx + 1 }}"></button>
+            @endforeach
+        </div>
+
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 lg:py-16 relative z-10">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
                 
@@ -2602,8 +2748,62 @@
         });
     }
 
+    function initHeroBgSlider() {
+        const slider = document.getElementById('heroBgSlider');
+        const nav = document.getElementById('heroBgNav');
+        if (!slider) return;
+
+        const slides = slider.querySelectorAll('.rl-hero-bg-slide');
+        const dots = nav ? nav.querySelectorAll('.rl-bg-dot') : [];
+        if (slides.length <= 1) return;
+
+        let currentIndex = 0;
+        let timer = null;
+        const intervalTime = 6500; // 6.5s per slide
+
+        function goToSlide(index) {
+            currentIndex = (index + slides.length) % slides.length;
+
+            slides.forEach((slide, i) => {
+                slide.classList.toggle('is-active', i === currentIndex);
+            });
+
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('is-active', i === currentIndex);
+            });
+        }
+
+        function nextSlide() {
+            goToSlide(currentIndex + 1);
+        }
+
+        function startAutoSlide() {
+            if (timer) clearInterval(timer);
+            timer = setInterval(nextSlide, intervalTime);
+        }
+
+        dots.forEach((dot, i) => {
+            dot.addEventListener('click', () => {
+                goToSlide(i);
+                startAutoSlide();
+            });
+        });
+
+        startAutoSlide();
+
+        // Pause on tab hidden, resume on tab visible
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                if (timer) clearInterval(timer);
+            } else {
+                startAutoSlide();
+            }
+        });
+    }
+
     document.addEventListener('DOMContentLoaded', function() {
         initHeroVdotWidget();
+        initHeroBgSlider();
     });
 </script>
 <!-- Blade View Compiled Fresh -->
