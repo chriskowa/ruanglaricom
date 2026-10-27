@@ -1033,13 +1033,12 @@
                     </div>
                 </div>
 
-                <div class="glass-panel rounded-2xl p-4 md:p-6" id="runner-calendar-section" :class="activeMobileTab === 'calendar' ? 'block' : 'hidden lg:block'">
-                    <div class="flex justify-between items-center mb-4 border-b border-slate-850 pb-3">
-                        <div class="flex items-center gap-2">
-                            <span class="w-2.5 h-2.5 rounded-full bg-neon animate-pulse"></span>
+                <div class="glass-panel rounded-lg p-4 md:p-6" id="runner-calendar-section" :class="activeMobileTab === 'calendar' ? 'block' : 'hidden lg:block'">
+                    <div class="flex flex-wrap sm:flex-nowrap items-center justify-between gap-2.5 mb-4 border-b border-slate-850 pb-3">
+                        <div class="flex items-center gap-2 shrink-0">                            
                             <span class="text-xs font-bold text-slate-350 uppercase tracking-widest font-mono">Program Aktif</span>
                         </div>
-                        <div class="flex items-center gap-2">
+                        <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
                             <!-- ========================================================= -->
                             <!-- ADAPTIVE RUN INTELLIGENCE - FLOATING MINI BADGE PERSISTENT -->
                             <!-- Selalu tampil: rose highlight jika recovery alert ON, default accent phase jika stabil -->
@@ -1048,7 +1047,7 @@
                                 type="button"
                                 v-if="adaptiveStatus.has_active_program || adaptiveStatus._raw"
                                 @click.stop.prevent="openAdaptivePopup(true)"
-                                class="group relative inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-bold transition-all border shadow-sm z-[40] focus:outline-none focus:ring-2 focus:ring-neon"
+                                class="group relative inline-flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-semibold transition border shadow-sm shrink-0 cursor-pointer focus:outline-none focus:ring-1 focus:ring-neon"
                                 :class="[
                                     adaptiveStatus.recovery_alert?.is_alert
                                         ? 'border-rose-500/50 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20'
@@ -1056,40 +1055,40 @@
                                 ]"
                                 title="Evaluasi & sesuaikan beban latihan Anda"
                             >
-                                <span class="inline-block w-2 h-2 rounded-full flex-shrink-0"
+                                <span class="inline-block w-2 h-2 rounded-full shrink-0"
                                       :class="adaptiveStatus.recovery_alert?.is_alert ? 'bg-rose-400' : 'bg-neon'"></span>
-                                <span>Evaluasi Latihan</span>
-                                <span v-if="adaptiveStatus.training_phase?.label" class="text-[10px] text-slate-400 font-mono font-normal">(@{{ adaptiveStatus.training_phase.label }})</span>
+                                <span>Evaluasi</span>
+                                <span v-if="adaptiveStatus.training_phase?.label" class="hidden sm:inline text-[10px] text-slate-400 font-mono font-normal">(@{{ adaptiveStatus.training_phase.label }})</span>
                             </button>
 
                             <button @click="exportCalendar('image')" 
                                     :disabled="isExporting"
                                     :class="{'opacity-50 cursor-not-allowed': isExporting}"
-                                    class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-[10px] font-bold uppercase transition flex items-center gap-1.5 shadow-sm"
+                                    class="px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-semibold transition inline-flex items-center gap-1.5 shadow-sm shrink-0 cursor-pointer"
                                     title="Unduh Kalender dalam format gambar JPG">
-                                <svg v-if="isExporting && exportType === 'image'" class="animate-spin h-3 w-3 text-neon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <svg v-if="isExporting && exportType === 'image'" class="animate-spin h-3.5 w-3.5 text-neon shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
-                                <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                                 </svg>
-                                <span>@{{ (isExporting && exportType === 'image') ? (exportProgressText || 'Memproses...') : 'JPG' }}</span>
+                                <span class="font-mono text-[11px]">JPG</span>
                             </button>
 
                             <button @click="exportCalendar('pdf')" 
                                     :disabled="isExporting"
                                     :class="{'opacity-50 cursor-not-allowed': isExporting}"
-                                    class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-[10px] font-bold uppercase transition flex items-center gap-1.5 shadow-sm"
+                                    class="px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-semibold transition inline-flex items-center gap-1.5 shadow-sm shrink-0 cursor-pointer"
                                     title="Unduh Kalender dalam format dokumen PDF">
-                                <svg v-if="isExporting && exportType === 'pdf'" class="animate-spin h-3 w-3 text-neon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                <svg v-if="isExporting && exportType === 'pdf'" class="animate-spin h-3.5 w-3.5 text-neon shrink-0" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                     <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                                     <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                                 </svg>
-                                <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <svg v-else xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
                                 </svg>
-                                <span>@{{ (isExporting && exportType === 'pdf') ? (exportProgressText || 'Memproses...') : 'PDF' }}</span>
+                                <span class="font-mono text-[11px]">PDF</span>
                             </button>
                         </div>
                     </div>

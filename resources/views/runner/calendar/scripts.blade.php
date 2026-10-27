@@ -3606,6 +3606,123 @@ const runnerCalendarApp = createApp({
                     <tbody>
             `;
 
+            // Daniels Pace Formula helper for pace guide
+            const calculateDanielsPaces = (vdot) => {
+                const a = 0.000104;
+                const b = 0.182258;
+                const c = -4.6 - vdot;
+                const vVO2max = (-b + Math.sqrt(Math.pow(b, 2) - 4 * a * c)) / (2 * a);
+                return {
+                    E: 1000 / (vVO2max * 0.70),
+                    E_high: 1000 / (vVO2max * 0.72),
+                    E_low: 1000 / (vVO2max * 0.66),
+                    M: 1000 / (vVO2max * 0.82),
+                    T: 1000 / (vVO2max * 0.88),
+                    I: 1000 / (vVO2max * 0.97),
+                    R: 1000 / (vVO2max * 1.05),
+                };
+            };
+
+            const formatPaceVal = (minPerKm) => {
+                if (!minPerKm || isNaN(minPerKm)) return '-';
+                const m = Math.floor(minPerKm);
+                const s = Math.round((minPerKm - m) * 60);
+                return `${m}:${s.toString().padStart(2, '0')}`;
+            };
+
+            const formatSplitSec = (sec) => {
+                const s = Math.round(sec);
+                if (s >= 60) {
+                    const m = Math.floor(s / 60);
+                    const rem = s % 60;
+                    return `${m}:${rem.toString().padStart(2, '0')}`;
+                }
+                return `${s}s`;
+            };
+
+            const getPaceGuideHtml = () => {
+                let paces = trainingProfile.value?.paces || null;
+                let vdotVal = trainingProfile.value?.vdot || adaptiveStatus.active_vdot || adaptiveStatus.current_vdot || null;
+
+                if (!vdotVal && activeEnrollment?.program?.title) {
+                    const match = activeEnrollment.program.title.match(/vdot\s*([0-9]+(?:\.[0-9]+)?)/i);
+                    if (match) vdotVal = parseFloat(match[1]);
+                }
+
+                if ((!paces || !paces.E) && vdotVal) {
+                    paces = calculateDanielsPaces(Number(vdotVal));
+                } else if (!paces || !paces.E) {
+                    paces = calculateDanielsPaces(40);
+                    vdotVal = 40;
+                }
+
+                const track = trainingProfile.value?.track_times || {};
+
+                const recoveryPaceStr = paces.E_low ? `> ${formatPaceVal(paces.E_low)} /km` : (paces.E ? `> ${formatPaceVal(paces.E * 1.08)} /km` : '-');
+                const easyPaceStr = (paces.E_high && paces.E_low) ? `${formatPaceVal(paces.E_high)} - ${formatPaceVal(paces.E_low)} /km` : (paces.E ? `${formatPaceVal(paces.E)} /km` : '-');
+                const marathonPaceStr = paces.M ? `${formatPaceVal(paces.M)} /km` : (paces.E ? `${formatPaceVal(paces.E * 0.88)} /km` : '-');
+                const thresholdPaceStr = paces.T ? `${formatPaceVal(paces.T)} /km` : (paces.E ? `${formatPaceVal(paces.E * 0.82)} /km` : '-');
+                
+                const interval1kPaceStr = paces.I ? `${formatPaceVal(paces.I)} /km` : '-';
+                const split1k = track['1000m']?.I || (paces.I ? formatPaceVal(paces.I) : '-');
+                
+                const repPaceStr = paces.R ? `${formatPaceVal(paces.R)} /km` : '-';
+                const split400 = track['400m']?.R || (paces.R ? formatSplitSec(0.4 * paces.R * 60) : '-');
+                const split200 = track['200m']?.R || (paces.R ? formatSplitSec(0.2 * paces.R * 60) : '-');
+
+                const vdotBadge = vdotVal ? `(VDOT ${Number(vdotVal).toFixed(1)})` : '';
+
+                return `
+                    <div style="background-color: #0d1527; border: 1px solid #1e293b; border-radius: 8px; padding: 10px 12px; margin-bottom: 16px;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid #1e293b; padding-bottom: 6px;">
+                            <div style="font-size: 11px; font-weight: 800; color: #ccff00; text-transform: uppercase; letter-spacing: 0.5px; font-family: monospace;">
+                                PANDUAN PACE LATIHAN PERSONAL ${vdotBadge}
+                            </div>
+                            <div style="font-size: 9px; color: #94a3b8; font-family: monospace;">
+                                Formula Jack Daniels VDOT
+                            </div>
+                        </div>
+
+                        <table style="width: 100%; border-collapse: separate; border-spacing: 6px; text-align: left;">
+                            <tr>
+                                <td style="width: 33.33%; background-color: #121c2e; border: 1px solid #1e293b; border-left: 3px solid #38bdf8; border-radius: 6px; padding: 6px 8px; vertical-align: top;">
+                                    <div style="font-size: 9px; font-weight: 700; color: #94a3b8; text-transform: uppercase; font-family: monospace;">1. Recovery Pace</div>
+                                    <div style="font-size: 12px; font-weight: 800; color: #ffffff; font-family: monospace; margin: 2px 0;">${recoveryPaceStr}</div>
+                                    <div style="font-size: 9px; color: #64748b;">Pemulihan santai & regenerasi</div>
+                                </td>
+                                <td style="width: 33.33%; background-color: #121c2e; border: 1px solid #1e293b; border-left: 3px solid #10b981; border-radius: 6px; padding: 6px 8px; vertical-align: top;">
+                                    <div style="font-size: 9px; font-weight: 700; color: #94a3b8; text-transform: uppercase; font-family: monospace;">2. Easy (E) Pace</div>
+                                    <div style="font-size: 12px; font-weight: 800; color: #ffffff; font-family: monospace; margin: 2px 0;">${easyPaceStr}</div>
+                                    <div style="font-size: 9px; color: #64748b;">Aerobic base & long run nyaman</div>
+                                </td>
+                                <td style="width: 33.33%; background-color: #121c2e; border: 1px solid #1e293b; border-left: 3px solid #60a5fa; border-radius: 6px; padding: 6px 8px; vertical-align: top;">
+                                    <div style="font-size: 9px; font-weight: 700; color: #94a3b8; text-transform: uppercase; font-family: monospace;">3. Marathon / Tempo (M)</div>
+                                    <div style="font-size: 12px; font-weight: 800; color: #ffffff; font-family: monospace; margin: 2px 0;">${marathonPaceStr}</div>
+                                    <div style="font-size: 9px; color: #64748b;">Steady race pace & stamina</div>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td style="width: 33.33%; background-color: #121c2e; border: 1px solid #1e293b; border-left: 3px solid #f59e0b; border-radius: 6px; padding: 6px 8px; vertical-align: top;">
+                                    <div style="font-size: 9px; font-weight: 700; color: #94a3b8; text-transform: uppercase; font-family: monospace;">4. Threshold (T) Pace</div>
+                                    <div style="font-size: 12px; font-weight: 800; color: #ffffff; font-family: monospace; margin: 2px 0;">${thresholdPaceStr}</div>
+                                    <div style="font-size: 9px; color: #64748b;">Ambang laktat (comfortably hard)</div>
+                                </td>
+                                <td style="width: 33.33%; background-color: #121c2e; border: 1px solid #1e293b; border-left: 3px solid #fb923c; border-radius: 6px; padding: 6px 8px; vertical-align: top;">
+                                    <div style="font-size: 9px; font-weight: 700; color: #94a3b8; text-transform: uppercase; font-family: monospace;">5. Interval 1K (I Pace)</div>
+                                    <div style="font-size: 12px; font-weight: 800; color: #ffffff; font-family: monospace; margin: 2px 0;">${interval1kPaceStr}</div>
+                                    <div style="font-size: 9px; color: #ccff00; font-family: monospace;">Target 1000m: ${split1k}</div>
+                                </td>
+                                <td style="width: 33.33%; background-color: #121c2e; border: 1px solid #1e293b; border-left: 3px solid #f87171; border-radius: 6px; padding: 6px 8px; vertical-align: top;">
+                                    <div style="font-size: 9px; font-weight: 700; color: #94a3b8; text-transform: uppercase; font-family: monospace;">6. Interval Pendek (R Pace)</div>
+                                    <div style="font-size: 12px; font-weight: 800; color: #ffffff; font-family: monospace; margin: 2px 0;">${repPaceStr}</div>
+                                    <div style="font-size: 9px; color: #ccff00; font-family: monospace;">400m: ${split400} | 200m: ${split200}</div>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
+                `;
+            };
+
             try {
                 if (type === 'image') {
                     exportProgressText.value = 'Merender gambar...';
@@ -3622,7 +3739,7 @@ const runnerCalendarApp = createApp({
                     container.style.fontFamily = 'system-ui, -apple-system, sans-serif';
 
                     const headerHtml = `
-                        <div style="border-bottom: 2px solid #ccff00; padding-bottom: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: flex-end;">
+                        <div style="border-bottom: 2px solid #ccff00; padding-bottom: 15px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: flex-end;">
                             <div>
                                 <h1 style="color: #ffffff; font-size: 22px; font-weight: 900; margin: 0; text-transform: uppercase; font-style: italic;">Ruang Lari</h1>
                                 <p style="color: #94a3b8; font-size: 10px; margin: 4px 0 0 0; text-transform: uppercase; letter-spacing: 2px;">Rencana Program Latihan</p>
@@ -3639,7 +3756,7 @@ const runnerCalendarApp = createApp({
                         tableRows += getRowHtml(plan, idx);
                     });
 
-                    container.innerHTML = headerHtml + getTableHeaderHtml() + tableRows + '</tbody></table>';
+                    container.innerHTML = headerHtml + getPaceGuideHtml() + getTableHeaderHtml() + tableRows + '</tbody></table>';
                     document.body.appendChild(container);
 
                     try {
@@ -3654,20 +3771,31 @@ const runnerCalendarApp = createApp({
                     }
 
                 } else if (type === 'pdf') {
-                    // 18 rows per page for better A4 layout utilization (reduces total page count)
-                    const rowsPerPage = 18;
-                    const totalPages = Math.ceil(sortedPlans.length / rowsPerPage);
+                    // Page 1 contains Pace Guide + 14 rows, subsequent pages contain 18 rows
+                    const firstPageRows = 14;
+                    const otherPageRows = 18;
+                    let totalPages = 1;
+                    if (sortedPlans.length > firstPageRows) {
+                        totalPages = 1 + Math.ceil((sortedPlans.length - firstPageRows) / otherPageRows);
+                    }
+
                     const { jsPDF } = window.jspdf;
                     const pdf = new jsPDF('p', 'mm', 'a4');
                     const imgWidth = 190;
 
                     for (let i = 0; i < totalPages; i++) {
                         exportProgressText.value = `Merender Hal. ${i + 1} dari ${totalPages}...`;
-                        // Yield thread so progress text updates visually
                         await new Promise(r => setTimeout(r, 40));
 
-                        const startIdx = i * rowsPerPage;
-                        const endIdx = Math.min(startIdx + rowsPerPage, sortedPlans.length);
+                        const isFirstPage = (i === 0);
+                        let startIdx, endIdx;
+                        if (isFirstPage) {
+                            startIdx = 0;
+                            endIdx = Math.min(firstPageRows, sortedPlans.length);
+                        } else {
+                            startIdx = firstPageRows + (i - 1) * otherPageRows;
+                            endIdx = Math.min(startIdx + otherPageRows, sortedPlans.length);
+                        }
                         const pagePlans = sortedPlans.slice(startIdx, endIdx);
 
                         const container = document.createElement('div');
@@ -3685,7 +3813,7 @@ const runnerCalendarApp = createApp({
                         container.style.flexDirection = 'column';
 
                         const headerHtml = `
-                            <div style="border-bottom: 2px solid #ccff00; padding-bottom: 12px; margin-bottom: 18px; display: flex; justify-content: space-between; align-items: flex-end;">
+                            <div style="border-bottom: 2px solid #ccff00; padding-bottom: 12px; margin-bottom: 14px; display: flex; justify-content: space-between; align-items: flex-end;">
                                 <div>
                                     <h1 style="color: #ffffff; font-size: 22px; font-weight: 900; margin: 0; text-transform: uppercase; font-style: italic;">Ruang Lari</h1>
                                     <p style="color: #94a3b8; font-size: 10px; margin: 3px 0 0 0; text-transform: uppercase; letter-spacing: 2px;">Rencana Program Latihan</p>
@@ -3702,7 +3830,8 @@ const runnerCalendarApp = createApp({
                             tableRows += getRowHtml(plan, startIdx + localIdx);
                         });
 
-                        container.innerHTML = headerHtml + getTableHeaderHtml() + tableRows + '</tbody></table>';
+                        const paceGuideSection = isFirstPage ? getPaceGuideHtml() : '';
+                        container.innerHTML = headerHtml + paceGuideSection + getTableHeaderHtml() + tableRows + '</tbody></table>';
 
                         const footerDiv = document.createElement('div');
                         footerDiv.style.marginTop = 'auto';
@@ -3721,7 +3850,6 @@ const runnerCalendarApp = createApp({
                         document.body.appendChild(container);
                         try {
                             const canvas = await html2canvas(container, opt);
-                            // Using JPEG 0.90 is 5-8x faster to encode and much smaller than PNG
                             const imgData = canvas.toDataURL('image/jpeg', 0.90);
                             if (i > 0) pdf.addPage();
                             pdf.addImage(imgData, 'JPEG', 10, 8.5, imgWidth, 280, undefined, 'FAST');
