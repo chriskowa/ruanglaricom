@@ -901,62 +901,134 @@
                     </div>
                 </div>
 
-                <!-- Global Unlock Banner -->
-                <div v-if="hasUnpaidGenerator" class="mb-6 p-6 rounded-3xl bg-slate-900/80 border border-cyan-500/30 backdrop-blur-xl shadow-2xl overflow-hidden relative group" :class="activeMobileTab === 'calendar' ? 'block' : 'hidden lg:block'">
-                    <!-- Background Accent -->
-                    <div class="absolute -right-20 -top-20 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl group-hover:bg-cyan-500/20 transition-all duration-700"></div>
-                    
-                    <div class="relative z-10 flex flex-col lg:flex-row gap-6 items-center">
-                        <!-- Icon & Info -->
-                        <div class="flex items-center gap-5 w-full lg:w-auto">
-                            <div class="w-16 h-16 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-blue-600/20 flex items-center justify-center text-3xl shadow-inner border border-cyan-500/20 flex-shrink-0">
-                                <i class="fa-solid fa-lock-open"></i>
+                <!-- Buka Akses Lanjutan Program Lari Banner -->
+                <div v-if="hasUnpaidGenerator" class="mb-5" :class="activeMobileTab === 'calendar' ? 'block' : 'hidden lg:block'">
+                    <!-- Minimized Bar when dismissed -->
+                    <div v-if="isUnlockBannerDismissed" class="p-3.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between gap-3 text-xs shadow-sm">
+                        <div class="text-slate-300 truncate">
+                            Jadwal aktif di kalender: Minggu 1 s/d @{{ firstLockedWeek - 1 }}. Minggu @{{ firstLockedWeek }}+ belum terbuka.
+                        </div>
+                        <div class="flex items-center gap-2 shrink-0">
+                            <button type="button" @click="isUnlockBannerDismissed = false" class="px-3 py-1.5 rounded-md bg-neon hover:bg-white text-slate-950 font-bold text-xs uppercase tracking-wider transition cursor-pointer">
+                                Buka Akses
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Full Structured Card -->
+                    <div v-else class="rounded-lg bg-slate-900 border border-slate-800 p-5 shadow-sm space-y-4">
+                        <!-- Header with Title & Dismiss Button -->
+                        <div class="flex items-start justify-between gap-4 pb-3 border-b border-slate-800">
+                            <div>
+                                <h3 class="text-base sm:text-lg font-bold text-white tracking-tight" style="font-family: 'Inter Tight', 'Sora', sans-serif;">
+                                    Buka Fase Lanjutan Program Lari
+                                </h3>
+                                <p class="text-xs text-slate-400 mt-0.5">
+                                    Jadwal aktif di kalender saat ini mencakup Minggu 1 s/d @{{ firstLockedWeek - 1 }}.
+                                </p>
                             </div>
-                            <div class="flex-1 min-w-0">
-                                <h4 class="text-lg md:text-xl font-black text-white italic tracking-tight uppercase leading-tight">Buka Program Lengkap!</h4>
-                                <p class="text-xs md:text-sm text-slate-400 leading-relaxed mt-1">Dukung kami dengan donasi untuk membuka <span class="text-cyan-400 font-bold">Minggu @{{ firstLockedWeek }} sampai akhir program</span>.</p>
-                            </div>
+                            <button type="button" 
+                                    @click="isUnlockBannerDismissed = true" 
+                                    class="text-xs text-slate-400 hover:text-white transition px-2 py-1 rounded hover:bg-slate-800 shrink-0 cursor-pointer"
+                                    title="Sembunyikan banner sementara">
+                                Tutup ✕
+                            </button>
                         </div>
 
-                        <!-- Controls Area -->
-                        <div class="flex flex-col md:flex-row gap-4 items-center w-full lg:flex-1 bg-slate-800/40 p-4 rounded-2xl border border-slate-700/50">
-                            <!-- Donation Slider -->
-                            <div class="w-full md:flex-1 space-y-2">
-                                <div class="flex justify-between items-center">
-                                    <label class="text-[10px] font-mono text-cyan-400 uppercase tracking-widest">Donasi</label>
-                                    <div class="flex items-center gap-1">
-                                        <span class="text-slate-500 text-xs font-bold">Rp</span>
-                                        <input type="number" v-model="donationAmount" min="10000" step="5000" 
-                                               class="w-20 bg-transparent text-sm font-black text-white focus:outline-none text-right">
+                        <!-- Main Content Grid -->
+                        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+                            <!-- Left Info Column -->
+                            <div class="lg:col-span-6 space-y-3">
+                                <p class="text-xs text-slate-300 leading-relaxed">
+                                    Untuk membuka seluruh sesi latihan fase puncak (Minggu @{{ firstLockedWeek }} sampai selesai), berikan kontribusi sukarela pengembangan platform atau masukkan nomor HP/kode yang terdaftar pada event lari.
+                                </p>
+                                <div class="p-3.5 rounded-md bg-slate-950 border border-slate-800 text-xs text-slate-300 space-y-2">
+                                    <div class="text-[10px] font-mono text-slate-400 uppercase tracking-wider font-semibold">Cakupan Akses Penuh:</div>
+                                    <div class="space-y-1.5 text-slate-300">
+                                        <div>• Seluruh sesi latihan fase Peak & Taper tampil lengkap di kalender</div>
+                                        <div>• Panduan target pace personal berbasis VDOT Jack Daniels</div>
+                                        <div>• Sinkronisasi otomatis aktivitas Strava ke jadwal latihan</div>
                                     </div>
                                 </div>
-                                <input v-model="donationAmount" type="range" min="10000" max="250000" step="5000" 
-                                       class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-cyan-500">
                             </div>
 
-                            <!-- Divider -->
-                            <div class="hidden md:block w-px h-10 bg-slate-700/50"></div>
+                            <!-- Right Donation / Promo Controls Column -->
+                            <div class="lg:col-span-6 p-4 rounded-md bg-slate-950 border border-slate-800 space-y-3.5">
+                                <!-- Preset Nominal Chips -->
+                                <div>
+                                    <div class="flex items-center justify-between mb-1.5 text-xs">
+                                        <span class="font-semibold text-slate-300">Dukungan / Kontribusi Sukarela</span>
+                                        <span class="font-mono text-white font-bold text-sm">Rp @{{ (parseInt(donationAmount) || 25000).toLocaleString('id-ID') }}</span>
+                                    </div>
+                                    <div class="grid grid-cols-3 gap-2 mb-2.5">
+                                        <button type="button" 
+                                                @click="donationAmount = 15000" 
+                                                :class="donationAmount == 15000 ? 'bg-neon text-slate-950 font-bold border-neon' : 'bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-700'"
+                                                class="py-1.5 px-2 rounded-md border text-xs text-center transition cursor-pointer">
+                                            Rp 15.000
+                                        </button>
+                                        <button type="button" 
+                                                @click="donationAmount = 25000" 
+                                                :class="donationAmount == 25000 ? 'bg-neon text-slate-950 font-bold border-neon' : 'bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-700'"
+                                                class="py-1.5 px-2 rounded-md border text-xs text-center transition cursor-pointer">
+                                            Rp 25.000 <span class="text-[9px] block opacity-80">Rekomendasi</span>
+                                        </button>
+                                        <button type="button" 
+                                                @click="donationAmount = 50000" 
+                                                :class="donationAmount == 50000 ? 'bg-neon text-slate-950 font-bold border-neon' : 'bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-700'"
+                                                class="py-1.5 px-2 rounded-md border text-xs text-center transition cursor-pointer">
+                                            Rp 50.000
+                                        </button>
+                                    </div>
+                                    <input v-model.number="donationAmount" type="range" min="10000" max="250000" step="5000" 
+                                           class="w-full h-1.5 bg-slate-800 rounded appearance-none cursor-pointer accent-[#B8FF00]">
+                                    <div class="flex justify-between text-[10px] text-slate-500 font-mono mt-1">
+                                        <span>Min Rp 10.000</span>
+                                        <span>Max Rp 250.000</span>
+                                    </div>
+                                </div>
 
-                            <!-- Promo Code -->
-                            <div class="w-full md:w-48">
-                                <div class="relative">
-                                    <input v-model="promoCode" type="text" placeholder="Promo (No HP)" 
-                                           class="w-full bg-slate-900/50 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:border-cyan-500 focus:outline-none transition-all"
-                                           :class="{'border-green-500/50': promoApplied, 'border-red-500/50': promoError}">
-                                    <button v-if="!promoApplied && promoCode" @click="applyPromo" :disabled="checkingPromo"
-                                            class="absolute right-1.5 top-1.5 px-2 py-1 bg-cyan-500 text-slate-900 text-[10px] font-black rounded-lg hover:bg-cyan-400 transition-all">
-                                        @{{ checkingPromo ? '...' : 'APPLY' }}
-                                    </button>
-                                    <span v-if="promoApplied" class="absolute right-3 top-2.5 text-green-400">✓</span>
+                                <!-- Promo Code (No HP Event) -->
+                                <div class="pt-2 border-t border-slate-850">
+                                    <label class="block text-[11px] font-semibold text-slate-400 mb-1">
+                                        Punya Kode Promo atau Terdaftar di Event?
+                                    </label>
+                                    <div class="flex gap-2">
+                                        <input v-model="promoCode" type="text" placeholder="Masukkan Kode / No HP Event" 
+                                               class="flex-1 bg-slate-900 border border-slate-700 rounded-md px-3 py-2 text-xs text-white focus:outline-none focus:border-slate-500 font-mono"
+                                               :class="{'border-slate-600': promoApplied, 'border-rose-500': promoError}">
+                                        <button v-if="!promoApplied" 
+                                                type="button"
+                                                @click="applyPromo" 
+                                                :disabled="checkingPromo || !promoCode"
+                                                class="px-3.5 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition cursor-pointer disabled:opacity-50">
+                                            @{{ checkingPromo ? 'Cek...' : 'Terapkan' }}
+                                        </button>
+                                    </div>
+                                    <p v-if="promoError" class="text-[11px] text-rose-400 mt-1">@{{ promoError }}</p>
+                                    <p v-if="promoApplied" class="text-[11px] text-slate-200 mt-1 font-semibold">Kode promo aktif. Akses fase lanjutan dapat dibuka gratis.</p>
+                                </div>
+
+                                <!-- Action Button -->
+                                <button type="button"
+                                        @click="handleUnlockAction" 
+                                        :disabled="donationLoading || checkingPromo" 
+                                        class="w-full py-2.5 px-4 rounded-md bg-neon hover:bg-white text-slate-950 font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50">
+                                    <span v-if="!donationLoading">
+                                        @{{ promoApplied ? 'Buka Akses Penuh Sekarang (Gratis)' : 'Buka Akses Penuh (Rp ' + (parseInt(donationAmount) || 25000).toLocaleString('id-ID') + ')' }}
+                                    </span>
+                                    <span v-else class="flex items-center gap-2">
+                                        <svg class="animate-spin h-4 w-4 text-slate-950" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Memproses Transaksi...
+                                    </span>
+                                </button>
+                                <div class="text-center text-[10px] text-slate-500 font-mono">
+                                    Didukung Midtrans Payment Gateway (QRIS, GoPay, Bank Transfer)
                                 </div>
                             </div>
-
-                            <!-- Action Button -->
-                            <button @click="handleUnlockAction" :disabled="donationLoading || checkingPromo" 
-                                    class="w-full md:w-auto px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-900 font-black rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all text-sm whitespace-normal md:whitespace-nowrap uppercase">
-                                <span v-if="!donationLoading">@{{ promoApplied ? 'Unlock Gratis' : 'Unlock Now' }}</span>
-                                <span v-else class="animate-spin inline-block w-4 h-4 border-2 border-slate-900 border-t-transparent rounded-full"></span>
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -1114,7 +1186,7 @@
                                             @click.stop="deleteWorkout(plan)">
                                         ✕
                                     </button>
-                                    <span v-if="plan.is_locked" class="text-[8px] font-bold px-1.5 py-0.5 rounded-[4px] bg-slate-900 text-slate-500 border border-slate-800 uppercase">Locked</span>
+                                    <span v-if="plan.is_locked" class="text-[9px] font-mono text-slate-500 font-medium uppercase">Terkunci</span>
                                     <span v-else class="text-[8px] font-bold px-1.5 py-0.5 rounded-[4px] border uppercase" :class="[plan.status === 'completed' || plan.status === 'imported' ? 'bg-green-500/10 text-green-400 border-green-500/20' : (plan.status === 'started' ? 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20' : 'bg-red-500/10 text-red-400 border-red-500/20')]">
                                         @{{ statusText(plan.status) }}
                                     </span>
@@ -1123,25 +1195,25 @@
 
                             <!-- Card Body (Activity Content) -->
                             <div class="space-y-1">
-                                <h4 class="font-bold text-xs md:text-sm leading-tight transition line-clamp-1 truncate" 
-                                    :class="plan.is_locked ? 'text-slate-600' : 'text-white cursor-pointer hover:text-neon'"
+                                <h4 class="font-bold text-xs md:text-sm leading-tight transition line-clamp-1 truncate cursor-pointer" 
+                                    :class="plan.is_locked ? 'text-slate-300 hover:text-white' : 'text-white hover:text-neon'"
                                     :title="plan.description ? plan.description.split('\n')[0] : (plan.program_title || 'Workout Session')"
                                     @click="showPlanDetail(plan)">
                                     @{{ plan.description ? truncatePlanDesc(plan.description, 45) : (plan.program_title || 'Workout Session') }}
                                 </h4>
 
                                 <div class="flex items-center gap-2">
-                                    <span class="px-1.5 py-0.5 rounded-[4px] text-[8px] font-bold tracking-wider border"
-                                          :class="plan.is_locked ? 'bg-slate-900 text-slate-700 border-slate-800' : 'bg-slate-700 text-slate-300 border-slate-600'">
+                                    <span class="px-1.5 py-0.5 rounded text-[8px] font-bold tracking-wider border"
+                                          :class="plan.is_locked ? 'bg-slate-900 text-slate-300 border-slate-800' : 'bg-slate-700 text-slate-300 border-slate-600'">
                                         @{{ plan.type === 'custom_workout' ? activityLabel(plan.activity_type || 'Custom') : activityLabel(plan.type || 'Workout') }}
                                     </span>
-                                    <span class="text-[10px] font-mono" :class="plan.is_locked ? 'text-slate-700' : 'text-slate-400'">@{{ plan.distance ? plan.distance + ' km' : (plan.duration || '-') }}</span>
+                                    <span class="text-[10px] font-mono text-slate-400">@{{ plan.distance ? plan.distance + ' km' : (plan.duration || '-') }}</span>
                                 </div>
                             </div>
 
                             <!-- Card Footer Button -->
-                            <button v-if="plan.is_locked" class="w-full mt-1 py-1.5 rounded-[4px] bg-slate-800/50 text-slate-600 text-[10px] font-bold border border-slate-700 flex items-center justify-center gap-1.5 hover:bg-slate-800 transition" @click.stop="showPlanDetail(plan)">
-                                UNLOCK
+                            <button v-if="plan.is_locked" class="w-full mt-1.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] font-semibold border border-slate-700 flex items-center justify-center transition cursor-pointer" @click.stop="showPlanDetail(plan)">
+                                Buka Akses Sesi
                             </button>
                             <div v-else-if="plan.status==='pending'" class="grid grid-cols-2 gap-1 mt-1">
                                 <button class="py-1 rounded-[4px] bg-slate-800 text-slate-300 text-[9px] font-bold hover:bg-slate-700 transition border border-slate-700 flex items-center justify-center" @click.stop="updateSessionStatus(plan,'started')">
@@ -1165,12 +1237,12 @@
 
         <div v-if="showDetailModal" class="fixed inset-0 z-[1050] overflow-y-auto flex items-center justify-center p-3 sm:p-4 md:p-6">
             <div class="fixed inset-0 bg-black/80 backdrop-blur-sm" @click="closeDetail"></div>
-            <!-- Dynamic Modal Width based on Type (2-columns on md+ for standard workout) -->
-            <div class="relative z-10 w-full glass-panel rounded-lg p-0 border border-slate-800 overflow-hidden transition-all duration-300 my-auto shadow-2xl bg-slate-900 flex flex-col"
-                 :class="detail.type === 'strength' ? 'max-w-2xl max-h-[85vh]' : 'max-w-lg md:w-[90vw] md:max-w-7xl max-h-[92vh]'">
+            <!-- Dynamic Modal Width & Bounded Height for Smooth Internal Scrolling -->
+            <div class="relative z-10 w-full rounded-lg p-0 border border-slate-800 overflow-hidden transition-all duration-300 my-auto shadow-2xl bg-slate-900 flex flex-col min-h-0"
+                 :style="detail.type === 'strength' ? 'max-width: 680px; width: 100%; max-height: 88vh; height: 88vh;' : ((detail.session?.is_locked || detail.is_locked) ? 'max-width: 720px; width: 100%; max-height: 90vh; height: auto;' : 'max-width: min(94vw, 1200px); width: 100%; max-height: 90vh; height: 90vh;')">
                 
                 <!-- STRENGTH TRAINING UI -->
-                <div v-if="detail.type === 'strength'" class="flex flex-col h-full max-h-[85vh]">
+                <div v-if="detail.type === 'strength'" class="flex flex-col flex-1 min-h-0 overflow-hidden">
                     <!-- Header with Hero Image/Gradient -->
                     <div class="relative h-28 bg-gradient-to-br from-slate-800 to-slate-900 flex items-end p-4 overflow-hidden">
                         <div class="absolute inset-0 opacity-30 bg-[url('https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&q=80')] bg-cover bg-center"></div>
@@ -1193,7 +1265,7 @@
                     </div>
 
                     <!-- Body: Scrollable Content -->
-                    <div class="flex-1 overflow-y-auto p-4 space-y-4">
+                    <div class="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 custom-scrollbar">
                         <!-- Overview Stats -->
                         <div class="grid grid-cols-3 gap-2.5">
                             <div class="bg-slate-800/50 rounded-[6px] p-2.5 border border-slate-700/50">
@@ -1321,331 +1393,390 @@
                 </div>
 
                 <!-- STANDARD RUNNING/OTHER UI (Existing) -->
-                <div v-else class="flex flex-col h-full max-h-[92vh]">
+                <div v-else class="flex flex-col flex-1 min-h-0 overflow-hidden">
                     <!-- Locked Session UI -->
-                    <div v-if="detail.session?.is_locked" class="text-center py-6 px-4 overflow-y-auto custom-scrollbar">
-                        <div class="relative inline-block mb-4">
-                            <div class="text-4xl text-neon"><i class="fa-solid fa-lock"></i></div>
-                            <div class="absolute -top-1 -right-1 w-5 h-5 bg-red-500 rounded-full border-2 border-slate-900 flex items-center justify-center text-[9px] font-bold text-white">!</div>
-                        </div>
-                        
-                        <h3 class="text-lg font-bold text-white mb-2 tracking-tight uppercase">Program Terkunci</h3>
-                        
-                        <div class="bg-slate-800/50 border border-slate-700 rounded-lg p-4 mb-6 text-left space-y-3">
-                            <p class="text-slate-300 text-xs leading-relaxed">
-                                Program lari periodisasi ini dirancang khusus untuk Anda. Dukung pengembangan 
-                                <span class="text-brand font-bold">RuangLari</span> dengan donasi sukarela untuk membuka seluruh jadwal latihan (Minggu 2 sampai selesai).
-                            </p>
-                            
-                            <ul class="space-y-1.5">
-                                <li class="flex items-center gap-2 text-[11px] text-slate-400">
-                                    <span class="text-green-400">✓</span> Akses penuh ke fase Peak & Taper
-                                </li>
-                                <li class="flex items-center gap-2 text-[11px] text-slate-400">
-                                    <span class="text-green-400">✓</span> Target pace yang dipersonalisasi
-                                </li>
-                                <li class="flex items-center gap-2 text-[11px] text-slate-400">
-                                    <span class="text-green-400">✓</span> Sinkronisasi otomatis ke Strava
-                                </li>
-                            </ul>
+                    <div v-if="detail.session?.is_locked || detail.is_locked" class="flex flex-col flex-1 min-h-0 overflow-hidden">
+                        <!-- Pinned Modal Header Bar -->
+                        <div class="flex items-center justify-between px-5 py-3.5 border-b border-slate-800 bg-slate-900 shrink-0">
+                            <div class="flex items-center gap-2 text-xs">
+                                <span class="text-white font-bold">Sesi Fase Lanjutan</span>
+                                <span class="text-slate-500">•</span>
+                                <span class="text-slate-400 font-mono">Minggu @{{ firstLockedWeek }}+</span>
+                                <span v-if="detail.date_formatted || detail.date" class="text-slate-500 font-mono hidden sm:inline">• @{{ detail.date_formatted || formatDate(detail.date) }}</span>
+                            </div>
+                            <button class="w-8 h-8 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition text-sm font-bold shrink-0 ml-2 cursor-pointer" 
+                                    @click="closeDetail" 
+                                    title="Tutup">
+                                ✕
+                            </button>
                         </div>
 
-                        <div class="space-y-4">
-                            <div class="px-4">
-                                <div class="flex justify-between items-center mb-3">
-                                    <label class="text-[10px] font-mono text-cyan-400 uppercase tracking-widest">Nominal Donasi</label>
-                                    <div class="flex items-center gap-2">
-                                        <span class="text-slate-500 font-bold text-sm">Rp</span>
-                                        <input type="number" v-model="donationAmount" min="10000" step="5000" 
-                                               class="w-28 bg-slate-800 text-base font-bold text-white px-2.5 py-1.5 rounded-md border border-slate-700 shadow-inner outline-none focus:border-cyan-500 transition-all text-right">
-                                    </div>
-                                </div>
-                                <input v-model="donationAmount" type="range" min="10000" max="250000" step="5000" 
-                                       class="w-full h-2.5 bg-slate-700 rounded appearance-none cursor-pointer accent-cyan-500 hover:accent-cyan-400 transition-all mb-2">
-                                <div class="flex justify-between text-[9px] text-slate-500 font-mono uppercase tracking-tighter mb-4">
-                                    <span>Min 10rb</span>
-                                    <span>Max 250rb</span>
-                                </div>
-
-                                <!-- Promo Code Section -->
-                                <div class="relative">
-                                    <input v-model="promoCode" type="text" placeholder="Punya Kode Promo? (No HP Event)" 
-                                           class="w-full bg-slate-800 border border-slate-700 rounded-md px-3.5 py-2.5 text-white text-xs focus:border-neon focus:outline-none transition-colors"
-                                           :class="{'border-green-500': promoApplied, 'border-red-500': promoError}">
-                                    <button v-if="!promoApplied && promoCode" @click="applyPromo" :disabled="checkingPromo"
-                                            class="absolute right-1.5 top-1.5 px-2.5 py-1 bg-slate-700 hover:bg-slate-600 text-white text-[10px] font-bold rounded transition-colors">
-                                        @{{ checkingPromo ? 'Checking...' : 'APPLY' }}
-                                    </button>
-                                    <span v-if="promoApplied" class="absolute right-3 top-2.5 text-green-400 text-base">✓</span>
-                                </div>
-                                <p v-if="promoError" class="text-[11px] text-red-400 mt-1 ml-1">@{{ promoError }}</p>
-                                <p v-if="promoApplied" class="text-[11px] text-green-400 mt-1 ml-1">Kode valid! Program akan di-unlock gratis.</p>
+                        <!-- Scrollable Body -->
+                        <div class="flex-1 min-h-0 overflow-y-auto p-5 md:p-6 custom-scrollbar space-y-4">
+                            <!-- Info Context -->
+                            <div class="space-y-1">
+                                <h3 class="text-lg font-bold text-white tracking-tight" style="font-family: 'Inter Tight', 'Sora', sans-serif;">
+                                    Buka Fase Lanjutan Program Lari
+                                </h3>
+                                <p class="text-xs text-slate-300 leading-relaxed">
+                                    Jadwal aktif di kalender saat ini mencakup <strong class="text-white">Minggu 1 s/d @{{ firstLockedWeek - 1 }}</strong>. Sesi pada tanggal ini berada di fase lanjutan (<strong class="text-white">Minggu @{{ firstLockedWeek }} ke atas</strong>). Buka seluruh sesi tersisa dengan kontribusi sukarela atau kode promo event.
+                                </p>
                             </div>
 
-                            <button @click="handleUnlockAction" :disabled="donationLoading || checkingPromo" 
-                                    class="w-full py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-900 font-bold rounded-md shadow-xl shadow-cyan-900/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex flex-col items-center justify-center gap-0.5">
-                                <span v-if="!donationLoading" class="text-sm font-bold uppercase tracking-wider">
-                                    @{{ promoApplied ? 'Unlock Gratis' : 'Unlock Full Program' }}
-                                </span>
-                                <span v-if="!donationLoading" class="text-[8px] opacity-80 uppercase tracking-widest font-mono">
-                                    @{{ promoApplied ? 'Free Access via Event Participant' : 'Support RuangLari Development' }}
-                                </span>
-                                <span v-else class="flex items-center gap-2 text-xs">
-                                    <svg class="animate-spin h-4 w-4 text-slate-900" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                                        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                    </svg>
-                                    MEMPROSES...
-                                </span>
-                            </button>
-                            <p v-if="!promoApplied" class="text-[9px] text-slate-500 uppercase tracking-widest font-mono">Secured by Midtrans</p>
+                            <!-- Contribution & Promo Form Box -->
+                            <div class="p-4 md:p-5 rounded-md bg-slate-950 border border-slate-800 space-y-3.5">
+                                <!-- Preset Nominal Chips & Slider -->
+                                <div>
+                                    <div class="flex items-center justify-between mb-2 text-xs">
+                                        <span class="font-semibold text-slate-300">Dukungan / Kontribusi Sukarela</span>
+                                        <span class="font-mono text-white font-bold text-base">
+                                            Rp @{{ (parseInt(donationAmount) || 25000).toLocaleString('id-ID') }}
+                                        </span>
+                                    </div>
+                                    
+                                    <div class="grid grid-cols-3 gap-2 mb-2.5">
+                                        <button type="button" 
+                                                @click="donationAmount = 15000" 
+                                                :class="donationAmount == 15000 ? 'bg-neon text-slate-950 font-bold border-neon' : 'bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-700'"
+                                                class="py-2 px-2 rounded-md border text-xs text-center transition cursor-pointer">
+                                            Rp 15.000
+                                        </button>
+                                        <button type="button" 
+                                                @click="donationAmount = 25000" 
+                                                :class="donationAmount == 25000 ? 'bg-neon text-slate-950 font-bold border-neon' : 'bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-700'"
+                                                class="py-2 px-2 rounded-md border text-xs text-center transition cursor-pointer">
+                                            Rp 25.000 <span class="text-[9px] block opacity-80">Rekomendasi</span>
+                                        </button>
+                                        <button type="button" 
+                                                @click="donationAmount = 50000" 
+                                                :class="donationAmount == 50000 ? 'bg-neon text-slate-950 font-bold border-neon' : 'bg-slate-900 text-slate-300 border-slate-800 hover:border-slate-700'"
+                                                class="py-2 px-2 rounded-md border text-xs text-center transition cursor-pointer">
+                                            Rp 50.000
+                                        </button>
+                                    </div>
+
+                                    <input v-model.number="donationAmount" type="range" min="10000" max="250000" step="5000" 
+                                           class="w-full h-1.5 bg-slate-800 rounded appearance-none cursor-pointer accent-[#B8FF00]">
+                                    <div class="flex justify-between text-[10px] text-slate-500 font-mono mt-1">
+                                        <span>Min Rp 10.000</span>
+                                        <span>Max Rp 250.000</span>
+                                    </div>
+                                </div>
+
+                                <!-- Promo Code Input -->
+                                <div class="pt-3 border-t border-slate-850">
+                                    <label class="block text-xs font-semibold text-slate-400 mb-1.5">
+                                        Punya Kode Promo atau Terdaftar di Event Lari?
+                                    </label>
+                                    <div class="flex gap-2">
+                                        <input v-model="promoCode" type="text" placeholder="Masukkan Kode / No HP Event" 
+                                               class="flex-1 bg-slate-900 border border-slate-700 rounded-md px-3 py-2 text-xs text-white focus:outline-none focus:border-slate-500 font-mono"
+                                               :class="{'border-slate-600': promoApplied, 'border-rose-500': promoError}">
+                                        <button v-if="!promoApplied" 
+                                                type="button"
+                                                @click="applyPromo" 
+                                                :disabled="checkingPromo || !promoCode"
+                                                class="px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition cursor-pointer disabled:opacity-50">
+                                            @{{ checkingPromo ? 'Cek...' : 'Terapkan' }}
+                                        </button>
+                                    </div>
+                                    <p v-if="promoError" class="text-xs text-rose-400 mt-1">@{{ promoError }}</p>
+                                    <p v-if="promoApplied" class="text-xs text-slate-200 mt-1 font-semibold">Kode promo aktif. Akses fase lanjutan dapat dibuka gratis.</p>
+                                </div>
+
+                                <!-- Action Button -->
+                                <button type="button"
+                                        @click="handleUnlockAction" 
+                                        :disabled="donationLoading || checkingPromo" 
+                                        class="w-full py-3 px-4 rounded-md bg-neon hover:bg-white text-slate-950 font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 shadow-sm">
+                                    <span v-if="!donationLoading">
+                                        @{{ promoApplied ? 'Buka Akses Penuh Sekarang (Gratis)' : 'Buka Akses Penuh (Rp ' + (parseInt(donationAmount) || 25000).toLocaleString('id-ID') + ')' }}
+                                    </span>
+                                    <span v-else class="flex items-center gap-2">
+                                        <svg class="animate-spin h-4 w-4 text-slate-950" fill="none" viewBox="0 0 24 24">
+                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                        </svg>
+                                        Memproses Transaksi...
+                                    </span>
+                                </button>
+                                <div class="text-center text-[10px] text-slate-500 font-mono">
+                                    Didukung Midtrans Payment Gateway (QRIS, GoPay, Bank Transfer)
+                                </div>
+                            </div>
                         </div>
                     </div>
                     
-                    <!-- Active Workout Detail UI (2-Columns on md+) -->
-                    <div v-else class="flex flex-col h-full max-h-[92vh]">
+                    <!-- Active Workout Detail UI (Spacious 2-Columns on lg+) -->
+                    <div v-else class="flex flex-col flex-1 min-h-0 overflow-hidden">
                         <!-- Pinned Modal Header Bar -->
-                        <div class="flex items-center justify-between p-4 md:px-6 md:py-3.5 border-b border-slate-800 bg-slate-900 shrink-0">
-                            <div class="flex items-center gap-2 min-w-0">
-                                <div class="flex items-center gap-1.5 bg-slate-950 border border-slate-800 rounded px-2 py-0.5 shrink-0">
-                                    <span class="w-1.5 h-1.5 rounded-full" :class="statusDotClass(detail.status)"></span>
-                                    <span class="text-[9px] font-mono tracking-wider uppercase text-slate-400">Status:</span>
-                                    <span class="text-[9px] font-mono font-bold tracking-wider uppercase" :class="statusClass(detail.status)">@{{ statusText(detail.status) }}</span>
-                                </div>
-                                <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-[9px] font-bold text-slate-300 tracking-wider shrink-0">
+                        <div class="flex items-center justify-between px-5 py-3.5 border-b border-slate-800 bg-slate-900 shrink-0">
+                            <div class="flex items-center gap-2.5 min-w-0">
+                                <span class="px-2.5 py-1 rounded bg-slate-800 border border-slate-700 text-xs font-semibold text-white tracking-wider uppercase font-mono shrink-0">
                                     @{{ activityLabel(detail.type) }}
                                 </span>
-                                <span class="text-[10px] font-mono text-slate-400 hidden sm:inline truncate ml-1">@{{ detail.date_formatted || formatDate(detail.date) }}</span>
+                                <div class="flex items-center gap-2 bg-slate-950 border border-slate-800 rounded px-2.5 py-1 shrink-0">
+                                    <span class="w-2 h-2 rounded-full" :class="statusDotClass(detail.status)"></span>
+                                    <span class="text-xs font-mono text-slate-400">Status:</span>
+                                    <span class="text-xs font-mono font-bold uppercase" :class="statusClass(detail.status)">@{{ statusText(detail.status) }}</span>
+                                </div>
+                                <span class="text-xs font-mono text-slate-400 hidden sm:inline-block truncate ml-1">@{{ detail.date_formatted || formatDate(detail.date) }}</span>
                             </div>
-                            <button class="w-7 h-7 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition text-sm font-bold shrink-0 ml-2" @click="closeDetail" title="Tutup">✕</button>
+                            <button class="w-8 h-8 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white flex items-center justify-center transition text-sm font-bold shrink-0 ml-2" @click="closeDetail" title="Tutup">✕</button>
                         </div>
 
-                        <!-- Scrollable 2-Column Body -->
-                        <div class="flex-1 overflow-y-auto p-4 md:p-6 custom-scrollbar space-y-4">
-                            <!-- Activity Info Header -->
-                            <div class="mb-1">
-                                <div class="flex items-center justify-between gap-2 mb-1">
-                                    <span class="text-[10px] font-mono text-slate-400 uppercase tracking-widest">@{{ detailTitle }}</span>
-                                    <span class="text-[10px] font-mono text-slate-400 sm:hidden">@{{ detail.date_formatted || formatDate(detail.date) }}</span>
+                        <!-- Scrollable Body with Clean Telemetry HUD & 2-Column Blueprint -->
+                        <div class="flex-1 min-h-0 overflow-y-auto p-5 md:p-6 custom-scrollbar space-y-5">
+                            
+                            <!-- Session Title Header -->
+                            <div class="space-y-1">
+                                <div class="flex items-center justify-between gap-3">
+                                    <span class="text-xs font-mono text-slate-400 uppercase tracking-widest font-semibold">@{{ detailTitle }}</span>
+                                    <span class="text-xs font-mono text-slate-400 sm:hidden">@{{ detail.date_formatted || formatDate(detail.date) }}</span>
                                 </div>
-                                <h2 class="text-base md:text-xl font-bold text-white leading-tight">
+                                <h2 class="text-xl md:text-2xl font-extrabold text-white tracking-tight leading-snug" style="font-family: 'Inter Tight', 'Sora', sans-serif; letter-spacing: -0.03em;">
                                     @{{ detail.session?.title || detail.workout_structure?.race_name || 'Workout Session' }}
                                 </h2>
                             </div>
 
-                            <!-- 2-COLUMN GRID (1 col mobile, 2 cols md+) -->
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6 lg:gap-8 items-start">
+                            <!-- 4-Stat Athletic Telemetry HUD -->
+                            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                                <!-- Distance -->
+                                <div class="p-3.5 rounded-lg bg-slate-950 border border-slate-800">
+                                    <div class="text-[10px] text-slate-400 font-mono uppercase tracking-wider font-semibold">Distance</div>
+                                    <div class="text-lg md:text-xl font-bold font-mono text-white mt-0.5 tabular-nums">
+                                        <template v-if="detail.distance && String(detail.type || '').toLowerCase() !== 'rest' && String(detail.type || '').toLowerCase() !== 'rest_day'">
+                                            @{{ detail.distance }} <span class="text-xs text-slate-400 font-normal">km</span>
+                                        </template>
+                                        <template v-else>
+                                            <span class="text-xs text-slate-400 font-normal">Rest Day</span>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <!-- Target Pace -->
+                                <div class="p-3.5 rounded-lg bg-slate-950 border border-slate-800">
+                                    <div class="text-[10px] text-slate-400 font-mono uppercase tracking-wider font-semibold">Target Pace</div>
+                                    <div class="text-lg md:text-xl font-bold font-mono text-neon mt-0.5 tabular-nums">
+                                        @{{ displayPace || '-' }}
+                                    </div>
+                                </div>
+
+                                <!-- Duration -->
+                                <div class="p-3.5 rounded-lg bg-slate-950 border border-slate-800">
+                                    <div class="text-[10px] text-slate-400 font-mono uppercase tracking-wider font-semibold">Duration</div>
+                                    <div class="text-lg md:text-xl font-bold font-mono text-white mt-0.5 tabular-nums">
+                                        @{{ detail.duration || '-' }}
+                                    </div>
+                                </div>
+
+                                <!-- Intensity / Difficulty -->
+                                <div class="p-3.5 rounded-lg bg-slate-950 border border-slate-800">
+                                    <div class="text-[10px] text-slate-400 font-mono uppercase tracking-wider font-semibold">Intensity</div>
+                                    <div class="text-base md:text-lg font-bold text-white mt-1 capitalize truncate">
+                                        @{{ (detail.program_difficulty || detail.difficulty || '').toUpperCase() || 'MODERATE' }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- 2-COLUMN GRID (Spacious 12-column layout on lg+) -->
+                            <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 lg:gap-6 items-start">
                                 
-                                <!-- LEFT COLUMN: Rencana & Panduan Latihan -->
-                                <div class="space-y-4">
-                                    <!-- Deskripsi Aktivitas (Audio Dihapus) -->
-                                    <div v-if="detail.description" class="bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 border-l-4 border-l-neon border-y border-r border-slate-800 rounded-lg p-3.5 shadow-sm text-xs">
-                                        <div class="flex items-center gap-2 pb-2 mb-2.5 border-b border-slate-800">
-                                            <div class="w-6 h-6 rounded bg-neon/10 border border-neon/30 flex items-center justify-center text-neon">
-                                                <i class="fa-solid fa-clipboard-list text-xs"></i>
-                                            </div>
-                                            <span class="text-xs font-extrabold text-white uppercase tracking-wider">Deskripsi Aktivitas</span>
+                                <!-- LEFT COLUMN: Instruksi, Fisiologi & Langkah Sesi (lg:col-span-7) -->
+                                <div class="lg:col-span-7 space-y-5">
+                                    <!-- Deskripsi Aktivitas (Clean, High-Contrast Typography, No AI Clichés) -->
+                                    <div v-if="detail.description" class="bg-slate-900 border border-slate-800 rounded-lg p-5 shadow-sm space-y-3">
+                                        <div class="flex items-center justify-between pb-2.5 border-b border-slate-800">
+                                            <h3 class="text-xs font-bold text-white uppercase tracking-wider font-mono">Instruksi & Struktur Latihan</h3>
+                                            <span class="text-[11px] text-slate-400 font-mono">Blueprint</span>
                                         </div>
-                                        <div class="whitespace-pre-line leading-relaxed text-slate-100 font-medium bg-slate-950/60 rounded-md p-3 border border-slate-800 text-xs">@{{ detail.description }}</div>
-                                    </div>
-
-                                    <!-- Target Metrics Grid -->
-                                    <div class="p-3.5 bg-slate-900 border border-slate-800 rounded-lg shadow-sm">
-                                        <div class="text-[10px] font-mono text-slate-400 uppercase tracking-widest mb-2.5 font-bold">Target & Metrik</div>
-                                        <div class="grid grid-cols-2 gap-2">
-                                            <div v-if="detail.distance && String(detail.type || '').toLowerCase() !== 'rest' && String(detail.type || '').toLowerCase() !== 'rest_day'" class="p-2.5 rounded-md bg-slate-950 border border-slate-800">
-                                                <div class="text-[9px] text-slate-400 font-mono uppercase">Distance</div>
-                                                <div class="text-xs font-bold text-neon mt-0.5 font-mono">@{{ detail.distance }} km</div>
-                                            </div>
-                                            <div v-if="String(detail.type || '').toLowerCase() !== 'rest' && String(detail.type || '').toLowerCase() !== 'rest_day'" class="p-2.5 rounded-md bg-slate-950 border border-slate-800">
-                                                <div class="text-[9px] text-slate-400 font-mono uppercase">Target Pace</div>
-                                                <div class="text-xs font-bold text-neon mt-0.5 font-mono">@{{ displayPace || '-' }}</div>
-                                            </div>
-                                            <div v-if="String(detail.type || '').toLowerCase() !== 'rest' && String(detail.type || '').toLowerCase() !== 'rest_day'" class="p-2.5 rounded-md bg-slate-950 border border-slate-800">
-                                                <div class="text-[9px] text-slate-400 font-mono uppercase">Duration</div>
-                                                <div class="text-xs font-bold text-white mt-0.5 font-mono">@{{ detail.duration || '-' }}</div>
-                                            </div>
-                                            <div class="p-2.5 rounded-md bg-slate-950 border border-slate-800">
-                                                <div class="text-[9px] text-slate-400 font-mono uppercase">Difficulty</div>
-                                                <div class="text-xs font-bold text-white mt-0.5">@{{ (detail.program_difficulty || detail.difficulty || '').toUpperCase() || '-' }}</div>
-                                            </div>
+                                        <div class="text-sm text-slate-200 leading-relaxed font-normal whitespace-pre-line">
+                                            @{{ detail.description }}
                                         </div>
                                     </div>
 
-                                    <!-- Goals & Effects Section -->
+                                    <!-- Tujuan & Efek Fisiologis -->
                                     <div v-if="['run', 'easy_run', 'recovery', 'long_run', 'tempo', 'tempo_run', 'threshold', 'interval', 'repetition', 'speed', 'hill', 'hill_repeats', 'strength', 'rest', 'yoga', 'cycling', 'race'].includes(String(detail.type || '').toLowerCase())"
-                                         class="bg-slate-900 rounded-lg p-3.5 border border-slate-800 shadow-sm">
-                                        <div class="flex items-center gap-1.5 mb-2.5 pb-2 border-b border-slate-800">
-                                            <i class="fa-solid fa-bullseye text-neon text-xs"></i>
-                                            <span class="text-[10px] font-bold text-white uppercase tracking-wider font-mono">Tujuan & Efek Latihan</span>
+                                         class="bg-slate-900 border border-slate-800 rounded-lg p-5 shadow-sm space-y-3">
+                                        <div class="flex items-center justify-between pb-2.5 border-b border-slate-800">
+                                            <h3 class="text-xs font-bold text-white uppercase tracking-wider font-mono">Tujuan & Efek Fisiologis</h3>
+                                            <span class="text-[11px] text-slate-400 font-mono">Adaptasi</span>
                                         </div>
-                                        <div class="space-y-2.5 text-xs">
+                                        <div class="space-y-3 text-sm">
                                             <div>
-                                                <span class="text-slate-400 block font-semibold mb-0.5">Goal Utama:</span>
-                                                <span class="text-slate-200 font-bold text-xs" id="detail-target-dist">@{{ detail.session?.session_name || '-' }}</span>
+                                                <div class="text-xs font-semibold text-slate-400 font-mono uppercase tracking-wider mb-0.5">Target Sesi Utama</div>
+                                                <div class="text-white font-semibold" id="detail-target-dist">@{{ detail.session?.session_name || '-' }}</div>
                                             </div>
-                                            <div class="pt-2 border-t border-slate-800">
-                                                <span class="text-slate-400 block font-semibold mb-0.5">Efek bagi Tubuh:</span>
-                                                <span class="text-slate-200 leading-relaxed">@{{ workoutEffectText }}</span>
+                                            <div class="pt-2.5 border-t border-slate-800">
+                                                <div class="text-xs font-semibold text-slate-400 font-mono uppercase tracking-wider mb-0.5">Dampak bagi Tubuh</div>
+                                                <div class="text-slate-300 leading-relaxed text-xs">@{{ workoutEffectText }}</div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <!-- Workout Steps (guidedSteps) -->
-                                    <div v-if="guidedSteps.length > 0" class="border border-slate-800 rounded-lg bg-slate-900 p-3.5 shadow-sm">
-                                        <div class="flex items-center justify-between gap-3 mb-2">
-                                            <div class="text-[10px] font-bold text-slate-400 uppercase font-mono tracking-wider">Workout Steps</div>
-                                            <div class="text-[10px] text-slate-400 font-mono">@{{ guidedStepsDoneCount }}/@{{ guidedSteps.length }}</div>
+                                    <!-- Tahapan Sesi Latihan (guidedSteps) -->
+                                    <div v-if="guidedSteps.length > 0" class="bg-slate-900 border border-slate-800 rounded-lg p-5 shadow-sm space-y-3">
+                                        <div class="flex items-center justify-between pb-2.5 border-b border-slate-800">
+                                            <h3 class="text-xs font-bold text-white uppercase tracking-wider font-mono">Tahapan Sesi Latihan</h3>
+                                            <div class="text-xs font-mono text-slate-400">@{{ guidedStepsDoneCount }}/@{{ guidedSteps.length }} Selesai</div>
                                         </div>
-                                        <div class="h-1.5 rounded-sm bg-slate-950 border border-slate-800 overflow-hidden mb-3">
+                                        <!-- Progress Bar -->
+                                        <div class="h-1.5 rounded-sm bg-slate-950 border border-slate-800 overflow-hidden">
                                             <div class="h-full bg-neon transition-all duration-300" :style="{ width: guidedStepsProgressPct + '%' }"></div>
                                         </div>
-                                        <div class="space-y-1.5 max-h-60 overflow-y-auto custom-scrollbar pr-1">
-                                            <button v-for="(step, idx) in guidedSteps" :key="step.id" type="button" class="w-full flex justify-between items-center text-xs p-2 rounded-md border transition text-left"
-                                                    :class="guidedStepChecked(step) ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-slate-950 border-slate-800 hover:border-slate-700'"
+                                        <!-- Interactive Step Checklist -->
+                                        <div class="space-y-2 max-h-72 overflow-y-auto custom-scrollbar pr-1">
+                                            <button v-for="(step, idx) in guidedSteps" :key="step.id" type="button" 
+                                                    class="w-full flex justify-between items-center text-xs p-3 rounded-md border transition text-left"
+                                                    :class="guidedStepChecked(step) ? 'bg-emerald-950/20 border-emerald-800/50' : 'bg-slate-950 border-slate-800 hover:border-slate-700'"
                                                     @click="toggleGuidedStep(step)">
-                                                <div class="flex items-center gap-2.5 min-w-0">
-                                                    <div class="w-4 h-4 rounded-full border flex items-center justify-center flex-shrink-0 text-[10px] font-bold"
-                                                         :class="guidedStepChecked(step) ? 'bg-emerald-500 border-emerald-500 text-white' : 'bg-slate-900 border-slate-700 text-slate-500'">
+                                                <div class="flex items-center gap-3 min-w-0">
+                                                    <div class="w-5 h-5 rounded-full border flex items-center justify-center flex-shrink-0 text-xs font-bold transition"
+                                                         :class="guidedStepChecked(step) ? 'bg-emerald-500 border-emerald-500 text-slate-950' : 'bg-slate-900 border-slate-700 text-slate-500'">
                                                         @{{ guidedStepChecked(step) ? '✓' : '' }}
                                                     </div>
-                                                    <div class="min-w-0 text-left">
-                                                        <div class="flex items-center gap-1.5">
-                                                            <span v-if="step.badge" class="px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border"
+                                                    <div class="min-w-0">
+                                                        <div class="flex items-center gap-2">
+                                                            <span v-if="step.badge" class="px-1.5 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider border"
                                                                   :class="step.badgeClass">@{{ step.badge }}</span>
                                                             <span class="font-bold text-slate-200 truncate">@{{ step.title }}</span>
                                                         </div>
-                                                        <div v-if="step.subtitle" class="text-[10px] text-slate-400 truncate mt-0.5">@{{ step.subtitle }}</div>
+                                                        <div v-if="step.subtitle" class="text-[11px] text-slate-400 truncate mt-0.5">@{{ step.subtitle }}</div>
                                                     </div>
                                                 </div>
-                                                <div class="text-right flex-shrink-0 pl-2">
-                                                    <div v-if="step.valueText" class="text-white font-mono text-xs">@{{ step.valueText }}</div>
-                                                    <div v-if="step.paceText" class="text-[10px] text-slate-400">@{{ step.paceText }}</div>
+                                                <div class="text-right flex-shrink-0 pl-3">
+                                                    <div v-if="step.valueText" class="text-white font-mono text-xs font-semibold tabular-nums">@{{ step.valueText }}</div>
+                                                    <div v-if="step.paceText" class="text-[11px] text-slate-400 font-mono">@{{ step.paceText }}</div>
                                                 </div>
                                             </button>
                                         </div>
                                     </div>
 
-                                    <!-- Notes for Workout -->
-                                    <div v-if="detail.notes" class="p-3 bg-amber-500/10 border-l-4 border-amber-500 border-y border-r border-amber-500/20 rounded-lg">
-                                        <div class="text-[10px] text-amber-400 uppercase font-bold mb-1 flex items-center gap-1">
-                                            <i class="fa-solid fa-circle-exclamation"></i> Notes
-                                        </div>
-                                        <div class="font-semibold text-white text-xs leading-relaxed">@{{ detail.notes }}</div>
+                                    <!-- Catatan Khusus Pelatih (Notes) -->
+                                    <div v-if="detail.notes" class="p-4 bg-amber-950/20 border border-amber-800/60 rounded-lg space-y-1.5">
+                                        <div class="text-xs text-amber-400 uppercase font-bold font-mono tracking-wider">Catatan Khusus Pelatih</div>
+                                        <div class="text-sm text-slate-200 leading-relaxed font-normal">@{{ detail.notes }}</div>
                                     </div>
                                 </div>
 
-                                <!-- RIGHT COLUMN: Aksi Latihan, AI Coach & Data Strava -->
-                                <div class="space-y-4">
-                                    <!-- Action / Finish Activity Panel -->
+                                <!-- RIGHT COLUMN: Eksekusi Latihan, Panduan Pacing & Telemetri (lg:col-span-5) -->
+                                <div class="lg:col-span-5 space-y-5">
+                                    
+                                    <!-- Panel Aksi / Status Laporan Sesi -->
                                     <div v-if="detail.type === 'run' || detail.type === 'easy_run' || detail.type === 'interval' || detail.type === 'tempo' || detail.type === 'tempo_run' || detail.type === 'repetition' || detail.type === 'hill' || detail.type === 'hill_repeats' || detail.type === 'program_session' || detail.type === 'yoga' || detail.type === 'cycling' || detail.type === 'rest' || detail.type === 'race' || detail.type === 'custom_workout'"
-                                         class="p-4 rounded-lg bg-slate-900 border border-slate-800 shadow-sm">
+                                         class="bg-slate-900 border border-slate-800 rounded-lg p-5 shadow-sm space-y-3">
                                         
                                         <!-- Pending state -->
-                                        <div v-if="(detail.status === 'pending' || !detail.status) && !showFinishForm">
-                                            <div class="text-[10px] font-mono text-slate-400 uppercase tracking-widest mb-2.5 font-bold">Aksi Latihan</div>
-                                            <div class="grid grid-cols-2 gap-2">
-                                                <button class="w-full py-2.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs border border-slate-700 transition uppercase tracking-wider flex items-center justify-center" @click="updateSessionStatus(detail, 'started')">
-                                                    Start Activity
+                                        <div v-if="(detail.status === 'pending' || !detail.status) && !showFinishForm" class="space-y-3">
+                                            <div class="flex items-center justify-between pb-2.5 border-b border-slate-800">
+                                                <h3 class="text-xs font-bold text-white uppercase tracking-wider font-mono">Status & Aksi Latihan</h3>
+                                                <span class="text-[11px] text-slate-400 font-mono">Siap Dijalankan</span>
+                                            </div>
+                                            <div class="grid grid-cols-2 gap-2.5">
+                                                <button class="w-full py-2.5 px-3 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold text-xs border border-slate-700 transition uppercase tracking-wider flex items-center justify-center" @click="updateSessionStatus(detail, 'started')">
+                                                    Mulai Latihan
                                                 </button>
-                                                <button class="w-full py-2.5 rounded-md bg-neon hover:bg-white text-dark font-black text-xs transition uppercase tracking-wider shadow-sm flex items-center justify-center" @click="showFinishForm = true">
-                                                    Finish Activity
+                                                <button class="w-full py-2.5 px-3 rounded-md bg-neon hover:bg-white text-dark font-extrabold text-xs transition uppercase tracking-wider shadow-sm flex items-center justify-center" @click="showFinishForm = true">
+                                                    Catat Selesai
                                                 </button>
                                             </div>
                                         </div>
 
                                         <!-- Started or Finishing Form state -->
-                                        <div v-else-if="detail.status === 'started' || showFinishForm">
-                                            <div class="flex items-center justify-between pb-2 mb-3 border-b border-slate-800">
-                                                <span class="text-[10px] font-mono text-slate-400 uppercase tracking-widest font-bold">Lapor Selesai Latihan</span>
-                                                <span class="text-[10px] text-neon font-mono font-bold uppercase">@{{ detail.status === 'started' ? 'Sedang Berjalan' : 'Form Selesai' }}</span>
+                                        <div v-else-if="detail.status === 'started' || showFinishForm" class="space-y-3">
+                                            <div class="flex items-center justify-between pb-2.5 border-b border-slate-800">
+                                                <h3 class="text-xs font-bold text-white uppercase tracking-wider font-mono">Lapor Selesai Latihan</h3>
+                                                <span class="text-[11px] font-mono font-bold uppercase text-neon">
+                                                    @{{ detail.status === 'started' ? 'Sedang Berjalan' : 'Form Laporan' }}
+                                                </span>
                                             </div>
-                                            <div class="space-y-3">
+                                            <div class="space-y-3 text-xs">
                                                 <div>
-                                                    <label class="text-[10px] text-slate-400 block mb-1 font-semibold">Strava Activity Link (Optional)</label>
-                                                    <input type="url" v-model="stravaLinkInput" placeholder="https://www.strava.com/activities/..." class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-white text-xs focus:border-neon focus:outline-none transition">
+                                                    <label class="text-xs text-slate-300 block mb-1 font-semibold">Tautan Aktivitas Strava (Opsional)</label>
+                                                    <input type="url" v-model="stravaLinkInput" placeholder="https://www.strava.com/activities/..." class="w-full bg-slate-950 border border-slate-800 rounded-md px-3.5 py-2 text-white text-xs focus:border-slate-600 focus:outline-none transition">
                                                 </div>
                                                 
                                                 <!-- RPE & Feeling Input -->
-                                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                                <div class="grid grid-cols-2 gap-2.5">
                                                     <div>
-                                                        <label class="text-[10px] text-slate-400 block mb-1 font-semibold">RPE (1-10)</label>
-                                                        <select v-model="rpeInput" class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-white text-xs focus:border-neon focus:outline-none transition font-medium">
-                                                            <option value="">Select Effort</option>
-                                                            <option value="1">1 - Very Easy</option>
-                                                            <option value="3">3 - Moderate</option>
-                                                            <option value="5">5 - Hard</option>
-                                                            <option value="7">7 - Very Hard</option>
-                                                            <option value="9">9 - Extremely Hard</option>
-                                                            <option value="10">10 - Max Effort</option>
+                                                        <label class="text-xs text-slate-300 block mb-1 font-semibold">RPE Effort (1-10)</label>
+                                                        <select v-model="rpeInput" class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-white text-xs focus:border-slate-600 focus:outline-none transition">
+                                                            <option value="">Pilih Skala</option>
+                                                            <option value="1">1 - Sangat Ringan</option>
+                                                            <option value="3">3 - Ringan / Santai</option>
+                                                            <option value="5">5 - Sedang</option>
+                                                            <option value="7">7 - Keras (Threshold)</option>
+                                                            <option value="9">9 - Sangat Keras</option>
+                                                            <option value="10">10 - Maksimal (All-out)</option>
                                                         </select>
                                                     </div>
                                                     <div>
-                                                        <label class="text-[10px] text-slate-400 block mb-1 font-semibold">Feeling</label>
-                                                        <select v-model="feelingInput" class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-white text-xs focus:border-neon focus:outline-none transition font-medium">
-                                                            <option value="">Select Feeling</option>
-                                                            <option value="strong">Strong</option>
-                                                            <option value="good">Good</option>
-                                                            <option value="average">Average</option>
-                                                            <option value="weak">Weak</option>
-                                                            <option value="terrible">Terrible</option>
+                                                        <label class="text-xs text-slate-300 block mb-1 font-semibold">Feeling Tubuh</label>
+                                                        <select v-model="feelingInput" class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-white text-xs focus:border-slate-600 focus:outline-none transition">
+                                                            <option value="">Pilih Kondisi</option>
+                                                            <option value="strong">Bertenaga (Strong)</option>
+                                                            <option value="good">Bagus (Good)</option>
+                                                            <option value="average">Biasa Saja (Average)</option>
+                                                            <option value="weak">Lelah (Weak)</option>
+                                                            <option value="terrible">Sakit/Drop (Terrible)</option>
                                                         </select>
                                                     </div>
                                                 </div>
 
                                                 <div>
-                                                    <label class="text-[10px] text-slate-400 block mb-1 font-semibold">Notes for Coach (Optional)</label>
-                                                    <textarea v-model="notesInput" rows="2" placeholder="Bagaimana sesi latihan Anda? Ada kendala atau keluhan?" class="w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-white text-xs focus:border-neon focus:outline-none transition"></textarea>
+                                                    <label class="text-xs text-slate-300 block mb-1 font-semibold">Catatan Evaluasi / Keluhan</label>
+                                                    <textarea v-model="notesInput" rows="2" placeholder="Bagaimana sesi latihan Anda? Ada kendala atau keluhan otot?" class="w-full bg-slate-950 border border-slate-800 rounded-md px-3.5 py-2 text-white text-xs focus:border-slate-600 focus:outline-none transition leading-relaxed"></textarea>
                                                 </div>
 
-                                                <div class="flex flex-col sm:flex-row gap-2 pt-1">
-                                                    <button v-if="detail.status === 'started'" class="w-full py-2.5 rounded-md bg-slate-800 text-slate-200 font-bold text-xs hover:bg-slate-700 transition border border-slate-700 uppercase tracking-wider" @click="updateSessionStatus(detail, 'pending')">Stop</button>
-                                                    <button v-else class="w-full py-2.5 rounded-md bg-slate-800 text-slate-200 font-bold text-xs hover:bg-slate-700 transition border border-slate-700 uppercase tracking-wider" @click="showFinishForm = false">Batal</button>
-                                                    <button class="w-full py-2.5 rounded-md bg-neon text-dark font-black text-xs hover:bg-white transition uppercase tracking-wider shadow-sm flex items-center justify-center" @click="finishActivityWithLink">Finish Activity</button>
+                                                <div class="flex gap-2.5 pt-1">
+                                                    <button v-if="detail.status === 'started'" class="w-1/2 py-2.5 rounded-md bg-slate-800 text-slate-200 font-bold text-xs hover:bg-slate-700 transition border border-slate-700 uppercase tracking-wider" @click="updateSessionStatus(detail, 'pending')">Hentikan</button>
+                                                    <button v-else class="w-1/2 py-2.5 rounded-md bg-slate-800 text-slate-200 font-bold text-xs hover:bg-slate-700 transition border border-slate-700 uppercase tracking-wider" @click="showFinishForm = false">Batal</button>
+                                                    <button class="w-1/2 py-2.5 rounded-md bg-neon text-dark font-extrabold text-xs hover:bg-white transition uppercase tracking-wider shadow-sm flex items-center justify-center" @click="finishActivityWithLink">Simpan Selesai</button>
                                                 </div>
                                             </div>
                                         </div>
 
                                         <!-- Completed state -->
-                                        <div v-else-if="detail.status === 'completed'" class="p-3 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-center">
-                                            <div class="text-[10px] font-mono text-emerald-400 uppercase tracking-wider font-bold mb-0.5">Selesai</div>
-                                            <div class="text-xs text-slate-200 font-medium">Activity completed on @{{ formatDate(detail.completed_at || new Date()) }}</div>
+                                        <div v-else-if="detail.status === 'completed'" class="bg-emerald-950/20 border border-emerald-800/40 rounded-lg p-4 text-center space-y-1">
+                                            <div class="text-xs font-mono text-emerald-400 uppercase tracking-wider font-bold">Sesi Selesai</div>
+                                            <div class="text-xs text-slate-300">Aktivitas tercatat selesai pada @{{ formatDate(detail.completed_at || new Date()) }}</div>
                                         </div>
                                     </div>
 
-                                    <!-- AI Coach Card -->
+                                    <!-- Panduan Teknis Pelatih & Pace Cheat Sheet (Clean Athletic Guidance) -->
                                     <div v-if="['run', 'easy_run', 'recovery', 'long_run', 'tempo', 'tempo_run', 'threshold', 'interval', 'repetition', 'speed', 'hill', 'hill_repeats', 'race'].includes(String(detail.type || '').toLowerCase())"
-                                         class="bg-slate-900 rounded-lg p-3.5 border border-slate-800 shadow-sm">
-                                        <div class="flex items-center justify-between gap-3 pb-2 border-b border-slate-800">
-                                            <div class="flex items-center gap-2">
-                                                <div class="w-5 h-5 rounded bg-neon flex items-center justify-center text-dark font-bold text-[10px]">AI</div>
-                                                <div class="min-w-0">
-                                                    <div class="text-xs font-bold text-white truncate">AI Coach Guidance</div>
-                                                    <div class="text-[9px] text-slate-400 uppercase tracking-widest font-mono">Personal guidance</div>
-                                                </div>
-                                            </div>
-                                            <button v-if="!trainingProfile?.paces?.E && !trainingProfile?.paces?.T && !trainingProfile?.paces?.I" type="button" class="px-2.5 py-1 rounded bg-slate-800 text-slate-200 border border-slate-700 text-[10px] font-bold hover:border-neon transition" @click="openVdotModal">
+                                         class="bg-slate-900 border border-slate-800 rounded-lg p-5 shadow-sm space-y-3">
+                                        <div class="flex items-center justify-between pb-2.5 border-b border-slate-800">
+                                            <h3 class="text-xs font-bold text-white uppercase tracking-wider font-mono">Panduan Teknis Pelatih</h3>
+                                            <button v-if="!trainingProfile?.paces?.E && !trainingProfile?.paces?.T && !trainingProfile?.paces?.I" 
+                                                    type="button" class="px-2.5 py-1 rounded bg-slate-800 text-slate-200 border border-slate-700 text-[11px] font-bold hover:border-slate-600 transition" @click="openVdotModal">
                                                 Set Pace
                                             </button>
                                         </div>
 
-                                        <div class="mt-2.5 text-xs text-slate-200 leading-relaxed">@{{ aiCoachSummary }}</div>
+                                        <div class="text-sm text-slate-200 leading-relaxed font-normal">
+                                            @{{ aiCoachSummary }}
+                                        </div>
 
-                                        <div v-if="aiCoachCues.length" class="mt-3">
-                                            <div class="text-[10px] font-bold text-slate-400 uppercase font-mono tracking-wider mb-1.5">Coaching Cues</div>
-                                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-                                                <div v-for="(c, idx) in aiCoachCues" :key="'cue-' + idx" class="text-xs text-slate-200 bg-slate-950 border border-slate-800 rounded-md px-2.5 py-1.5">
+                                        <!-- Coaching Cues -->
+                                        <div v-if="aiCoachCues.length" class="space-y-2 pt-2 border-t border-slate-800">
+                                            <div class="text-xs font-semibold text-slate-400 font-mono uppercase tracking-wider">Fokus Eksekusi (Cues)</div>
+                                            <div class="grid grid-cols-1 gap-2">
+                                                <div v-for="(c, idx) in aiCoachCues" :key="'cue-' + idx" 
+                                                     class="text-xs text-slate-200 bg-slate-950 border border-slate-800 rounded-md p-2.5 leading-relaxed">
                                                     @{{ c }}
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div v-if="trainingProfile?.paces?.E || trainingProfile?.paces?.T || trainingProfile?.paces?.I || trainingProfile?.paces?.R" class="mt-3 pt-2.5 border-t border-slate-800">
-                                            <div class="text-[10px] font-bold text-slate-400 uppercase font-mono tracking-wider mb-1.5">Pace Cheat Sheet</div>
-                                            <div class="grid grid-cols-2 gap-1.5">
-                                                <div v-if="trainingProfile?.paces?.E" class="rounded bg-slate-950 border border-slate-800 px-2.5 py-1.5">
-                                                    <div class="text-[9px] text-slate-400 uppercase font-mono">Easy (E)</div>
-                                                    <div class="text-white font-bold text-xs mt-0.5">
+                                        <!-- Pace Cheat Sheet -->
+                                        <div v-if="trainingProfile?.paces?.E || trainingProfile?.paces?.T || trainingProfile?.paces?.I || trainingProfile?.paces?.R" 
+                                             class="space-y-2 pt-2 border-t border-slate-800">
+                                            <div class="text-xs font-semibold text-slate-400 font-mono uppercase tracking-wider">Target Pace Personal (VDOT)</div>
+                                            <div class="grid grid-cols-2 gap-2">
+                                                <div v-if="trainingProfile?.paces?.E" class="rounded-md bg-slate-950 border border-slate-800 p-2.5">
+                                                    <div class="text-[10px] text-slate-400 uppercase font-mono">Easy (E)</div>
+                                                    <div class="text-white font-bold font-mono text-xs mt-0.5 tabular-nums">
                                                         <template v-if="trainingProfile?.paces?.E_high && trainingProfile?.paces?.E_low">
                                                             @{{ formatPace(trainingProfile.paces.E_high) }} - @{{ formatPace(trainingProfile.paces.E_low) }}/km
                                                         </template>
@@ -1654,202 +1785,203 @@
                                                         </template>
                                                     </div>
                                                 </div>
-                                                <div v-if="trainingProfile?.paces?.M" class="rounded bg-slate-950 border border-slate-800 px-2.5 py-1.5">
-                                                    <div class="text-[9px] text-slate-400 uppercase font-mono">Marathon (M)</div>
-                                                    <div class="text-white font-bold text-xs mt-0.5">@{{ formatPace(trainingProfile.paces.M) }}/km</div>
+                                                <div v-if="trainingProfile?.paces?.M" class="rounded-md bg-slate-950 border border-slate-800 p-2.5">
+                                                    <div class="text-[10px] text-slate-400 uppercase font-mono">Marathon (M)</div>
+                                                    <div class="text-white font-bold font-mono text-xs mt-0.5 tabular-nums">@{{ formatPace(trainingProfile.paces.M) }}/km</div>
                                                 </div>
-                                                <div v-if="trainingProfile?.paces?.T" class="rounded bg-slate-950 border border-slate-800 px-2.5 py-1.5">
-                                                    <div class="text-[9px] text-slate-400 uppercase font-mono">Tempo (T)</div>
-                                                    <div class="text-white font-bold text-xs mt-0.5">@{{ formatPace(trainingProfile.paces.T) }}/km</div>
+                                                <div v-if="trainingProfile?.paces?.T" class="rounded-md bg-slate-950 border border-slate-800 p-2.5">
+                                                    <div class="text-[10px] text-slate-400 uppercase font-mono">Tempo (T)</div>
+                                                    <div class="text-white font-bold font-mono text-xs mt-0.5 tabular-nums">@{{ formatPace(trainingProfile.paces.T) }}/km</div>
                                                 </div>
-                                                <div v-if="trainingProfile?.paces?.I" class="rounded bg-slate-950 border border-slate-800 px-2.5 py-1.5">
-                                                    <div class="text-[9px] text-slate-400 uppercase font-mono">Interval (I)</div>
-                                                    <div class="text-white font-bold text-xs mt-0.5">@{{ formatPace(trainingProfile.paces.I) }}/km</div>
+                                                <div v-if="trainingProfile?.paces?.I" class="rounded-md bg-slate-950 border border-slate-800 p-2.5">
+                                                    <div class="text-[10px] text-slate-400 uppercase font-mono">Interval (I)</div>
+                                                    <div class="text-white font-bold font-mono text-xs mt-0.5 tabular-nums">@{{ formatPace(trainingProfile.paces.I) }}/km</div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
-                                    <!-- Strava Details / Metrics / Splits / Laps / Media / Chart -->
-                                    <div v-if="stravaDetailsLoading" class="bg-slate-900 border border-slate-800 rounded-lg p-3 text-xs text-slate-300">
-                                        Fetching Strava details…
+                                    <!-- Data Telemetri & Analisis Strava (Jika Tersedia) -->
+                                    <div v-if="stravaDetailsLoading" class="bg-slate-900 border border-slate-800 rounded-lg p-4 text-xs text-slate-300">
+                                        Memuat telemetri Strava...
                                     </div>
-                                    <div v-else-if="stravaDetailsError" class="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-xs text-red-200">
+                                    <div v-else-if="stravaDetailsError" class="bg-red-500/10 border border-red-500/20 rounded-lg p-4 text-xs text-red-200">
                                         @{{ stravaDetailsError }}
                                     </div>
-                                    <div v-else-if="detail.strava_metrics" class="space-y-3">
-                                        <div class="p-3.5 rounded-lg bg-slate-900 border border-slate-800">
-                                            <div class="text-[10px] font-mono text-slate-400 uppercase tracking-widest mb-2.5 font-bold">Strava Telemetry</div>
+                                    <div v-else-if="detail.strava_metrics" class="space-y-4">
+                                        <div class="p-5 rounded-lg bg-slate-900 border border-slate-800 space-y-3">
+                                            <div class="flex items-center justify-between pb-2.5 border-b border-slate-800">
+                                                <h3 class="text-xs font-bold text-white uppercase tracking-wider font-mono">Telemetri Strava</h3>
+                                                <span class="text-[11px] text-slate-400 font-mono">Actual Metrics</span>
+                                            </div>
+                                            
                                             <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                                                <div class="flex flex-col items-center justify-center rounded-md bg-slate-950 border border-slate-800 p-2 text-center">
-                                                    <div class="text-[10px] text-slate-400">Heart Rate</div>
-                                                    <div class="text-white font-bold text-xs">
+                                                <div class="flex flex-col items-center justify-center rounded-md bg-slate-950 border border-slate-800 p-2.5 text-center">
+                                                    <div class="text-[10px] text-slate-400 uppercase font-mono">Heart Rate</div>
+                                                    <div class="text-white font-bold font-mono text-xs mt-0.5 tabular-nums">
                                                         @{{ detail.strava_metrics.average_heartrate ? Math.round(detail.strava_metrics.average_heartrate) : '-' }}
-                                                        <span class="text-[9px] text-slate-400 font-normal">avg</span>
+                                                        <span class="text-[10px] text-slate-400 font-normal">avg</span>
                                                     </div>
-                                                    <div class="text-[9px] text-slate-400">
+                                                    <div class="text-[10px] text-slate-400 font-mono">
                                                         max @{{ detail.strava_metrics.max_heartrate ? Math.round(detail.strava_metrics.max_heartrate) : '-' }}
                                                     </div>
                                                 </div>
-                                                <div class="flex flex-col items-center justify-center rounded-md bg-slate-950 border border-slate-800 p-2 text-center">
-                                                    <div class="text-[10px] text-slate-400">Cadence</div>
-                                                    <div class="text-white font-bold text-xs">
+                                                <div class="flex flex-col items-center justify-center rounded-md bg-slate-950 border border-slate-800 p-2.5 text-center">
+                                                    <div class="text-[10px] text-slate-400 uppercase font-mono">Cadence</div>
+                                                    <div class="text-white font-bold font-mono text-xs mt-0.5 tabular-nums">
                                                         @{{ detail.strava_metrics.average_cadence ? Math.round(detail.strava_metrics.average_cadence) : '-' }}
                                                     </div>
-                                                    <div class="text-[9px] text-slate-400">spm</div>
+                                                    <div class="text-[10px] text-slate-400 font-mono">spm</div>
                                                 </div>
-                                                <div class="flex flex-col items-center justify-center rounded-md bg-slate-950 border border-slate-800 p-2 text-center">
-                                                    <div class="text-[10px] text-slate-400">Avg Pace</div>
-                                                    <div class="text-neon font-bold text-xs">@{{ detail.strava_metrics.pace ? (detail.strava_metrics.pace + ' /km') : '-' }}</div>
-                                                    <div class="text-[9px] text-slate-400">&nbsp;</div>
+                                                <div class="flex flex-col items-center justify-center rounded-md bg-slate-950 border border-slate-800 p-2.5 text-center">
+                                                    <div class="text-[10px] text-slate-400 uppercase font-mono">Avg Pace</div>
+                                                    <div class="text-neon font-bold font-mono text-xs mt-0.5 tabular-nums">@{{ detail.strava_metrics.pace ? (detail.strava_metrics.pace + ' /km') : '-' }}</div>
+                                                    <div class="text-[10px] text-slate-400">&nbsp;</div>
                                                 </div>
-                                                <div class="flex flex-col items-center justify-center rounded-md bg-slate-950 border border-slate-800 p-2 text-center">
-                                                    <div class="text-[10px] text-slate-400">Power</div>
-                                                    <div class="text-white font-bold text-xs">
+                                                <div class="flex flex-col items-center justify-center rounded-md bg-slate-950 border border-slate-800 p-2.5 text-center">
+                                                    <div class="text-[10px] text-slate-400 uppercase font-mono">Power</div>
+                                                    <div class="text-white font-bold font-mono text-xs mt-0.5 tabular-nums">
                                                         @{{ detail.strava_metrics.average_watts ? Math.round(detail.strava_metrics.average_watts) : '-' }}
                                                     </div>
-                                                    <div class="text-[9px] text-slate-400">watts</div>
+                                                    <div class="text-[10px] text-slate-400 font-mono">watts</div>
                                                 </div>
                                             </div>
 
-                                            <div class="grid grid-cols-3 gap-2 mt-2.5">
+                                            <div class="grid grid-cols-3 gap-2 pt-1">
                                                 <div class="flex flex-col items-center justify-center rounded-md bg-slate-950 border border-slate-800 p-2 text-center">
-                                                    <div class="text-[10px] text-slate-400">Total Time</div>
-                                                    <div class="text-white font-bold text-xs">@{{ detail.strava_metrics.total_time_s ? formatSeconds(detail.strava_metrics.total_time_s) : '-' }}</div>
+                                                    <div class="text-[10px] text-slate-400 uppercase font-mono">Total Time</div>
+                                                    <div class="text-white font-bold font-mono text-xs tabular-nums">@{{ detail.strava_metrics.total_time_s ? formatSeconds(detail.strava_metrics.total_time_s) : '-' }}</div>
                                                 </div>
                                                 <div class="flex flex-col items-center justify-center rounded-md bg-slate-950 border border-slate-800 p-2 text-center">
-                                                    <div class="text-[10px] text-slate-400">Moving</div>
-                                                    <div class="text-white font-bold text-xs">@{{ detail.strava_metrics.moving_time_s ? formatSeconds(detail.strava_metrics.moving_time_s) : '-' }}</div>
+                                                    <div class="text-[10px] text-slate-400 uppercase font-mono">Moving</div>
+                                                    <div class="text-white font-bold font-mono text-xs tabular-nums">@{{ detail.strava_metrics.moving_time_s ? formatSeconds(detail.strava_metrics.moving_time_s) : '-' }}</div>
                                                 </div>
                                                 <div class="flex flex-col items-center justify-center rounded-md bg-slate-950 border border-slate-800 p-2 text-center">
-                                                    <div class="text-[10px] text-slate-400">Paused</div>
-                                                    <div class="text-white font-bold text-xs">@{{ detail.strava_metrics.pause_time_s ? formatSeconds(detail.strava_metrics.pause_time_s) : '-' }}</div>
+                                                    <div class="text-[10px] text-slate-400 uppercase font-mono">Paused</div>
+                                                    <div class="text-white font-bold font-mono text-xs tabular-nums">@{{ detail.strava_metrics.pause_time_s ? formatSeconds(detail.strava_metrics.pause_time_s) : '-' }}</div>
                                                 </div>
                                             </div>
 
-                                            <div v-if="detail.strava_pace_zones" class="mt-2.5 p-2.5 rounded-md bg-slate-950 border border-slate-800">
-                                                <div class="text-[10px] font-bold text-slate-400 uppercase font-mono tracking-wider mb-2">Pace Distribution</div>
+                                            <!-- Pace Distribution -->
+                                            <div v-if="detail.strava_pace_zones" class="p-3 rounded-md bg-slate-950 border border-slate-800 space-y-2">
+                                                <div class="text-[10px] font-bold text-slate-400 uppercase font-mono tracking-wider">Distribusi Pace</div>
                                                 <div class="grid grid-cols-3 gap-2">
                                                     <div class="flex flex-col items-center justify-center rounded bg-slate-900 border border-slate-800 p-2">
-                                                        <div class="text-[9px] text-slate-400">Easy</div>
-                                                        <div class="text-white font-bold text-xs">@{{ detail.strava_pace_zones.summary.easy }}%</div>
+                                                        <div class="text-[10px] text-slate-400 font-mono">Easy</div>
+                                                        <div class="text-white font-bold font-mono text-xs tabular-nums">@{{ detail.strava_pace_zones.summary.easy }}%</div>
                                                     </div>
                                                     <div class="flex flex-col items-center justify-center rounded bg-slate-900 border border-slate-800 p-2">
-                                                        <div class="text-[9px] text-slate-400">Tempo</div>
-                                                        <div class="text-white font-bold text-xs">@{{ detail.strava_pace_zones.summary.tempo }}%</div>
+                                                        <div class="text-[10px] text-slate-400 font-mono">Tempo</div>
+                                                        <div class="text-white font-bold font-mono text-xs tabular-nums">@{{ detail.strava_pace_zones.summary.tempo }}%</div>
                                                     </div>
                                                     <div class="flex flex-col items-center justify-center rounded bg-slate-900 border border-slate-800 p-2">
-                                                        <div class="text-[9px] text-slate-400">Speed</div>
-                                                        <div class="text-white font-bold text-xs">@{{ detail.strava_pace_zones.summary.speed }}%</div>
+                                                        <div class="text-[10px] text-slate-400 font-mono">Speed</div>
+                                                        <div class="text-white font-bold font-mono text-xs tabular-nums">@{{ detail.strava_pace_zones.summary.speed }}%</div>
                                                     </div>
                                                 </div>
-                                                <div class="text-[9px] text-slate-400 mt-2 font-mono text-center">
+                                                <div class="text-[10px] text-slate-400 font-mono text-center pt-1">
                                                     E @{{ detail.strava_pace_zones.zones.E }}% • M @{{ detail.strava_pace_zones.zones.M }}% • T @{{ detail.strava_pace_zones.zones.T }}% • I @{{ detail.strava_pace_zones.zones.I }}% • R @{{ detail.strava_pace_zones.zones.R }}%
                                                 </div>
                                             </div>
 
-                                            <div v-if="detail.strava_hr_zones" class="mt-2.5 p-2.5 rounded-md bg-slate-950 border border-slate-800">
-                                                <div class="text-[10px] font-bold text-slate-400 uppercase font-mono tracking-wider mb-2">Heart Rate Distribution</div>
+                                            <!-- HR Distribution -->
+                                            <div v-if="detail.strava_hr_zones" class="p-3 rounded-md bg-slate-950 border border-slate-800 space-y-2">
+                                                <div class="text-[10px] font-bold text-slate-400 uppercase font-mono tracking-wider">Distribusi Heart Rate</div>
                                                 <div class="grid grid-cols-5 gap-1.5">
-                                                    <div class="flex flex-col items-center justify-center rounded bg-slate-900 border border-slate-800 p-1.5">
-                                                        <div class="text-[9px] text-slate-400">Z1</div>
-                                                        <div class="text-white font-bold text-[11px]">@{{ detail.strava_hr_zones.Z1 }}%</div>
+                                                    <div class="flex flex-col items-center justify-center rounded bg-slate-900 border border-slate-800 p-1.5 text-center">
+                                                        <div class="text-[10px] text-slate-400 font-mono">Z1</div>
+                                                        <div class="text-white font-bold font-mono text-xs tabular-nums">@{{ detail.strava_hr_zones.Z1 }}%</div>
                                                     </div>
-                                                    <div class="flex flex-col items-center justify-center rounded bg-slate-900 border border-slate-800 p-1.5">
-                                                        <div class="text-[9px] text-slate-400">Z2</div>
-                                                        <div class="text-white font-bold text-[11px]">@{{ detail.strava_hr_zones.Z2 }}%</div>
+                                                    <div class="flex flex-col items-center justify-center rounded bg-slate-900 border border-slate-800 p-1.5 text-center">
+                                                        <div class="text-[10px] text-slate-400 font-mono">Z2</div>
+                                                        <div class="text-white font-bold font-mono text-xs tabular-nums">@{{ detail.strava_hr_zones.Z2 }}%</div>
                                                     </div>
-                                                    <div class="flex flex-col items-center justify-center rounded bg-slate-900 border border-slate-800 p-1.5">
-                                                        <div class="text-[9px] text-slate-400">Z3</div>
-                                                        <div class="text-white font-bold text-[11px]">@{{ detail.strava_hr_zones.Z3 }}%</div>
+                                                    <div class="flex flex-col items-center justify-center rounded bg-slate-900 border border-slate-800 p-1.5 text-center">
+                                                        <div class="text-[10px] text-slate-400 font-mono">Z3</div>
+                                                        <div class="text-white font-bold font-mono text-xs tabular-nums">@{{ detail.strava_hr_zones.Z3 }}%</div>
                                                     </div>
-                                                    <div class="flex flex-col items-center justify-center rounded bg-slate-900 border border-slate-800 p-1.5">
-                                                        <div class="text-[9px] text-slate-400">Z4</div>
-                                                        <div class="text-white font-bold text-[11px]">@{{ detail.strava_hr_zones.Z4 }}%</div>
+                                                    <div class="flex flex-col items-center justify-center rounded bg-slate-900 border border-slate-800 p-1.5 text-center">
+                                                        <div class="text-[10px] text-slate-400 font-mono">Z4</div>
+                                                        <div class="text-white font-bold font-mono text-xs tabular-nums">@{{ detail.strava_hr_zones.Z4 }}%</div>
                                                     </div>
-                                                    <div class="flex flex-col items-center justify-center rounded bg-slate-900 border border-slate-800 p-1.5">
-                                                        <div class="text-[9px] text-slate-400">Z5</div>
-                                                        <div class="text-white font-bold text-[11px]">@{{ detail.strava_hr_zones.Z5 }}%</div>
+                                                    <div class="flex flex-col items-center justify-center rounded bg-slate-900 border border-slate-800 p-1.5 text-center">
+                                                        <div class="text-[10px] text-slate-400 font-mono">Z5</div>
+                                                        <div class="text-white font-bold font-mono text-xs tabular-nums">@{{ detail.strava_hr_zones.Z5 }}%</div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div v-if="detail.strava_zone_analysis || detail.analysis" class="space-y-3">
-                                            <div v-if="detail.strava_zone_analysis" class="p-3.5 rounded-lg bg-slate-900 border border-slate-800 space-y-2">
-                                                <div class="text-[10px] font-bold text-slate-400 uppercase font-mono tracking-wider">Analisis Zona & Efek</div>
+                                        <!-- Analisis Zona Strava -->
+                                        <div v-if="detail.strava_zone_analysis || detail.analysis" class="p-5 rounded-lg bg-slate-900 border border-slate-800 space-y-3">
+                                            <div v-if="detail.strava_zone_analysis" class="space-y-2">
+                                                <div class="text-xs font-bold text-white uppercase font-mono tracking-wider">Analisis Zona & Efek</div>
                                                 <div class="text-slate-300 text-xs leading-relaxed">@{{ detail.strava_zone_analysis }}</div>
-                                                <div v-if="detail.strava_zone_effect" class="text-[10px] text-neon font-bold uppercase">Efek Latihan</div>
-                                                <div v-if="detail.strava_zone_effect" class="text-white text-xs font-semibold">@{{ detail.strava_zone_effect }}</div>
-                                                <div v-if="detail.strava_zone_suggestion" class="pt-2 border-t border-slate-800">
-                                                    <div class="text-[10px] text-amber-400 font-bold uppercase">Saran</div>
-                                                    <div class="text-white text-xs font-semibold">@{{ detail.strava_zone_suggestion }}</div>
+                                                <div v-if="detail.strava_zone_effect" class="text-xs text-neon font-bold uppercase mt-1">Efek Latihan: <span class="text-white font-medium">@{{ detail.strava_zone_effect }}</span></div>
+                                                <div v-if="detail.strava_zone_suggestion" class="pt-2 border-t border-slate-800 text-xs text-amber-400 font-bold uppercase">
+                                                    Saran: <span class="text-white font-medium">@{{ detail.strava_zone_suggestion }}</span>
                                                 </div>
                                             </div>
 
-                                            <div v-if="detail.analysis" class="p-3.5 bg-slate-900 border border-slate-800 rounded-lg space-y-2.5">
-                                                <div>
-                                                    <h4 class="text-neon font-bold text-[10px] uppercase tracking-wider mb-1 flex items-center gap-1">
-                                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" /></svg>
-                                                        Analisis Singkat
-                                                    </h4>
-                                                    <p class="text-slate-300 text-xs leading-relaxed">@{{ detail.analysis }}</p>
-                                                </div>
-                                                <div class="pt-2.5 border-t border-slate-800">
-                                                    <h4 class="text-amber-400 font-bold text-[10px] uppercase tracking-wider mb-1 flex items-center gap-1">
-                                                        <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                                                        Saran Next Workout
-                                                    </h4>
-                                                    <p class="text-white font-semibold text-xs">@{{ detail.suggestion }}</p>
+                                            <div v-if="detail.analysis" class="space-y-2 pt-2 border-t border-slate-800">
+                                                <div class="text-xs font-bold text-white uppercase font-mono tracking-wider">Ringkasan Analisis</div>
+                                                <p class="text-slate-300 text-xs leading-relaxed">@{{ detail.analysis }}</p>
+                                                <div v-if="detail.suggestion" class="pt-2 border-t border-slate-800">
+                                                    <div class="text-xs text-amber-400 font-bold uppercase font-mono">Saran Latihan Berikutnya</div>
+                                                    <p class="text-white font-medium text-xs mt-0.5">@{{ detail.suggestion }}</p>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div v-if="detail.strava_streams && detail.strava_streams.time && detail.strava_streams.time.length > 0" class="p-3.5 rounded-lg bg-slate-900 border border-slate-800">
-                                            <div class="text-[10px] font-bold text-slate-400 uppercase font-mono tracking-wider mb-2">Performance Chart</div>
-                                            <div class="h-44 bg-slate-950 border border-slate-800 rounded-md p-2 relative group">
-                                                <button @click="showStravaGraphModal = true" class="absolute top-2 right-2 p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded opacity-0 group-hover:opacity-100 transition z-10" title="Expand Chart">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4h-4" />
-                                                    </svg>
+                                        <!-- Performance Chart -->
+                                        <div v-if="detail.strava_streams && detail.strava_streams.time && detail.strava_streams.time.length > 0" class="p-5 rounded-lg bg-slate-900 border border-slate-800 space-y-3">
+                                            <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+                                                <h3 class="text-xs font-bold text-white uppercase tracking-wider font-mono">Grafik Performa Sesi</h3>
+                                                <button @click="showStravaGraphModal = true" class="p-1.5 bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white rounded transition text-xs" title="Perbesar Grafik">
+                                                    Perbesar
                                                 </button>
+                                            </div>
+                                            <div class="h-44 bg-slate-950 border border-slate-800 rounded-md p-2 relative group">
                                                 <canvas id="stravaMetricsChart" class="w-full h-full"></canvas>
                                             </div>
                                         </div>
 
-                                        <div v-if="detail.strava_splits && detail.strava_splits.length > 0" class="p-3.5 rounded-lg bg-slate-900 border border-slate-800">
-                                            <div class="text-[10px] font-bold text-slate-400 uppercase font-mono tracking-wider mb-2">Splits</div>
-                                            <div class="max-h-40 overflow-y-auto custom-scrollbar space-y-1">
-                                                <div v-for="s in detail.strava_splits" :key="s.split" class="flex justify-between items-center text-xs p-2 rounded-md bg-slate-950 border border-slate-800">
-                                                    <div class="text-slate-300 font-bold">KM @{{ s.split || '-' }}</div>
+                                        <!-- Splits List -->
+                                        <div v-if="detail.strava_splits && detail.strava_splits.length > 0" class="p-5 rounded-lg bg-slate-900 border border-slate-800 space-y-3">
+                                            <div class="text-xs font-bold text-white uppercase font-mono tracking-wider">Splits per Kilometer</div>
+                                            <div class="max-h-48 overflow-y-auto custom-scrollbar space-y-1.5 pr-1">
+                                                <div v-for="s in detail.strava_splits" :key="s.split" class="flex justify-between items-center text-xs p-2.5 rounded-md bg-slate-950 border border-slate-800">
+                                                    <div class="text-slate-200 font-bold font-mono">KM @{{ s.split || '-' }}</div>
                                                     <div class="text-right">
-                                                        <div class="text-white font-mono">@{{ s.pace || '-' }}</div>
-                                                        <div class="text-[10px] text-slate-400">@{{ formatSeconds(s.moving_time_s) }}</div>
+                                                        <div class="text-neon font-mono font-semibold tabular-nums">@{{ s.pace || '-' }}</div>
+                                                        <div class="text-[10px] text-slate-400 font-mono">@{{ formatSeconds(s.moving_time_s) }}</div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div v-if="detail.strava_laps && detail.strava_laps.length > 0" class="p-3.5 rounded-lg bg-slate-900 border border-slate-800">
-                                            <div class="text-[10px] font-bold text-slate-400 uppercase font-mono tracking-wider mb-2">Laps</div>
-                                            <div class="max-h-40 overflow-y-auto custom-scrollbar space-y-1">
-                                                <div v-for="(l, idx) in detail.strava_laps" :key="idx" class="flex justify-between items-center text-xs p-2 rounded-md bg-slate-950 border border-slate-800">
+                                        <!-- Laps List -->
+                                        <div v-if="detail.strava_laps && detail.strava_laps.length > 0" class="p-5 rounded-lg bg-slate-900 border border-slate-800 space-y-3">
+                                            <div class="text-xs font-bold text-white uppercase font-mono tracking-wider">Laps Aktivitas</div>
+                                            <div class="max-h-48 overflow-y-auto custom-scrollbar space-y-1.5 pr-1">
+                                                <div v-for="(l, idx) in detail.strava_laps" :key="idx" class="flex justify-between items-center text-xs p-2.5 rounded-md bg-slate-950 border border-slate-800">
                                                     <div class="min-w-0">
-                                                        <div class="text-slate-300 font-bold truncate">@{{ l.name || ('Lap ' + (idx + 1)) }}</div>
-                                                        <div class="text-[10px] text-slate-400">
+                                                        <div class="text-slate-200 font-bold truncate">@{{ l.name || ('Lap ' + (idx + 1)) }}</div>
+                                                        <div class="text-[10px] text-slate-400 font-mono">
                                                             @{{ l.distance_m ? (Math.round(l.distance_m) + ' m') : '-' }} • @{{ formatSeconds(l.moving_time_s) }}
                                                         </div>
                                                     </div>
                                                     <div class="text-right">
-                                                        <div class="text-white font-mono">@{{ l.pace || '-' }}</div>
-                                                        <div class="text-[10px] text-slate-400">@{{ l.average_heartrate ? (Math.round(l.average_heartrate) + ' bpm') : '' }}</div>
+                                                        <div class="text-white font-mono font-semibold tabular-nums">@{{ l.pace || '-' }}</div>
+                                                        <div class="text-[10px] text-slate-400 font-mono">@{{ l.average_heartrate ? (Math.round(l.average_heartrate) + ' bpm') : '' }}</div>
                                                     </div>
                                                 </div>
                                             </div>
                                         </div>
 
-                                        <div v-if="detail.strava_media && detail.strava_media.length" class="p-3.5 rounded-lg bg-slate-900 border border-slate-800">
-                                            <div class="text-[10px] font-bold text-slate-400 uppercase font-mono tracking-wider mb-2">Media</div>
+                                        <!-- Media Photos -->
+                                        <div v-if="detail.strava_media && detail.strava_media.length" class="p-5 rounded-lg bg-slate-900 border border-slate-800 space-y-3">
+                                            <div class="text-xs font-bold text-white uppercase font-mono tracking-wider">Foto Aktivitas</div>
                                             <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                                 <a v-for="(m, idx) in detail.strava_media" :key="idx" :href="m" target="_blank" class="block">
                                                     <img :src="m" class="w-full h-24 object-cover rounded-md border border-slate-800 bg-slate-950" loading="lazy">
@@ -1857,93 +1989,79 @@
                                             </div>
                                         </div>
 
-                                        <div v-if="detail.strava_link" class="text-xs">
+                                        <div v-if="detail.strava_link" class="text-xs pt-1">
                                             <a :href="detail.strava_link" target="_blank" class="text-neon hover:underline inline-flex items-center gap-1 font-semibold">
-                                                <span>Lihat Aktivitas di Strava</span>
+                                                <span>Buka Detail di Strava</span>
                                                 <span>›</span>
                                             </a>
                                         </div>
                                     </div>
 
-                                    <!-- Coach Feedback Display -->
-                                    <div v-if="detail.coach_feedback || detail.coach_rating" class="bg-slate-900 rounded-lg p-3.5 border border-slate-800 shadow-sm">
-                                        <div class="flex items-center gap-2 mb-2 pb-1.5 border-b border-slate-800">
-                                            <div class="w-5 h-5 rounded bg-neon flex items-center justify-center text-dark font-bold text-[10px]">C</div>
-                                            <span class="text-xs font-bold text-neon">Coach Feedback</span>
-                                        </div>
-                                        <div class="space-y-2">
-                                            <div v-if="detail.coach_rating" class="flex items-center gap-1.5">
-                                                <span class="text-xs text-slate-400 font-mono">Rating:</span>
-                                                <div class="flex text-amber-400 text-xs">
-                                                    <span v-for="i in 5" :key="i">@{{ i <= detail.coach_rating ? '★' : '☆' }}</span>
-                                                </div>
+                                    <!-- Feedback Pelatih Manual (Jika Ada) -->
+                                    <div v-if="detail.coach_feedback || detail.coach_rating" class="bg-slate-900 rounded-lg p-5 border border-slate-800 shadow-sm space-y-2.5">
+                                        <div class="flex items-center justify-between pb-2 border-b border-slate-800">
+                                            <h3 class="text-xs font-bold text-white uppercase tracking-wider font-mono">Evaluasi Pelatih</h3>
+                                            <div v-if="detail.coach_rating" class="flex text-amber-400 text-xs">
+                                                <span v-for="i in 5" :key="i">@{{ i <= detail.coach_rating ? '★' : '☆' }}</span>
                                             </div>
-                                            <div v-if="detail.coach_feedback" class="text-xs text-slate-200 italic leading-relaxed">"@{{ detail.coach_feedback }}"</div>
+                                        </div>
+                                        <div v-if="detail.coach_feedback" class="text-xs text-slate-200 italic leading-relaxed">
+                                            "@{{ detail.coach_feedback }}"
                                         </div>
                                     </div>
 
-                                    <!-- AI Workout Analysis (Strava source) -->
-                                    <div v-if="detail.source === 'strava' || detail.strava_metrics" class="bg-slate-900 rounded-lg p-3.5 border border-slate-800 shadow-sm">
-                                        <div class="flex items-center justify-between gap-3 mb-3 pb-2 border-b border-slate-800">
-                                            <div class="flex items-center gap-2">
-                                                <div class="w-5 h-5 rounded bg-purple-500/20 text-purple-300 border border-purple-500/30 flex items-center justify-center font-bold text-[10px]">AI</div>
-                                                <span class="text-xs font-bold text-purple-300">AI Workout Analysis</span>
-                                            </div>
-                                            <button class="px-2.5 py-1 rounded bg-purple-500/10 text-purple-200 border border-purple-500/30 text-[10px] font-bold hover:bg-purple-500/20 transition disabled:opacity-50"
+                                    <!-- Post-Workout Deep Analysis (Strava) -->
+                                    <div v-if="detail.source === 'strava' || detail.strava_metrics" class="bg-slate-900 rounded-lg p-5 border border-slate-800 shadow-sm space-y-3">
+                                        <div class="flex items-center justify-between pb-2.5 border-b border-slate-800">
+                                            <h3 class="text-xs font-bold text-white uppercase tracking-wider font-mono">Analisis Telemetri Sesi</h3>
+                                            <button class="px-2.5 py-1 rounded bg-slate-800 text-slate-300 border border-slate-700 text-[11px] font-semibold hover:border-slate-600 transition disabled:opacity-50"
                                                     :disabled="aiAnalysisLoading"
                                                     @click="loadAiWorkoutAnalysis(detail.strava_metrics?.strava_activity_id || detail.strava_activity_id, true)">
-                                                @{{ aiAnalysisLoading ? 'Analyzing...' : 'Refresh AI' }}
+                                                @{{ aiAnalysisLoading ? 'Menganalisis...' : 'Refresh Analisis' }}
                                             </button>
                                         </div>
 
-                                        <div v-if="aiAnalysisLoading" class="text-xs text-slate-400">AI sedang menganalisis workout dan konteks latihan Anda...</div>
-                                        <div v-else-if="aiAnalysisError" class="text-xs text-red-300 bg-red-500/10 border border-red-500/20 rounded-md px-3 py-2">@{{ aiAnalysisError }}</div>
+                                        <div v-if="aiAnalysisLoading" class="text-xs text-slate-400">Sedang mengevaluasi telemetri sesi latihan Anda...</div>
+                                        <div v-else-if="aiAnalysisError" class="text-xs text-red-300 bg-red-500/10 border border-red-500/20 rounded-md p-3">@{{ aiAnalysisError }}</div>
                                         <div v-else-if="detail.ai_analysis" class="space-y-3 text-xs">
                                             <div v-if="detail.ai_analysis.summary" class="text-slate-200 leading-relaxed">@{{ detail.ai_analysis.summary }}</div>
                                             <div class="text-xs text-slate-300">
                                                 <span class="text-slate-400 font-mono">Junk Miles Risk:</span>
-                                                <span class="font-bold ml-1" :class="detail.ai_analysis.junk_miles_risk?.level === 'high' ? 'text-red-400' : (detail.ai_analysis.junk_miles_risk?.level === 'medium' ? 'text-amber-400' : 'text-emerald-400')">@{{ detail.ai_analysis.junk_miles_risk?.level || 'unknown' }}</span>
+                                                <span class="font-bold ml-1 font-mono uppercase" :class="detail.ai_analysis.junk_miles_risk?.level === 'high' ? 'text-red-400' : (detail.ai_analysis.junk_miles_risk?.level === 'medium' ? 'text-amber-400' : 'text-emerald-400')">@{{ detail.ai_analysis.junk_miles_risk?.level || 'unknown' }}</span>
                                             </div>
 
                                             <div v-if="detail.ai_analysis.what_went_well?.length">
-                                                <div class="text-[10px] font-bold text-emerald-400 uppercase font-mono tracking-wider mb-1.5">Yang Sudah Bagus</div>
-                                                <ul class="space-y-1 text-slate-300 pl-2">
+                                                <div class="text-[10px] font-bold text-emerald-400 uppercase font-mono tracking-wider mb-1">Pencapaian Positif</div>
+                                                <ul class="space-y-1 text-slate-300">
                                                     <li v-for="(item, idx) in detail.ai_analysis.what_went_well" :key="'well-' + idx">• @{{ item }}</li>
                                                 </ul>
                                             </div>
 
                                             <div v-if="detail.ai_analysis.what_to_improve?.length">
-                                                <div class="text-[10px] font-bold text-amber-400 uppercase font-mono tracking-wider mb-1.5">Yang Perlu Ditingkatkan</div>
-                                                <ul class="space-y-1 text-slate-300 pl-2">
+                                                <div class="text-[10px] font-bold text-amber-400 uppercase font-mono tracking-wider mb-1">Area Peningkatan</div>
+                                                <ul class="space-y-1 text-slate-300">
                                                     <li v-for="(item, idx) in detail.ai_analysis.what_to_improve" :key="'improve-' + idx">• @{{ item }}</li>
                                                 </ul>
                                             </div>
 
-                                            <div v-if="detail.ai_analysis.next_workout_suggestion?.type || detail.ai_analysis.next_workout_suggestion?.reason" class="rounded-md bg-slate-950 border border-slate-800 p-2.5">
-                                                <div class="text-[10px] font-bold text-neon uppercase font-mono tracking-wider mb-1">Saran Workout Berikutnya</div>
+                                            <div v-if="detail.ai_analysis.next_workout_suggestion?.type || detail.ai_analysis.next_workout_suggestion?.reason" class="rounded-md bg-slate-950 border border-slate-800 p-3">
+                                                <div class="text-[10px] font-bold text-neon uppercase font-mono tracking-wider mb-1">Rekomendasi Sesi Berikutnya</div>
                                                 <div class="text-white font-bold text-xs">@{{ detail.ai_analysis.next_workout_suggestion.type || '-' }}</div>
-                                                <div v-if="detail.ai_analysis.next_workout_suggestion.duration" class="text-[10px] text-slate-400 mt-0.5">Durasi: @{{ detail.ai_analysis.next_workout_suggestion.duration }}</div>
-                                                <div v-if="detail.ai_analysis.next_workout_suggestion.target" class="text-[10px] text-slate-400">Target: @{{ detail.ai_analysis.next_workout_suggestion.target }}</div>
+                                                <div v-if="detail.ai_analysis.next_workout_suggestion.duration" class="text-[11px] text-slate-400 mt-0.5">Durasi: @{{ detail.ai_analysis.next_workout_suggestion.duration }}</div>
+                                                <div v-if="detail.ai_analysis.next_workout_suggestion.target" class="text-[11px] text-slate-400">Target: @{{ detail.ai_analysis.next_workout_suggestion.target }}</div>
                                                 <div v-if="detail.ai_analysis.next_workout_suggestion.reason" class="text-xs text-slate-300 mt-1.5 leading-relaxed">@{{ detail.ai_analysis.next_workout_suggestion.reason }}</div>
                                             </div>
 
                                             <div v-if="detail.ai_analysis.recovery_advice?.length">
-                                                <div class="text-[10px] font-bold text-sky-400 uppercase font-mono tracking-wider mb-1.5">Recovery Advice</div>
-                                                <ul class="space-y-1 text-slate-300 pl-2">
+                                                <div class="text-[10px] font-bold text-sky-400 uppercase font-mono tracking-wider mb-1">Saran Pemulihan (Recovery)</div>
+                                                <ul class="space-y-1 text-slate-300">
                                                     <li v-for="(item, idx) in detail.ai_analysis.recovery_advice" :key="'recovery-' + idx">• @{{ item }}</li>
                                                 </ul>
                                             </div>
 
-                                            <div v-if="detail.ai_analysis.improve_next_time?.length">
-                                                <div class="text-[10px] font-bold text-purple-300 uppercase font-mono tracking-wider mb-1.5">Improve Next Time</div>
-                                                <ul class="space-y-1 text-slate-300 pl-2">
-                                                    <li v-for="(item, idx) in detail.ai_analysis.improve_next_time" :key="'next-' + idx">• @{{ item }}</li>
-                                                </ul>
-                                            </div>
-
-                                            <div v-if="detail.ai_analysis.risk_flags?.length" class="rounded-md bg-red-500/10 border border-red-500/20 p-2.5">
-                                                <div class="text-[10px] font-bold text-red-400 uppercase font-mono tracking-wider mb-1.5">Risk Flags</div>
-                                                <ul class="space-y-1 text-red-200 pl-2">
+                                            <div v-if="detail.ai_analysis.risk_flags?.length" class="rounded-md bg-red-500/10 border border-red-500/20 p-3">
+                                                <div class="text-[10px] font-bold text-red-400 uppercase font-mono tracking-wider mb-1">Catatan Risiko</div>
+                                                <ul class="space-y-1 text-red-200">
                                                     <li v-for="(item, idx) in detail.ai_analysis.risk_flags" :key="'risk-' + idx">• @{{ item }}</li>
                                                 </ul>
                                             </div>
@@ -1954,13 +2072,13 @@
                         </div>
 
                         <!-- Pinned Modal Footer Bar -->
-                        <div class="p-3.5 md:px-6 md:py-3.5 border-t border-slate-800 bg-slate-900 flex justify-between items-center shrink-0">
+                        <div class="p-4 md:px-6 md:py-3.5 border-t border-slate-800 bg-slate-900 flex justify-between items-center shrink-0">
                             <button v-if="!detail.session?.is_locked && ((detail.source === 'custom' || detail.workout_id) || (detail.enrollment_id && detail.session_day))" 
-                                    class="px-3 py-1.5 rounded-md bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-semibold transition" 
+                                    class="px-3.5 py-2 rounded-md bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 text-xs font-semibold transition" 
                                     @click="deleteWorkout(detail)">
                                 Hapus Sesi
                             </button>
-                            <button class="px-4 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs ml-auto font-semibold uppercase tracking-wider transition" 
+                            <button class="px-5 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs ml-auto font-semibold uppercase tracking-wider transition" 
                                     @click="closeDetail">
                                 Tutup
                             </button>

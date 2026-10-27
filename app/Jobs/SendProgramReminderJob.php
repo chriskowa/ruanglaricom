@@ -37,8 +37,8 @@ class SendProgramReminderJob implements ShouldQueue
      */
     public function handle(OpenAiService $openAiService, RunningProfileService $profileService): void
     {
-        if (!$this->user->phone || !$this->user->is_receive_wa) {
-            Log::info("Skipping program reminder for User #{$this->user->id}: No phone number or WA notifications disabled.");
+        if (!$this->user->phone || !$this->user->is_receive_wa || !$this->user->hasActiveWaSubscription()) {
+            Log::info("Skipping program reminder for User #{$this->user->id}: No phone number, WA notifications disabled, or subscription not active.");
             return;
         }
 

@@ -66,7 +66,14 @@ class ScheduleProgramReminders extends Command
         $enrollments = ProgramEnrollment::with(['program', 'runner'])
             ->where('status', 'active')
             ->whereHas('runner', function ($query) {
-                $query->where('is_receive_wa', true);
+                $query->where('is_receive_wa', true)
+                    ->where(function ($sub) {
+                        $sub->where('is_wa_whitelisted', true)
+                            ->orWhere(function ($exp) {
+                                $exp->whereNotNull('wa_subscription_expires_at')
+                                    ->where('wa_subscription_expires_at', '>', now());
+                            });
+                    });
             })
             ->get();
 

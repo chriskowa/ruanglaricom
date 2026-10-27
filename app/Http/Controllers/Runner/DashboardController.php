@@ -669,6 +669,16 @@ class DashboardController extends Controller
         ]);
 
         $user = auth()->user();
+
+        if ($validated['is_receive_wa'] && !$user->hasActiveWaSubscription()) {
+            return response()->json([
+                'success' => false,
+                'require_subscription' => true,
+                'is_receive_wa' => false,
+                'message' => 'Notifikasi WhatsApp program harian memerlukan langganan aktif (Rp 20.000 / bulan).',
+            ], 403);
+        }
+
         $user->update([
             'is_receive_wa' => $validated['is_receive_wa'],
         ]);
@@ -676,6 +686,8 @@ class DashboardController extends Controller
         return response()->json([
             'success' => true,
             'is_receive_wa' => $user->is_receive_wa,
+            'has_subscription' => $user->hasActiveWaSubscription(),
+            'expires_at' => $user->wa_subscription_expires_at ? $user->wa_subscription_expires_at->translatedFormat('d F Y') : null,
             'message' => $user->is_receive_wa 
                 ? 'Notifikasi WhatsApp program harian berhasil diaktifkan.' 
                 : 'Notifikasi WhatsApp program harian berhasil dinonaktifkan.',

@@ -34,6 +34,13 @@ body {
 .fc-col-header-cell-cushion { color: #94a3b8 !important; text-decoration: none !important; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; }
 .fc-daygrid-day-number { color: #64748b !important; font-family: 'JetBrains Mono', monospace; text-decoration: none; font-size: 0.75rem; }
 
+/* Custom Scrollbar for Modal and Content Panes */
+.custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+.custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+.custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+
 .fc-event {
     cursor: pointer;
     background-color: #121c2e !important;

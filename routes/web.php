@@ -1057,6 +1057,7 @@ Route::middleware('auth')->group(function () {
         Route::post('users/{user}/wallet', [App\Http\Controllers\Admin\UserController::class, 'adjustWallet'])->name('users.wallet');
         Route::post('users/{user}/toggle-status', [App\Http\Controllers\Admin\UserController::class, 'toggleStatus'])->name('users.toggle-status');
         Route::post('users/{user}/toggle-wa', [App\Http\Controllers\Admin\UserController::class, 'toggleWaNotify'])->name('users.toggle-wa');
+        Route::post('users/{user}/toggle-wa-whitelist', [App\Http\Controllers\Admin\UserController::class, 'toggleWaWhitelist'])->name('users.toggle-wa-whitelist');
         Route::post('users/{user}/impersonate', [App\Http\Controllers\Admin\UserController::class, 'impersonate'])->name('users.impersonate');
         Route::post('users/{user}/login-token', [App\Http\Controllers\Admin\UserController::class, 'generateLoginToken'])->name('users.login-token');
         Route::post('users/{user}/send-whatsapp', [App\Http\Controllers\Admin\UserController::class, 'sendWhatsApp'])->name('users.send-whatsapp');
@@ -1201,6 +1202,13 @@ Route::middleware('auth')->group(function () {
         Route::get('/running-analysis/trials/{trial}/artifacts/{artifact}', [App\Http\Controllers\Admin\RunningAnalysis\TrialController::class, 'serveRunnerArtifact'])->name('running-analysis.trials.artifact');
 
         Route::post('/profile/toggle-wa', [DashboardController::class, 'toggleWaNotification'])->name('profile.toggle-wa');
+        
+        // WA Subscription routes (Program Reminder Rp 20rb/bln)
+        Route::prefix('wa-subscription')->name('wa-subscription.')->group(function () {
+            Route::post('/checkout', [App\Http\Controllers\Runner\WaSubscriptionController::class, 'checkout'])->name('checkout');
+            Route::post('/confirm', [App\Http\Controllers\Runner\WaSubscriptionController::class, 'confirm'])->name('confirm');
+            Route::get('/history', [App\Http\Controllers\Runner\WaSubscriptionController::class, 'history'])->name('history');
+        });
         Route::get('/programs', [App\Http\Controllers\Runner\ProgramController::class, 'index'])->name('programs');
 
         Route::get('/strava/connect', [App\Http\Controllers\Runner\StravaController::class, 'connect'])->name('strava.connect');
@@ -1559,6 +1567,10 @@ Route::post('/midtrans/webhook', function (\Illuminate\Http\Request $request) {
 
     if (str_starts_with($orderId, 'MEMBERSHIP-')) {
         return app(\App\Http\Controllers\MembershipWebhookController::class)->handle($request);
+    }
+
+    if (str_starts_with($orderId, 'WA-SUB-')) {
+        return app(\App\Http\Controllers\Runner\WaSubscriptionController::class)->webhook($request);
     }
 
     if (str_starts_with($orderId, 'GEN-DONATE-')) {

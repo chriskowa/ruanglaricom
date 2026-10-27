@@ -94,6 +94,8 @@ class User extends Authenticatable
         'run_points',
         'buddy_rating',
         'is_receive_wa',
+        'wa_subscription_expires_at',
+        'is_wa_whitelisted',
         'last_performance_checkin_at',
         'bio',
         'certifications',
@@ -193,9 +195,31 @@ class User extends Authenticatable
             'is_active' => 'boolean',
             'membership_expires_at' => 'datetime',
             'is_receive_wa' => 'boolean',
+            'wa_subscription_expires_at' => 'datetime',
+            'is_wa_whitelisted' => 'boolean',
             'last_performance_checkin_at' => 'datetime',
             'certifications' => 'array',
         ];
+    }
+
+    /**
+     * Check if user is eligible to receive daily training program via WhatsApp
+     */
+    public function hasActiveWaSubscription(): bool
+    {
+        if ($this->is_wa_whitelisted) {
+            return true;
+        }
+
+        return (bool) ($this->wa_subscription_expires_at && $this->wa_subscription_expires_at->isFuture());
+    }
+
+    /**
+     * Relationship to WA Subscriptions history
+     */
+    public function waSubscriptions(): \Illuminate\Database\Eloquent\Relations\HasMany
+    {
+        return $this->hasMany(\App\Models\RunnerWaSubscription::class, 'user_id');
     }
 
     /**

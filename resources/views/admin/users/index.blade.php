@@ -1189,6 +1189,45 @@
             container.dataset.waBound = '1';
 
             container.addEventListener('click', function (e) {
+                var wlBtn = e.target.closest('.wa-whitelist-toggle');
+                if (wlBtn && container.contains(wlBtn)) {
+                    e.preventDefault();
+                    if (wlBtn.dataset.busy === '1') return;
+                    wlBtn.dataset.busy = '1';
+
+                    var url = wlBtn.dataset.url;
+                    var token = '';
+                    var meta = document.querySelector('meta[name="csrf-token"]');
+                    if (meta) token = meta.getAttribute('content') || '';
+
+                    fetch(url, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRF-TOKEN': token,
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({})
+                    })
+                    .then(function (res) {
+                        return res.json().then(function (data) {
+                            if (!res.ok || !data.success) {
+                                throw new Error((data && data.message) || 'Gagal mengubah status whitelist.');
+                            }
+                            window.location.reload();
+                        });
+                    })
+                    .catch(function (err) {
+                        console.error('WA whitelist error:', err);
+                        alert(err.message || 'Terjadi kesalahan.');
+                    })
+                    .finally(function () {
+                        wlBtn.dataset.busy = '0';
+                    });
+                    return;
+                }
+
                 var btn = e.target.closest('.wa-toggle');
                 if (!btn || !container.contains(btn)) return;
                 e.preventDefault();

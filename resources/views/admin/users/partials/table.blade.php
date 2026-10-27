@@ -50,13 +50,32 @@
                             </span>
                         </td>
                         <td class="px-6 py-4">
-                            <button type="button"
-                                class="wa-toggle relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-slate-900 {{ $user->is_receive_wa ? 'bg-green-500' : 'bg-slate-600' }}"
-                                data-url="{{ route('admin.users.toggle-wa', $user) }}"
-                                data-state="{{ $user->is_receive_wa ? '1' : '0' }}"
-                                title="{{ $user->is_receive_wa ? 'WhatsApp ON - click to disable' : 'WhatsApp OFF - click to enable' }}">
-                                <span class="wa-knob inline-block h-4 w-4 transform rounded-full bg-white transition-transform {{ $user->is_receive_wa ? 'translate-x-6' : 'translate-x-1' }}"></span>
-                            </button>
+                            <div class="flex flex-col gap-1.5">
+                                <div class="flex items-center gap-2">
+                                    <button type="button"
+                                        class="wa-toggle relative inline-flex h-5 w-9 items-center rounded-full transition-colors focus:outline-none {{ $user->is_receive_wa ? 'bg-emerald-500' : 'bg-slate-600' }}"
+                                        data-url="{{ route('admin.users.toggle-wa', $user) }}"
+                                        data-state="{{ $user->is_receive_wa ? '1' : '0' }}"
+                                        title="{{ $user->is_receive_wa ? 'Notifikasi WA Aktif' : 'Notifikasi WA Mati' }}">
+                                        <span class="wa-knob inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform {{ $user->is_receive_wa ? 'translate-x-4' : 'translate-x-0.5' }}"></span>
+                                    </button>
+                                    <button type="button"
+                                        class="wa-whitelist-toggle px-2 py-0.5 rounded text-[10px] font-bold transition-colors {{ $user->is_wa_whitelisted ? 'bg-amber-400 text-slate-950 hover:bg-amber-300' : 'bg-slate-800 text-slate-400 hover:text-white border border-slate-700' }}"
+                                        data-url="{{ route('admin.users.toggle-wa-whitelist', $user) }}"
+                                        title="Tandai akses gratis dari Admin (Whitelist)">
+                                        {{ $user->is_wa_whitelisted ? 'VIP Whitelist' : '+ Whitelist' }}
+                                    </button>
+                                </div>
+                                <div class="text-[11px] leading-tight">
+                                    @if($user->is_wa_whitelisted)
+                                        <span class="text-amber-400 font-medium">Bebas Akses (Admin)</span>
+                                    @elseif($user->wa_subscription_expires_at && $user->wa_subscription_expires_at->isFuture())
+                                        <span class="text-emerald-400 font-medium">Aktif s/d {{ $user->wa_subscription_expires_at->format('d M Y') }}</span>
+                                    @else
+                                        <span class="text-slate-500">Non-Berlangganan</span>
+                                    @endif
+                                </div>
+                            </div>
                         </td>
                         <td class="px-6 py-4 text-sm text-slate-400">
                             {{ $user->created_at->format('M d, Y') }}

@@ -340,6 +340,32 @@ class UserController extends Controller
     }
 
     /**
+     * Toggle WhatsApp Whitelist (free VIP / manual mark access) for the user.
+     */
+    public function toggleWaWhitelist(Request $request, User $user)
+    {
+        $user->is_wa_whitelisted = ! $user->is_wa_whitelisted;
+        if ($user->is_wa_whitelisted) {
+            $user->is_receive_wa = true;
+        }
+        $user->save();
+
+        $status = $user->is_wa_whitelisted ? 'diberikan akses gratis (whitelisted)' : 'dihapus dari whitelist';
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'is_wa_whitelisted' => (bool) $user->is_wa_whitelisted,
+                'is_receive_wa' => (bool) $user->is_receive_wa,
+                'has_active_subscription' => $user->hasActiveWaSubscription(),
+                'message' => "WhatsApp whitelist untuk {$user->name} telah {$status}.",
+            ]);
+        }
+
+        return back()->with('success', "WhatsApp whitelist untuk {$user->name} telah {$status}.");
+    }
+
+    /**
      * Send a custom WhatsApp message to the user.
      */
     public function sendWhatsApp(Request $request, User $user)

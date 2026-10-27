@@ -124,6 +124,7 @@ const runnerCalendarApp = createApp({
         const promoApplied = ref(false);
         const promoError = ref('');
         const checkingPromo = ref(false);
+        const isUnlockBannerDismissed = ref(false);
 
         // ---------- ADAPTIVE RUN INTELLIGENCE & EVALUATION CHECK-IN ----------
         const showAdaptivePopup = ref(false);
@@ -2969,6 +2970,10 @@ const runnerCalendarApp = createApp({
             showFormModal.value = false;
             showRaceModal.value = false;
             detail.session = plan.session || null;
+            detail.is_locked = !!plan.is_locked || !!(plan.session && plan.session.is_locked);
+            if (plan.is_locked && detail.session) {
+                detail.session.is_locked = true;
+            }
             detailTitle.value = plan.program_title || 'Program Session';
             detail.date_formatted = plan.date_formatted || null;
             detail.type = plan.activity_type || plan.type; // Use activity_type for custom workouts if available
@@ -3026,6 +3031,8 @@ const runnerCalendarApp = createApp({
                 showGuidedPlayer.value = false;
             } catch (e) {
             }
+            detail.is_locked = false;
+            if (detail.session) detail.session.is_locked = false;
             showDetailModal.value = false;
         };
 
@@ -3763,6 +3770,7 @@ const runnerCalendarApp = createApp({
             payDonation, donationLoading, donationAmount,
             hasUnpaidGenerator, unpaidEnrollmentId, firstLockedWeek,
             promoCode, promoApplied, promoError, checkingPromo, applyPromo, handleUnlockAction,
+            isUnlockBannerDismissed,
             notification, showNotification, showHeaderActions, showMobileAddSheet, openMobileAddSheet, activeDock, scrollToSection, activeMobileTab,
             showInsightModal, insightData, insightType,
             showStravaAnalysisModal, stravaAnalysisLoading, stravaAnalysisRange, stravaAnalysisResult, straCustomStartDate, straCustomEndDate,

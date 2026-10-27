@@ -702,6 +702,67 @@
 @endpush
 
 @section('content')
+<script>
+    // Immediate global helper for WA modal triggers
+    window._hasWaSub = {{ auth()->user()->hasActiveWaSubscription() ? 'true' : 'false' }};
+    window.openWaSubscribeModal = function() {
+        var m = document.getElementById('wa-subscribe-modal');
+        if (m) {
+            m.classList.remove('hidden');
+            m.style.setProperty('display', 'flex', 'important');
+        }
+        try {
+            var shell = document.getElementById('runner-dashboard-shell');
+            if (shell && shell.__x && shell.__x.$data) {
+                shell.__x.$data.showWaSubscribeModal = true;
+            }
+        } catch(e) {}
+    };
+    window.closeWaSubscribeModal = function() {
+        var m = document.getElementById('wa-subscribe-modal');
+        if (m) {
+            m.classList.add('hidden');
+            m.style.setProperty('display', 'none', 'important');
+        }
+        try {
+            var shell = document.getElementById('runner-dashboard-shell');
+            if (shell && shell.__x && shell.__x.$data) {
+                shell.__x.$data.showWaSubscribeModal = false;
+            }
+        } catch(e) {}
+    };
+    window.openWaHistoryModal = function() {
+        var m = document.getElementById('wa-history-modal');
+        if (m) {
+            m.classList.remove('hidden');
+            m.style.setProperty('display', 'flex', 'important');
+        }
+        try {
+            var shell = document.getElementById('runner-dashboard-shell');
+            if (shell && shell.__x && shell.__x.$data) {
+                shell.__x.$data.showWaHistoryModal = true;
+                if (typeof shell.__x.$data.loadWaHistory === 'function') {
+                    shell.__x.$data.loadWaHistory();
+                    return;
+                }
+            }
+        } catch(e) {}
+        if (window.fallbackLoadWaHistory) window.fallbackLoadWaHistory();
+    };
+    window.closeWaHistoryModal = function() {
+        var m = document.getElementById('wa-history-modal');
+        if (m) {
+            m.classList.add('hidden');
+            m.style.setProperty('display', 'none', 'important');
+        }
+        try {
+            var shell = document.getElementById('runner-dashboard-shell');
+            if (shell && shell.__x && shell.__x.$data) {
+                shell.__x.$data.showWaHistoryModal = false;
+            }
+        } catch(e) {}
+    };
+</script>
 <div class="min-h-screen pt-5 pb-10 px-4 md:px-8 relative overflow-hidden font-sans bg-[#060a17]">
     <div id="runner-dashboard-shell" class="max-w-7xl mx-auto" x-data="dashboardComponent()">
         <!-- RUNNER COMMAND HEADER -->
@@ -715,23 +776,36 @@
                     <span class="runner-chip-points__unit">PTS</span>
                 </a>
 
-                <button
-                    type="button"
-                    @click="toggleReceiveWa"
-                    class="runner-chip-wa"
-                    title="Toggle Daily WhatsApp Program"
-                >
-                    <i class="fab fa-whatsapp text-emerald-400 text-xs"></i>
-                    <span class="runner-chip-wa__label">Daily WA</span>
-                    <span class="runner-switch-mini" :class="isReceiveWa ? 'is-on' : ''">
-                        <span></span>
-                    </span>
-                    <span
-                        class="runner-chip-wa__status"
-                        :class="isReceiveWa ? 'text-emerald-400' : 'text-slate-400'"
-                        x-text="isReceiveWa ? 'ON' : 'OFF'"
-                    ></span>
-                </button>
+                <div class="flex items-center gap-1.5">
+                    <button
+                        type="button"
+                        id="btn-aktifkan-wa-mobile"
+                        @click.stop="toggleReceiveWa()"
+                        onclick="if(!window._hasWaSub) { window.openWaSubscribeModal(); } else if(window._toggleReceiveWa) { window._toggleReceiveWa(); }"
+                        class="runner-chip-wa cursor-pointer"
+                        :title="hasWaSubscription ? 'Toggle Notifikasi Program WhatsApp Harian' : 'Berlangganan Notifikasi WA (Rp 20.000/bln)'"
+                    >
+                        <i class="fab fa-whatsapp text-emerald-400 text-xs"></i>
+                        <span class="runner-chip-wa__label">Daily WA</span>
+                        <span class="runner-switch-mini" :class="isReceiveWa && hasWaSubscription ? 'is-on' : ''">
+                            <span></span>
+                        </span>
+                        <span
+                            class="runner-chip-wa__status"
+                            :class="isReceiveWa && hasWaSubscription ? 'text-emerald-400' : 'text-slate-400'"
+                            x-text="hasWaSubscription ? (isReceiveWa ? 'ON' : 'OFF') : '20K'"
+                        >{{ auth()->user()->hasActiveWaSubscription() ? (auth()->user()->is_receive_wa ? 'ON' : 'OFF') : '20K' }}</span>
+                    </button>
+                    <button 
+                        type="button" 
+                        id="btn-riwayat-wa-mobile"
+                        @click.stop="openWaHistoryModal()" 
+                        onclick="window.openWaHistoryModal();"
+                        class="px-2 py-1.5 rounded-md bg-slate-900 border border-slate-800 text-[10px] text-slate-400 hover:text-white cursor-pointer"
+                        title="Riwayat Langganan WA">
+                        <i class="fas fa-receipt text-[11px]"></i>
+                    </button>
+                </div>
             </div>
 
             <div class="runner-command__top">
@@ -828,27 +902,55 @@
                     </div>
                 @endif
 
-                <button
-                    type="button"
-                    @click="toggleReceiveWa"
-                    class="runner-stat group text-left hidden md:block"
-                >
-                    <div class="runner-stat__label">
-                        Daily program
+                <div class="runner-stat text-left hidden md:flex flex-col justify-between">
+                    <div class="flex items-center justify-between w-full">
+                        <div class="runner-stat__label">
+                            Daily program
+                        </div>
+                        <button type="button" 
+                                id="btn-riwayat-wa-desktop"
+                                @click.stop="openWaHistoryModal()" 
+                                onclick="window.openWaHistoryModal();"
+                                class="text-[10px] text-slate-400 hover:text-white transition underline cursor-pointer"
+                                title="Lihat Riwayat Transaksi Langganan">
+                            Riwayat
+                        </button>
                     </div>
 
-                    <div class="runner-stat__value runner-stat__value--small">
-                        <strong>WhatsApp</strong>
-                        <span
-                            :class="isReceiveWa ? 'text-white' : 'text-slate-500'"
-                            x-text="isReceiveWa ? 'Aktif' : 'Nonaktif'"
-                        ></span>
+                    <div class="flex items-center justify-between gap-3 mt-1.5">
+                        <div class="min-w-0">
+                            <strong class="text-xs block text-white font-bold truncate">WhatsApp H-1</strong>
+                            <span x-show="hasWaSubscription" class="text-[11px] block" :class="isReceiveWa ? 'text-emerald-400' : 'text-slate-400'" {!! auth()->user()->hasActiveWaSubscription() ? '' : 'style="display: none;"' !!}>
+                                <span x-text="isReceiveWa ? 'Aktif' : 'Pause'">{{ auth()->user()->is_receive_wa ? 'Aktif' : 'Pause' }}</span>
+                                <span x-show="waExpiresAt && !isWaWhitelisted" class="text-slate-500" x-text="'(s/d ' + waExpiresAt + ')'">
+                                    @if(auth()->user()->wa_subscription_expires_at && !auth()->user()->is_wa_whitelisted)
+                                        (s/d {{ auth()->user()->wa_subscription_expires_at->translatedFormat('d M Y') }})
+                                    @endif
+                                </span>
+                                <span x-show="isWaWhitelisted" class="text-amber-400 font-semibold">(VIP Admin)</span>
+                            </span>
+                            <button type="button" 
+                                    id="btn-aktifkan-wa-desktop"
+                                    x-show="!hasWaSubscription" 
+                                    {!! auth()->user()->hasActiveWaSubscription() ? 'style="display: none;"' : '' !!}
+                                    @click.stop="openWaSubscribeModal()" 
+                                    onclick="window.openWaSubscribeModal();"
+                                    class="text-[11px] text-emerald-400 hover:text-emerald-300 font-semibold text-left underline cursor-pointer block">
+                                Aktifkan (20rb/bln)
+                            </button>
+                        </div>
 
-                        <span class="runner-switch" :class="isReceiveWa ? 'is-on' : ''">
-                            <span></span>
-                        </span>
+                        <button type="button"
+                                @click.stop="toggleReceiveWa()"
+                                onclick="if(!window._hasWaSub) { window.openWaSubscribeModal(); } else if(window._toggleReceiveWa) { window._toggleReceiveWa(); }"
+                                class="shrink-0 cursor-pointer focus:outline-none"
+                                :title="hasWaSubscription ? 'Toggle Notifikasi WA' : 'Berlangganan Notifikasi WA'">
+                            <span class="runner-switch" :class="isReceiveWa && hasWaSubscription ? 'is-on' : ''">
+                                <span></span>
+                            </span>
+                        </button>
                     </div>
-                </button>
+                </div>
             </div>
 
             <!-- WORKSPACE NAV -->
@@ -1891,12 +1993,12 @@
         </div> <!-- closes id="tab-content-overview" -->
 
         <!-- Tab Content Calendar (Vue.js component wrapper) -->
-        <div id="tab-content-calendar" class="tab-content mt-6 hidden">
+        <div id="tab-content-calendar" class="tab-content mt-6 hidden" x-ignore>
             @include('runner.calendar.html')
         </div>
 
         <!-- Tab Content Calculator (Iframe loader) -->
-        <div id="tab-content-calculator" class="tab-content mt-6 hidden">
+        <div id="tab-content-calculator" class="tab-content mt-6 hidden" x-ignore>
             <iframe id="calculator-iframe" data-src="/tools/calculator?embed=1" src="" class="w-full min-h-[800px] border-0 bg-transparent" scrolling="no"></iframe>
         </div>
 
@@ -2149,9 +2251,197 @@
         </div>
     </div>
 
+        <!-- MODAL SUBSCRIBE WHATSAPP PROGRAM (RP 20.000 / BULAN) -->
+        <div id="wa-subscribe-modal"
+             x-show="showWaSubscribeModal" 
+             style="display: none;"
+             class="fixed inset-0 z-[200] overflow-y-auto flex items-center justify-center p-4"
+             @keydown.escape.window="closeWaSubscribeModal()">
+            
+            <!-- Backdrop -->
+            <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity" 
+                 onclick="window.closeWaSubscribeModal();"
+                 @click="closeWaSubscribeModal()"></div>
+
+            <!-- Modal Box -->
+            <div class="relative z-10 bg-slate-900 border border-slate-800 rounded-lg max-w-md w-full p-6 shadow-2xl space-y-5"
+                 onclick="event.stopPropagation();"
+                 @click.stop>
+                
+                <div class="flex items-start justify-between gap-3 border-b border-slate-800 pb-4">
+                    <div>
+                        <div class="text-[11px] font-mono text-emerald-400 uppercase tracking-widest font-semibold">Notifikasi Harian</div>
+                        <h3 class="text-lg font-bold text-white font-['Inter_Tight','Sora',sans-serif]">Pengingat Program WhatsApp</h3>
+                    </div>
+                    <button type="button" 
+                            onclick="window.closeWaSubscribeModal();"
+                            @click="closeWaSubscribeModal()" 
+                            class="p-1 rounded text-slate-400 hover:text-white transition-colors cursor-pointer"
+                            aria-label="Tutup Modal">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="space-y-3.5 text-xs text-slate-300">
+                    <p class="leading-relaxed">
+                        Dapatkan jadwal latihan, target pace personal, dan instruksi menu latihan harian yang dikirim otomatis langsung ke WhatsApp Anda setiap malam H-1 sebelum sesi lari.
+                    </p>
+
+                    <div class="p-3.5 rounded-md bg-slate-950 border border-slate-800 space-y-2">
+                        <div class="flex items-center justify-between text-xs">
+                            <span class="text-slate-400">Biaya Langganan</span>
+                            <span class="font-bold font-mono text-white text-sm">Rp 20.000 <span class="text-[11px] text-slate-400 font-normal">/ 30 hari</span></span>
+                        </div>
+                        <div class="flex items-center justify-between text-xs pt-2 border-t border-slate-800/80">
+                            <span class="text-slate-400">Nomor WhatsApp</span>
+                            <span class="font-mono text-slate-200">{{ auth()->user()->phone ?? 'Belum Diisi' }}</span>
+                        </div>
+                    </div>
+
+                    @if(empty(auth()->user()->phone))
+                        <div class="p-3 rounded-md bg-amber-950/40 border border-amber-800/60 text-amber-300 text-[11px]">
+                            Nomor telepon Anda belum terdaftar. Silakan lengkapi nomor WhatsApp terlebih dahulu agar pesan dapat dikirim.
+                        </div>
+                    @endif
+                </div>
+
+                <div class="space-y-2 pt-2 border-t border-slate-800">
+                    <button type="button"
+                            id="btn-wa-checkout-submit"
+                            onclick="window.startWaCheckoutStandalone();"
+                            @click="startWaCheckout"
+                            :disabled="waCheckoutLoading"
+                            class="w-full py-2.5 px-4 rounded-md bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs uppercase tracking-wider transition flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50">
+                        <span id="btn-wa-checkout-text" x-show="!waCheckoutLoading">Bayar & Aktifkan Sekarang (Rp 20.000)</span>
+                        <span id="btn-wa-checkout-loading" x-show="waCheckoutLoading" class="hidden">Menghubungkan Gateway...</span>
+                    </button>
+                    
+                    <button type="button"
+                            onclick="window.closeWaSubscribeModal();"
+                            @click="closeWaSubscribeModal()"
+                            class="w-full py-2 px-4 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition border border-slate-700 cursor-pointer">
+                        Nanti Saja
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- MODAL RIWAYAT TRANSAKSI LANGGANAN WA -->
+        <div id="wa-history-modal"
+             x-show="showWaHistoryModal" 
+             style="display: none;"
+             class="fixed inset-0 z-[200] overflow-y-auto flex items-center justify-center p-4"
+             @keydown.escape.window="closeWaHistoryModal()">
+            
+            <!-- Backdrop -->
+            <div class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm transition-opacity" 
+                 onclick="window.closeWaHistoryModal();"
+                 @click="closeWaHistoryModal()"></div>
+
+            <!-- Modal Box -->
+            <div class="relative z-10 bg-slate-900 border border-slate-800 rounded-lg max-w-xl w-full p-6 shadow-2xl space-y-4"
+                 onclick="event.stopPropagation();"
+                 @click.stop>
+                
+                <div class="flex items-start justify-between gap-3 border-b border-slate-800 pb-3">
+                    <div>
+                        <div class="text-[11px] font-mono text-emerald-400 uppercase tracking-widest font-semibold">Riwayat Transaksi</div>
+                        <h3 class="text-base font-bold text-white font-['Inter_Tight','Sora',sans-serif]">Langganan Notifikasi WhatsApp</h3>
+                    </div>
+                    <button type="button" 
+                            onclick="window.closeWaHistoryModal();"
+                            @click="closeWaHistoryModal()" 
+                            class="p-1 rounded text-slate-400 hover:text-white transition-colors cursor-pointer"
+                            aria-label="Tutup Modal">
+                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <!-- Current Status Card -->
+                <div class="p-3.5 rounded-md bg-slate-950 border border-slate-800 flex items-center justify-between">
+                    <div>
+                        <div class="text-[11px] text-slate-400">Status Saat Ini</div>
+                        <div class="text-xs font-bold text-white mt-0.5">
+                            @if(auth()->user()->is_wa_whitelisted)
+                                <span class="text-amber-400">Akses Penuh VIP (Diberikan oleh Admin)</span>
+                            @elseif(auth()->user()->hasActiveWaSubscription())
+                                <span class="text-emerald-400">Aktif hingga {{ auth()->user()->wa_subscription_expires_at?->translatedFormat('d M Y') ?? '-' }}</span>
+                            @else
+                                <span class="text-slate-400">Belum Berlangganan / Expired</span>
+                            @endif
+                        </div>
+                    </div>
+                    @if(!auth()->user()->is_wa_whitelisted)
+                        <button type="button" 
+                                onclick="window.closeWaHistoryModal(); window.openWaSubscribeModal();"
+                                @click="closeWaHistoryModal(); openWaSubscribeModal();" 
+                                class="px-3 py-1.5 rounded-md bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs transition cursor-pointer">
+                            Perpanjang (+30 Hari)
+                        </button>
+                    @endif
+                </div>
+
+                <!-- History Table -->
+                <div class="border border-slate-800 rounded-md overflow-hidden max-h-60 overflow-y-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead class="bg-slate-950/70 text-slate-400 border-b border-slate-800 text-[10px] uppercase font-mono">
+                            <tr>
+                                <th class="px-3.5 py-2.5">Order ID</th>
+                                <th class="px-3.5 py-2.5">Nominal</th>
+                                <th class="px-3.5 py-2.5">Status</th>
+                                <th class="px-3.5 py-2.5">Masa Berlaku</th>
+                            </tr>
+                        </thead>
+                        <tbody id="wa-history-tbody-fallback" class="divide-y divide-slate-800 text-slate-300">
+                            <template x-if="waHistoryLoading">
+                                <tr>
+                                    <td colspan="4" class="px-4 py-6 text-center text-slate-400">
+                                        Memuat riwayat transaksi...
+                                    </td>
+                                </tr>
+                            </template>
+                            <template x-if="!waHistoryLoading && waSubscriptions.length === 0">
+                                <tr>
+                                    <td colspan="4" class="px-4 py-6 text-center text-slate-500">
+                                        Belum ada riwayat transaksi langganan WhatsApp.
+                                    </td>
+                                </tr>
+                            </template>
+                            <template x-for="item in waSubscriptions" :key="item.id">
+                                <tr class="hover:bg-slate-800/40 transition">
+                                    <td class="px-3.5 py-2.5 font-mono text-[11px] text-white" x-text="item.order_id"></td>
+                                    <td class="px-3.5 py-2.5 font-mono text-white font-semibold" x-text="item.amount_formatted"></td>
+                                    <td class="px-3.5 py-2.5">
+                                        <span class="px-2 py-0.5 rounded text-[10px] font-bold"
+                                              :class="item.status === 'paid' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-slate-800 text-slate-400'"
+                                              x-text="item.status === 'paid' ? 'Lunas' : item.status"></span>
+                                    </td>
+                                    <td class="px-3.5 py-2.5 text-[11px] text-slate-400" x-text="item.subscribed_until || '-'"></td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="pt-2 text-right">
+                    <button type="button"
+                            onclick="window.closeWaHistoryModal();"
+                            @click="closeWaHistoryModal()"
+                            class="px-4 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition border border-slate-700 cursor-pointer">
+                        Tutup
+                    </button>
+                </div>
+            </div>
+        </div>
+
     </div> <!-- closes max-w-7xl mx-auto -->
 </div> <!-- closes wrapper -->
 @push('scripts')
+<script src="{{ config('midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js' }}" data-client-key="{{ config('midtrans.client_key') }}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
@@ -2180,6 +2470,172 @@
         setInterval(updateDateTime, 30000);
     })();
 
+    // Standalone fallback functions for WA subscription
+    window.startWaCheckoutStandalone = async function() {
+        var shell = document.getElementById('runner-dashboard-shell');
+        if (shell && shell.__x && shell.__x.$data && typeof shell.__x.$data.startWaCheckout === 'function') {
+            return await shell.__x.$data.startWaCheckout();
+        }
+        var btn = document.getElementById('btn-wa-checkout-submit');
+        var btnText = document.getElementById('btn-wa-checkout-text');
+        var btnLoading = document.getElementById('btn-wa-checkout-loading');
+        if (btn) btn.disabled = true;
+        if (btnText) btnText.classList.add('hidden');
+        if (btnLoading) btnLoading.classList.remove('hidden');
+
+        try {
+            const res = await fetch('{{ route("runner.wa-subscription.checkout") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({})
+            });
+            const data = await res.json();
+            if (!data.ok) {
+                alert(data.message || 'Gagal memulai transaksi.');
+                return;
+            }
+            if (data.testing) {
+                alert(data.message || 'Langganan WhatsApp berhasil diaktifkan!');
+                window.location.reload();
+                return;
+            }
+            if (data.snap_token && typeof window.snap !== 'undefined') {
+                window.snap.pay(data.snap_token, {
+                    onSuccess: function (result) {
+                        window.confirmWaPaymentStandalone(data.order_id);
+                    },
+                    onPending: function (result) {
+                        window.confirmWaPaymentStandalone(data.order_id);
+                    },
+                    onError: function (result) {
+                        alert('Pembayaran gagal atau dibatalkan.');
+                    },
+                    onClose: function () {
+                        window.confirmWaPaymentStandalone(data.order_id);
+                    }
+                });
+            } else if (!data.snap_token) {
+                alert('Token pembayaran tidak valid.');
+            } else {
+                alert('Modul pembayaran Midtrans belum termuat. Silakan refresh halaman.');
+            }
+        } catch (e) {
+            console.error('WA Checkout error:', e);
+            alert('Terjadi kesalahan saat memproses checkout.');
+        } finally {
+            if (btn) btn.disabled = false;
+            if (btnText) btnText.classList.remove('hidden');
+            if (btnLoading) btnLoading.classList.add('hidden');
+        }
+    };
+
+    window.confirmWaPaymentStandalone = async function(orderId) {
+        if (!orderId) return;
+        try {
+            const res = await fetch('{{ route("runner.wa-subscription.confirm") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ order_id: orderId })
+            });
+            const data = await res.json();
+            if (data.ok && data.status === 'paid') {
+                alert(data.message || 'Langganan WhatsApp aktif!');
+                window.location.reload();
+            } else if (data.ok) {
+                alert(data.message || 'Menunggu konfirmasi pembayaran.');
+                window.location.reload();
+            }
+        } catch (e) {
+            console.error('Confirmation check error:', e);
+        }
+    };
+
+    window.fallbackLoadWaHistory = async function() {
+        var tbody = document.getElementById('wa-history-tbody-fallback');
+        if (!tbody) return;
+        tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-6 text-center text-slate-400">Memuat riwayat transaksi...</td></tr>';
+        try {
+            const res = await fetch('{{ route("runner.wa-subscription.history") }}', {
+                headers: { 'Accept': 'application/json' }
+            });
+            const data = await res.json();
+            if (data.ok && data.subscriptions && data.subscriptions.length > 0) {
+                tbody.innerHTML = data.subscriptions.map(function(item) {
+                    var badge = item.status === 'paid' 
+                        ? '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">Lunas</span>'
+                        : '<span class="px-2 py-0.5 rounded text-[10px] font-bold bg-slate-800 text-slate-400">' + (item.status || '-') + '</span>';
+                    return '<tr class="hover:bg-slate-800/40 transition">' +
+                        '<td class="px-3.5 py-2.5 font-mono text-[11px] text-white">' + (item.order_id || '-') + '</td>' +
+                        '<td class="px-3.5 py-2.5 font-mono text-white font-semibold">' + (item.amount_formatted || 'Rp 20.000') + '</td>' +
+                        '<td class="px-3.5 py-2.5">' + badge + '</td>' +
+                        '<td class="px-3.5 py-2.5 text-[11px] text-slate-400">' + (item.subscribed_until || '-') + '</td>' +
+                        '</tr>';
+                }).join('');
+            } else {
+                tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-6 text-center text-slate-500">Belum ada riwayat transaksi langganan WhatsApp.</td></tr>';
+            }
+        } catch(e) {
+            tbody.innerHTML = '<tr><td colspan="4" class="px-4 py-6 text-center text-red-400">Gagal memuat riwayat.</td></tr>';
+        }
+    };
+
+    window._toggleReceiveWa = async function() {
+        var shell = document.getElementById('runner-dashboard-shell');
+        if (shell && shell.__x && shell.__x.$data && typeof shell.__x.$data.toggleReceiveWa === 'function') {
+            return await shell.__x.$data.toggleReceiveWa();
+        }
+        if (!window._hasWaSub) {
+            window.openWaSubscribeModal();
+            return;
+        }
+        try {
+            const response = await fetch('{{ route("runner.profile.toggle-wa") }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ is_receive_wa: !window._isReceiveWa })
+            });
+            const data = await response.json();
+            if (data.success) {
+                window._isReceiveWa = data.is_receive_wa;
+                window.location.reload();
+            } else if (data.require_subscription) {
+                window._hasWaSub = false;
+                window.openWaSubscribeModal();
+            } else {
+                alert(data.message || 'Gagal mengubah pengaturan.');
+            }
+        } catch (e) {
+            alert('Terjadi kesalahan koneksi.');
+        }
+    };
+
+    // Delegated click listener as fail-safe backup for button clicks
+    document.addEventListener('click', function(e) {
+        var btnSub = e.target.closest('#btn-aktifkan-wa-desktop, #btn-aktifkan-wa-mobile, [data-open-wa-modal]');
+        if (btnSub) {
+            e.preventDefault();
+            e.stopPropagation();
+            window.openWaSubscribeModal();
+        }
+        var btnHist = e.target.closest('#btn-riwayat-wa-desktop, #btn-riwayat-wa-mobile, [data-open-wa-history]');
+        if (btnHist) {
+            e.preventDefault();
+            e.stopPropagation();
+            window.openWaHistoryModal();
+        }
+    });
+
     function dashboardComponent() {
         return {
             openGenerateModal: {{ ($activeEnrollments->count() ?? 0) <= 0 ? 'true' : 'false' }},
@@ -2192,6 +2648,14 @@
             saving: false,
             notification: null,
             isReceiveWa: {{ auth()->user()->is_receive_wa ? 'true' : 'false' }},
+            hasWaSubscription: {{ auth()->user()->hasActiveWaSubscription() ? 'true' : 'false' }},
+            isWaWhitelisted: {{ auth()->user()->is_wa_whitelisted ? 'true' : 'false' }},
+            waExpiresAt: {{ auth()->user()->wa_subscription_expires_at ? Js::from(auth()->user()->wa_subscription_expires_at->translatedFormat('d M Y')) : 'null' }},
+            showWaSubscribeModal: false,
+            showWaHistoryModal: false,
+            waCheckoutLoading: false,
+            waHistoryLoading: false,
+            waSubscriptions: [],
 
             // Conflict / Replace Program Modal State
             conflictData: {
@@ -2242,6 +2706,11 @@
             },
 
             async toggleReceiveWa() {
+                if (!this.hasWaSubscription) {
+                    this.openWaSubscribeModal();
+                    return;
+                }
+
                 try {
                     const response = await fetch('{{ route("runner.profile.toggle-wa") }}', {
                         method: 'POST',
@@ -2255,12 +2724,159 @@
                     if (data.success) {
                         this.isReceiveWa = data.is_receive_wa;
                         this.showNotification(data.message || 'Pengaturan WhatsApp diperbarui.', 'success');
+                    } else if (data.require_subscription) {
+                        this.hasWaSubscription = false;
+                        this.isReceiveWa = false;
+                        this.openWaSubscribeModal();
                     } else {
                         this.showNotification(data.message || 'Gagal mengubah pengaturan.', 'error');
                     }
                 } catch (e) {
                     console.error(e);
                     this.showNotification('Terjadi kesalahan koneksi.', 'error');
+                }
+            },
+
+            init() {
+                window._hasWaSub = this.hasWaSubscription;
+                window.openWaSubscribeModal = () => {
+                    this.openWaSubscribeModal();
+                };
+                window.openWaHistoryModal = () => {
+                    this.openWaHistoryModal();
+                };
+            },
+
+            openWaSubscribeModal() {
+                this.showWaSubscribeModal = true;
+            },
+
+            closeWaSubscribeModal() {
+                this.showWaSubscribeModal = false;
+            },
+
+            openWaHistoryModal() {
+                this.showWaHistoryModal = true;
+                this.loadWaHistory();
+            },
+
+            closeWaHistoryModal() {
+                this.showWaHistoryModal = false;
+            },
+
+            async loadWaHistory() {
+                this.waHistoryLoading = true;
+                try {
+                    const res = await fetch('{{ route("runner.wa-subscription.history") }}', {
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+                    const data = await res.json();
+                    if (data.ok) {
+                        this.waSubscriptions = data.subscriptions || [];
+                        this.hasWaSubscription = data.is_active;
+                        this.isWaWhitelisted = data.is_whitelisted;
+                        this.waExpiresAt = data.expires_at;
+                        this.isReceiveWa = data.is_receive_wa;
+                    }
+                } catch (e) {
+                    console.error('Failed to load WA history:', e);
+                } finally {
+                    this.waHistoryLoading = false;
+                }
+            },
+
+            async startWaCheckout() {
+                if (this.waCheckoutLoading) return;
+                this.waCheckoutLoading = true;
+
+                try {
+                    const res = await fetch('{{ route("runner.wa-subscription.checkout") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({})
+                    });
+
+                    const data = await res.json();
+
+                    if (!data.ok) {
+                        if (data.need_phone) {
+                            this.showWaSubscribeModal = false;
+                            this.showPhoneModal = true;
+                        }
+                        this.showNotification(data.message || 'Gagal memulai transaksi.', 'error');
+                        return;
+                    }
+
+                    // Testing mode: instant completion
+                    if (data.testing) {
+                        this.hasWaSubscription = true;
+                        this.isReceiveWa = true;
+                        this.waExpiresAt = data.expires_at;
+                        this.showWaSubscribeModal = false;
+                        this.showNotification(data.message || 'Langganan WhatsApp berhasil diaktifkan!', 'success');
+                        return;
+                    }
+
+                    // Snap modal
+                    if (data.snap_token && typeof window.snap !== 'undefined') {
+                        const self = this;
+                        window.snap.pay(data.snap_token, {
+                            onSuccess: function (result) {
+                                self.confirmWaPayment(data.order_id);
+                            },
+                            onPending: function (result) {
+                                self.confirmWaPayment(data.order_id);
+                            },
+                            onError: function (result) {
+                                self.showNotification('Pembayaran gagal atau dibatalkan.', 'error');
+                            },
+                            onClose: function () {
+                                self.confirmWaPayment(data.order_id);
+                            }
+                        });
+                    } else if (!data.snap_token) {
+                        this.showNotification('Token pembayaran tidak valid.', 'error');
+                    } else {
+                        this.showNotification('Modul pembayaran Midtrans belum termuat. Silakan refresh halaman.', 'error');
+                    }
+                } catch (e) {
+                    console.error('WA Checkout error:', e);
+                    this.showNotification('Terjadi kesalahan saat memproses checkout.', 'error');
+                } finally {
+                    this.waCheckoutLoading = false;
+                }
+            },
+
+            async confirmWaPayment(orderId) {
+                if (!orderId) return;
+                try {
+                    const res = await fetch('{{ route("runner.wa-subscription.confirm") }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify({ order_id: orderId })
+                    });
+                    const data = await res.json();
+                    if (data.ok && data.status === 'paid') {
+                        this.hasWaSubscription = true;
+                        this.isReceiveWa = true;
+                        this.waExpiresAt = data.expires_at;
+                        this.showWaSubscribeModal = false;
+                        this.showNotification(data.message || 'Langganan WhatsApp aktif!', 'success');
+                    } else if (data.ok) {
+                        this.showNotification(data.message || 'Menunggu konfirmasi pembayaran.', 'info');
+                    }
+                } catch (e) {
+                    console.error('Confirmation check error:', e);
                 }
             },
 

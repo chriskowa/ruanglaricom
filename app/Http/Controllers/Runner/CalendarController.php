@@ -586,7 +586,7 @@ class CalendarController extends Controller
                         'phase' => $this->getTrainingPhase($session['day'], $program->duration_weeks ?? 12),
                         'target_pace' => $paceInfo,
                         'is_locked' => $isLocked,
-                        'session' => $session,
+                        'session' => array_merge($session, ['is_locked' => $isLocked]),
                     ];
                     $plansByDate[$plan['date']] = $plan;
                 }
