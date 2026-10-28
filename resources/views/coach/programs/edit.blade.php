@@ -85,63 +85,50 @@
 .ck a { color: #befd00 !important; text-decoration: underline !important; }
 .ck blockquote { border-left: 3px solid #befd00 !important; padding-left: 1rem !important; color: #cbd5e1 !important; font-style: normal !important; }
 </style>
-<main class="min-h-screen pt-20 pb-10 px-4 md:px-8 font-sans" id="program-builder-app" v-cloak>
+<div class="pt-2 md:pt-4 pb-12 px-4 md:px-8 font-sans" id="program-builder-app" v-cloak>
     <div class="max-w-7xl mx-auto">
-        <div class="flex flex-col md:flex-row justify-between items-start gap-4 mb-8">
+        <div class="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6 pb-4 border-b border-slate-800">
             <div>
-                <a href="{{ route('coach.programs.index') }}" class="text-slate-400 hover:text-white text-xs mb-2 flex items-center gap-1">
-                    ← Back to Programs
+                <a href="{{ route('coach.programs.index') }}" class="text-slate-400 hover:text-white text-xs mb-1.5 inline-flex items-center gap-1 transition">
+                    ← Kembali ke Program
                 </a>
-                <h1 class="text-3xl md:text-4xl font-black text-white italic tracking-tighter">Edit Program</h1>
-                <p class="text-slate-400 text-sm mt-1">Update your training plan.</p>
+                <h1 class="text-2xl font-bold text-white tracking-tight" style="font-family: 'Inter Tight', 'Sora', sans-serif;">Edit Program</h1>
+                <p class="text-slate-400 text-xs mt-0.5">Kelola struktur jadwal dan detail program latihan.</p>
             </div>
-            <div class="flex gap-3 flex-wrap">
-                <button type="button" @click="triggerImport" class="px-4 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white hover:border-neon hover:text-neon transition text-sm flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
-                    </svg>
+            
+            <div class="flex items-center flex-wrap gap-2">
+                <!-- Import Actions -->
+                <button type="button" @click="triggerImport" class="px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white transition text-xs font-medium">
                     Import JSON
                 </button>
                 <input type="file" ref="fileInput" class="hidden" accept=".json" @change="handleImport">
                 
-                <button type="button" @click="triggerCsvImport" class="px-4 py-3 rounded-xl bg-slate-800 border border-slate-600 text-white hover:border-neon hover:text-neon transition text-sm flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
+                <button type="button" @click="triggerCsvImport" class="px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 hover:text-white transition text-xs font-medium">
                     Import CSV
                 </button>
                 <input type="file" ref="csvFileInput" class="hidden" accept=".csv" @change="handleCsvImport">
 
-                <button type="button" @click="downloadCsvTemplate" class="text-xs text-neon hover:underline flex items-center gap-1 self-center mr-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                    </svg>
+                <button type="button" @click="downloadCsvTemplate" class="px-2.5 py-1.5 text-xs text-neon hover:text-white hover:underline transition font-medium">
                     CSV Template
                 </button>
 
-                <!-- Export Buttons -->
-                <a href="{{ route('coach.programs.export-excel', $program->id) }}" class="px-4 py-3 rounded-xl bg-green-900/30 border border-green-600/50 text-green-400 hover:bg-green-600 hover:text-white transition text-sm flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                    Export Excel
-                </a>
-                <a href="{{ route('coach.programs.export-csv', $program->id) }}" class="px-4 py-3 rounded-xl bg-cyan-900/30 border border-cyan-600/50 text-cyan-400 hover:bg-cyan-600 hover:text-white transition text-sm flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                    Export CSV
-                </a>
-                <a href="{{ route('coach.programs.export-json', $program->id) }}" class="px-4 py-3 rounded-xl bg-yellow-900/30 border border-yellow-600/50 text-yellow-400 hover:bg-yellow-600 hover:text-white transition text-sm flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                    </svg>
-                    Export JSON
-                </a>
+                <!-- Export Group -->
+                <div class="inline-flex items-center rounded-md border border-slate-700 bg-slate-900 p-0.5 text-xs">
+                    <span class="px-2 py-1 text-slate-400 text-[11px] font-semibold uppercase tracking-wider select-none">Export</span>
+                    <a href="{{ route('coach.programs.export-excel', $program->id) }}" class="px-2.5 py-1 rounded text-slate-200 hover:text-white hover:bg-slate-800 transition" title="Export format Excel">Excel</a>
+                    <a href="{{ route('coach.programs.export-csv', $program->id) }}" class="px-2.5 py-1 rounded text-slate-200 hover:text-white hover:bg-slate-800 transition" title="Export format CSV">CSV</a>
+                    <a href="{{ route('coach.programs.export-json', $program->id) }}" class="px-2.5 py-1 rounded text-slate-200 hover:text-white hover:bg-slate-800 transition" title="Export format JSON">JSON</a>
+                </div>
 
-                 <button type="button" @click="saveProgram" :disabled="saving" class="px-6 py-3 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition shadow-lg shadow-neon/20 flex items-center gap-2">
-                    <span v-if="saving" class="animate-spin">⟳</span>
-                    @{{ saving ? 'Saving...' : 'Update Program' }}
+                <!-- Reset Schedule Button -->
+                <button type="button" @click="resetSchedule" class="px-3 py-1.5 rounded-md bg-rose-950/20 hover:bg-rose-950/60 border border-rose-900/60 text-rose-400 hover:text-rose-200 transition text-xs font-semibold" title="Kosongkan semua sesi latihan dari jadwal program">
+                    Reset Jadwal
+                </button>
+
+                <!-- Save Program Button -->
+                <button type="button" @click="saveProgram" :disabled="saving" class="px-4 py-1.5 rounded-md bg-neon hover:bg-white text-slate-950 transition-colors text-xs font-bold uppercase tracking-wider disabled:opacity-50 inline-flex items-center gap-1.5">
+                    <span v-if="saving" class="inline-block animate-spin text-sm">⟳</span>
+                    @{{ saving ? 'Menyimpan...' : 'Update Program' }}
                 </button>
             </div>
         </div>
@@ -523,9 +510,18 @@
                     </div>
                 </div>
                 
-                <div class="mt-4 flex flex-col items-end gap-2">
-                    <button type="button" @click="copyWeek" class="text-xs text-neon hover:underline">Copy this week to next week</button>
-                    <button type="button" @click="deleteWeekSessions" class="text-xs text-red-500 hover:underline">Delete program this week</button>
+                <div class="mt-4 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-800/80 pt-3">
+                    <button type="button" @click="resetSchedule" class="text-xs text-rose-400 hover:text-rose-300 hover:underline inline-flex items-center gap-1">
+                        Reset Seluruh Jadwal Program (@{{ form.sessions.length }} sesi)
+                    </button>
+                    <div class="flex items-center gap-4">
+                        <button type="button" @click="deleteWeekSessions" class="text-xs text-slate-400 hover:text-rose-400 transition">
+                            Hapus Sesi Minggu Ini (@{{ currentWeek }})
+                        </button>
+                        <button type="button" @click="copyWeek" class="text-xs text-neon hover:underline">
+                            Salin Minggu Ini ke Minggu Berikutnya →
+                        </button>
+                    </div>
                 </div>
             </div>
         </form>
@@ -954,7 +950,7 @@
         
 
     </div>
-</main>
+</div>
 @endsection
 
 @push('scripts')
@@ -1598,6 +1594,22 @@ createApp({
             
             form.sessions = form.sessions.filter(s => s.day < startCurrent || s.day > endCurrent);
         };
+
+        const resetSchedule = () => {
+            const count = form.sessions.length;
+            if (count === 0) {
+                alert('Jadwal program latihan sudah dalam keadaan kosong.');
+                return;
+            }
+
+            if (!confirm(`Apakah Anda yakin ingin menghapus seluruh ${count} sesi latihan dari jadwal program ini?\n\nSemua jadwal dari Minggu 1 sampai Minggu ${form.duration_weeks} akan dikosongkan. Klik "Update Program" setelahnya untuk menyimpan perubahan.`)) {
+                return;
+            }
+
+            form.sessions.splice(0, form.sessions.length);
+            currentWeek.value = 1;
+            builderVisible.value = false;
+        };
         
         const addWeek = () => {
             form.duration_weeks = Number(form.duration_weeks) + 1;
@@ -1974,7 +1986,7 @@ createApp({
             getSessions, getSessionColor, getWorkoutsByType, handleDrop, handleSessionDrop,
             openBuilderAdd, openBuilderEdit, builderVisible, builderSummary, builderTotalDistance, saveBuilder, closeBuilder, builderForm,
             builderIsEditing, builderSessionId, builderTargetWeek, builderTargetDay,
-            copyWeek, deleteWeekSessions, updateWeeks, addWeek, saveProgram, downloadTemplate, triggerImport, handleImport, fileInput,
+            copyWeek, deleteWeekSessions, resetSchedule, updateWeeks, addWeek, saveProgram, downloadTemplate, triggerImport, handleImport, fileInput,
             csvFileInput, triggerCsvImport, handleCsvImport, downloadCsvTemplate,
             dragOverThumbnail, thumbnailPreview, thumbnailInput, handleThumbnailDrop, triggerThumbnailSelect, removeThumbnail,
             handleFileChange, showCustomModal, customWorkout, saveCustomWorkout, workoutTypes, masterWorkouts,

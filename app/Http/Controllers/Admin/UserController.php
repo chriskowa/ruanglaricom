@@ -64,6 +64,7 @@ class UserController extends Controller
             'runners' => User::where('role', 'runner')->count(),
             'coaches' => User::where('role', 'coach')->count(),
             'active' => User::where('is_active', true)->count(),
+            'wa_active' => User::where('is_receive_wa', true)->count(),
         ];
 
         $programs = Program::select('id', 'title')->where('is_active', true)->get();
@@ -316,6 +317,26 @@ class UserController extends Controller
         $status = $user->is_active ? 'activated' : 'deactivated';
 
         return back()->with('success', "User {$user->name} has been {$status}.");
+    }
+
+    /**
+     * Disable WhatsApp notifications for all users.
+     */
+    public function disableAllWaNotify(Request $request)
+    {
+        $updatedCount = User::where('is_receive_wa', true)->update(['is_receive_wa' => false]);
+
+        $message = "Berhasil menonaktifkan notifikasi WhatsApp untuk {$updatedCount} pengguna.";
+
+        if ($request->ajax() || $request->wantsJson()) {
+            return response()->json([
+                'success' => true,
+                'updated_count' => $updatedCount,
+                'message' => $message,
+            ]);
+        }
+
+        return back()->with('success', $message);
     }
 
     /**

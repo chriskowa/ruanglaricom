@@ -4,26 +4,42 @@
 @section('title', 'Manage Users')
 
 @section('content')
-<div x-data="userManagementComponent" class="min-h-screen pt-20 pb-10 px-4 md:px-8 relative overflow-hidden font-sans">
+<div x-data="userManagementComponent" class="min-h-screen pt-4 pb-12 px-4 md:px-8 relative overflow-hidden font-sans">
     
     <!-- Header -->
-    <div class="mb-8 flex flex-col md:flex-row justify-between items-end gap-4 relative z-10">
+    <div class="mb-6 pb-4 border-b border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 relative z-10">
         <div>
-            <a href="{{ route('admin.dashboard') }}" class="text-slate-400 hover:text-white text-sm mb-2 inline-flex items-center gap-1 transition-colors">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
+            <a href="{{ route('admin.dashboard') }}" class="text-slate-400 hover:text-white text-xs mb-1.5 inline-flex items-center gap-1 transition-colors">
+                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
                 Back to Dashboard
             </a>
-            <h1 class="text-3xl md:text-4xl font-black text-white italic tracking-tighter">
+            <h1 class="text-2xl md:text-3xl font-bold text-white tracking-tight" style="font-family: 'Inter Tight', 'Sora', sans-serif;">
                 USER MANAGEMENT
             </h1>
-            <p class="text-slate-400 mt-1">Monitor, manage, and support your platform users.</p>
+            <p class="text-slate-400 text-xs mt-0.5">Kelola seluruh pengguna, hak akses, dan preferensi notifikasi platform.</p>
         </div>
         
         <!-- Actions -->
-        <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto items-end">
-            <button @click="openCreateModal()" class="w-full sm:w-auto inline-flex justify-center items-center px-4 py-2.5 border border-transparent rounded-xl shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all">
-                <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" /></svg>
-                Add New User
+        <div class="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
+            <!-- Button Nonaktifkan WA Notify Semua User -->
+            <button type="button"
+                @click="disableAllWaNotify()"
+                :disabled="isDisablingWa || waActiveCount === 0"
+                class="inline-flex items-center justify-center gap-2 px-3 py-2 rounded-md text-xs font-semibold border border-rose-900/60 bg-rose-950/30 hover:bg-rose-900/60 text-rose-300 hover:text-white transition disabled:opacity-40 disabled:cursor-not-allowed"
+                title="Menonaktifkan notifikasi WhatsApp harian untuk seluruh pengguna">
+                <span x-show="isDisablingWa" class="inline-block animate-spin text-xs">⟳</span>
+                <span>Nonaktifkan WA Notify Semua User</span>
+                <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-900/80 text-rose-200" x-text="waActiveCount">
+                    {{ $stats['wa_active'] ?? 0 }}
+                </span>
+            </button>
+
+            <!-- Add New User -->
+            <button type="button" 
+                @click="openCreateModal()" 
+                class="inline-flex items-center justify-center gap-1.5 px-3.5 py-2 rounded-md text-xs font-semibold text-slate-950 bg-neon hover:bg-white transition-colors">
+                <span class="text-sm font-bold leading-none">+</span>
+                <span>Add New User</span>
             </button>
         </div>
     </div>
@@ -102,41 +118,50 @@
     </div>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8 relative z-10">
-        <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-4 md:p-5 flex items-center gap-4">
-            <div class="p-3 rounded-full bg-blue-500/10 text-blue-500">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+    <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 mb-6 relative z-10">
+        <div class="bg-slate-900/70 border border-slate-800 rounded-lg p-3.5 flex items-center gap-3">
+            <div class="p-2.5 rounded-md bg-blue-500/10 text-blue-400 flex-shrink-0">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
             </div>
             <div>
-                <p class="text-slate-400 text-xs uppercase tracking-wider font-bold">Total Users</p>
-                <p class="text-2xl font-black text-white">{{ $stats['total'] }}</p>
+                <p class="text-slate-400 text-[11px] uppercase tracking-wider font-bold">Total Users</p>
+                <p class="text-xl font-bold text-white">{{ $stats['total'] }}</p>
             </div>
         </div>
-        <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-4 md:p-5 flex items-center gap-4">
-            <div class="p-3 rounded-full bg-green-500/10 text-green-500">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+        <div class="bg-slate-900/70 border border-slate-800 rounded-lg p-3.5 flex items-center gap-3">
+            <div class="p-2.5 rounded-md bg-green-500/10 text-green-400 flex-shrink-0">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
             </div>
             <div>
-                <p class="text-slate-400 text-xs uppercase tracking-wider font-bold">Runners</p>
-                <p class="text-2xl font-black text-white">{{ $stats['runners'] }}</p>
+                <p class="text-slate-400 text-[11px] uppercase tracking-wider font-bold">Runners</p>
+                <p class="text-xl font-bold text-white">{{ $stats['runners'] }}</p>
             </div>
         </div>
-        <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-4 md:p-5 flex items-center gap-4">
-            <div class="p-3 rounded-full bg-purple-500/10 text-purple-500">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
+        <div class="bg-slate-900/70 border border-slate-800 rounded-lg p-3.5 flex items-center gap-3">
+            <div class="p-2.5 rounded-md bg-purple-500/10 text-purple-400 flex-shrink-0">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" /></svg>
             </div>
             <div>
-                <p class="text-slate-400 text-xs uppercase tracking-wider font-bold">Coaches</p>
-                <p class="text-2xl font-black text-white">{{ $stats['coaches'] }}</p>
+                <p class="text-slate-400 text-[11px] uppercase tracking-wider font-bold">Coaches</p>
+                <p class="text-xl font-bold text-white">{{ $stats['coaches'] }}</p>
             </div>
         </div>
-        <div class="bg-card/50 backdrop-blur-md border border-slate-700/50 rounded-2xl p-4 md:p-5 flex items-center gap-4">
-            <div class="p-3 rounded-full bg-emerald-500/10 text-emerald-500">
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+        <div class="bg-slate-900/70 border border-slate-800 rounded-lg p-3.5 flex items-center gap-3">
+            <div class="p-2.5 rounded-md bg-emerald-500/10 text-emerald-400 flex-shrink-0">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             </div>
             <div>
-                <p class="text-slate-400 text-xs uppercase tracking-wider font-bold">Active Now</p>
-                <p class="text-2xl font-black text-white">{{ $stats['active'] }}</p>
+                <p class="text-slate-400 text-[11px] uppercase tracking-wider font-bold">Active Now</p>
+                <p class="text-xl font-bold text-white">{{ $stats['active'] }}</p>
+            </div>
+        </div>
+        <div class="bg-slate-900/70 border border-slate-800 rounded-lg p-3.5 flex items-center gap-3">
+            <div class="p-2.5 rounded-md bg-teal-500/10 text-teal-400 flex-shrink-0">
+                <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" /></svg>
+            </div>
+            <div>
+                <p class="text-slate-400 text-[11px] uppercase tracking-wider font-bold">WA Notify ON</p>
+                <p class="text-xl font-bold text-teal-400" x-text="waActiveCount">{{ $stats['wa_active'] ?? 0 }}</p>
             </div>
         </div>
     </div>
@@ -713,6 +738,8 @@
                 loadingUser: false,
                 savingCreate: false,
                 savingEdit: false,
+                isDisablingWa: false,
+                waActiveCount: {{ (int) ($stats['wa_active'] ?? 0) }},
                 createErrors: {},
                 editErrors: {},
                 searchQuery: '{{ request('q') }}',
@@ -946,6 +973,47 @@
                     } catch (e) {
                         console.error(e);
                         alert('Terjadi kesalahan koneksi.');
+                    }
+                },
+
+                async disableAllWaNotify() {
+                    const count = this.waActiveCount;
+                    const confirmText = count > 0
+                        ? `Apakah Anda yakin ingin menonaktifkan notifikasi WhatsApp untuk SEMUA pengguna?\n\nSaat ini terdapat ${count} pengguna yang mengaktifkan WhatsApp Notify. Semua notifikasi WhatsApp harian akan dinonaktifkan.`
+                        : 'Saat ini tidak ada pengguna dengan notifikasi WhatsApp aktif. Tetap jalankan reset ke seluruh pengguna?';
+
+                    if (!confirm(confirmText)) {
+                        return;
+                    }
+
+                    this.isDisablingWa = true;
+                    try {
+                        const csrfMeta = document.querySelector('meta[name=csrf-token]');
+                        const token = csrfMeta ? csrfMeta.getAttribute('content') : '{{ csrf_token() }}';
+
+                        const res = await fetch('{{ route('admin.users.disable-all-wa') }}', {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': token,
+                                'X-Requested-With': 'XMLHttpRequest',
+                                'Accept': 'application/json',
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify({})
+                        });
+
+                        const data = await res.json();
+                        if (res.ok && data.success) {
+                            alert(data.message || 'Notifikasi WhatsApp untuk semua pengguna berhasil dinonaktifkan.');
+                            window.location.reload();
+                        } else {
+                            alert((data && data.message) || 'Gagal menonaktifkan notifikasi WhatsApp.');
+                        }
+                    } catch (err) {
+                        console.error('Error disabling all WA notify:', err);
+                        alert('Terjadi kesalahan koneksi saat menonaktifkan notifikasi WhatsApp.');
+                    } finally {
+                        this.isDisablingWa = false;
                     }
                 },
 

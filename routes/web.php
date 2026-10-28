@@ -1052,6 +1052,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('strength-exercises', App\Http\Controllers\Admin\StrengthExerciseController::class)->except(['create', 'show', 'edit']);
 
         // User Management
+        Route::post('users/disable-all-wa', [App\Http\Controllers\Admin\UserController::class, 'disableAllWaNotify'])->name('users.disable-all-wa');
         Route::resource('users', App\Http\Controllers\Admin\UserController::class);
         Route::get('users/{user}/transactions', [App\Http\Controllers\Admin\UserController::class, 'transactions'])->name('users.transactions');
         Route::post('users/{user}/wallet', [App\Http\Controllers\Admin\UserController::class, 'adjustWallet'])->name('users.wallet');
