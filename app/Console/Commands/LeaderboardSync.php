@@ -48,7 +48,7 @@ class LeaderboardSync extends Command
             foreach ($userActs as $act) {
                 $type = $act['type'] ?? '';
                 $distanceMeters = (int) ($act['distance'] ?? 0);
-                $startDate = Carbon::parse($act['start_date_local'] ?? $act['start_date'] ?? Carbon::now());
+                $startDate = \App\Models\StravaActivity::parseStravaStartDate($act) ?? Carbon::now();
                 if ($startDate->isSameDay($today)) {
                     $didWorkoutToday = true;
                 }

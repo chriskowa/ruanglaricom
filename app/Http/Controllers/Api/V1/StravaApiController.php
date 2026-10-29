@@ -41,7 +41,7 @@ class StravaApiController extends BaseApiController
 
         // Fetch recent synchronized activities
         $activities = StravaActivity::where('user_id', $user->id)
-            ->orderBy('start_date_local', 'desc')
+            ->orderBy('start_date', 'desc')
             ->take(10)
             ->get();
 

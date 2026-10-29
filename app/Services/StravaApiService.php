@@ -144,4 +144,46 @@ class StravaApiService
 
         return $mins.':'.str_pad((string) $secs, 2, '0', STR_PAD_LEFT);
     }
+
+    /**
+     * Parse Strava activity start date into local application timezone.
+     * Strava returns start_date_local (local wall-clock time) with a trailing 'Z'.
+     * We strip 'Z' to avoid Carbon shifting it as UTC.
+     */
+    public static function parseActivityStartDate(array|object|string|null $data, ?string $fallbackUtc = null): ?\Illuminate\Support\Carbon
+    {
+        if (! $data) {
+            $local = null;
+            $utc = $fallbackUtc;
+        } elseif (is_string($data)) {
+            $local = $data;
+            $utc = $fallbackUtc;
+        } else {
+            $local = data_get($data, 'start_date_local');
+            $utc = data_get($data, 'start_date') ?: $fallbackUtc;
+        }
+
+        $tz = config('app.timezone') ?: 'Asia/Jakarta';
+
+        // 1. start_date_local: Wall-clock time recorded in athlete's local timezone
+        if ($local && is_string($local)) {
+            try {
+                // Strava attaches a trailing 'Z' on local times (e.g. 2026-05-26T04:59:09Z).
+                // Strip the trailing 'Z' so Carbon parses it as pure wall-clock time in the app timezone.
+                $clean = preg_replace('/[Zz]$/', '', trim($local));
+                return \Illuminate\Support\Carbon::parse($clean, $tz);
+            } catch (\Throwable $e) {
+            }
+        }
+
+        // 2. start_date: True UTC time (ends with Z)
+        if ($utc && is_string($utc)) {
+            try {
+                return \Illuminate\Support\Carbon::parse($utc)->setTimezone($tz);
+            } catch (\Throwable $e) {
+            }
+        }
+
+        return null;
+    }
 }

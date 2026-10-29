@@ -197,7 +197,8 @@ class AdminChallengeController extends Controller
             }
 
             // Filter by Date (must be after enrollment)
-            $activityTime = strtotime($activity['start_date_local']);
+            $parsedStart = \App\Models\StravaActivity::parseStravaStartDate($activity);
+            $activityTime = $parsedStart ? $parsedStart->timestamp : strtotime($activity['start_date_local']);
             if ($activityTime < $after) {
                 continue;
             }
@@ -217,7 +218,7 @@ class AdminChallengeController extends Controller
             }
 
             // Check duplicate by date
-            $date = date('Y-m-d', strtotime($activity['start_date_local']));
+            $date = $parsedStart ? $parsedStart->format('Y-m-d') : date('Y-m-d', strtotime($activity['start_date_local']));
             $existingDate = ChallengeActivity::where('user_id', $user->id)
                 ->where('date', $date)
                 ->exists();

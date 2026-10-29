@@ -447,7 +447,7 @@ class AthleteController extends Controller
                 'user_id' => $runner->id,
                 'name' => data_get($details, 'name'),
                 'type' => data_get($details, 'type'),
-                'start_date' => data_get($details, 'start_date_local') ?: data_get($details, 'start_date'),
+                'start_date' => StravaActivity::parseStravaStartDate($details),
                 'distance_m' => (int) round((float) data_get($details, 'distance', 0)),
                 'moving_time_s' => (int) data_get($details, 'moving_time', 0),
                 'elapsed_time_s' => (int) data_get($details, 'elapsed_time', 0),
@@ -501,7 +501,8 @@ class AthleteController extends Controller
         }
         $media = array_values(array_unique($media));
 
-        $startDate = data_get($details, 'start_date') ?: ($activity->start_date?->toIso8601String());
+        $startObj = $activity->local_start_date ?: $activity->start_date;
+        $startDate = $startObj?->toIso8601String();
         $elapsedTime = (int) data_get($details, 'elapsed_time', $activity->elapsed_time_s);
         $movingTime = (int) data_get($details, 'moving_time', $activity->moving_time_s);
         $totalTime = $elapsedTime > 0 ? $elapsedTime : ($activity->elapsed_time_s ?: 0);
@@ -601,7 +602,7 @@ class AthleteController extends Controller
                 'strava_activity_id' => $activity->strava_activity_id,
                 'name' => $activity->name,
                 'type' => $activity->type,
-                'start_date' => $activity->start_date?->toIso8601String(),
+                'start_date' => $startObj?->toIso8601String(),
                 'end_date' => $endDate,
                 'distance_m' => $activity->distance_m,
                 'distance_km' => $activity->distance_m ? round(((float) $activity->distance_m) / 1000, 2) : 0,
@@ -667,7 +668,7 @@ class AthleteController extends Controller
                 'strava_activity_id' => $activityId,
                 'name' => data_get($details, 'name'),
                 'type' => data_get($details, 'type'),
-                'start_date' => data_get($details, 'start_date_local') ?: data_get($details, 'start_date'),
+                'start_date' => StravaActivity::parseStravaStartDate($details),
                 'distance_m' => (int) round((float) data_get($details, 'distance', 0)),
                 'moving_time_s' => (int) data_get($details, 'moving_time', 0),
                 'elapsed_time_s' => (int) data_get($details, 'elapsed_time', 0),
@@ -1608,20 +1609,13 @@ class AthleteController extends Controller
                     }
                     $activityId = (string) $activityId;
 
-                    $startDate = data_get($a, 'start_date_local') ?: data_get($a, 'start_date');
-                    $start = null;
-                    if ($startDate) {
-                        try {
-                            $start = Carbon::parse($startDate)->setTimezone(config('app.timezone'));
-                        } catch (\Throwable $e) {
-                            $warnings[] = 'Aktivitas '.$activityId.' punya start_date tidak valid, dilewati.';
-                            $start = null;
-                        }
+                    $start = StravaActivity::parseStravaStartDate($a);
+                    if (! $start) {
+                        $warnings[] = 'Aktivitas '.$activityId.' punya start_date tidak valid, dilewati.';
+                        continue;
                     }
-                    if ($start) {
-                        $rangeStart = $rangeStart ? min($rangeStart, $start) : $start;
-                        $rangeEnd = $rangeEnd ? max($rangeEnd, $start) : $start;
-                    }
+                    $rangeStart = $rangeStart ? min($rangeStart, $start) : $start;
+                    $rangeEnd = $rangeEnd ? max($rangeEnd, $start) : $start;
 
                     $payload = [
                         'user_id' => $runner->id,

@@ -45,15 +45,17 @@ class StravaActivity extends Model
         return 'https://www.strava.com/activities/'.$this->strava_activity_id;
     }
 
+    public static function parseStravaStartDate(array|object|string|null $data, ?string $fallbackUtc = null): ?Carbon
+    {
+        return \App\Services\StravaApiService::parseActivityStartDate($data, $fallbackUtc);
+    }
+
     public function getLocalStartDateAttribute(): ?Carbon
     {
         $raw = is_array($this->raw) ? $this->raw : [];
-        $local = data_get($raw, 'start_date_local') ?: data_get($raw, 'details.start_date_local');
-        if ($local) {
-            try {
-                return Carbon::parse($local)->setTimezone(config('app.timezone'));
-            } catch (\Throwable $e) {
-            }
+        $parsed = static::parseStravaStartDate($raw);
+        if ($parsed) {
+            return $parsed;
         }
 
         return $this->start_date ? $this->start_date->copy()->setTimezone(config('app.timezone')) : null;

@@ -153,5 +153,28 @@ class StravaWorkoutAnalysisTest extends TestCase
         $this->assertNotEquals('easy_run', $hint['type']);
         $this->assertContains($hint['type'], ['threshold', 'interval']);
     }
+
+    public function test_parse_strava_start_date_preserves_local_wall_clock_time(): void
+    {
+        $payloadWithLocal = [
+            'start_date_local' => '2026-05-26T04:59:09Z',
+            'start_date' => '2026-05-25T21:59:09Z',
+        ];
+
+        $parsed = \App\Models\StravaActivity::parseStravaStartDate($payloadWithLocal);
+
+        $this->assertNotNull($parsed);
+        // Athlete ran at 04:59:09 in the morning, must NOT be shifted by +7 hours to 11:59:09
+        $this->assertEquals('2026-05-26 04:59:09', $parsed->format('Y-m-d H:i:s'));
+        $this->assertEquals('04:59:09', $parsed->format('H:i:s'));
+
+        // Fallback test when only UTC start_date is provided
+        $payloadUtcOnly = [
+            'start_date' => '2026-05-25T21:59:09Z',
+        ];
+        $parsedUtc = \App\Models\StravaActivity::parseStravaStartDate($payloadUtcOnly);
+        $this->assertNotNull($parsedUtc);
+        $this->assertEquals('2026-05-26 04:59:09', $parsedUtc->format('Y-m-d H:i:s'));
+    }
 }
 
