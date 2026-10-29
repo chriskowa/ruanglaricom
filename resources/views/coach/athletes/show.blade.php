@@ -2135,8 +2135,18 @@
                                     <!-- Classification Chip -->
                                     <div class="flex flex-wrap items-center gap-2">
                                         <span class="text-xs text-slate-400">Klasifikasi:</span>
-                                        <span class="px-2.5 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 text-xs font-bold uppercase tracking-wide">
-                                            @{{ stravaAiAnalysis.workout_classification?.type || 'Workout' }}
+                                        <span class="px-2.5 py-0.5 rounded text-xs font-bold uppercase tracking-wide"
+                                            :class="{
+                                                'bg-rose-500/10 text-rose-400 border border-rose-800/40': ['interval', 'repetition'].includes((stravaAiAnalysis.workout_classification?.type || '').toLowerCase()),
+                                                'bg-amber-500/10 text-amber-400 border border-amber-800/40': ['threshold', 'tempo'].includes((stravaAiAnalysis.workout_classification?.type || '').toLowerCase()),
+                                                'bg-sky-500/10 text-sky-400 border border-sky-800/40': ['long_run', 'long_run_quality'].includes((stravaAiAnalysis.workout_classification?.type || '').toLowerCase()),
+                                                'bg-emerald-500/10 text-emerald-400 border border-emerald-800/40': ['easy_run', 'easy', 'recovery'].includes((stravaAiAnalysis.workout_classification?.type || '').toLowerCase()),
+                                                'bg-slate-800 text-slate-300 border border-slate-700': !['interval', 'repetition', 'threshold', 'tempo', 'long_run', 'long_run_quality', 'easy_run', 'easy', 'recovery'].includes((stravaAiAnalysis.workout_classification?.type || '').toLowerCase())
+                                            }">
+                                            @{{ (stravaAiAnalysis.workout_classification?.type || 'Workout').replace(/_/g, ' ') }}
+                                        </span>
+                                        <span v-if="stravaAiAnalysis.hr_zones_summary?.high_intensity_pct >= 30" class="text-xs text-rose-400 font-mono bg-rose-950/40 px-2 py-0.5 rounded border border-rose-800/40">
+                                            Zone 4+5: <strong class="text-white">@{{ stravaAiAnalysis.hr_zones_summary.high_intensity_pct }}%</strong>
                                         </span>
                                         <span v-if="stravaAiAnalysis.pacing_evaluation?.cardiac_drift" class="text-xs text-slate-400 font-mono">
                                             Cardiac Drift: <strong class="text-white">@{{ stravaAiAnalysis.pacing_evaluation.cardiac_drift }}</strong>
@@ -2149,27 +2159,30 @@
                                     </div>
 
                                     <!-- Interval & Repetition Scorecard -->
-                                    <div v-if="stravaAiAnalysis.interval_analysis && stravaAiAnalysis.interval_analysis.detected_structure && !stravaAiAnalysis.interval_analysis.detected_structure.toLowerCase().includes('tidak ada')" class="p-3 bg-slate-900 rounded-md border border-orange-500/30 text-xs space-y-2">
+                                    <div v-if="(stravaAiAnalysis.interval_analysis && stravaAiAnalysis.interval_analysis.detected_structure && !stravaAiAnalysis.interval_analysis.detected_structure.toLowerCase().includes('tidak ada')) || stravaAiAnalysis.splits_interval_analysis?.is_interval_detected" class="p-3 bg-slate-900 rounded-md border border-orange-500/30 text-xs space-y-2">
                                         <div class="flex flex-wrap items-center justify-between gap-1">
                                             <div class="font-bold text-orange-400 uppercase tracking-wide">
                                                 Struktur Repetisi / Interval Terdeteksi
                                             </div>
                                             <span class="px-2 py-0.5 rounded bg-orange-500/20 text-orange-300 font-mono text-[11px] font-semibold border border-orange-500/30">
-                                                @{{ stravaAiAnalysis.interval_analysis.detected_structure }}
+                                                @{{ (stravaAiAnalysis.interval_analysis && stravaAiAnalysis.interval_analysis.detected_structure && !stravaAiAnalysis.interval_analysis.detected_structure.toLowerCase().includes('tidak ada')) ? stravaAiAnalysis.interval_analysis.detected_structure : ('Interval Split KM ' + (stravaAiAnalysis.splits_interval_analysis?.fast_splits || []).join(', ')) }}
                                             </span>
                                         </div>
                                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1 text-[11px]">
-                                            <div v-if="stravaAiAnalysis.interval_analysis.pacing_consistency" class="bg-slate-950 p-2 rounded border border-slate-800">
+                                            <div v-if="stravaAiAnalysis.interval_analysis?.pacing_consistency" class="bg-slate-950 p-2 rounded border border-slate-800">
                                                 <span class="text-slate-400">Konsistensi Pace:</span>
                                                 <span class="text-white font-semibold ml-1 capitalize font-mono">@{{ stravaAiAnalysis.interval_analysis.pacing_consistency.replace(/_/g, ' ') }}</span>
                                             </div>
-                                            <div v-if="stravaAiAnalysis.interval_analysis.recovery_quality" class="bg-slate-950 p-2 rounded border border-slate-800">
+                                            <div v-if="stravaAiAnalysis.interval_analysis?.recovery_quality" class="bg-slate-950 p-2 rounded border border-slate-800">
                                                 <span class="text-slate-400">Kualitas Recovery:</span>
                                                 <span class="text-white font-semibold ml-1 capitalize font-mono">@{{ stravaAiAnalysis.interval_analysis.recovery_quality.replace(/_/g, ' ') }}</span>
                                             </div>
                                         </div>
-                                        <div v-if="stravaAiAnalysis.interval_analysis.notes" class="text-slate-300 text-[11px] italic bg-slate-950/60 p-2 rounded border border-slate-800/80">
+                                        <div v-if="stravaAiAnalysis.interval_analysis?.notes" class="text-slate-300 text-[11px] italic bg-slate-950/60 p-2 rounded border border-slate-800/80">
                                             @{{ stravaAiAnalysis.interval_analysis.notes }}
+                                        </div>
+                                        <div v-else-if="stravaAiAnalysis.splits_interval_analysis?.evidence && stravaAiAnalysis.splits_interval_analysis.evidence.length > 0" class="text-slate-300 text-[11px] italic bg-slate-950/60 p-2 rounded border border-slate-800/80">
+                                            @{{ stravaAiAnalysis.splits_interval_analysis.evidence.join(' ') }}
                                         </div>
                                     </div>
 

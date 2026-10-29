@@ -586,58 +586,9 @@ class AthleteController extends Controller
         }
 
         // Calculate Heart Rate Zones
-        $age = $runner->date_of_birth ? Carbon::parse($runner->date_of_birth)->age : 30;
-        $maxHr = (int) (data_get($details, 'max_heartrate') ?: (220 - $age));
-        if ($maxHr < 140) $maxHr = 190;
-
-        $hrZonesDef = [
-            ['name' => 'Zone 1 (Recovery)', 'min' => round($maxHr * 0.50), 'max' => round($maxHr * 0.60), 'color' => '#64748b'],
-            ['name' => 'Zone 2 (Aerobic / Easy)', 'min' => round($maxHr * 0.60), 'max' => round($maxHr * 0.70), 'color' => '#22c55e'],
-            ['name' => 'Zone 3 (Tempo)', 'min' => round($maxHr * 0.70), 'max' => round($maxHr * 0.80), 'color' => '#eab308'],
-            ['name' => 'Zone 4 (Threshold)', 'min' => round($maxHr * 0.80), 'max' => round($maxHr * 0.90), 'color' => '#f97316'],
-            ['name' => 'Zone 5 (Anaerobic / VO2max)', 'min' => round($maxHr * 0.90), 'max' => $maxHr + 30, 'color' => '#ef4444'],
-        ];
-
-        $hrStream = data_get($streams, 'heartrate.data', []);
-        $timeStream = data_get($streams, 'time.data', []);
-        $hrZonesOut = [];
-
-        if (is_array($hrStream) && count($hrStream) > 0 && is_array($timeStream) && count($timeStream) === count($hrStream)) {
-            $totalStreamSeconds = 0;
-            $zoneTimes = [0, 0, 0, 0, 0];
-
-            for ($i = 0; $i < count($hrStream); $i++) {
-                $hr = $hrStream[$i];
-                if (! is_numeric($hr) || $hr <= 0) continue;
-                $deltaSec = ($i === 0) ? ($timeStream[$i] ?? 1) : max(1, ($timeStream[$i] - $timeStream[$i - 1]));
-                $totalStreamSeconds += $deltaSec;
-
-                if ($hr < $hrZonesDef[1]['min']) {
-                    $zoneTimes[0] += $deltaSec;
-                } elseif ($hr < $hrZonesDef[2]['min']) {
-                    $zoneTimes[1] += $deltaSec;
-                } elseif ($hr < $hrZonesDef[3]['min']) {
-                    $zoneTimes[2] += $deltaSec;
-                } elseif ($hr < $hrZonesDef[4]['min']) {
-                    $zoneTimes[3] += $deltaSec;
-                } else {
-                    $zoneTimes[4] += $deltaSec;
-                }
-            }
-
-            foreach ($hrZonesDef as $idx => $z) {
-                $secs = $zoneTimes[$idx];
-                $pct = $totalStreamSeconds > 0 ? round(($secs / $totalStreamSeconds) * 100, 1) : 0;
-                $hrZonesOut[] = [
-                    'name' => $z['name'],
-                    'range' => "{$z['min']} - " . ($idx === 4 ? "{$maxHr}+" : "{$z['max']}") . " bpm",
-                    'seconds' => $secs,
-                    'duration' => gmdate($secs >= 3600 ? 'H:i:s' : 'i:s', $secs),
-                    'percentage' => $pct,
-                    'color' => $z['color'],
-                ];
-            }
-        }
+        $runnerCtrl = app(\App\Http\Controllers\Runner\StravaController::class);
+        $hrZonesData = $runnerCtrl->calculateHeartRateZones($runner, $details, $streams);
+        $hrZonesOut = $hrZonesData['zones'];
 
         // Runner Training Profile Paces for context
         $trainingProfile = app(\App\Services\RunningProfileService::class)->getProfile($runner);
@@ -816,7 +767,7 @@ class AthleteController extends Controller
             $runnerCtrl = app(\App\Http\Controllers\Runner\StravaController::class);
             $profile = app(\App\Services\RunningProfileService::class)->getProfile($runner);
             $context = $runnerCtrl->buildRecentTrainingContext($runner->id, $activity, $profile);
-            $metrics = $runnerCtrl->buildAiWorkoutPayload($activity, $details, $streams, $profile, $context, $api);
+            $metrics = $runnerCtrl->buildAiWorkoutPayload($activity, $details, $streams, $profile, $context, $api, $runner);
             $inputHash = md5(json_encode($metrics));
 
             $cachedHash = data_get($raw, 'ai_analysis.input_hash');
@@ -834,19 +785,24 @@ class AthleteController extends Controller
                 ]);
             }
 
-            $systemPrompt = "Anda adalah AI Senior Running Coach Ruang Lari yang sangat teliti dan ahli dalam menganalisis telemetri dan lap sesi latihan atlet.\n"
-                ."PRINSIP UTAMA KLASIFIKASI & EVALUASI WORKOUT (WAJIB DIPATUHI):\n"
-                ."1. DETEKSI INTERVAL / REPETISI PENDEK (200m, 300m, 400m, 600m, 800m, 1000m, 1200m, 1600m):\n"
-                ."   - WAJIB periksa data 'laps_summary', 'detected_interval_structure', dan 'telemetry_surge_analysis'.\n"
-                ."   - Jika atlet melakukan repetisi interval (misal 10x 200m, 8x 400m, 5x 1km), klasifikasikan sebagai 'interval'.\n"
-                ."   - Tuliskan struktur repetisi pada 'summary' secara spesifik (contoh: 'Jenis sesi: Interval (10x 200m Repetisi).')\n"
-                ."   - Evaluasi konsistensi pacing per repetisi: apakah merata/konsisten, terlalu kencang di awal (front-loaded), atau mengalami dropoff pace di repetisi akhir.\n"
-                ."   - Evaluasi fase recovery: apakah waktu istirahat antar repetisi cukup untuk mengembalikan detak jantung.\n"
-                ."2. Lari dengan jarak total >= 14 km (misal 15km, 18km, 24km, 30km) BERSTATUS 'long_run' atau 'long_run_quality'. DILARANG KERAS mengklasifikasikan lari jarak >= 14 km sebagai 'interval'!\n"
-                ."3. Adanya variasi pace sesaat akibat water stop atau tanjakan pada lari 24 km TIDAK BOLEH membuat lari tersebut dianggap sebagai interval.\n"
+            $systemPrompt = "Anda adalah AI Senior Running Coach Ruang Lari yang sangat teliti, analitis, dan ahli dalam fisiologi olahraga lari.\n"
+                ."PRINSIP UTAMA KLASIFIKASI & EVALUASI WORKOUT (WAJIB DIPATUHI SECARA MUTLAK):\n"
+                ."1. ATURAN DISTRIBUSI ZONA DETAK JANTUNG (HEART RATE ZONES):\n"
+                ."   - Easy Run / Recovery: WAJIB didominasi Zone 1 dan Zone 2 (aerobic base). Total Zone 1 + Zone 2 umumnya >= 65%.\n"
+                ."   - ATURAN MUTLAK: DILARANG KERAS mengklasifikasikan lari sebagai 'easy_run' atau 'recovery' jika total durasi di Zone 4 (Threshold) dan Zone 5 (Anaerobic/VO2max) melebihi 30%!\n"
+                ."   - Jika Zone 4 + Zone 5 tinggi (misal > 35%, apalagi > 50% - 90%):\n"
+                ."     * Jika terdapat repetisi cepat-lambat (sawtooth), split KM tengah kencang diselingi split pelan, laps terstruktur, atau telemetri surge -> WAJIB KLASIFIKASIKAN SEBAGAI 'interval'.\n"
+                ."     * Jika pace konstan merata dengan detak jantung tinggi konstan di Zone 4 -> klasifikasikan sebagai 'threshold' atau 'tempo'.\n"
+                ."     * Jika Zone 5 sangat dominan (> 30%) -> sesi tersebut berintensitas anaerobik/VO2max sangat tinggi, BUKAN lari santai!\n"
+                ."2. DETEKSI INTERVAL / REPETISI:\n"
+                ."   - Periksa data 'splits_summary', 'splits_interval_analysis', 'laps_summary', 'detected_interval_structure', dan 'telemetry_surge_analysis'.\n"
+                ."   - Jika split tengah lebih kencang dibanding split awal/akhir, atau ada pola selang-seling cepat-lambat, ini adalah sesi 'interval'.\n"
+                ."   - Tuliskan struktur repetisi pada 'summary' secara spesifik (contoh: 'Jenis sesi: Interval (Repetisi pada split KM tengah dengan intensitas Zone 4/5).')\n"
+                ."   - Evaluasi konsistensi pacing per repetisi dan kualitas recovery.\n"
+                ."3. Lari dengan jarak total >= 14 km BERSTATUS 'long_run' atau 'long_run_quality'. DILARANG KERAS mengklasifikasikan lari jarak >= 14 km sebagai 'interval'!\n"
                 ."4. Jawab hanya dalam Bahasa Indonesia yang ringkas, berbobot teknis pelatih lari, dan objektif. Return HARUS JSON valid.";
 
-            $userPrompt = "Analisis workout berikut untuk pelatih (coach) dengan memperhatikan detail laps dan telemetri repetisi pendek.\n"
+            $userPrompt = "Analisis workout berikut untuk pelatih (coach) dengan memperhatikan distribusi detak jantung (hr_zones_summary), split KM (splits_summary & splits_interval_analysis), laps, dan telemetri.\n"
                 ."Summary WAJIB diawali dengan 'Jenis sesi: <type>.'\n"
                 ."Format output JSON:\n"
                 ."{\n"
@@ -855,7 +811,7 @@ class AthleteController extends Controller
                 ."    \"evidence\": [\"...\"]\n"
                 ."  },\n"
                 ."  \"interval_analysis\": {\n"
-                ."    \"detected_structure\": \"misal: 10x 200m / 8x 400m / Tidak ada repetisi\",\n"
+                ."    \"detected_structure\": \"misal: 10x 200m / 8x 400m / Interval split KM tengah / Tidak ada repetisi\",\n"
                 ."    \"pacing_consistency\": \"konsisten|dropoff_di_akhir|progresif|tidak_teratur\",\n"
                 ."    \"recovery_quality\": \"optimal|terlalu_singkat|terlalu_panjang|tidak_terekam\",\n"
                 ."    \"notes\": \"...\"\n"
@@ -880,7 +836,7 @@ class AthleteController extends Controller
                 ."  \"coach_recommendation\": \"...\",\n"
                 ."  \"confidence\": \"low|medium|high\"\n"
                 ."}\n\n"
-                ."Data workout lengkap (termasuk laps dan stream telemetri):\n".json_encode($metrics, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                ."Data workout lengkap (termasuk detak jantung zona, laps, dan split telemetri):\n".json_encode($metrics, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
 
             $aiRaw = app(\App\Services\OpenAiService::class)->getAiResponse($userPrompt, $systemPrompt, 'gpt-4o');
             if (! $aiRaw) {
@@ -897,13 +853,54 @@ class AthleteController extends Controller
                 return response()->json(['success' => false, 'message' => 'AI mengembalikan format yang tidak valid.', 'raw' => $aiRaw], 500);
             }
 
-            // Guardrail distance >= 14km
+            // Post-AI Safety Guardrail 1: Force distance >= 14km to be long_run or long_run_quality
             $distKm = (float) data_get($metrics, 'activity.distance_km', 0);
-            if ($distKm >= 14 && in_array(data_get($decoded, 'workout_classification.type'), ['interval', 'easy', 'mixed', 'unknown'], true)) {
+            if ($distKm >= 14 && in_array(data_get($decoded, 'workout_classification.type'), ['interval', 'easy', 'easy_run', 'mixed', 'unknown'], true)) {
                 $hasVariation = data_get($metrics, 'activity.split_pace_stats.cv', 0) >= 0.15;
                 $newType = $hasVariation ? 'long_run_quality' : 'long_run';
                 $decoded['workout_classification']['type'] = $newType;
+                $decoded['workout_classification']['evidence'] = array_merge(
+                    ["Jarak total {$distKm} km diklasifikasikan secara definitif sebagai Long Run."],
+                    $decoded['workout_classification']['evidence'] ?? []
+                );
+                if (isset($decoded['summary']) && preg_match('/Jenis sesi:\s*[^.]+\./i', $decoded['summary'])) {
+                    $decoded['summary'] = preg_replace('/Jenis sesi:\s*[^.]+\./i', 'Jenis sesi: ' . ($hasVariation ? 'Long Run Quality' : 'Long Run') . '.', $decoded['summary']);
+                }
             }
+
+            // Post-AI Safety Guardrail 2: High intensity Zone 4 & 5 CANNOT be classified as easy_run or recovery!
+            $highIntensityPct = (float) data_get($metrics, 'activity.hr_zones_summary.high_intensity_pct', 0);
+            $aiClassification = data_get($decoded, 'workout_classification.type');
+            if ($highIntensityPct >= 30 && in_array($aiClassification, ['easy_run', 'easy', 'recovery'], true)) {
+                $isInterval = data_get($metrics, 'activity.splits_interval_analysis.is_interval_detected')
+                    || !empty(data_get($metrics, 'activity.detected_interval_structure'))
+                    || (data_get($metrics, 'activity.telemetry_surge_analysis.detected_surge_count', 0) >= 2)
+                    || (data_get($metrics, 'activity.split_pace_stats.cv', 0) >= 0.08);
+
+                $correctedType = $isInterval ? 'interval' : 'threshold';
+                $decoded['workout_classification']['type'] = $correctedType;
+                $decoded['workout_classification']['evidence'] = array_merge(
+                    ["Koreksi fisiologis: {$highIntensityPct}% durasi latihan dihabiskan di Zone 4 (Threshold) & Zone 5 (Anaerobic). Tidak memenuhi kriteria easy run."],
+                    $decoded['workout_classification']['evidence'] ?? []
+                );
+                if (isset($decoded['summary'])) {
+                    if (preg_match('/Jenis sesi:\s*[^.]+\./i', $decoded['summary'])) {
+                        $decoded['summary'] = preg_replace(
+                            '/Jenis sesi:\s*[^.]+\./i',
+                            'Jenis sesi: ' . ucfirst($correctedType) . ' (' . ($isInterval ? 'Interval Training' : 'High Intensity Threshold') . ').',
+                            $decoded['summary']
+                        );
+                    }
+                    $decoded['summary'] = str_ireplace(
+                        ['lari santai untuk pemulihan', 'lari santai', 'fokus pada pemulihan'],
+                        ['latihan intensitas tinggi dengan beban kardiovaskular tinggi', 'sesi latihan berkualitas tinggi', 'fokus pada peningkatan kapasitas ambang laktat/VO2max'],
+                        $decoded['summary']
+                    );
+                }
+            }
+
+            $decoded['hr_zones_summary'] = data_get($metrics, 'activity.hr_zones_summary');
+            $decoded['splits_interval_analysis'] = data_get($metrics, 'activity.splits_interval_analysis');
 
             $raw['ai_analysis'] = [
                 'model' => 'gpt-4o',
@@ -960,6 +957,7 @@ class AthleteController extends Controller
         $msg .= "\n--- RINGKASAN ANALISIS ---\n";
         $msg .= "{$summary}\n\n";
 
+        $splitsAnalysis = data_get($analysis, 'splits_interval_analysis');
         if (is_array($intervalAnalysis) && !empty($intervalAnalysis['detected_structure']) && !str_contains(strtolower($intervalAnalysis['detected_structure']), 'tidak ada')) {
             $msg .= "*Analisis Repetisi & Interval:*\n";
             $msg .= "- Struktur: {$intervalAnalysis['detected_structure']}\n";
@@ -971,6 +969,19 @@ class AthleteController extends Controller
             }
             if (!empty($intervalAnalysis['notes'])) {
                 $msg .= "- Catatan: {$intervalAnalysis['notes']}\n";
+            }
+            $msg .= "\n";
+        } elseif (is_array($splitsAnalysis) && !empty($splitsAnalysis['is_interval_detected'])) {
+            $fastList = implode(', ', $splitsAnalysis['fast_splits'] ?? []);
+            $msg .= "*Analisis Repetisi & Interval (Split KM):*\n";
+            if ($fastList) {
+                $msg .= "- Repetisi Kencang: Split KM {$fastList}\n";
+            }
+            if (!empty($splitsAnalysis['spread_seconds'])) {
+                $msg .= "- Rentang Selisih Pace: {$splitsAnalysis['spread_seconds']} detik/km\n";
+            }
+            if (!empty($splitsAnalysis['evidence'])) {
+                $msg .= "- Observasi: " . implode(' ', $splitsAnalysis['evidence']) . "\n";
             }
             $msg .= "\n";
         }
