@@ -430,7 +430,8 @@ class AthleteController extends Controller
         $runner = $enrollment->runner;
         $api = app(StravaApiService::class);
 
-        $activity = StravaActivity::query()
+        try {
+            $activity = StravaActivity::query()
             ->where('strava_activity_id', $activityId)
             ->first();
 
@@ -589,6 +590,7 @@ class AthleteController extends Controller
         $runnerCtrl = app(\App\Http\Controllers\Runner\StravaController::class);
         $hrZonesData = $runnerCtrl->calculateHeartRateZones($runner, $details, $streams);
         $hrZonesOut = $hrZonesData['zones'];
+        $maxHr = $hrZonesData['max_hr'] ?? (int) (data_get($details, 'max_heartrate') ?: 190);
 
         // Runner Training Profile Paces for context
         $trainingProfile = app(\App\Services\RunningProfileService::class)->getProfile($runner);
@@ -627,6 +629,10 @@ class AthleteController extends Controller
                 'ai_analysis' => data_get($raw, 'ai_analysis.result'),
             ],
         ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Coach Strava Activity Details Error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json(['success' => false, 'message' => 'Gagal memuat detail aktivitas Strava: ' . $e->getMessage()], 500);
+        }
     }
 
     public function stravaActivityStreams(Request $request, $enrollmentId, string $stravaActivityId)
@@ -644,7 +650,8 @@ class AthleteController extends Controller
         $runner = $enrollment->runner;
         $api = app(StravaApiService::class);
 
-        $activity = StravaActivity::query()
+        try {
+            $activity = StravaActivity::query()
             ->where('user_id', $runner->id)
             ->where('strava_activity_id', $activityId)
             ->first();
@@ -712,6 +719,10 @@ class AthleteController extends Controller
             'success' => true,
             'streams' => $out,
         ]);
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::error('Coach Strava Activity Streams Error: ' . $e->getMessage(), ['trace' => $e->getTraceAsString()]);
+            return response()->json(['success' => false, 'message' => 'Gagal memuat stream aktivitas Strava: ' . $e->getMessage()], 500);
+        }
     }
 
     /**
