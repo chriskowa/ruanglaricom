@@ -1608,8 +1608,36 @@
                                         </div>
                                     </div>
 
+                                    <!-- Panduan Khusus Ambang Laktat (LT1 & LT2) -->
+                                    <div v-if="sessionLtGuide" class="bg-slate-900 border border-slate-800 rounded-lg p-5 shadow-sm space-y-3.5">
+                                        <div class="flex items-center justify-between pb-2.5 border-b border-slate-800">
+                                            <h3 class="text-xs font-bold text-white uppercase tracking-wider font-mono">
+                                                Panduan Ambang Laktat (LT1 &amp; LT2)
+                                            </h3>
+                                            <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono font-bold uppercase">Norwegian Protocol</span>
+                                        </div>
+
+                                        <!-- LT1 Target -->
+                                        <div v-if="sessionLtGuide.lt1" class="p-3 rounded-md bg-slate-950 border border-slate-800 space-y-1">
+                                            <div class="text-[10px] text-emerald-400 font-mono font-bold uppercase tracking-wider">Batas Ambang LT1 (Aerobic Threshold)</div>
+                                            <div class="text-xs text-slate-200 leading-relaxed font-normal">@{{ sessionLtGuide.lt1 }}</div>
+                                        </div>
+
+                                        <!-- LT2 Target -->
+                                        <div v-if="sessionLtGuide.lt2" class="p-3 rounded-md bg-slate-950 border border-slate-800 space-y-1">
+                                            <div class="text-[10px] text-amber-400 font-mono font-bold uppercase tracking-wider">Batas Ambang LT2 (Anaerobic / MLSS)</div>
+                                            <div class="text-xs text-slate-200 leading-relaxed font-normal">@{{ sessionLtGuide.lt2 }}</div>
+                                        </div>
+
+                                        <!-- Execution Rule -->
+                                        <div v-if="sessionLtGuide.rule" class="p-3 rounded-md bg-slate-950/70 border border-slate-800 space-y-1">
+                                            <div class="text-[10px] text-sky-400 font-mono font-bold uppercase tracking-wider">Aturan Eksekusi Laktat</div>
+                                            <div class="text-xs text-slate-300 leading-relaxed font-normal">@{{ sessionLtGuide.rule }}</div>
+                                        </div>
+                                    </div>
+
                                     <!-- Tujuan & Efek Fisiologis -->
-                                    <div v-if="['run', 'easy_run', 'recovery', 'long_run', 'tempo', 'tempo_run', 'threshold', 'interval', 'repetition', 'speed', 'hill', 'hill_repeats', 'strength', 'rest', 'yoga', 'cycling', 'race'].includes(String(detail.type || '').toLowerCase())"
+                                    <div v-if="['run', 'easy_run', 'recovery', 'long_run', 'tempo', 'tempo_run', 'sub_threshold', 'threshold', 'lt1', 'lt2', 'interval', 'repetition', 'speed', 'hill', 'hill_repeats', 'strength', 'rest', 'yoga', 'cycling', 'race'].includes(String(detail.type || '').toLowerCase())"
                                          class="bg-slate-900 border border-slate-800 rounded-lg p-5 shadow-sm space-y-3">
                                         <div class="flex items-center justify-between pb-2.5 border-b border-slate-800">
                                             <h3 class="text-xs font-bold text-white uppercase tracking-wider font-mono">Tujuan & Efek Fisiologis</h3>
@@ -1676,7 +1704,7 @@
                                 <div class="lg:col-span-5 space-y-5">
                                     
                                     <!-- Panel Aksi / Status Laporan Sesi -->
-                                    <div v-if="detail.type === 'run' || detail.type === 'easy_run' || detail.type === 'interval' || detail.type === 'tempo' || detail.type === 'tempo_run' || detail.type === 'repetition' || detail.type === 'hill' || detail.type === 'hill_repeats' || detail.type === 'program_session' || detail.type === 'yoga' || detail.type === 'cycling' || detail.type === 'rest' || detail.type === 'race' || detail.type === 'custom_workout'"
+                                    <div v-if="['run', 'easy_run', 'sub_threshold', 'threshold', 'lt1', 'lt2', 'interval', 'tempo', 'tempo_run', 'repetition', 'hill', 'hill_repeats', 'program_session', 'yoga', 'cycling', 'rest', 'race', 'custom_workout'].includes(String(detail.type || '').toLowerCase())"
                                          class="bg-slate-900 border border-slate-800 rounded-lg p-5 shadow-sm space-y-3">
                                         
                                         <!-- Pending state -->
@@ -1757,7 +1785,7 @@
                                     </div>
 
                                     <!-- Panduan Teknis Pelatih & Pace Cheat Sheet (Clean Athletic Guidance) -->
-                                    <div v-if="['run', 'easy_run', 'recovery', 'long_run', 'tempo', 'tempo_run', 'threshold', 'interval', 'repetition', 'speed', 'hill', 'hill_repeats', 'race'].includes(String(detail.type || '').toLowerCase())"
+                                    <div v-if="['run', 'easy_run', 'recovery', 'long_run', 'tempo', 'tempo_run', 'sub_threshold', 'threshold', 'lt1', 'lt2', 'interval', 'repetition', 'speed', 'hill', 'hill_repeats', 'race'].includes(String(detail.type || '').toLowerCase())"
                                          class="bg-slate-900 border border-slate-800 rounded-lg p-5 shadow-sm space-y-3">
                                         <div class="flex items-center justify-between pb-2.5 border-b border-slate-800">
                                             <h3 class="text-xs font-bold text-white uppercase tracking-wider font-mono">Panduan Teknis Pelatih</h3>
@@ -1785,10 +1813,10 @@
                                         <!-- Pace Cheat Sheet -->
                                         <div v-if="trainingProfile?.paces?.E || trainingProfile?.paces?.T || trainingProfile?.paces?.I || trainingProfile?.paces?.R" 
                                              class="space-y-2 pt-2 border-t border-slate-800">
-                                            <div class="text-xs font-semibold text-slate-400 font-mono uppercase tracking-wider">Target Pace Personal (VDOT)</div>
+                                            <div class="text-xs font-semibold text-slate-400 font-mono uppercase tracking-wider">Target Pace Personal (VDOT &amp; LT)</div>
                                             <div class="grid grid-cols-2 gap-2">
                                                 <div v-if="trainingProfile?.paces?.E" class="rounded-md bg-slate-950 border border-slate-800 p-2.5">
-                                                    <div class="text-[10px] text-slate-400 uppercase font-mono">Easy (E)</div>
+                                                    <div class="text-[10px] text-slate-400 uppercase font-mono">Easy (E) &lt; LT1</div>
                                                     <div class="text-white font-bold font-mono text-xs mt-0.5 tabular-nums">
                                                         <template v-if="trainingProfile?.paces?.E_high && trainingProfile?.paces?.E_low">
                                                             @{{ formatPace(trainingProfile.paces.E_high) }} - @{{ formatPace(trainingProfile.paces.E_low) }}/km
@@ -1798,17 +1826,27 @@
                                                         </template>
                                                     </div>
                                                 </div>
+                                                <div v-if="trainingProfile?.paces?.LT1 || (trainingProfile?.paces?.E && trainingProfile?.paces?.M)" class="rounded-md bg-slate-950 border border-slate-800 p-2.5">
+                                                    <div class="text-[10px] text-emerald-400 uppercase font-mono">LT1 (Aerobic ~2.0 mmol)</div>
+                                                    <div class="text-white font-bold font-mono text-xs mt-0.5 tabular-nums">
+                                                        @{{ formatPace(trainingProfile.paces?.LT1 || ((Number(trainingProfile.paces.E) + Number(trainingProfile.paces.M)) / 2)) }}/km
+                                                    </div>
+                                                </div>
                                                 <div v-if="trainingProfile?.paces?.M" class="rounded-md bg-slate-950 border border-slate-800 p-2.5">
-                                                    <div class="text-[10px] text-slate-400 uppercase font-mono">Marathon (M)</div>
+                                                    <div class="text-[10px] text-sky-400 uppercase font-mono">Marathon (M)</div>
                                                     <div class="text-white font-bold font-mono text-xs mt-0.5 tabular-nums">@{{ formatPace(trainingProfile.paces.M) }}/km</div>
                                                 </div>
-                                                <div v-if="trainingProfile?.paces?.T" class="rounded-md bg-slate-950 border border-slate-800 p-2.5">
-                                                    <div class="text-[10px] text-slate-400 uppercase font-mono">Tempo (T)</div>
-                                                    <div class="text-white font-bold font-mono text-xs mt-0.5 tabular-nums">@{{ formatPace(trainingProfile.paces.T) }}/km</div>
+                                                <div v-if="trainingProfile?.paces?.T || trainingProfile?.paces?.LT2" class="rounded-md bg-slate-950 border border-slate-800 p-2.5">
+                                                    <div class="text-[10px] text-amber-400 uppercase font-mono">LT2 / Threshold (T ~4.0 mmol)</div>
+                                                    <div class="text-white font-bold font-mono text-xs mt-0.5 tabular-nums">@{{ formatPace(trainingProfile.paces?.LT2 || trainingProfile.paces?.T) }}/km</div>
                                                 </div>
                                                 <div v-if="trainingProfile?.paces?.I" class="rounded-md bg-slate-950 border border-slate-800 p-2.5">
-                                                    <div class="text-[10px] text-slate-400 uppercase font-mono">Interval (I)</div>
+                                                    <div class="text-[10px] text-orange-400 uppercase font-mono">Interval (I) &gt; LT2</div>
                                                     <div class="text-white font-bold font-mono text-xs mt-0.5 tabular-nums">@{{ formatPace(trainingProfile.paces.I) }}/km</div>
+                                                </div>
+                                                <div v-if="trainingProfile?.paces?.R" class="rounded-md bg-slate-950 border border-slate-800 p-2.5">
+                                                    <div class="text-[10px] text-rose-400 uppercase font-mono">Repetition (R) Speed</div>
+                                                    <div class="text-white font-bold font-mono text-xs mt-0.5 tabular-nums">@{{ formatPace(trainingProfile.paces.R) }}/km</div>
                                                 </div>
                                             </div>
                                         </div>

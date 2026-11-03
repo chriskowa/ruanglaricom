@@ -2389,31 +2389,51 @@ const runnerCalendarApp = createApp({
                 easy_run: 'E', recovery: 'E', run: 'E', 
                 long_run: 'M', 
                 tempo: 'T', tempo_run: 'T', threshold: 'T', 
+                time_trial: 'T', race: 'T',
+                sub_threshold: 'LT1', subthreshold: 'LT1', lt1: 'LT1', lt2: 'T',
                 interval: 'I', vo2max: 'I',
                 repetition: 'R', speed: 'R',
                 hill: 'R', hill_repeats: 'R', hill_repeat: 'R',
                 strength: null, rest: null, yoga: null, cycling: null
             };
             
+            const cleanDesc = (description || '').replace(/\[LT1\/LT2 Guide:.*?\]/gis, '');
+            const combined = ((title || '') + ' ' + cleanDesc).toLowerCase();
+            const isNotThreshold = combined.includes('bukan threshold') || combined.includes('not threshold') || combined.includes('non-threshold');
             let key = map[t]; 
-            if (!key) return null;
 
-            const combined = ((title || '') + ' ' + (description || '')).toLowerCase();
-
-            // Logic override: If Interval (I) and matches short repetition distance (100m, 200m, 300m, 400m <= 0.45km)
-            if (key === 'I') {
-                let isShortRep = false;
-                const distNum = distance ? parseFloat(distance) : null;
-                if (distNum && distNum > 0 && distNum <= 0.45) {
-                    isShortRep = true;
-                } else if (/\b(55|50|100|150|200|250|300|350|400)\s*m\b/i.test(combined)) {
-                    isShortRep = true;
-                } else if (/\b0\.[1-4]\s*km\b/i.test(combined)) {
-                    isShortRep = true;
+            // If not found in map, check keywords in title/description
+            if (!key) {
+                if (!isNotThreshold && (combined.includes('sub-threshold') || combined.includes('sub_threshold') || combined.includes('lt1'))) {
+                    key = 'LT1';
+                } else if (!isNotThreshold && (combined.includes('threshold') || combined.includes('lt2'))) {
+                    key = 'T';
+                } else {
+                    return null;
                 }
+            }
 
-                if (isShortRep) {
-                    key = 'R';
+            // Logic override: If Interval (I)
+            if (key === 'I') {
+                // If this is explicitly a threshold / LT interval, DO NOT treat as VO2max (I) or Repetition (R)!
+                if (!isNotThreshold && (combined.includes('sub-threshold') || combined.includes('sub_threshold') || combined.includes('lt1'))) {
+                    key = 'LT1';
+                } else if (!isNotThreshold && (combined.includes('threshold') || combined.includes('lt2') || combined.includes('double threshold'))) {
+                    key = 'T';
+                } else {
+                    let isShortRep = false;
+                    const distNum = distance ? parseFloat(distance) : null;
+                    if (distNum && distNum > 0 && distNum <= 0.45) {
+                        isShortRep = true;
+                    } else if (/(?:^|[^\d])(55|50|100|150|200|250|300|350|400|500|600)\s*m\b/i.test(combined)) {
+                        isShortRep = true;
+                    } else if (/(?:^|[^\d])0\.[1-4]\s*km\b/i.test(combined)) {
+                        isShortRep = true;
+                    }
+
+                    if (isShortRep) {
+                        key = 'R';
+                    }
                 }
             }
 
@@ -2422,7 +2442,7 @@ const runnerCalendarApp = createApp({
             if (['I', 'R', 'T'].includes(key)) {
                 const distKm = distance ? parseFloat(distance) : null;
                 if (!distKm || distKm > 2.0) {
-                    const matchMeters = combined.match(/\b(55|50|100|200|300|400|500|600|800)\s*m\b/i);
+                    const matchMeters = combined.match(/(?:^|[^\d])(55|50|100|200|300|400|500|600|800)\s*m\b/i);
                     if (matchMeters) {
                         lookupDistance = parseFloat(matchMeters[1]) / 1000;
                     } else {
@@ -2460,6 +2480,12 @@ const runnerCalendarApp = createApp({
             }
 
             let val = trainingProfile.value?.paces?.[key];
+            if (!val && key === 'LT1') {
+                val = trainingProfile.value?.paces?.['M'] || trainingProfile.value?.paces?.['E'];
+            }
+            if (!val && key === 'LT2') {
+                val = trainingProfile.value?.paces?.['T'];
+            }
             if (!val && key === 'M') val = trainingProfile.value?.paces?.['E'];
             
             return val ? (formatPace(val) + ' /km') : null;
@@ -2864,7 +2890,8 @@ const runnerCalendarApp = createApp({
                 long_run: 'Meningkatkan kapasitas penyimpanan glikogen di otot, memperkuat tendon, ligamen, serta otot kaki menghadapi kelelahan jangka panjang.',
                 tempo: 'Meningkatkan kemampuan sel otot untuk mendaur ulang asam laktat kembali menjadi energi, menunda sensasi "kaki terbakar" saat pace cepat.',
                 tempo_run: 'Meningkatkan kemampuan sel otot untuk mendaur ulang asam laktat kembali menjadi energi, menunda sensasi "kaki terbakar" saat pace cepat.',
-                threshold: 'Meningkatkan kemampuan sel otot untuk mendaur ulang asam laktat kembali menjadi energi, menunda sensasi "kaki terbakar" saat pace cepat.',
+                sub_threshold: 'Membangun batas ambang aerobik (LT1) dan efisiensi oksidasi lemak (FatMax) tanpa memproduksi laktat berlebih.',
+                threshold: 'Meningkatkan kapasitas ambang laktat (LT2/MLSS) dan toleransi laktat pada ritme balap 10K-Half Marathon.',
                 interval: 'Memperbesar volume sekuncup jantung (stroke volume), mempercepat pemulihan denyut jantung (HR recovery), dan merangsang serat otot cepat.',
                 repetition: 'Langkah lari terasa lebih ringan dan rileks pada kecepatan tinggi karena refleks otot-saraf menjadi lebih terlatih dan hemat energi.',
                 speed: 'Langkah lari terasa lebih ringan dan rileks pada kecepatan tinggi karena refleks otot-saraf menjadi lebih terlatih dan hemat energi.',
@@ -2877,6 +2904,43 @@ const runnerCalendarApp = createApp({
                 race: 'Memberikan stimulus adaptasi maksimal bagi seluruh sistem energi tubuh, sekaligus memperkuat ketangguhan mental pelari.'
             };
             return hints[t] || 'Meningkatkan kesegaran jasmani dan kesiapan adaptasi tubuh untuk sesi latihan berikutnya.';
+        });
+
+        const sessionLtGuide = computed(() => {
+            let raw = detail.session?.advanced_config || detail.advanced_config || null;
+            let cfg = null;
+            if (typeof raw === 'string') {
+                try { cfg = JSON.parse(raw); } catch(e){}
+            } else if (typeof raw === 'object' && raw !== null) {
+                cfg = raw;
+            }
+
+            let lt1 = cfg?.lt1_pace || null;
+            let lt2 = cfg?.lt2_pace || null;
+            let rule = cfg?.execution_rule || null;
+
+            // Fallback: extract from description if [LT1/LT2 Guide: ...] exists
+            if ((!lt1 || !lt2) && detail.description) {
+                const match = detail.description.match(/\[LT1\/LT2 Guide:\s*([^\]]+)\]/i);
+                if (match) {
+                    const content = match[1];
+                    const parts = content.split('|').map(p => p.trim());
+                    parts.forEach(p => {
+                        if (/^Rule:/i.test(p) && !rule) {
+                            rule = p.replace(/^Rule:\s*/i, '');
+                        } else if (/lt1/i.test(p) && !lt1) {
+                            lt1 = p;
+                        } else if (/lt2/i.test(p) && !lt2) {
+                            lt2 = p;
+                        }
+                    });
+                }
+            }
+
+            if (lt1 || lt2 || rule) {
+                return { lt1, lt2, rule };
+            }
+            return null;
         });
 
         const showEventDetail = (info) => {
@@ -3232,6 +3296,10 @@ const runnerCalendarApp = createApp({
                 interval: 'Interval',
                 tempo: 'Tempo',
                 tempo_run: 'Tempo Run',
+                threshold: 'Threshold (LT2)',
+                sub_threshold: 'Sub-Threshold (LT1)',
+                lt1: 'LT1 Sub-Threshold',
+                lt2: 'LT2 Threshold',
                 long_run: 'Long Run',
                 recovery: 'Recovery',
                 repetition: 'Repetition',
@@ -3880,7 +3948,7 @@ const runnerCalendarApp = createApp({
             resetPlan, applyProgram, showVdotModal, openVdotModal, vdotForm, vdotLoading, generateVdot, resetPlanList,
             trainingProfile, formatPace, showPbModal, openPbModal, pbForm, pbLoading, updatePb, bagTab, cancelledPrograms, restoreProgram,
             stravaLinkInput, notesInput, rpeInput, feelingInput, showFinishForm, finishActivityWithLink, profileTab, chatCoach,
-            aiCoachSummary, aiCoachCues, workoutGoalText, workoutEffectText, guidedSteps, guidedStepsDoneCount, guidedStepsProgressPct, guidedStepChecked, toggleGuidedStep,
+            aiCoachSummary, aiCoachCues, workoutGoalText, workoutEffectText, sessionLtGuide, guidedSteps, guidedStepsDoneCount, guidedStepsProgressPct, guidedStepChecked, toggleGuidedStep,
             addStep, removeStep, moveStep, calculateTotalDistance, syncTraining, syncLoading, isSyncingStrava, syncStrava, weeklyVolume, maxVolume,
             assetStorage, assetProfile, runnerUrl, chatUrl,
             showRaceModal, raceForm, openRaceForm, saveRace, setRaceDist,

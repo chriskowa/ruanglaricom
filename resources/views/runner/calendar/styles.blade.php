@@ -145,9 +145,9 @@ body {
   border-left: 3.5px solid #f97316 !important;
   background-color: rgba(249, 115, 22, 0.14) !important;
 }
-.fc-event.workout-threshold, .fc-event.workout-treshold {
-  border-left: 3.5px solid #ec4899 !important;
-  background-color: rgba(236, 72, 153, 0.12) !important;
+.fc-event.workout-threshold, .fc-event.workout-treshold, .fc-event.workout-sub_threshold, .fc-event.workout-sub-threshold, .fc-event.workout-lt1, .fc-event.workout-lt2 {
+  border-left: 3.5px solid #f59e0b !important;
+  background-color: rgba(245, 158, 11, 0.14) !important;
 }
 .fc-event.workout-time_trial {
   border-left: 3.5px solid #ff5722 !important;
@@ -200,7 +200,7 @@ body {
 .fc-list-event.workout-plyometrics, .fc-list-event.workout-plyometric, .fc-list-event[class*="workout-plyom"],
 .fc-list-event.workout-yoga, .fc-list-event.workout-cycling, .fc-list-event.workout-cross_training { border-left: 3px solid #a855f7 !important; }
 .fc-list-event.workout-repetition, .fc-list-event.workout-hill, .fc-list-event.workout-hill_repeats, .fc-list-event.workout-hill_repeat, .fc-list-event[class*="workout-hill"] { border-left: 3px solid #d946ef !important; }
-.fc-list-event.workout-threshold, .fc-list-event.workout-treshold { border-left: 3px solid #ec4899 !important; }
+.fc-list-event.workout-threshold, .fc-list-event.workout-treshold, .fc-list-event.workout-sub_threshold, .fc-list-event.workout-sub-threshold, .fc-list-event.workout-lt1, .fc-list-event.workout-lt2 { border-left: 3px solid #f59e0b !important; }
 .fc-list-event.workout-recovery_run { border-left: 3px solid #14b8a6 !important; }
 .fc-list-event.workout-time_trial { border-left: 3px solid #ff5722 !important; }
 

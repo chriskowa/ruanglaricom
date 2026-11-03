@@ -604,45 +604,75 @@ class DashboardController extends Controller
 
         $key = null;
 
+        // Clean out any embedded guide metadata so it does not falsely trigger threshold keywords
+        $cleanDescription = preg_replace('/\[LT1\/LT2 Guide:.*?\]/is', '', $description ?? '');
+        $combinedText = strtolower($typeLower . ' ' . $title . ' ' . $cleanDescription);
+        $isNotThreshold = str_contains($combinedText, 'bukan threshold') || str_contains($combinedText, 'not threshold') || str_contains($combinedText, 'non-threshold');
+
         if (str_contains($typeLower, 'easy') || str_contains($typeLower, 'recovery') || str_contains($typeLower, 'warmup') || str_contains($typeLower, 'cool')) {
             $key = 'E';
-        } elseif (str_contains($typeLower, 'lt1') || str_contains($typeLower, 'aerobic_threshold') || str_contains($typeLower, 'sub_threshold') || str_contains($typeLower, 'sub-threshold')) {
+        } elseif (str_contains($typeLower, 'lt1') || str_contains($typeLower, 'sub_threshold') || str_contains($typeLower, 'sub-threshold') || str_contains($typeLower, 'aerobic_threshold')) {
             $key = 'LT1';
-        } elseif (str_contains($typeLower, 'long')) {
-            $key = 'M';
         } elseif (str_contains($typeLower, 'tempo') || str_contains($typeLower, 'threshold') || str_contains($typeLower, 'lt2') || str_contains($typeLower, 'mlss')) {
             $key = 'T';
-        } elseif (str_contains($typeLower, 'interval') || str_contains($typeLower, 'vo2max')) {
-            $key = 'I';
-        } elseif (str_contains($typeLower, 'repetition') || str_contains($typeLower, 'speed')) {
-            $key = 'R';
+        } elseif (str_contains($typeLower, 'race') || str_contains($typeLower, 'time_trial')) {
+            $key = 'T';
+        } elseif (str_contains($typeLower, 'long')) {
+            $key = 'M';
         } elseif (str_contains($typeLower, 'marathon')) {
             $key = 'M';
+        } elseif (str_contains($typeLower, 'interval') || str_contains($typeLower, 'vo2max')) {
+            if (!$isNotThreshold && (str_contains($combinedText, 'sub-threshold') || str_contains($combinedText, 'sub_threshold') || str_contains($combinedText, 'sub threshold') || str_contains($combinedText, 'lt1'))) {
+                $key = 'LT1';
+            } elseif (!$isNotThreshold && (str_contains($combinedText, 'double threshold') || str_contains($combinedText, 'threshold') || str_contains($combinedText, 'lt2') || str_contains($combinedText, 'mlss'))) {
+                $key = 'T';
+            } else {
+                $key = 'I';
+            }
+        } elseif (str_contains($typeLower, 'repetition') || str_contains($typeLower, 'speed') || str_contains($typeLower, 'hill')) {
+            if (!$isNotThreshold && (str_contains($combinedText, 'sub-threshold') || str_contains($combinedText, 'sub_threshold') || str_contains($combinedText, 'lt1'))) {
+                $key = 'LT1';
+            } elseif (!$isNotThreshold && (str_contains($combinedText, 'threshold') || str_contains($combinedText, 'lt2'))) {
+                $key = 'T';
+            } else {
+                $key = 'R';
+            }
         } else {
-            $key = 'E';
+            if (!$isNotThreshold && (str_contains($combinedText, 'sub-threshold') || str_contains($combinedText, 'sub_threshold') || str_contains($combinedText, 'lt1'))) {
+                $key = 'LT1';
+            } elseif (!$isNotThreshold && (str_contains($combinedText, 'threshold') || str_contains($combinedText, 'lt2'))) {
+                $key = 'T';
+            } else {
+                $key = 'E';
+            }
         }
 
         // Logic override: If Interval (I) and matches short distance patterns (e.g. 100m, 200m, 400m)
         if ($key === 'I') {
-            $combined = strtolower($title . ' ' . $description);
-            // Replace common separators/slashes with spaces to ease regex matching
-            $combined = str_replace(['/', ',', ';', '-'], ' ', $combined);
-            
-            // Remove rest/recovery patterns so recovery jog distances are not misidentified as work distances
-            $cleanText = preg_replace('/\b\d+(?:\s*(?:m|km|min|minutes|s|sec|seconds))?\s*(?:jog|rec|walk|rest|easy|active|recovery)\b/i', '', $combined);
-            $cleanText = preg_replace('/\b(?:jog|rec|walk|rest|easy|active|recovery)\s*\d+(?:\s*(?:m|km|min|minutes|s|sec|seconds))?\b/i', '', $cleanText);
+            $combined = strtolower($title . ' ' . $cleanDescription);
+            $isThreshold = !$isNotThreshold && (str_contains($combined, 'threshold') || str_contains($combined, 'lt1') || str_contains($combined, 'lt2'));
 
-            $isShort = false;
-            if ($distance !== null && is_numeric($distance) && floatval($distance) <= 0.605) {
-                $isShort = true;
-            } elseif (preg_match('/\b(100|200|300|400|500|600)\s*m\b/i', $cleanText)) {
-                $isShort = true;
-            } elseif (preg_match('/\b0\.[1-6]\s*km\b/i', $cleanText)) {
-                $isShort = true;
-            }
+            // DO NOT override if this is explicitly a threshold / LT interval
+            if (!$isThreshold) {
+                // Replace common separators/slashes with spaces to ease regex matching
+                $combinedCleaned = str_replace(['/', ',', ';', '-'], ' ', $combined);
+                
+                // Remove rest/recovery patterns so recovery jog distances are not misidentified as work distances
+                $cleanText = preg_replace('/\b\d+(?:\s*(?:m|km|min|minutes|s|sec|seconds))?\s*(?:jog|rec|walk|rest|easy|active|recovery)\b/i', '', $combinedCleaned);
+                $cleanText = preg_replace('/\b(?:jog|rec|walk|rest|easy|active|recovery)\s*\d+(?:\s*(?:m|km|min|minutes|s|sec|seconds))?\b/i', '', $cleanText);
 
-            if ($isShort) {
-                $key = 'R';
+                $isShort = false;
+                if ($distance !== null && is_numeric($distance) && floatval($distance) <= 0.605) {
+                    $isShort = true;
+                } elseif (preg_match('/(?:^|[^\d])(100|200|300|400|500|600)\s*m\b/i', $cleanText)) {
+                    $isShort = true;
+                } elseif (preg_match('/(?:^|[^\d])0\.[1-6]\s*km\b/i', $cleanText)) {
+                    $isShort = true;
+                }
+
+                if ($isShort) {
+                    $key = 'R';
+                }
             }
         }
 
