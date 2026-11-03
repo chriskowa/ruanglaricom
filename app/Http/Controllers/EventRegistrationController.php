@@ -235,7 +235,7 @@ class EventRegistrationController extends Controller
 
         try {
             $transaction = $this->storeAction->execute($request, $event);
-            $transaction->loadMissing(['participants.category']);
+            $transaction->loadMissing(['participants.category', 'participants.package']);
 
             $participantsData = $transaction->participants->map(function ($p) use ($transaction) {
                 $qrData = 'TICKET-'.$p->id.'-'.$transaction->id;
@@ -243,8 +243,8 @@ class EventRegistrationController extends Controller
                 return [
                     'id' => $p->id,
                     'participant_name' => $p->name,
-                    'jersey_size_label' => $p->jersey_size,
-                    'category_label' => $p->category->name ?? '',
+                    'jersey_size_label' => $p->jersey_size ?? '-',
+                    'category_label' => $p->category->name ?? ($p->package->name ?? '-'),
                     'qr_data' => $qrData,
                     'qr_url' => 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data='.urlencode($qrData),
                 ];

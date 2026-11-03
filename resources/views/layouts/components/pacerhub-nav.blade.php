@@ -166,6 +166,12 @@
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
                                 Profile
                             </a>
+                            @if(auth()->user()->isRunner() || auth()->user()->isAdmin())
+                            <a href="{{ route('runner.integrations.index') }}" class="flex items-center gap-3 px-3 py-2 text-sm {{ $lightMode ? 'text-slate-700 hover:bg-slate-50 hover:text-slate-900' : 'text-slate-200 hover:bg-slate-800 hover:text-white' }} rounded-lg transition-colors">
+                                <i class="fas fa-plug-circle-check w-4 text-center text-xs"></i>
+                                Integrasi Akun
+                            </a>
+                            @endif
                             @if(auth()->user()->role !== 'eo')
                             <a href="{{ route('chat.index') }}" class="flex items-center gap-3 px-3 py-2 text-sm {{ $lightMode ? 'text-slate-700 hover:bg-slate-50 hover:text-slate-900' : 'text-slate-200 hover:bg-slate-800 hover:text-white' }} rounded-lg transition-colors">
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>

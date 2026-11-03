@@ -2564,7 +2564,7 @@
                         'id' => $p->id,
                         'participant_name' => $p->name,
                         'jersey_size_label' => $p->jersey_size ?? '-',
-                        'category_label' => $p->category->name ?? '-',
+                        'category_label' => $p->category->name ?? ($p->package->name ?? '-'),
                         'bib' => $p->bib_number ?? null,
                         'qr_data' => $qrCode,
                         'qr_url' => 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' . urlencode($qrCode),
@@ -2583,7 +2583,7 @@
             data-event-date="{{ $ticketDate }}"
             data-event-location="{{ $ticketLocation }}"
             @if($event->logo_image) data-event-logo="{{ asset('storage/' . $event->logo_image) }}" @endif
-            @if($successTicketsData) data-server-tickets="{{ htmlspecialchars(json_encode($successTicketsData), ENT_QUOTES, 'UTF-8') }}" @endif
+            @if($successTicketsData) data-server-tickets="{{ json_encode($successTicketsData) }}" @endif
         >
             <div class="px-6 py-4 border-b border-slate-200 flex items-center justify-between">
                 <h3 class="font-heading text-sm text-slate-900 uppercase">Pendaftaran Berhasil</h3>
@@ -3913,6 +3913,38 @@
                     btn.disabled = true;
                 }
 
+                // Pre-cache participant info from DOM immediately into localStorage before network dispatch
+                try {
+                    const preCached = [];
+                    document.querySelectorAll('.participant-item').forEach(item => {
+                        const n = item.querySelector('input[name*="[name]"]')?.value?.trim();
+                        const sz = item.querySelector('select[name*="[jersey_size]"]')?.value;
+                        const catRadio = item.querySelector('input[type="radio"].cat-radio:checked');
+                        const catLabel = catRadio ? (catRadio.closest('label')?.querySelector('.font-bold')?.textContent?.trim() || '') : '';
+                        const ph = item.querySelector('input[name*="[phone]"]')?.value;
+                        const idc = item.querySelector('input[name*="[id_card]"]')?.value;
+                        if (n) {
+                            preCached.push({
+                                participant_name: n,
+                                jersey_size_label: sz || '-',
+                                category_label: catLabel || '-',
+                                phone: ph || '',
+                                id_card: idc || ''
+                            });
+                        }
+                    });
+                    if (preCached.length > 0) {
+                        const prePayload = {
+                            participants: preCached,
+                            event_id: eventId,
+                            pic_phone: form.querySelector('[name="pic_phone"]')?.value || '',
+                            pic_name: form.querySelector('[name="pic_name"]')?.value || '',
+                        };
+                        localStorage.setItem('ruanglari_last_ticket_' + eventId, JSON.stringify(prePayload));
+                        localStorage.setItem('ruanglari_last_ticket_latest', JSON.stringify(prePayload));
+                    }
+                } catch(err) {}
+
                 const executeRequest = () => {
                     const formData = new FormData(form);
                     const tokenEl = document.getElementById('recaptchaToken');
@@ -3979,7 +4011,7 @@
                             if (Array.isArray(data.participants) && data.participants.length > 0) {
                                 participantsData = data.participants.map(p => ({
                                     id: p.id,
-                                    participant_name: p.participant_name || p.name,
+                                    participant_name: p.participant_name || p.name || '-',
                                     jersey_size_label: p.jersey_size_label || p.jersey_size || '-',
                                     category_label: p.category_label || p.category || '-',
                                     qr_data: p.qr_data || (p.id ? `TICKET-${p.id}-${data.transaction_id || ''}` : ''),
@@ -3987,19 +4019,19 @@
                                 }));
                             } else {
                                 document.querySelectorAll('.participant-item').forEach(item => {
-                                    const n = item.querySelector('input[name*="[name]"]')?.value;
+                                    const n = item.querySelector('input[name*="[name]"]')?.value?.trim();
                                     const sz = item.querySelector('select[name*="[jersey_size]"]')?.value;
                                     const catRadio = item.querySelector('input[type="radio"].cat-radio:checked');
-                                    const catLabel = catRadio ? catRadio.closest('label').querySelector('.font-bold')?.textContent : '';
+                                    const catLabel = catRadio ? (catRadio.closest('label')?.querySelector('.font-bold')?.textContent?.trim() || '') : '';
                                     const ph = item.querySelector('input[name*="[phone]"]')?.value;
                                     const idc = item.querySelector('input[name*="[id_card]"]')?.value;
                                     if (n) {
                                         participantsData.push({
                                             participant_name: n,
-                                            jersey_size_label: sz,
-                                            category_label: catLabel,
-                                            phone: ph,
-                                            id_card: idc
+                                            jersey_size_label: sz || '-',
+                                            category_label: catLabel || '-',
+                                            phone: ph || '',
+                                            id_card: idc || ''
                                         });
                                     }
                                 });
@@ -4009,26 +4041,33 @@
                                 participants: participantsData,
                                 registration_id: data.registration_id || null,
                                 transaction_id: data.transaction_id || null,
-                                pic_phone: form.querySelector('[name="pic_phone"]')?.value || ''
+                                event_id: eventId,
+                                pic_phone: form.querySelector('[name="pic_phone"]')?.value || '',
+                                pic_name: form.querySelector('[name="pic_name"]')?.value || ''
                             };
                             localStorage.setItem('ruanglari_last_ticket_' + eventId, JSON.stringify(cachePayload));
+                            localStorage.setItem('ruanglari_last_ticket_latest', JSON.stringify(cachePayload));
                         } catch(e) {}
 
                         // 1. Midtrans Snap
                         if (data.success && data.snap_token) {
                             snap.pay(data.snap_token, {
-                                onSuccess: function() {
-                                    window.location.href = `{{ route("events.show", $event->slug) }}?payment=success&tx=` + (data.transaction_id || '') + `&ref=` + (data.registration_id || '');
+                                onSuccess: function(result) {
+                                    const txId = (data.transaction_id || (result && result.transaction_id) || '');
+                                    const refId = (data.registration_id || (result && result.order_id) || '');
+                                    window.location.href = `{{ route("events.show", $event->slug) }}?payment=success&tx=` + encodeURIComponent(txId) + `&ref=` + encodeURIComponent(refId);
                                 },
-                                onPending: function() {
-                                    window.location.href = `{{ route("events.show", $event->slug) }}?payment=pending&tx=` + (data.transaction_id || '') + `&ref=` + (data.registration_id || '');
+                                onPending: function(result) {
+                                    const txId = (data.transaction_id || '');
+                                    const refId = (data.registration_id || '');
+                                    window.location.href = `{{ route("events.show", $event->slug) }}?payment=pending&tx=` + encodeURIComponent(txId) + `&ref=` + encodeURIComponent(refId);
                                 },
                                 onError: function() {
                                     alert('Pembayaran tidak berhasil diselesaikan.');
                                     if (btn) { btn.disabled = false; btn.innerHTML = originalText; isConfirmed = false; }
                                 },
                                 onClose: function() {
-                                    window.location.href = `{{ route("events.show", $event->slug) }}?payment=pending&tx=` + (data.transaction_id || '');
+                                    window.location.href = `{{ route("events.show", $event->slug) }}?payment=pending&tx=` + encodeURIComponent(data.transaction_id || '') + `&ref=` + encodeURIComponent(data.registration_id || '');
                                 }
                             });
                             return;
@@ -4059,7 +4098,7 @@
                             if (data.redirect_url) {
                                 window.location.href = data.redirect_url;
                             } else {
-                                window.location.href = `{{ route("events.show", $event->slug) }}?payment=success&ref=` + (data.registration_id || '');
+                                window.location.href = `{{ route("events.show", $event->slug) }}?payment=success&tx=` + encodeURIComponent(data.transaction_id || '') + `&ref=` + encodeURIComponent(data.registration_id || '');
                             }
                             return;
                         }
@@ -4117,28 +4156,135 @@
 
             function loadTicketCache() {
                 try {
-                    const serverTicketsRaw = container?.dataset.serverTickets;
+                    let serverTicketsRaw = container?.dataset.serverTickets;
                     if (serverTicketsRaw) {
+                        if (serverTicketsRaw.includes('&quot;') || serverTicketsRaw.includes('&amp;')) {
+                            const txt = document.createElement('textarea');
+                            txt.innerHTML = serverTicketsRaw;
+                            serverTicketsRaw = txt.value;
+                        }
                         const parsed = JSON.parse(serverTicketsRaw);
-                        ticketNumber = parsed.ref || parsed.registration_id || parsed.transaction_id || '';
+                        ticketNumber = parsed.ref || parsed.registration_id || parsed.transaction_id || ticketNumber || '';
                         if (Array.isArray(parsed.participants) && parsed.participants.length > 0) {
                             cachedParticipants = parsed.participants;
-                            return;
+                            return true;
                         }
                     }
 
                     const eventId = container?.dataset.eventId || '{{ $event->id }}';
-                    const raw = localStorage.getItem('ruanglari_last_ticket_' + eventId);
+                    let raw = localStorage.getItem('ruanglari_last_ticket_' + eventId);
+                    if (!raw) {
+                        raw = localStorage.getItem('ruanglari_last_ticket_latest');
+                    }
                     if (raw) {
                         const parsed = JSON.parse(raw);
-                        ticketNumber = parsed.registration_id || parsed.transaction_id || '';
-                        if (Array.isArray(parsed.participants)) {
+                        ticketNumber = parsed.registration_id || parsed.transaction_id || ticketNumber || '';
+                        if (Array.isArray(parsed.participants) && parsed.participants.length > 0) {
                             cachedParticipants = parsed.participants;
+                            return true;
                         }
                     }
                 } catch(e) {
                     console.warn('loadTicketCache error:', e);
                 }
+                return false;
+            }
+
+            async function hydrateTicketFromServer() {
+                try {
+                    const urlParams = new URLSearchParams(window.location.search);
+                    const tx = urlParams.get('tx') || urlParams.get('order_id') || '';
+                    const ref = urlParams.get('ref') || urlParams.get('registration_id') || '';
+                    const orderId = urlParams.get('order_id') || '';
+
+                    const fetchUrl = new URL('{{ route("api.events.success-ticket", ["slug" => $event->slug]) }}', window.location.origin);
+                    if (tx) fetchUrl.searchParams.set('tx', tx);
+                    if (ref) fetchUrl.searchParams.set('ref', ref);
+                    if (orderId) fetchUrl.searchParams.set('order_id', orderId);
+
+                    const r = await fetch(fetchUrl.toString(), {
+                        headers: { 'Accept': 'application/json' },
+                        credentials: 'same-origin'
+                    });
+                    if (!r.ok) return false;
+                    const res = await r.json().catch(() => null);
+                    if (res && res.success && Array.isArray(res.participants) && res.participants.length > 0) {
+                        cachedParticipants = res.participants;
+                        ticketNumber = res.registration_id || res.transaction_id || ticketNumber || '';
+
+                        const eventId = container?.dataset.eventId || '{{ $event->id }}';
+                        const cachePayload = {
+                            participants: cachedParticipants,
+                            registration_id: ticketNumber,
+                            transaction_id: res.transaction_id,
+                            event_id: eventId
+                        };
+                        try {
+                            localStorage.setItem('ruanglari_last_ticket_' + eventId, JSON.stringify(cachePayload));
+                            localStorage.setItem('ruanglari_last_ticket_latest', JSON.stringify(cachePayload));
+                        } catch(e) {}
+                        return true;
+                    }
+                } catch(err) {
+                    console.warn('hydrateTicketFromServer error:', err);
+                }
+                return false;
+            }
+
+            function drawLoadingTicket() {
+                if (!canvas) return;
+                const ctx = canvas.getContext('2d');
+                if (!ctx) return;
+
+                const eventName = container?.dataset.eventName || '{{ $event->name }}';
+                const eventDate = container?.dataset.eventDate || '{{ $ticketDate }}';
+                const eventLocation = container?.dataset.eventLocation || '{{ $ticketLocation }}';
+                const primaryColor = window.THEME_PRIMARY_COLOR || '{{ $primaryColor }}';
+
+                const w = canvas.width;
+                const h = canvas.height;
+                ctx.clearRect(0, 0, w, h);
+
+                ctx.fillStyle = '#ffffff';
+                ctx.fillRect(0, 0, w, h);
+
+                ctx.fillStyle = primaryColor;
+                ctx.fillRect(0, 0, w, 24);
+
+                ctx.strokeStyle = '#cbd5e1';
+                ctx.lineWidth = 2;
+                ctx.strokeRect(1, 1, w - 2, h - 2);
+
+                ctx.fillStyle = '#0f172a';
+                ctx.font = '800 28px "Inter Tight", sans-serif';
+                ctx.fillText(eventName.toUpperCase(), 40, 80);
+
+                ctx.fillStyle = '#64748b';
+                ctx.font = '600 13px "Plus Jakarta Sans", sans-serif';
+                ctx.fillText('WAKTU & TANGGAL PELAKSANAAN', 40, 125);
+                ctx.fillStyle = '#0f172a';
+                ctx.font = '700 16px "Plus Jakarta Sans", sans-serif';
+                ctx.fillText(eventDate, 40, 148);
+
+                ctx.fillStyle = '#64748b';
+                ctx.font = '600 13px "Plus Jakarta Sans", sans-serif';
+                ctx.fillText('LOKASI VENUE', 40, 190);
+                ctx.fillStyle = '#0f172a';
+                ctx.font = '700 16px "Plus Jakarta Sans", sans-serif';
+                ctx.fillText(eventLocation, 40, 213);
+
+                ctx.fillStyle = '#f8fafc';
+                ctx.fillRect(40, 255, w - 80, 140);
+                ctx.strokeStyle = '#e2e8f0';
+                ctx.strokeRect(40, 255, w - 80, 140);
+
+                ctx.fillStyle = '#64748b';
+                ctx.font = '600 14px "Plus Jakarta Sans", sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText('Menyiapkan E-Ticket resmi Anda...', w / 2, 330);
+                ctx.textAlign = 'left';
+
+                if (participantLabel) participantLabel.textContent = 'Memuat data...';
             }
 
             function drawTicket(idx) {
@@ -4164,7 +4310,8 @@
                     pSize = p.jersey_size_label || p.jersey_size || '-';
                     pCat = p.category_label || p.category || '-';
                     pId = p.id || null;
-                    pQrData = p.qr_data || (pId ? `TICKET-${pId}-${p.transaction_id || ticketNumber || ''}` : (ticketNumber ? `TICKET-${ticketNumber}` : 'TICKET-RL'));
+                    const resolvedTxId = p.transaction_id || ticketNumber || '';
+                    pQrData = p.qr_data || (pId ? `TICKET-${pId}-${resolvedTxId}` : (ticketNumber ? `TICKET-${ticketNumber}` : 'TICKET-RL'));
                     pQrUrl = p.qr_url || `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(pQrData)}`;
                 } else {
                     pQrData = ticketNumber ? `TICKET-${ticketNumber}` : 'TICKET-RL';
@@ -4174,6 +4321,9 @@
                 if (participantLabel) participantLabel.textContent = pName;
                 if (participantIndexEl) participantIndexEl.textContent = String(idx + 1);
                 if (participantTotalEl) participantTotalEl.textContent = String(cachedParticipants.length || 1);
+
+                if (prevBtn) prevBtn.style.display = cachedParticipants.length > 1 ? '' : 'none';
+                if (nextBtn) nextBtn.style.display = cachedParticipants.length > 1 ? '' : 'none';
 
                 const w = canvas.width;
                 const h = canvas.height;
@@ -4355,11 +4505,23 @@
                 ctx.fillText('Tunjukkan E-Ticket ini saat Race Pack Collection (RPC).', 40, 425);
             }
 
-            function openSuccessModal() {
-                loadTicketCache();
-                drawTicket(0);
+            async function openSuccessModal() {
                 successModal.classList.remove('hidden');
                 successModal.classList.add('flex');
+
+                const hasCache = loadTicketCache();
+                if (hasCache && cachedParticipants.length > 0) {
+                    drawTicket(0);
+                } else {
+                    drawLoadingTicket();
+                    const hydrated = await hydrateTicketFromServer();
+                    if (hydrated && cachedParticipants.length > 0) {
+                        drawTicket(0);
+                    } else {
+                        loadTicketCache();
+                        drawTicket(0);
+                    }
+                }
             }
 
             function closeSuccessModal() {
@@ -4368,6 +4530,11 @@
                 try {
                     const u = new URL(window.location.href);
                     u.searchParams.delete('payment');
+                    u.searchParams.delete('tx');
+                    u.searchParams.delete('ref');
+                    u.searchParams.delete('order_id');
+                    u.searchParams.delete('status_code');
+                    u.searchParams.delete('transaction_status');
                     window.history.replaceState({}, '', u.toString());
                 } catch(e) {}
             }
@@ -4389,8 +4556,11 @@
                 }
             });
 
-            downloadBtn?.addEventListener('click', function() {
+            downloadBtn?.addEventListener('click', async function() {
                 if (!canvas) return;
+                if (!cachedParticipants.length) {
+                    await hydrateTicketFromServer();
+                }
                 const p = cachedParticipants[currentParticipantIdx] || cachedParticipants[0] || {};
                 const pQrData = p.qr_data || (p.id ? `TICKET-${p.id}-${p.transaction_id || ticketNumber || ''}` : (ticketNumber ? `TICKET-${ticketNumber}` : 'TICKET-RL'));
                 const pQrUrl = p.qr_url || `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(pQrData)}`;
@@ -4417,9 +4587,15 @@
                 }
             });
 
-            // Check URL param payment=success
+            // Check URL param payment=success or payment gateway callbacks (Midtrans settlement / 200)
             const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('payment') === 'success') {
+            const statusParam = String(urlParams.get('transaction_status') || '').toLowerCase();
+            const isSuccessUrl = urlParams.get('payment') === 'success'
+                || ['settlement', 'capture', 'success'].includes(statusParam)
+                || urlParams.get('status_code') === '200'
+                || (urlParams.has('tx') && urlParams.has('ref'));
+
+            if (isSuccessUrl) {
                 openSuccessModal();
             }
         })();

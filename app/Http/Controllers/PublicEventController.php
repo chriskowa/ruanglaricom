@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Event;
 use App\Models\ParticipantSupport;
+use App\Models\Transaction;
 use App\Services\EventCacheService;
 use App\Services\MootaService;
 use Illuminate\Http\Request;
@@ -115,18 +116,7 @@ class PublicEventController extends Controller
                 ]);
             }
 
-            $successTransaction = null;
-            if (request('payment') === 'success') {
-                $txParam = request('tx');
-                $refParam = request('ref');
-                if ($txParam || $refParam) {
-                    $successTransaction = \App\Models\Transaction::where('event_id', $event->id)
-                        ->when($txParam, fn($q) => $q->where('id', $txParam))
-                        ->when(!$txParam && $refParam, fn($q) => $q->where('public_ref', $refParam))
-                        ->with(['participants.category'])
-                        ->first();
-                }
-            }
+            $successTransaction = $this->resolveSuccessTransaction($event);
 
             return view('events.show', [
                 'event' => $event,
@@ -179,18 +169,7 @@ class PublicEventController extends Controller
             ]);
         }
 
-        $successTransaction = null;
-        if (request('payment') === 'success') {
-            $txParam = request('tx');
-            $refParam = request('ref');
-            if ($txParam || $refParam) {
-                $successTransaction = \App\Models\Transaction::where('event_id', $event->id)
-                    ->when($txParam, fn($q) => $q->where('id', $txParam))
-                    ->when(!$txParam && $refParam, fn($q) => $q->where('public_ref', $refParam))
-                    ->with(['participants.category'])
-                    ->first();
-            }
-        }
+        $successTransaction = $this->resolveSuccessTransaction($event);
 
         return view('events.show', [
             'event' => $event,
@@ -198,6 +177,113 @@ class PublicEventController extends Controller
             'seo' => $seo,
             'hasPaidParticipants' => $hasPaidParticipants,
             'successTransaction' => $successTransaction,
+        ]);
+    }
+
+    /**
+     * Resolve transaction on success callback/redirect with efficient, indexed lookups
+     */
+    public function resolveSuccessTransaction(Event $event, bool $isApi = false): ?Transaction
+    {
+        $request = request();
+        $paymentStatusParam = strtolower((string) $request->get('transaction_status'));
+        $isPaymentSuccess = $isApi
+            || $request->get('payment') === 'success'
+            || in_array($paymentStatusParam, ['settlement', 'capture', 'success'], true)
+            || (string) $request->get('status_code') === '200'
+            || ($request->has('tx') && $request->has('ref'));
+
+        // Fast-path: return null immediately for normal page views (0 DB queries)
+        if (! $isPaymentSuccess) {
+            return null;
+        }
+
+        $txParam = $request->get('tx');
+        $refParam = $request->get('ref') ?? $request->get('registration_id');
+        $orderIdParam = $request->get('order_id') ?? $request->get('midtrans_order_id');
+
+        $query = Transaction::where('event_id', $event->id);
+
+        if ($txParam || $refParam || $orderIdParam) {
+            $query->where(function ($q) use ($txParam, $refParam, $orderIdParam) {
+                if ($txParam) {
+                    if (is_numeric($txParam)) {
+                        $q->orWhere('id', (int) $txParam);
+                    }
+                    $q->orWhere('public_ref', $txParam)
+                      ->orWhere('midtrans_order_id', $txParam);
+                }
+                if ($refParam) {
+                    $q->orWhere('public_ref', $refParam);
+                    if (is_numeric($refParam)) {
+                        $q->orWhere('id', (int) $refParam);
+                    }
+                }
+                if ($orderIdParam) {
+                    $q->orWhere('midtrans_order_id', $orderIdParam)
+                      ->orWhere('public_ref', $orderIdParam);
+                    if (preg_match('/EVENT-(?:PRD|SBX)-(\d+)/i', $orderIdParam, $m)) {
+                        $q->orWhere('id', (int) $m[1]);
+                    }
+                }
+            });
+        } elseif (session()->has('last_transaction_id') && session('last_event_id') == $event->id) {
+            $query->where('id', session('last_transaction_id'));
+        } elseif (auth()->check()) {
+            $query->where('user_id', auth()->id())->latest('id');
+        } else {
+            return null;
+        }
+
+        return $query->with(['participants.category', 'participants.package'])->first();
+    }
+
+    /**
+     * API: Get Ticket Details for Success Modal
+     */
+    public function getSuccessTicket(string $slug)
+    {
+        $event = Event::where('slug', $slug)->firstOrFail();
+        $tx = $this->resolveSuccessTransaction($event, true);
+
+        if (! $tx) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Data tiket tidak ditemukan.',
+            ], 404);
+        }
+
+        $tx->loadMissing(['participants.category', 'participants.package']);
+
+        $ticketDate = '-';
+        if ($event->start_at) {
+            $ticketDate = \Carbon\Carbon::parse($event->start_at)->translatedFormat('d M Y, H:i');
+        } elseif ($event->date) {
+            $ticketDate = \Carbon\Carbon::parse($event->date)->translatedFormat('d M Y') . ($event->start_time ? ', ' . substr($event->start_time, 0, 5) : '');
+        }
+
+        $participants = $tx->participants->map(function ($p) use ($tx) {
+            $qrCode = 'TICKET-' . $p->id . '-' . $tx->id;
+            return [
+                'id' => $p->id,
+                'participant_name' => (string) ($p->name ?? '-'),
+                'jersey_size_label' => (string) ($p->jersey_size ?? '-'),
+                'category_label' => (string) ($p->category->name ?? ($p->package->name ?? '-')),
+                'bib' => $p->bib_number ?? null,
+                'qr_data' => $qrCode,
+                'qr_url' => 'https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=' . urlencode($qrCode),
+            ];
+        })->values()->toArray();
+
+        return response()->json([
+            'success' => true,
+            'transaction_id' => $tx->id,
+            'registration_id' => $tx->public_ref ?? $tx->id,
+            'event_id' => $event->id,
+            'event_name' => $event->name,
+            'event_date' => $ticketDate,
+            'event_location' => $event->location_name ?? '-',
+            'participants' => $participants,
         ]);
     }
 

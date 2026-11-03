@@ -286,7 +286,7 @@
                         @elseif(auth()->user()->isRunner())
                             @php
                                 $isTrainingActive = request()->routeIs('runner.dashboard', 'runner.calendar*', 'runner.programs*', 'calculator');
-                                $isActivityActive = request()->routeIs('activities.*', 'runner.analysis-requests.*', 'runner.gpx.*', 'runner.strava.*') || request()->is('calendar*');
+                                $isActivityActive = request()->routeIs('activities.*', 'runner.analysis-requests.*', 'runner.gpx.*', 'runner.strava.*', 'runner.integrations.*') || request()->is('calendar*');
                             @endphp
 
                             <!-- GRUP: LATIHAN & PERFORMA -->
@@ -391,6 +391,17 @@
                                         <a href="{{ route('runner.gpx.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('runner.gpx.*') ? $activeClass : $inactiveClass }}">
                                             <span class="w-5 text-center text-xs text-white"><i class="fas fa-map-marked-alt"></i></span>
                                             <span class="text-white">My GPX</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('runner.integrations.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('runner.integrations.*') ? $activeClass : $inactiveClass }}">
+                                            <span class="w-5 text-center text-xs text-white"><i class="fas fa-plug-circle-check"></i></span>
+                                            <span class="flex items-center justify-between w-full">
+                                                <span class="text-white">Integrasi Akun</span>
+                                                @if(auth()->user()->strava_access_token)
+                                                    <span class="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.5 rounded font-bold font-mono">Connected</span>
+                                                @endif
+                                            </span>
                                         </a>
                                     </li>
                                 </ul>

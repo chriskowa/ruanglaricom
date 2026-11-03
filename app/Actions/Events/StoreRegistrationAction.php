@@ -671,6 +671,14 @@ class StoreRegistrationAction
 
             DB::commit();
 
+            if (function_exists('session') && session()) {
+                session([
+                    'last_transaction_id' => $transaction->id,
+                    'last_public_ref' => $transaction->public_ref,
+                    'last_event_id' => $event->id,
+                ]);
+            }
+
             // Invalidate cache for updated categories
             foreach ($categories as $category) {
                 $this->cacheService->invalidateCategoryCache($category);

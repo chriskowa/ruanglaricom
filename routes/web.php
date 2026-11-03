@@ -482,7 +482,7 @@ Route::post('/pacer-bookings/webhook', [App\Http\Controllers\PacerBookingWebhook
 
 // Runner Profile (Public) - avoid conflicts with runner dashboard/calendar routes
 Route::get('/runner/{username}', [App\Http\Controllers\RunnerProfileController::class, 'show'])
-    ->where('username', '^(?!(dashboard|calendar|programs|analysis-requests|running-analysis|profile|strava|gpx|invoices)$)[A-Za-z0-9._-]+$')
+    ->where('username', '^(?!(dashboard|calendar|programs|analysis-requests|running-analysis|profile|strava|gpx|invoices|integrations|wa-subscription)$)[A-Za-z0-9._-]+$')
     ->name('runner.profile.show');
 
 // Coach Registration Routes
@@ -729,6 +729,7 @@ Route::post('/api/events/{slug}/payments/pending', [App\Http\Controllers\EventPa
 Route::get('/api/events/{slug}/payments/{transaction}/status', [App\Http\Controllers\EventPaymentRecoveryController::class, 'status'])->middleware('throttle:30,1')->name('api.events.payments.status');
 Route::post('/api/events/{slug}/payments/{transaction}/resume', [App\Http\Controllers\EventPaymentRecoveryController::class, 'resume'])->middleware('throttle:20,1')->name('api.events.payments.resume');
 Route::get('/api/events/{slug}/tickets/{transaction}', [App\Http\Controllers\EventPaymentRecoveryController::class, 'ticket'])->middleware('throttle:30,1')->name('api.events.tickets.show');
+Route::get('/api/events/{slug}/success-ticket', [App\Http\Controllers\PublicEventController::class, 'getSuccessTicket'])->middleware('throttle:60,1')->name('api.events.success-ticket');
 
 // EO Landing Page
 Route::get('/event-organizer', function () {
@@ -1211,6 +1212,10 @@ Route::middleware('auth')->group(function () {
             Route::get('/history', [App\Http\Controllers\Runner\WaSubscriptionController::class, 'history'])->name('history');
         });
         Route::get('/programs', [App\Http\Controllers\Runner\ProgramController::class, 'index'])->name('programs');
+
+        // Runner Integrations (Strava, Email, WhatsApp)
+        Route::get('/integrations', [App\Http\Controllers\Runner\IntegrationController::class, 'index'])->name('integrations.index');
+        Route::post('/integrations/verify-email', [App\Http\Controllers\Runner\IntegrationController::class, 'sendVerificationEmail'])->name('integrations.verify-email');
 
         Route::get('/strava/connect', [App\Http\Controllers\Runner\StravaController::class, 'connect'])->name('strava.connect');
         Route::get('/strava/callback', [App\Http\Controllers\Runner\StravaController::class, 'callback'])->name('strava.callback');
