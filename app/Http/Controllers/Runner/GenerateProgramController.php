@@ -159,10 +159,14 @@ class GenerateProgramController extends Controller
                 ]);
             }
 
-            // Create program
+            // Create program (Assigned to Coach AI Official)
+            $coachAiId = User::where('email', 'ai-coach@ruanglari.com')
+                ->orWhere('username', 'coach-ai')
+                ->value('id') ?? 392;
+
             $title = 'Program VDOT AI: '.strtoupper($validated['goal_distance']).' ('.$durationWeeks.' Weeks)';
             $program = Program::create([
-                'coach_id' => $user->id,
+                'coach_id' => $coachAiId,
                 'title' => $title,
                 'slug' => $this->generateUniqueSlug($title),
                 'description' => "AI VDOT periodized program for " . strtoupper($validated['goal_distance']),

@@ -115,10 +115,14 @@ class SelfGeneratedProgramController extends Controller
             $targetDistance = $form['target_distance'] ?? '10k';
             $vdot = $result['vdot'] ?? 30;
 
-            // 1. Create Program
+            // 1. Create Program (Assigned to Coach AI Official)
+            $coachAiId = User::where('email', 'ai-coach@ruanglari.com')
+                ->orWhere('username', 'coach-ai')
+                ->value('id') ?? 392;
+
             $title = "Program Latihan " . strtoupper($targetDistance) . " (VDOT " . $vdot . ")";
             $program = Program::create([
-                'coach_id' => $user->id,
+                'coach_id' => $coachAiId,
                 'title' => $title,
                 'slug' => $this->generateUniqueSlug($title),
                 'description' => "Program latihan lari periodisasi ilmiah berbasis Jack Daniels' VDOT Formula.",
