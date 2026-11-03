@@ -3616,8 +3616,10 @@ const runnerCalendarApp = createApp({
                     E: 1000 / (vVO2max * 0.70),
                     E_high: 1000 / (vVO2max * 0.72),
                     E_low: 1000 / (vVO2max * 0.66),
+                    LT1: 1000 / (vVO2max * 0.75),
                     M: 1000 / (vVO2max * 0.82),
                     T: 1000 / (vVO2max * 0.88),
+                    LT2: 1000 / (vVO2max * 0.88),
                     I: 1000 / (vVO2max * 0.97),
                     R: 1000 / (vVO2max * 1.05),
                 };
@@ -3693,7 +3695,7 @@ const runnerCalendarApp = createApp({
                                 <td style="width: 33.33%; background-color: #121c2e; border: 1px solid #1e293b; border-left: 3px solid #10b981; border-radius: 6px; padding: 6px 8px; vertical-align: top;">
                                     <div style="font-size: 9px; font-weight: 700; color: #94a3b8; text-transform: uppercase; font-family: monospace;">2. Easy (E) Pace</div>
                                     <div style="font-size: 12px; font-weight: 800; color: #ffffff; font-family: monospace; margin: 2px 0;">${easyPaceStr}</div>
-                                    <div style="font-size: 9px; color: #64748b;">Aerobic base & long run nyaman</div>
+                                    <div style="font-size: 9px; color: #64748b;">Aerobic base (&lt; LT1) & long run</div>
                                 </td>
                                 <td style="width: 33.33%; background-color: #121c2e; border: 1px solid #1e293b; border-left: 3px solid #60a5fa; border-radius: 6px; padding: 6px 8px; vertical-align: top;">
                                     <div style="font-size: 9px; font-weight: 700; color: #94a3b8; text-transform: uppercase; font-family: monospace;">3. Marathon / Tempo (M)</div>
@@ -3703,9 +3705,9 @@ const runnerCalendarApp = createApp({
                             </tr>
                             <tr>
                                 <td style="width: 33.33%; background-color: #121c2e; border: 1px solid #1e293b; border-left: 3px solid #f59e0b; border-radius: 6px; padding: 6px 8px; vertical-align: top;">
-                                    <div style="font-size: 9px; font-weight: 700; color: #94a3b8; text-transform: uppercase; font-family: monospace;">4. Threshold (T) Pace</div>
+                                    <div style="font-size: 9px; font-weight: 700; color: #94a3b8; text-transform: uppercase; font-family: monospace;">4. LT2 / Threshold (T)</div>
                                     <div style="font-size: 12px; font-weight: 800; color: #ffffff; font-family: monospace; margin: 2px 0;">${thresholdPaceStr}</div>
-                                    <div style="font-size: 9px; color: #64748b;">Ambang laktat (comfortably hard)</div>
+                                    <div style="font-size: 9px; color: #64748b;">Ambang laktat / MLSS (~4.0 mmol/L)</div>
                                 </td>
                                 <td style="width: 33.33%; background-color: #121c2e; border: 1px solid #1e293b; border-left: 3px solid #fb923c; border-radius: 6px; padding: 6px 8px; vertical-align: top;">
                                     <div style="font-size: 9px; font-weight: 700; color: #94a3b8; text-transform: uppercase; font-family: monospace;">5. Interval 1K (I Pace)</div>

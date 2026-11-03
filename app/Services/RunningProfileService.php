@@ -42,7 +42,7 @@ class RunningProfileService
             if (!$paces) {
                 $paces = [];
             }
-            foreach (['E', 'M', 'T', 'I', 'R', 'E_low', 'E_high'] as $type) {
+            foreach (['E', 'LT1', 'M', 'T', 'LT2', 'I', 'R', 'E_low', 'E_high'] as $type) {
                 if (!empty($customPacesRaw[$type])) {
                     $val = $customPacesRaw[$type];
                     if (is_string($val) && str_contains($val, ':')) {
@@ -57,6 +57,13 @@ class RunningProfileService
             if (!empty($paces['E']) && (empty($paces['E_low']) || empty($paces['E_high']))) {
                 $paces['E_high'] = round($paces['E'] * (0.70 / 0.72), 4);
                 $paces['E_low'] = round($paces['E'] * (0.70 / 0.66), 4);
+            }
+
+            if (!empty($paces['T']) && empty($paces['LT2'])) {
+                $paces['LT2'] = $paces['T'];
+            }
+            if (empty($paces['LT1']) && !empty($paces['E']) && !empty($paces['M'])) {
+                $paces['LT1'] = round(($paces['E'] + $paces['M']) / 2, 4);
             }
         }
 

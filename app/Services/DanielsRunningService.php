@@ -145,13 +145,15 @@ class DanielsRunningService
         $vVO2max = (-$b + sqrt(pow($b, 2) - 4 * $a * $c)) / (2 * $a);
 
         // 2. Calculate Paces based on % of vVO2max
-        // Intensities (approximate Daniels' percentages)
+        // Intensities (approximate Daniels' percentages & Lactate Thresholds)
         $ratios = [
-            'E' => 0.70,  // Easy: ~70% vVO2max
-            'M' => 0.82,  // Marathon: ~82% vVO2max
-            'T' => 0.88,  // Threshold: ~88% vVO2max
-            'I' => 0.97,  // Interval: ~97% vVO2max
-            'R' => 1.05,  // Repetition: ~105% vVO2max
+            'E' => 0.70,   // Easy: ~70% vVO2max
+            'LT1' => 0.75, // Aerobic Threshold (LT1): ~75% vVO2max (~2.0 mmol/L blood lactate)
+            'M' => 0.82,   // Marathon: ~82% vVO2max
+            'T' => 0.88,   // Threshold: ~88% vVO2max
+            'LT2' => 0.88, // Lactate Threshold (LT2 / MLSS): ~88% vVO2max (~4.0 mmol/L blood lactate)
+            'I' => 0.97,   // Interval: ~97% vVO2max
+            'R' => 1.05,   // Repetition: ~105% vVO2max
         ];
 
         $paces = [];
@@ -181,6 +183,9 @@ class DanielsRunningService
             $paces['E'] = min($paces['E'], 8.25);
             $paces['E_high'] = min($paces['E_high'], 8.00);
             $paces['E_low'] = min($paces['E_low'], 8.50);
+            if (isset($paces['LT1'])) {
+                $paces['LT1'] = min($paces['LT1'], 7.75);
+            }
             $paces['jog_pace'] = 8.25;   // ~8:15/km
             $paces['walk_pace'] = 11.00; // ~11:00/km
         }

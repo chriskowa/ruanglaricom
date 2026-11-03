@@ -606,9 +606,11 @@ class DashboardController extends Controller
 
         if (str_contains($typeLower, 'easy') || str_contains($typeLower, 'recovery') || str_contains($typeLower, 'warmup') || str_contains($typeLower, 'cool')) {
             $key = 'E';
+        } elseif (str_contains($typeLower, 'lt1') || str_contains($typeLower, 'aerobic_threshold') || str_contains($typeLower, 'sub_threshold') || str_contains($typeLower, 'sub-threshold')) {
+            $key = 'LT1';
         } elseif (str_contains($typeLower, 'long')) {
             $key = 'M';
-        } elseif (str_contains($typeLower, 'tempo') || str_contains($typeLower, 'threshold')) {
+        } elseif (str_contains($typeLower, 'tempo') || str_contains($typeLower, 'threshold') || str_contains($typeLower, 'lt2') || str_contains($typeLower, 'mlss')) {
             $key = 'T';
         } elseif (str_contains($typeLower, 'interval') || str_contains($typeLower, 'vo2max')) {
             $key = 'I';
@@ -645,6 +647,12 @@ class DashboardController extends Controller
         }
 
         $pace = $paces[$key] ?? null;
+        if (! $pace && $key === 'LT1') {
+            $pace = $paces['M'] ?? $paces['E'] ?? null;
+        }
+        if (! $pace && $key === 'LT2') {
+            $pace = $paces['T'] ?? null;
+        }
         if (! $pace && $key === 'M') {
             $pace = $paces['E'] ?? null;
         }

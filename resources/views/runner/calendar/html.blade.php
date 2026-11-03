@@ -733,7 +733,7 @@
                             <div class="p-3 sm:p-3.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between gap-3">
                                 <div>
                                     <div class="text-white font-bold text-xs sm:text-sm" id="pace-easy-label">Easy (E) Pace</div>
-                                    <div class="text-[10px] text-slate-400 mt-0.5">Recovery, Long Run & Aerobic Base</div>
+                                    <div class="text-[10px] text-slate-400 mt-0.5">Recovery, Long Run & Aerobic Base (&lt; LT1)</div>
                                 </div>
                                 <div class="text-right">
                                     <div class="text-white font-mono font-bold text-sm sm:text-base whitespace-nowrap" id="pace-easy-value">
@@ -743,6 +743,20 @@
                                         <template v-else>
                                             @{{ formatPace(trainingProfile.paces?.E) }}
                                         </template>
+                                    </div>
+                                    <div class="text-[9px] text-slate-400 font-mono">per km</div>
+                                </div>
+                            </div>
+
+                            <!-- LT1 (Aerobic Threshold) -->
+                            <div class="p-3 sm:p-3.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between gap-3">
+                                <div>
+                                    <div class="text-emerald-300 font-bold text-xs sm:text-sm" id="pace-lt1-label">LT1 (Aerobic Threshold)</div>
+                                    <div class="text-[10px] text-slate-400 mt-0.5">FatMax, Capillary Density & Sub-Threshold (~2.0 mmol/L)</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-white font-mono font-bold text-sm sm:text-base whitespace-nowrap" id="pace-lt1-value">
+                                        @{{ formatPace(trainingProfile.paces?.LT1 || (trainingProfile.paces?.E && trainingProfile.paces?.M ? (Number(trainingProfile.paces.E) + Number(trainingProfile.paces.M)) / 2 : null)) }}
                                     </div>
                                     <div class="text-[9px] text-slate-400 font-mono">per km</div>
                                 </div>
@@ -762,15 +776,15 @@
                                 </div>
                             </div>
 
-                            <!-- Threshold Pace -->
+                            <!-- LT2 / Threshold (T) Pace -->
                             <div class="p-3 sm:p-3.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between gap-3">
                                 <div>
-                                    <div class="text-amber-300 font-bold text-xs sm:text-sm" id="pace-threshold-label">Threshold (T) Pace</div>
-                                    <div class="text-[10px] text-slate-400 mt-0.5">Tempo & Lactate Clearance Endurance</div>
+                                    <div class="text-amber-300 font-bold text-xs sm:text-sm" id="pace-threshold-label">LT2 / Threshold (T) Pace</div>
+                                    <div class="text-[10px] text-slate-400 mt-0.5">Maximal Lactate Steady State / MLSS (~4.0 mmol/L)</div>
                                 </div>
                                 <div class="text-right">
                                     <div class="text-white font-mono font-bold text-sm sm:text-base whitespace-nowrap" id="pace-threshold-value">
-                                        @{{ formatPace(trainingProfile.paces?.T) }}
+                                        @{{ formatPace(trainingProfile.paces?.LT2 || trainingProfile.paces?.T) }}
                                     </div>
                                     <div class="text-[9px] text-slate-400 font-mono">per km</div>
                                 </div>
@@ -780,7 +794,7 @@
                             <div class="p-3 sm:p-3.5 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-between gap-3">
                                 <div>
                                     <div class="text-orange-300 font-bold text-xs sm:text-sm" id="pace-interval-label">Interval (I) Pace</div>
-                                    <div class="text-[10px] text-slate-400 mt-0.5">VO2Max & Aerobic Power Booster</div>
+                                    <div class="text-[10px] text-slate-400 mt-0.5">VO2Max & Aerobic Power Booster (&gt; LT2)</div>
                                 </div>
                                 <div class="text-right">
                                     <div class="text-white font-mono font-bold text-sm sm:text-base whitespace-nowrap" id="pace-interval-value">
