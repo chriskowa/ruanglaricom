@@ -360,21 +360,21 @@
                         </a>
                         <a href="{{ route('programs.realistic') }}" 
                            class="px-5 py-3.5 bg-slate-900 hover:bg-slate-800 text-slate-200 hover:text-white border border-slate-800 hover:border-slate-700 rounded-md font-semibold text-xs sm:text-sm tracking-wider uppercase inline-flex items-center justify-center transition cursor-pointer">
-                            Buat Rencana AI Gratis
+                            Buat Rencana Latihan Mandiri
                         </a>
                     </div>
                 </div>
 
-                <!-- Right Column: Interactive Training Lab (VDOT Pace Calculator) -->
+                <!-- Right Column: Training Pace Calculator & Program Recommendation -->
                 <div class="lg:col-span-6 relative">
-                    <div class="rounded-lg border border-slate-800 bg-slate-900 shadow-2xl overflow-hidden border-t-2 border-t-[#CCFF00]">
+                    <div class="rounded-lg border border-slate-800 bg-slate-900 shadow-sm overflow-hidden">
                         <!-- Card Header -->
-                        <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between bg-slate-950/60">
+                        <div class="px-5 py-4 border-b border-slate-800 bg-slate-950/60 flex items-center justify-between">
                             <div>
-                                <span class="text-[10px] font-mono font-bold tracking-widest text-slate-400 uppercase block">Performance Lab / VDOT</span>
-                                <h2 class="text-base sm:text-lg font-bold font-editorial-heading text-white mt-0.5">Kalkulator Pace & Target Lari</h2>
+                                <h2 class="text-base sm:text-lg font-bold font-editorial-heading text-white">Kalkulator Pace &amp; Level Latihan</h2>
+                                <p class="text-xs text-slate-400 mt-0.5">Formula Jack Daniels VDOT untuk menentukan target pace personal</p>
                             </div>
-                            <span class="px-2 py-0.5 rounded bg-slate-800 border border-slate-700 text-[10px] font-mono font-bold text-[#CCFF00]">RL-01</span>
+                            <span class="text-[11px] font-mono font-medium text-slate-300 px-2 py-0.5 rounded bg-slate-800 border border-slate-700">Metode VDOT</span>
                         </div>
 
                         <!-- Form Input Body -->
@@ -382,11 +382,11 @@
                             <!-- Distance Parameter Selection -->
                             <div>
                                 <label for="hero_vdot_distance" class="block text-xs font-semibold text-slate-300 mb-1.5">
-                                    Jarak Parameter / PB Terakhir
+                                    Jarak Acuan atau Rekor Personal (PB)
                                 </label>
                                 <select id="hero_vdot_distance" 
-                                        aria-label="Jarak parameter atau rekor personal"
-                                        class="w-full px-3.5 py-2.5 rounded-md bg-slate-950 border border-slate-800 text-white text-xs sm:text-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-[#CCFF00] focus-visible:border-[#CCFF00] transition">
+                                        aria-label="Jarak acuan atau rekor personal"
+                                        class="w-full px-3.5 py-2.5 rounded-md bg-slate-950 border border-slate-800 text-white text-xs sm:text-sm focus:outline-none focus:border-slate-600 transition">
                                     <option value="5K">5K (5 Kilometer)</option>
                                     <option value="10K">10K (10 Kilometer)</option>
                                     <option value="21K" selected>Half Marathon (21.1K)</option>
@@ -397,7 +397,7 @@
                             <!-- Time Input (Jam, Menit, Detik) -->
                             <div id="hero_vdot_time_group">
                                 <label class="block text-xs font-semibold text-slate-300 mb-1.5">
-                                    Catatan Waktu PB
+                                    Catatan Waktu Tempuh
                                 </label>
                                 <div class="grid grid-cols-3 gap-2.5 font-numeric">
                                     <div>
@@ -405,7 +405,7 @@
                                             <input type="number" id="hero_vdot_h" min="0" max="23" value="1" 
                                                    aria-label="Jam catatan PB"
                                                    inputmode="numeric"
-                                                   class="w-full px-3 py-2.5 rounded-md bg-slate-950 border border-slate-800 text-white text-center text-sm font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-[#CCFF00] focus-visible:border-[#CCFF00] transition">
+                                                   class="w-full px-3 py-2.5 rounded-md bg-slate-950 border border-slate-800 text-white text-center text-sm font-bold font-mono focus:outline-none focus:border-slate-600 transition tabular-nums">
                                         </div>
                                         <span class="text-[10px] text-slate-400 block text-center mt-1">Jam</span>
                                     </div>
@@ -414,7 +414,7 @@
                                             <input type="number" id="hero_vdot_m" min="0" max="59" value="55" 
                                                    aria-label="Menit catatan PB"
                                                    inputmode="numeric"
-                                                   class="w-full px-3 py-2.5 rounded-md bg-slate-950 border border-slate-800 text-white text-center text-sm font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-[#CCFF00] focus-visible:border-[#CCFF00] transition">
+                                                   class="w-full px-3 py-2.5 rounded-md bg-slate-950 border border-slate-800 text-white text-center text-sm font-bold font-mono focus:outline-none focus:border-slate-600 transition tabular-nums">
                                         </div>
                                         <span class="text-[10px] text-slate-400 block text-center mt-1">Menit</span>
                                     </div>
@@ -423,95 +423,101 @@
                                             <input type="number" id="hero_vdot_s" min="0" max="59" value="00" 
                                                    aria-label="Detik catatan PB"
                                                    inputmode="numeric"
-                                                   class="w-full px-3 py-2.5 rounded-md bg-slate-950 border border-slate-800 text-white text-center text-sm font-bold focus:outline-none focus-visible:ring-2 focus-visible:ring-[#CCFF00] focus-visible:border-[#CCFF00] transition">
+                                                   class="w-full px-3 py-2.5 rounded-md bg-slate-950 border border-slate-800 text-white text-center text-sm font-bold font-mono focus:outline-none focus:border-slate-600 transition tabular-nums">
                                         </div>
                                         <span class="text-[10px] text-slate-400 block text-center mt-1">Detik</span>
                                     </div>
                                 </div>
+
+                                <!-- Preset Cepat -->
+                                <div class="flex items-center gap-1.5 flex-wrap pt-2.5">
+                                    <span class="text-[11px] text-slate-400 font-medium">Contoh PB:</span>
+                                    <button type="button" class="hero-vdot-preset px-2 py-1 rounded bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white text-[11px] font-mono transition cursor-pointer" data-dist="5K" data-h="0" data-m="28" data-s="0">5K 28:00</button>
+                                    <button type="button" class="hero-vdot-preset px-2 py-1 rounded bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white text-[11px] font-mono transition cursor-pointer" data-dist="10K" data-h="0" data-m="58" data-s="0">10K 58:00</button>
+                                    <button type="button" class="hero-vdot-preset px-2 py-1 rounded bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white text-[11px] font-mono transition cursor-pointer" data-dist="21K" data-h="1" data-m="55" data-s="0">HM 1:55:00</button>
+                                    <button type="button" class="hero-vdot-preset px-2 py-1 rounded bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white text-[11px] font-mono transition cursor-pointer" data-dist="42K" data-h="4" data-m="15" data-s="0">FM 4:15:00</button>
+                                </div>
                             </div>
 
-                            <!-- Action Calculate Button -->
+                            <!-- Action Calculate Button (No icon per Rule 3) -->
                             <button type="button" id="btn-hero-vdot-calculate" 
-                                    class="w-full bg-[#CCFF00] hover:bg-[#b8e600] text-slate-950 py-3 rounded-md font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 cursor-pointer transition shadow-sm">
-                                <span>Hitung VDOT & Target Pace</span>
-                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M14 5l7 7m0 0l-7 7m7-7H3"/>
-                                </svg>
+                                    class="w-full bg-[#CCFF00] hover:bg-[#b8e600] text-slate-950 py-3 rounded-md font-bold text-xs uppercase tracking-wider text-center cursor-pointer transition shadow-sm">
+                                Hitung Pace &amp; Rekomendasi Program
                             </button>
                         </div>
 
                         <!-- Result Display Box (Revealed on click) -->
-                        <div id="hero_vdot_result" class="hidden border-t border-slate-800 bg-slate-950/80 p-5 space-y-4">
+                        <div id="hero_vdot_result" class="hidden border-t border-slate-800 bg-slate-950 p-5 space-y-4">
                             <!-- VDOT Score Strip -->
-                            <div class="p-3.5 rounded-md bg-slate-900 border border-slate-800 flex items-center justify-between font-numeric">
+                            <div class="p-3.5 rounded-md bg-slate-900 border border-slate-800 flex items-center justify-between">
                                 <div>
-                                    <span class="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Estimasi VDOT Score</span>
-                                    <span id="hero_vdot_score_display" class="text-2xl font-black text-white mt-0.5 block">42.5</span>
+                                    <span class="text-[10px] font-mono font-semibold text-slate-400 uppercase tracking-wider block">Skor VDOT Personal</span>
+                                    <span id="hero_vdot_score_display" class="text-2xl font-bold text-white font-mono tabular-nums mt-0.5 block">42.5</span>
                                 </div>
                                 <div class="text-right">
-                                    <span class="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Level Kebugaran</span>
-                                    <span id="hero_vdot_fitness_level" class="text-xs sm:text-sm font-bold text-white mt-0.5 block">Intermediate</span>
+                                    <span class="text-[10px] font-mono font-semibold text-slate-400 uppercase tracking-wider block">Kategori Tingkat Latihan</span>
+                                    <span id="hero_vdot_fitness_level" class="text-xs sm:text-sm font-bold text-emerald-400 mt-0.5 block">Menengah (Intermediate)</span>
                                 </div>
                             </div>
 
                             <!-- Tab Buttons (Pace Latihan vs Target Race) -->
                             <div class="grid grid-cols-2 gap-1.5 p-1 rounded-md bg-slate-900 border border-slate-800 text-xs font-semibold">
-                                <button type="button" id="hero_vdot_tab_paces_btn" class="py-1.5 px-3 rounded text-center transition bg-[#CCFF00] text-slate-950 font-bold">
+                                <button type="button" id="hero_vdot_tab_paces_btn" class="py-1.5 px-3 rounded text-center transition bg-slate-800 text-white font-bold cursor-pointer">
                                     Pace Latihan
                                 </button>
-                                <button type="button" id="hero_vdot_tab_races_btn" class="py-1.5 px-3 rounded text-center transition text-slate-300 hover:text-white">
-                                    Prediksi Race
+                                <button type="button" id="hero_vdot_tab_races_btn" class="py-1.5 px-3 rounded text-center transition text-slate-400 hover:text-white cursor-pointer">
+                                    Prediksi Waktu Lomba
                                 </button>
                             </div>
 
                             <!-- Tab 1: Paces Content -->
-                            <div id="hero_vdot_tab_paces_content" class="space-y-2 text-xs font-numeric">
+                            <div id="hero_vdot_tab_paces_content" class="space-y-2 text-xs">
                                 <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
-                                    <span class="text-slate-300 font-medium">Easy / Recovery (Zone 2)</span>
-                                    <strong id="hero_vdot_easy_pace" class="text-white font-bold">05:50 - 06:25/km</strong>
+                                    <span class="text-slate-300 font-medium">Easy (Pondasi Aerobik &amp; Recovery)</span>
+                                    <strong id="hero_vdot_easy_pace" class="text-white font-bold font-mono tabular-nums">05:50 - 06:25/km</strong>
                                 </div>
                                 <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
-                                    <span class="text-slate-300 font-medium">Marathon Pace</span>
-                                    <strong id="hero_vdot_marathon_pace" class="text-white font-bold">05:15/km</strong>
+                                    <span class="text-slate-300 font-medium">Marathon Pace (Ketahanan Aerobik)</span>
+                                    <strong id="hero_vdot_marathon_pace" class="text-white font-bold font-mono tabular-nums">05:15/km</strong>
                                 </div>
                                 <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
-                                    <span class="text-slate-300 font-medium">Threshold / Tempo</span>
-                                    <strong id="hero_vdot_tempo_pace" class="text-white font-bold">04:55/km</strong>
+                                    <span class="text-slate-300 font-medium">Threshold (Ambang Laktat &amp; Tempo)</span>
+                                    <strong id="hero_vdot_tempo_pace" class="text-white font-bold font-mono tabular-nums">04:55/km</strong>
                                 </div>
                                 <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
-                                    <span class="text-slate-300 font-medium">Interval (VO2max)</span>
-                                    <strong class="text-white font-bold"><span id="hero_vdot_interval_pace">04:30/km</span> <span id="hero_vdot_interval_400m" class="text-slate-400 font-normal text-[11px]">(108s/400m)</span></strong>
+                                    <span class="text-slate-300 font-medium">Interval (Kapasitas VO2max)</span>
+                                    <strong class="text-white font-bold font-mono tabular-nums"><span id="hero_vdot_interval_pace">04:30/km</span> <span id="hero_vdot_interval_400m" class="text-slate-400 font-normal text-[11px]">(108s/400m)</span></strong>
                                 </div>
                                 <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
-                                    <span class="text-slate-300 font-medium">Repetition (Speed Form)</span>
-                                    <strong class="text-white font-bold"><span id="hero_vdot_repetition_pace">04:12/km</span> <span id="hero_vdot_repetition_400m" class="text-slate-400 font-normal text-[11px]">(100s/400m)</span></strong>
+                                    <span class="text-slate-300 font-medium">Repetition (Bentuk Lari &amp; Kecepatan)</span>
+                                    <strong class="text-white font-bold font-mono tabular-nums"><span id="hero_vdot_repetition_pace">04:12/km</span> <span id="hero_vdot_repetition_400m" class="text-slate-400 font-normal text-[11px]">(100s/400m)</span></strong>
                                 </div>
                             </div>
 
                             <!-- Tab 2: Races Content -->
-                            <div id="hero_vdot_tab_races_content" class="hidden space-y-2 text-xs font-numeric">
+                            <div id="hero_vdot_tab_races_content" class="hidden space-y-2 text-xs">
                                 <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
-                                    <span class="text-slate-300 font-medium">5K Race Target</span>
-                                    <strong id="hero_vdot_race_5k" class="text-white font-bold">—</strong>
+                                    <span class="text-slate-300 font-medium">Target 5K</span>
+                                    <strong id="hero_vdot_race_5k" class="text-white font-bold font-mono tabular-nums">-</strong>
                                 </div>
                                 <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
-                                    <span class="text-slate-300 font-medium">10K Race Target</span>
-                                    <strong id="hero_vdot_race_10k" class="text-white font-bold">—</strong>
+                                    <span class="text-slate-300 font-medium">Target 10K</span>
+                                    <strong id="hero_vdot_race_10k" class="text-white font-bold font-mono tabular-nums">-</strong>
                                 </div>
                                 <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
-                                    <span class="text-slate-300 font-medium">Half Marathon (21.1K)</span>
-                                    <strong id="hero_vdot_race_21k" class="text-white font-bold">—</strong>
+                                    <span class="text-slate-300 font-medium">Target Half Marathon (21.1K)</span>
+                                    <strong id="hero_vdot_race_21k" class="text-white font-bold font-mono tabular-nums">-</strong>
                                 </div>
                                 <div class="p-2.5 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
-                                    <span class="text-slate-300 font-medium">Marathon (42.2K)</span>
-                                    <strong id="hero_vdot_race_42k" class="text-white font-bold">—</strong>
+                                    <span class="text-slate-300 font-medium">Target Marathon (42.2K)</span>
+                                    <strong id="hero_vdot_race_42k" class="text-white font-bold font-mono tabular-nums">-</strong>
                                 </div>
                             </div>
 
                             <!-- Action Button to Programs -->
                             <a id="hero_vdot_action_btn" href="#katalog-program-coach" 
-                               class="block w-full text-center py-2.5 px-4 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-xs uppercase tracking-wider transition">
-                                Lihat Program Coach Sesuai VDOT Anda
+                               class="block w-full text-center py-2.5 px-4 rounded-md bg-slate-900 hover:bg-slate-800 border border-slate-700 text-white font-semibold text-xs tracking-wider transition cursor-pointer">
+                                Lihat Program Pelatih Sesuai Level Anda
                             </a>
                         </div>
                     </div>
@@ -2625,17 +2631,33 @@
 
         if (!distanceEl || !btnCalc || !resultBox) return;
 
+        // Interactive Quick Presets
+        var presetBtns = document.querySelectorAll('.hero-vdot-preset');
+        presetBtns.forEach(function(btn) {
+            btn.addEventListener('click', function() {
+                var dist = btn.getAttribute('data-dist');
+                var h = btn.getAttribute('data-h');
+                var m = btn.getAttribute('data-m');
+                var s = btn.getAttribute('data-s');
+                if (distanceEl) distanceEl.value = dist;
+                if (hEl) hEl.value = h;
+                if (mEl) mEl.value = m;
+                if (sEl) sEl.value = s;
+                btnCalc.click();
+            });
+        });
+
         function selectTab(type) {
             var pacesActive = type === 'paces';
             if (tabPacesBtn && tabRacesBtn && tabPacesContent && tabRacesContent) {
                 if (pacesActive) {
-                    tabPacesBtn.className = 'py-1.5 px-3 rounded text-center transition bg-[#CCFF00] text-slate-950 font-bold';
-                    tabRacesBtn.className = 'py-1.5 px-3 rounded text-center transition text-slate-300 hover:text-white';
+                    tabPacesBtn.className = 'py-1.5 px-3 rounded text-center transition bg-slate-800 text-white font-bold cursor-pointer';
+                    tabRacesBtn.className = 'py-1.5 px-3 rounded text-center transition text-slate-400 hover:text-white cursor-pointer';
                     tabPacesContent.classList.remove('hidden');
                     tabRacesContent.classList.add('hidden');
                 } else {
-                    tabRacesBtn.className = 'py-1.5 px-3 rounded text-center transition bg-[#CCFF00] text-slate-950 font-bold';
-                    tabPacesBtn.className = 'py-1.5 px-3 rounded text-center transition text-slate-300 hover:text-white';
+                    tabRacesBtn.className = 'py-1.5 px-3 rounded text-center transition bg-slate-800 text-white font-bold cursor-pointer';
+                    tabPacesBtn.className = 'py-1.5 px-3 rounded text-center transition text-slate-400 hover:text-white cursor-pointer';
                     tabRacesContent.classList.remove('hidden');
                     tabPacesContent.classList.add('hidden');
                 }
@@ -2709,13 +2731,22 @@
                 return (mins < 10 ? '0' : '') + mins + ':' + (secs < 10 ? '0' : '') + secs;
             }
 
-            var level = 'Beginner';
-            if (vdotVal >= 60) level = 'Elite / Advanced';
-            else if (vdotVal >= 48) level = 'Advanced';
-            else if (vdotVal >= 38) level = 'Intermediate';
+            var level = 'Pemula (Beginner)';
+            var levelClass = 'text-emerald-400';
+            if (vdotVal >= 60) {
+                level = 'Elit / Mahir (Elite)';
+                levelClass = 'text-[#CCFF00]';
+            } else if (vdotVal >= 48) {
+                level = 'Lanjutan (Advanced)';
+                levelClass = 'text-sky-400';
+            } else if (vdotVal >= 38) {
+                level = 'Menengah (Intermediate)';
+                levelClass = 'text-amber-400';
+            }
 
             scoreDisplay.innerText = vdotVal.toFixed(1);
             fitnessLevelDisplay.innerText = level;
+            fitnessLevelDisplay.className = 'text-xs sm:text-sm font-bold mt-0.5 block ' + levelClass;
             easyPaceDisplay.innerText = formatSecToMinKm(eHighSecPerKm) + ' - ' + formatSecToMinKm(eLowSecPerKm);
 
             if (marathonPaceDisplay) marathonPaceDisplay.innerText = formatSecToMinKm(mSecPerKm);
@@ -2740,9 +2771,9 @@
             });
 
             var catMap = { '5K': '5k', '10K': '10k', '21K': '21k', '42K': '42k' };
-            var selectedCat = catMap[dist] || 'all';
+            var selectedCat = catMap[dist] || '';
             actionBtn.href = "{{ route('programs.index') }}?category=" + selectedCat + "#katalog-program-coach";
-            actionBtn.innerText = 'Lihat Program ' + dist + ' Sesuai VDOT ' + vdotVal.toFixed(1);
+            actionBtn.innerText = 'Lihat Program ' + dist + ' untuk Level ' + level.split(' ')[0];
 
             resultBox.classList.remove('hidden');
         });

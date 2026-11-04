@@ -330,7 +330,7 @@
                             <span>PERFORMANCE / VDOT</span>
                             <h3>Race input</h3>
                         </div>
-                        <strong>RL-01</strong>
+                        <strong>VDOT</strong>
                     </div>
 
                     <div class="rl-lab-form">
