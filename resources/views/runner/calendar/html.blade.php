@@ -1611,23 +1611,63 @@
                                     <!-- Panduan Khusus Ambang Laktat (LT1 & LT2) -->
                                     <div v-if="sessionLtGuide" class="bg-slate-900 border border-slate-800 rounded-lg p-5 shadow-sm space-y-3.5">
                                         <div class="flex items-center justify-between pb-2.5 border-b border-slate-800">
-                                            <h3 class="text-xs font-bold text-white uppercase tracking-wider font-mono">
-                                                Panduan Ambang Laktat (LT1 &amp; LT2)
-                                            </h3>
-                                            <span class="text-[10px] px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono font-bold uppercase">Norwegian Protocol</span>
+                                            <div>
+                                                <h3 class="text-xs font-bold text-white uppercase tracking-wider font-mono">
+                                                    Panduan Ambang Laktat (@{{ sessionLtGuide.isPm ? 'Sore / LT2' : (sessionLtGuide.isAm ? 'Pagi / LT1' : 'LT1 & LT2') }})
+                                                </h3>
+                                                <span class="text-[10px] text-slate-400 block font-normal mt-0.5">@{{ sessionLtGuide.sessionRole }}</span>
+                                            </div>
+                                            <span class="text-[10px] px-2 py-0.5 rounded font-mono font-bold uppercase"
+                                                  :class="sessionLtGuide.isPm ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'">
+                                                @{{ sessionLtGuide.isPm ? 'Target LT2 / T' : 'Target LT1' }}
+                                            </span>
                                         </div>
 
-                                        <!-- LT1 Target -->
-                                        <div v-if="sessionLtGuide.lt1" class="p-3 rounded-md bg-slate-950 border border-slate-800 space-y-1">
-                                            <div class="text-[10px] text-emerald-400 font-mono font-bold uppercase tracking-wider">Batas Ambang LT1 (Aerobic Threshold)</div>
-                                            <div class="text-xs text-slate-200 leading-relaxed font-normal">@{{ sessionLtGuide.lt1 }}</div>
-                                        </div>
+                                        <!-- If PM session: Show LT2 first as PRIMARY target -->
+                                        <template v-if="sessionLtGuide.isPm">
+                                            <!-- Primary LT2 Target -->
+                                            <div v-if="sessionLtGuide.lt2" class="p-3 rounded-md bg-amber-500/5 border border-amber-500/25 space-y-1">
+                                                <div class="flex items-center justify-between">
+                                                    <div class="text-[10px] text-amber-400 font-mono font-bold uppercase tracking-wider">Target Utama Sesi Sore (LT2 / MLSS)</div>
+                                                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono">Utama</span>
+                                                </div>
+                                                <div class="text-xs text-slate-100 leading-relaxed font-normal">@{{ sessionLtGuide.lt2 }}</div>
+                                            </div>
+                                            <!-- Reference LT1 -->
+                                            <div v-if="sessionLtGuide.lt1" class="p-2.5 rounded-md bg-slate-950/70 border border-slate-800 space-y-1">
+                                                <div class="text-[10px] text-slate-400 font-mono uppercase tracking-wider">Referensi Batas Bawah (LT1)</div>
+                                                <div class="text-xs text-slate-400 leading-relaxed font-normal">@{{ sessionLtGuide.lt1 }}</div>
+                                            </div>
+                                        </template>
 
-                                        <!-- LT2 Target -->
-                                        <div v-if="sessionLtGuide.lt2" class="p-3 rounded-md bg-slate-950 border border-slate-800 space-y-1">
-                                            <div class="text-[10px] text-amber-400 font-mono font-bold uppercase tracking-wider">Batas Ambang LT2 (Anaerobic / MLSS)</div>
-                                            <div class="text-xs text-slate-200 leading-relaxed font-normal">@{{ sessionLtGuide.lt2 }}</div>
-                                        </div>
+                                        <!-- If AM session: Show LT1 first as PRIMARY target -->
+                                        <template v-else-if="sessionLtGuide.isAm">
+                                            <!-- Primary LT1 Target -->
+                                            <div v-if="sessionLtGuide.lt1" class="p-3 rounded-md bg-emerald-500/5 border border-emerald-500/25 space-y-1">
+                                                <div class="flex items-center justify-between">
+                                                    <div class="text-[10px] text-emerald-400 font-mono font-bold uppercase tracking-wider">Target Utama Sesi Pagi (Sub-Threshold / LT1)</div>
+                                                    <span class="text-[9px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono">Utama</span>
+                                                </div>
+                                                <div class="text-xs text-slate-100 leading-relaxed font-normal">@{{ sessionLtGuide.lt1 }}</div>
+                                            </div>
+                                            <!-- Ceiling LT2 -->
+                                            <div v-if="sessionLtGuide.lt2" class="p-2.5 rounded-md bg-slate-950/70 border border-slate-800 space-y-1">
+                                                <div class="text-[10px] text-slate-400 font-mono uppercase tracking-wider">Batas Maksimal (Jangan Lewati LT2)</div>
+                                                <div class="text-xs text-slate-400 leading-relaxed font-normal">@{{ sessionLtGuide.lt2 }}</div>
+                                            </div>
+                                        </template>
+
+                                        <!-- Generic Fallback if not specifically AM or PM -->
+                                        <template v-else>
+                                            <div v-if="sessionLtGuide.lt1" class="p-3 rounded-md bg-slate-950 border border-slate-800 space-y-1">
+                                                <div class="text-[10px] text-emerald-400 font-mono font-bold uppercase tracking-wider">Batas Ambang LT1 (Aerobic Threshold)</div>
+                                                <div class="text-xs text-slate-200 leading-relaxed font-normal">@{{ sessionLtGuide.lt1 }}</div>
+                                            </div>
+                                            <div v-if="sessionLtGuide.lt2" class="p-3 rounded-md bg-slate-950 border border-slate-800 space-y-1">
+                                                <div class="text-[10px] text-amber-400 font-mono font-bold uppercase tracking-wider">Batas Ambang LT2 (Anaerobic / MLSS)</div>
+                                                <div class="text-xs text-slate-200 leading-relaxed font-normal">@{{ sessionLtGuide.lt2 }}</div>
+                                            </div>
+                                        </template>
 
                                         <!-- Execution Rule -->
                                         <div v-if="sessionLtGuide.rule" class="p-3 rounded-md bg-slate-950/70 border border-slate-800 space-y-1">

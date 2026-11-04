@@ -362,20 +362,54 @@ class CalendarController extends Controller
 
         // Clean out any embedded guide metadata so it does not falsely trigger threshold keywords
         $cleanDescription = preg_replace('/\[LT1\/LT2 Guide:.*?\]/is', '', $description ?? '');
+        $titleLower = strtolower($title);
         $combinedText = strtolower($typeLower . ' ' . $title . ' ' . $cleanDescription);
         $isNotThreshold = str_contains($combinedText, 'bukan threshold') || str_contains($combinedText, 'not threshold') || str_contains($combinedText, 'non-threshold');
 
+        // Explicit Session Time Markers (AM vs PM) in Norwegian Double Threshold
+        $isExplicitPm = !$isNotThreshold && (
+            str_contains($titleLower, '[pm') ||
+            str_contains($titleLower, 'pm dt') ||
+            str_contains($titleLower, '1b') ||
+            str_contains($titleLower, '2b') ||
+            str_contains($combinedText, '[pm') ||
+            str_contains($combinedText, 'sesi sore') ||
+            str_contains($combinedText, 'threshold sore') ||
+            str_contains($combinedText, 'tujuan sesi sore') ||
+            str_contains($combinedText, 'sub-lt2 sore') ||
+            str_contains($combinedText, '88-90%') ||
+            str_contains($combinedText, 'pace 10k-15k') ||
+            str_contains($combinedText, '10k-15k')
+        );
+
+        $isExplicitAm = !$isNotThreshold && (
+            str_contains($titleLower, '[am') ||
+            str_contains($titleLower, 'am dt') ||
+            str_contains($titleLower, '1a') ||
+            str_contains($titleLower, '2a') ||
+            str_contains($combinedText, '[am') ||
+            str_contains($combinedText, 'sesi pagi') ||
+            str_contains($combinedText, 'sub-threshold pagi') ||
+            str_contains($combinedText, 'tujuan sesi pagi') ||
+            str_contains($combinedText, 'sub-lt2 pagi') ||
+            str_contains($combinedText, '85-87%')
+        );
+
         if (str_contains($typeLower, 'easy') || str_contains($typeLower, 'recovery') || str_contains($typeLower, 'warmup') || str_contains($typeLower, 'cool')) {
             $key = 'E';
-        } elseif (str_contains($typeLower, 'lt1') || str_contains($typeLower, 'sub_threshold') || str_contains($typeLower, 'sub-threshold') || str_contains($typeLower, 'aerobic_threshold')) {
+        } elseif ($isExplicitPm && !$isExplicitAm) {
+            // PM Threshold is Upper Threshold (LT2 / T Pace ~ 88-90% HRmax, 10K-15K Pace)
+            $key = 'T';
+        } elseif ($isExplicitAm) {
+            // AM Threshold is Sub-Threshold (LT1 Pace ~ 85-87% HRmax, HM-Marathon Pace)
+            $key = 'LT1';
+        } elseif (str_contains($typeLower, 'sub_threshold') || str_contains($typeLower, 'sub-threshold') || str_contains($typeLower, 'lt1') || str_contains($typeLower, 'aerobic_threshold')) {
             $key = 'LT1';
         } elseif (str_contains($typeLower, 'tempo') || str_contains($typeLower, 'threshold') || str_contains($typeLower, 'lt2') || str_contains($typeLower, 'mlss')) {
             $key = 'T';
         } elseif (str_contains($typeLower, 'race') || str_contains($typeLower, 'time_trial')) {
             $key = 'T';
-        } elseif (str_contains($typeLower, 'long')) {
-            $key = 'M';
-        } elseif (str_contains($typeLower, 'marathon')) {
+        } elseif (str_contains($typeLower, 'long') || str_contains($typeLower, 'marathon')) {
             $key = 'M';
         } elseif (str_contains($typeLower, 'interval') || str_contains($typeLower, 'vo2max')) {
             // Check if this interval is explicitly a Sub-Threshold (LT1) or Threshold (LT2) interval

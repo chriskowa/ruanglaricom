@@ -2385,6 +2385,40 @@ const runnerCalendarApp = createApp({
         const calculateRecommendedPace = (type, distance = null, title = '', description = '') => {
             if (!type) return null;
             const t = type.toLowerCase();
+            const titleLower = (title || '').toLowerCase();
+            const cleanDesc = (description || '').replace(/\[LT1\/LT2 Guide:.*?\]/gis, '');
+            const combined = ((title || '') + ' ' + cleanDesc).toLowerCase();
+            const isNotThreshold = combined.includes('bukan threshold') || combined.includes('not threshold') || combined.includes('non-threshold');
+
+            // Explicit Session Time Markers (AM vs PM) in Norwegian Double Threshold
+            const isExplicitPm = !isNotThreshold && (
+                titleLower.includes('[pm') ||
+                titleLower.includes('pm dt') ||
+                titleLower.includes('1b') ||
+                titleLower.includes('2b') ||
+                combined.includes('[pm') ||
+                combined.includes('sesi sore') ||
+                combined.includes('threshold sore') ||
+                combined.includes('tujuan sesi sore') ||
+                combined.includes('sub-lt2 sore') ||
+                combined.includes('88-90%') ||
+                combined.includes('pace 10k-15k') ||
+                combined.includes('10k-15k')
+            );
+
+            const isExplicitAm = !isNotThreshold && (
+                titleLower.includes('[am') ||
+                titleLower.includes('am dt') ||
+                titleLower.includes('1a') ||
+                titleLower.includes('2a') ||
+                combined.includes('[am') ||
+                combined.includes('sesi pagi') ||
+                combined.includes('sub-threshold pagi') ||
+                combined.includes('tujuan sesi pagi') ||
+                combined.includes('sub-lt2 pagi') ||
+                combined.includes('85-87%')
+            );
+
             const map = { 
                 easy_run: 'E', recovery: 'E', run: 'E', 
                 long_run: 'M', 
@@ -2397,10 +2431,16 @@ const runnerCalendarApp = createApp({
                 strength: null, rest: null, yoga: null, cycling: null
             };
             
-            const cleanDesc = (description || '').replace(/\[LT1\/LT2 Guide:.*?\]/gis, '');
-            const combined = ((title || '') + ' ' + cleanDesc).toLowerCase();
-            const isNotThreshold = combined.includes('bukan threshold') || combined.includes('not threshold') || combined.includes('non-threshold');
-            let key = map[t]; 
+            let key = null;
+            if (['easy_run', 'recovery', 'run'].includes(t)) {
+                key = 'E';
+            } else if (isExplicitPm && !isExplicitAm) {
+                key = 'T';
+            } else if (isExplicitAm) {
+                key = 'LT1';
+            } else {
+                key = map[t];
+            }
 
             // If not found in map, check keywords in title/description
             if (!key) {
@@ -2919,7 +2959,7 @@ const runnerCalendarApp = createApp({
             let lt2 = cfg?.lt2_pace || null;
             let rule = cfg?.execution_rule || null;
 
-            // Fallback: extract from description if [LT1/LT2 Guide: ...] exists
+            // Fallback 1: extract from description if [LT1/LT2 Guide: ...] exists
             if ((!lt1 || !lt2) && detail.description) {
                 const match = detail.description.match(/\[LT1\/LT2 Guide:\s*([^\]]+)\]/i);
                 if (match) {
@@ -2937,8 +2977,40 @@ const runnerCalendarApp = createApp({
                 }
             }
 
+            const titleText = ((detailTitle.value || '') + ' ' + (detail.session?.session_name || '')).toLowerCase();
+            const descText = (detail.description || '').toLowerCase();
+            const isPm = Boolean(
+                titleText.includes('[pm') || titleText.includes('pm dt') || titleText.includes('1b') || titleText.includes('2b') ||
+                descText.includes('[pm') || descText.includes('sesi sore') || descText.includes('threshold sore') ||
+                descText.includes('sub-lt2 sore') || descText.includes('88-90%') || descText.includes('10k-15k')
+            );
+            const isAm = Boolean(
+                titleText.includes('[am') || titleText.includes('am dt') || titleText.includes('1a') || titleText.includes('2a') ||
+                descText.includes('[am') || descText.includes('sesi pagi') || descText.includes('sub-threshold pagi') ||
+                descText.includes('sub-lt2 pagi') || descText.includes('85-87%')
+            );
+
+            // Fallback 2: For custom / legacy programs without explicit lt1_pace/lt2_pace
+            if (!lt1 && !lt2 && !rule) {
+                const intervalPace = cfg?.interval?.pace || '';
+                if (intervalPace.includes('Sub-LT2 Pagi') || descText.includes('tujuan sesi pagi')) {
+                    lt1 = 'LT1 / Sub-Threshold Pagi: Pace HM - 30K | 85-87% Max HR | Laktat 2.0-2.4 mmol/L';
+                    rule = 'Pagi = Akumulasi volume sub-threshold. Jangan lewati 87% HR agar sore hari tetap bugar.';
+                } else if (intervalPace.includes('Sub-LT2 Sore') || descText.includes('tujuan sesi sore')) {
+                    lt2 = 'LT2 / Upper Threshold Sore: Pace 10K - 15K | 88-90% Max HR | Laktat 2.8-3.5 mmol/L (Cap: 3.8 mmol/L)';
+                    rule = 'Sore = Upper Threshold (LT2). Repetisi pendek, jeda rapat. Jaga laktat stabil di bawah 3.8 mmol/L.';
+                }
+            }
+
             if (lt1 || lt2 || rule) {
-                return { lt1, lt2, rule };
+                return {
+                    lt1,
+                    lt2,
+                    rule,
+                    isPm,
+                    isAm,
+                    sessionRole: isPm ? 'Sesi Sore (PM - Upper Threshold / LT2)' : (isAm ? 'Sesi Pagi (AM - Sub-Threshold / LT1)' : 'Norwegian Threshold')
+                };
             }
             return null;
         });
