@@ -8,11 +8,11 @@
 @endpush
 
 @section('content')
-<main id="tool-container" class="min-h-screen bg-dark pt-20 pb-32 px-4 sm:px-6 lg:px-8">
+<main id="tool-container" class="min-h-screen bg-slate-950 pt-6 pb-32 px-4 sm:px-6 lg:px-8">
     <div class="max-w-7xl mx-auto">
         <header class="mb-10">
             <div class="flex items-center gap-2 mb-4 text-xs uppercase tracking-widest text-slate-400">
-                <a href="{{ route('kalender-pelari.landing') }}" class="hover:text-neon transition-colors">KalenderPelari</a>
+                <a href="{{ route('kalender-pelari.landing') }}" class="hover:text-white transition-colors">KalenderPelari</a>
                 <span>/</span>
                 <span class="text-slate-200">Proyek Saya</span>
             </div>
@@ -22,14 +22,22 @@
                         <span class="text-sky-400">Proyek</span> Kalender Saya
                     </h1>
                     <p class="text-slate-300 max-w-2xl text-sm sm:text-base">
-                        Semua proyek kalender yang Anda simpan. Edit, hapus, cetak PDF, atau checkout untuk produksi cetak fisik.
+                        Semua proyek kalender yang Anda simpan. Edit, hapus, unduh PNG resolusi tinggi, atau cetak 13 halaman PDF.
                     </p>
                 </div>
-                <a href="{{ route('kalender-pelari.wizard') }}"
-                   class="inline-flex items-center gap-2 px-5 py-2.5 rounded-lg bg-neon text-slate-950 font-bold text-sm hover:bg-lime-300 transition-colors shadow-[0_0_0_1px_rgba(204,255,0,0.35)]">
-                    <i class="fa-solid fa-plus text-xs"></i>
-                    Buat Proyek Baru
-                </a>
+                <div class="flex items-center gap-3">
+                    @if(auth()->check() && auth()->user()->isAdmin())
+                        <a href="{{ route('admin.kalender-pelari.projects.index') }}"
+                           class="inline-flex items-center gap-2 px-4 py-2.5 rounded-md bg-slate-800 border border-slate-700 text-slate-200 font-semibold text-sm hover:bg-slate-700 transition-colors">
+                            <i class="fas fa-tasks text-xs"></i>
+                            <span>Admin Antrean Cetak</span>
+                        </a>
+                    @endif
+                    <a href="{{ route('kalender-pelari.studio') }}"
+                       class="inline-flex items-center gap-2 px-5 py-2.5 rounded-md bg-red-600 text-white font-bold text-sm hover:bg-red-700 transition-colors">
+                        + Buat Kalender Baru
+                    </a>
+                </div>
             </div>
 
             @if($can_create_new === false)
@@ -65,10 +73,9 @@
                 <p class="text-slate-300 mb-7 max-w-md mx-auto">
                     Coba buat kalender pertama Anda lewat wizard 5 langkah — tanpa login pun bisa, lalu login kapan saja untuk menyimpan permanen.
                 </p>
-                <a href="{{ route('kalender-pelari.wizard') }}"
-                   class="inline-flex items-center gap-2 px-6 py-3 rounded-lg bg-neon text-slate-950 font-bold hover:bg-lime-300 transition-colors">
-                    <i class="fa-solid fa-wand-magic-sparkles"></i>
-                    Mulai Buat Kalender
+                <a href="{{ route('kalender-pelari.studio') }}"
+                   class="inline-flex items-center gap-2 px-6 py-3 rounded-md bg-red-600 text-white font-bold hover:bg-red-700 transition-colors">
+                    Mulai Desain Kalender
                 </a>
             </section>
         @else

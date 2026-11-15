@@ -76,6 +76,10 @@
                         <i class="flaticon-381-calendar"></i>
                         <span class="nav-text">Calendar</span>
                     </a></li>
+                    <li><a class="ai-icon" href="{{ route('kalender-pelari.my-projects') }}" aria-expanded="false">
+                        <i class="flaticon-381-calendar-1"></i>
+                        <span class="nav-text">Manajemen Kalender</span>
+                    </a></li>
                     <li><a class="ai-icon" href="{{ route('calculator') }}" aria-expanded="false">
                         <i class="flaticon-381-controls-3"></i>
                         <span class="nav-text">Calculator</span>

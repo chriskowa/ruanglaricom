@@ -5,6 +5,7 @@ namespace App\Http\Controllers\EO;
 use App\Http\Controllers\Controller;
 use App\Models\Event;
 use App\Models\Participant;
+use App\Models\Transaction;
 
 class DashboardController extends Controller
 {
@@ -40,27 +41,20 @@ class DashboardController extends Controller
         $tierBadgeText = $tierTextMap[$tierKey] ?? $tierTextMap['basic'];
         $tierBadgeClass = $tierClassMap[$tierKey] ?? $tierClassMap['basic'];
 
-        // Calculate total earnings from event ticket sales
-        $totalEarnings = 0;
-        if ($user->wallet) {
-            $totalEarnings = $user->wallet->transactions()
-                ->whereIn('type', ['commission', 'deposit'])
-                ->where('status', 'completed')
-                ->sum('amount');
-        }
-
         // Event IDs organized by this EO
         $eventIds = Event::where('user_id', $user->id)->pluck('id');
         $totalEvents = $eventIds->count();
 
-        // Count all registered runners for this EO's events (excluding cancelled)
-        $totalParticipants = Participant::where(function ($query) use ($eventIds) {
-            $query->whereHas('transaction', function ($q) use ($eventIds) {
-                $q->whereIn('event_id', $eventIds);
-            })->orWhereHas('category', function ($q) use ($eventIds) {
-                $q->whereIn('event_id', $eventIds);
-            });
-        })->where('status', '!=', 'cancelled')->count();
+        // Calculate actual net earnings from paid event transactions (matches participants page Net Revenue)
+        $totalEarnings = (float) Transaction::whereIn('event_id', $eventIds)
+            ->where('payment_status', 'paid')
+            ->selectRaw('COALESCE(SUM(final_amount - COALESCE(admin_fee, 0)), 0) as net')
+            ->value('net');
+
+        // Count confirmed/paid runners across this EO's events (matches Paid & Confirmed on participants page)
+        $totalParticipants = Participant::whereHas('transaction', function ($q) use ($eventIds) {
+            $q->whereIn('event_id', $eventIds)->where('payment_status', 'paid');
+        })->count();
 
         // Upcoming and recent events for overview
         $upcomingEvents = Event::where('user_id', $user->id)
@@ -69,13 +63,9 @@ class DashboardController extends Controller
             ->limit(5)
             ->get()
             ->map(function ($ev) {
-                $ev->participants_count = Participant::where(function ($query) use ($ev) {
-                    $query->whereHas('transaction', function ($q) use ($ev) {
-                        $q->where('event_id', $ev->id);
-                    })->orWhereHas('category', function ($q) use ($ev) {
-                        $q->where('event_id', $ev->id);
-                    });
-                })->where('status', '!=', 'cancelled')->count();
+                $ev->participants_count = Participant::whereHas('transaction', function ($q) use ($ev) {
+                    $q->where('event_id', $ev->id)->where('payment_status', 'paid');
+                })->count();
                 return $ev;
             });
 

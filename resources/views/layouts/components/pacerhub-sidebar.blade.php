@@ -59,6 +59,32 @@
                                 </a>
                             </li>
 
+                            <!-- SECTION: KALENDER PELARI ADMIN -->
+                            <li class="pt-2 pb-1">
+                                <div class="px-3 mb-1.5 text-[10px] font-extrabold text-neon uppercase tracking-widest flex items-center justify-between">
+                                    <span>Kalender Pelari</span>
+                                    <i class="fas fa-calendar-alt text-xs text-neon"></i>
+                                </div>
+                            </li>
+                            <li>
+                                <a href="{{ route('admin.kalender-pelari.projects.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('admin.kalender-pelari.projects.*') ? $activeClass : $inactiveClass }}">
+                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-print"></i></span>
+                                    <span>Manajemen Kalender & Cetak</span>
+                                    @php
+                                        $readyPrintCount = \App\Models\KalenderPelari\CalendarProject::where('status', \App\Models\KalenderPelari\CalendarProject::STATUS_PRODUCTION_ACTIVE)->count();
+                                    @endphp
+                                    @if($readyPrintCount > 0)
+                                        <span class="ml-auto text-[10px] font-bold bg-emerald-500 text-white rounded-md px-1.5 py-0.5" title="{{ $readyPrintCount }} siap dicetak">{{ $readyPrintCount }}</span>
+                                    @endif
+                                </a>
+                            </li>
+                            <li>
+                                <a href="{{ route('admin.kalender-pelari.templates.index') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('admin.kalender-pelari.templates.*') ? $activeClass : $inactiveClass }}">
+                                    <span class="w-5 text-center text-xs group-hover:scale-105 transition-transform"><i class="fas fa-images"></i></span>
+                                    <span>Template Idola Lari</span>
+                                </a>
+                            </li>
+
                             <!-- SECTION: MARKETPLACE MANAGEMENT -->
                             <li class="pt-2 pb-1">
                                 <div class="px-3 mb-1.5 text-[10px] font-extrabold text-neon uppercase tracking-widest flex items-center justify-between">
@@ -285,7 +311,7 @@
                             </li>
                         @elseif(auth()->user()->isRunner())
                             @php
-                                $isTrainingActive = request()->routeIs('runner.dashboard', 'runner.calendar*', 'runner.programs*', 'calculator');
+                                $isTrainingActive = request()->routeIs('runner.dashboard', 'runner.calendar*', 'runner.programs*', 'calculator', 'kalender-pelari.*');
                                 $isActivityActive = request()->routeIs('activities.*', 'runner.analysis-requests.*', 'runner.gpx.*', 'runner.strava.*', 'runner.integrations.*') || request()->is('calendar*');
                             @endphp
 
@@ -318,6 +344,22 @@
                                         <a href="{{ route('runner.calendar') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('runner.calendar.*') ? $activeClass : $inactiveClass }}">
                                             <span class="w-5 text-center text-xs text-white"><i class="fas fa-calendar-alt"></i></span>
                                             <span class="text-white">Kalender Latihan</span>
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a href="{{ route('kalender-pelari.my-projects') }}" class="{{ $linkBaseClass }} {{ request()->routeIs('kalender-pelari.*') ? $activeClass : $inactiveClass }}">
+                                            <span class="w-5 text-center text-xs text-white"><i class="fas fa-print"></i></span>
+                                            <span class="flex items-center justify-between w-full">
+                                                <span class="text-white">Manajemen Kalender</span>
+                                                @php
+                                                    $userKalenderCount = \App\Models\KalenderPelari\CalendarProject::where('user_id', auth()->id())->count();
+                                                @endphp
+                                                @if($userKalenderCount > 0)
+                                                    <span class="text-[9px] bg-red-600 text-white px-1.5 py-0.5 rounded font-bold font-mono">{{ $userKalenderCount }}</span>
+                                                @else
+                                                    <span class="text-[9px] bg-slate-800 text-slate-300 border border-slate-700 px-1.5 py-0.5 rounded font-bold">Cetak</span>
+                                                @endif
+                                            </span>
                                         </a>
                                     </li>
                                     <li>

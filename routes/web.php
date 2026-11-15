@@ -697,6 +697,9 @@ Route::get('/legacy-events', [App\Http\Controllers\PublicEventController::class,
 
 // New event routes (event/{slug})
 Route::get('/event/{slug}/participants-list', [App\Http\Controllers\PublicEventController::class, 'getParticipants'])->name('events.participants-list');
+Route::get('/event/{slug}/bib-check', [App\Http\Controllers\EventBibCheckController::class, 'show'])->name('events.bib-check');
+Route::get('/event/{slug}/bib/{bib}', [App\Http\Controllers\EventBibCheckController::class, 'show'])->where('bib', '[^/]+')->name('events.bib-check.bib');
+Route::get('/api/events/{slug}/bib-check', [App\Http\Controllers\EventBibCheckController::class, 'lookup'])->middleware('throttle:120,1')->name('api.events.bib-check');
 Route::get('/event/{slug}', [App\Http\Controllers\PublicEventController::class, 'show'])->name('events.show');
 
 Route::get('/event/{slug}/register', [App\Http\Controllers\EventRegistrationController::class, 'show'])->name('events.register');
@@ -1025,6 +1028,23 @@ Route::middleware('auth')->group(function () {
                 Route::post('/{analysisRequest}/schedule', [App\Http\Controllers\Admin\RunningAnalysis\AnalysisRequestController::class, 'schedule'])->name('schedule');
                 Route::post('/{analysisRequest}/complete', [App\Http\Controllers\Admin\RunningAnalysis\AnalysisRequestController::class, 'complete'])->name('complete');
             });
+        });
+
+        // Kalender Pelari Management (Admin)
+        Route::prefix('kalender-pelari')->name('kalender-pelari.')->group(function () {
+            // Proyek Pengguna & Cetak
+            Route::get('/proyek', [App\Http\Controllers\Admin\KalenderPelariAdminController::class, 'projectsIndex'])->name('projects.index');
+            Route::get('/proyek/{project}', [App\Http\Controllers\Admin\KalenderPelariAdminController::class, 'projectsShow'])->name('projects.show');
+            Route::patch('/proyek/{project}/status', [App\Http\Controllers\Admin\KalenderPelariAdminController::class, 'projectsUpdateStatus'])->name('projects.update-status');
+            Route::delete('/proyek/{project}', [App\Http\Controllers\Admin\KalenderPelariAdminController::class, 'projectsDestroy'])->name('projects.destroy');
+
+            // Template Idola / Atlet Lari
+            Route::get('/templates', [App\Http\Controllers\Admin\KalenderPelariAdminController::class, 'templatesIndex'])->name('templates.index');
+            Route::get('/templates/create', [App\Http\Controllers\Admin\KalenderPelariAdminController::class, 'templatesCreate'])->name('templates.create');
+            Route::post('/templates', [App\Http\Controllers\Admin\KalenderPelariAdminController::class, 'templatesStore'])->name('templates.store');
+            Route::get('/templates/{template}/edit', [App\Http\Controllers\Admin\KalenderPelariAdminController::class, 'templatesEdit'])->name('templates.edit');
+            Route::put('/templates/{template}', [App\Http\Controllers\Admin\KalenderPelariAdminController::class, 'templatesUpdate'])->name('templates.update');
+            Route::delete('/templates/{template}', [App\Http\Controllers\Admin\KalenderPelariAdminController::class, 'templatesDestroy'])->name('templates.destroy');
         });
 
         // Event Calendar Management
@@ -1478,6 +1498,7 @@ Route::middleware('auth')->group(function () {
         Route::get('events/{event}/participants/export', [App\Http\Controllers\EO\EventController::class, 'exportParticipants'])->name('events.participants.export');
         Route::get('events/{event}/participants/export-xlsx', [App\Http\Controllers\EO\EventController::class, 'exportParticipantsXlsx'])->name('events.participants.export-xlsx');
         Route::post('events/{event}/participants/print-bib', [App\Http\Controllers\EO\EventController::class, 'printBibPdf'])->name('events.participants.print-bib');
+        Route::post('events/{event}/participants/bib-check-settings', [App\Http\Controllers\EO\EventController::class, 'saveBibCheckSettings'])->name('events.participants.bib-check-settings');
         Route::get('events/{event}/participants/doorprize-list', [App\Http\Controllers\EO\EventController::class, 'doorprizeList'])->name('events.participants.doorprize-list');
         Route::post('events/{event}/participants/{participant}/status', [App\Http\Controllers\EO\EventController::class, 'updateParticipantStatus'])->name('events.participants.status');
         Route::post('events/{event}/participants/{participant}/approve', [App\Http\Controllers\EO\EventController::class, 'approveParticipant'])->name('events.participants.approve');

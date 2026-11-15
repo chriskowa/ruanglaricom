@@ -107,7 +107,7 @@
 
         <!-- Estimated Earnings -->
         <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
-            <span class="text-xs font-mono text-slate-400 uppercase">Estimasi Penjualan Tiket</span>
+            <span class="text-xs font-mono text-slate-400 uppercase">Penjualan Tiket (Net)</span>
             <div class="mt-2 flex items-baseline justify-between">
                 <span class="text-2xl font-bold font-mono text-white">Rp {{ number_format($totalEarnings, 0, ',', '.') }}</span>
                 <span class="text-xs text-emerald-400 font-semibold">Lunas</span>

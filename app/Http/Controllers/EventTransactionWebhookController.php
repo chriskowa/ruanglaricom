@@ -163,15 +163,28 @@ class EventTransactionWebhookController extends Controller
         // Check transaction status
         if ($transactionStatus == 'settlement' || $transactionStatus == 'capture') {
             if ($fraudStatus == 'accept') {
-                // Transaction is successful
-                $transaction->markAsPaid($orderId, $transactionStatus);
+                $shouldDispatch = false;
 
-                // Dispatch job to process payment
-                ProcessPaidEventTransaction::dispatch($transaction);
+                \Illuminate\Support\Facades\DB::transaction(function () use ($transaction, $orderId, $transactionStatus, &$shouldDispatch) {
+                    $lockedTx = Transaction::where('id', $transaction->id)->lockForUpdate()->first();
+                    if (! $lockedTx || ($lockedTx->payment_status ?? null) === 'paid') {
+                        if ($lockedTx && $transactionStatus) {
+                            $lockedTx->update(['midtrans_transaction_status' => $transactionStatus]);
+                        }
+                        return;
+                    }
+
+                    $lockedTx->markAsPaid($orderId, $transactionStatus);
+                    $shouldDispatch = true;
+                });
+
+                if ($shouldDispatch) {
+                    ProcessPaidEventTransaction::dispatch($transaction->fresh());
+                }
 
                 return response()->json([
                     'success' => true,
-                    'message' => 'Transaction processed successfully',
+                    'message' => $shouldDispatch ? 'Transaction processed successfully' : 'Transaction already paid',
                 ]);
             }
         } elseif ($transactionStatus == 'pending') {

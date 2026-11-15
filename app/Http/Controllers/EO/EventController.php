@@ -553,10 +553,13 @@ class EventController extends Controller
         ]);
 
         $totalRegistered = $event->categories->sum('total_participants');
-        $totalPaid = $event->categories->sum('paid_participants');
-        $totalEarnings = $event->categories->sum(function ($cat) {
-            return ($cat->price_regular ?? 0) * ($cat->paid_participants ?? 0);
-        });
+        $totalPaid = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
+            $q->where('event_id', $event->id)->where('payment_status', 'paid');
+        })->count();
+        $totalEarnings = (float) Transaction::where('event_id', $event->id)
+            ->where('payment_status', 'paid')
+            ->selectRaw('COALESCE(SUM(final_amount - COALESCE(admin_fee, 0)), 0) as net')
+            ->value('net');
 
         return view('eo.events.show', compact('event', 'totalRegistered', 'totalPaid', 'totalEarnings'));
     }
@@ -3142,6 +3145,53 @@ class EventController extends Controller
         ]);
     }
 
+    public function saveBibCheckSettings(Request $request, Event $event)
+    {
+        $this->authorizeEvent($event);
+
+        $validated = $request->validate([
+            'take_last' => 'nullable|string|max:50',
+            'prefix' => 'nullable|string|max:30',
+            'max_name_length' => 'nullable|integer|min:5|max:60',
+            'image_base64' => 'nullable|string',
+            'canvas_width' => 'nullable|numeric|min:50|max:5000',
+            'canvas_height' => 'nullable|numeric|min:50|max:5000',
+            'texts' => 'nullable|array|max:30',
+        ]);
+
+        $amenities = is_array($event->premium_amenities) ? $event->premium_amenities : [];
+        $existing = is_array($amenities['bib_check'] ?? null) ? $amenities['bib_check'] : [];
+
+        $bgImagePath = $existing['bg_image'] ?? null;
+        if (! empty($validated['image_base64']) && preg_match('/^data:image\/(png|jpe?g);base64,(.+)$/i', $validated['image_base64'], $matches)) {
+            $ext = strtolower($matches[1]) === 'png' ? 'png' : 'jpg';
+            $decoded = base64_decode($matches[2], true);
+            if ($decoded !== false) {
+                $bgImagePath = 'bib-check/event_' . $event->id . '.' . $ext;
+                Storage::disk('public')->put($bgImagePath, $decoded);
+            }
+        }
+
+        $amenities['bib_check'] = [
+            'take_last' => trim((string) ($validated['take_last'] ?? '')),
+            'prefix' => (string) ($validated['prefix'] ?? ''),
+            'max_name_length' => (int) ($validated['max_name_length'] ?? ($existing['max_name_length'] ?? 18)),
+            'bg_image' => $bgImagePath,
+            'canvas_width' => isset($validated['canvas_width']) ? (float) $validated['canvas_width'] : ($existing['canvas_width'] ?? null),
+            'canvas_height' => isset($validated['canvas_height']) ? (float) $validated['canvas_height'] : ($existing['canvas_height'] ?? null),
+            'texts' => array_key_exists('texts', $validated) ? ($validated['texts'] ?? []) : ($existing['texts'] ?? []),
+        ];
+
+        $event->premium_amenities = $amenities;
+        $event->save();
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Desain & format BIB Check berhasil disimpan.',
+            'bib_check' => $amenities['bib_check'],
+        ]);
+    }
+
     public function printBibPdf(Request $request, Event $event)
     {
         @ini_set('memory_limit', '1024M');
@@ -3378,39 +3428,41 @@ class EventController extends Controller
                 
                 $bibNum = isset($pOverride['bib_number']) ? $pOverride['bib_number'] : $p->bib_number;
                 $dynamicBib = $bibNum;
-                if ($dynamicBib && strpos($dynamicBib, '-') !== false) {
-                    $parts = explode('-', $dynamicBib);
-                    $dynamicBib = end($parts);
-                } elseif ($dynamicBib && $takeLast !== null && $takeLast !== '') {
-                    if (is_numeric($takeLast)) {
-                        $dynamicBib = substr($dynamicBib, -(int)$takeLast);
-                    } else {
-                        $dynamicBib = str_replace($takeLast, '', $dynamicBib);
-                    }
-                }
+                $takeLastTrimmed = $takeLast !== null ? trim((string) $takeLast) : '';
 
-                // Apply quota formatting if category has quota
-                if ($p->category && $p->category->quota > 0) {
-                    $padLength = strlen((string)$p->category->quota);
-                    if (is_numeric($dynamicBib)) {
-                        $dynamicBib = str_pad($dynamicBib, $padLength, '0', STR_PAD_LEFT);
+                if ($dynamicBib) {
+                    if ($takeLastTrimmed !== '' && !is_numeric($takeLastTrimmed)) {
+                        // Text-strip mode: remove exact substring (e.g. "PAOLORUNFE-2026-")
+                        $dynamicBib = str_replace($takeLastTrimmed, '', $dynamicBib);
+                    } elseif (strpos($dynamicBib, '-') !== false) {
+                        $parts = explode('-', $dynamicBib);
+                        $dynamicBib = end($parts);
                     }
-                }
 
-                // If prefix is present, replace/substitute the leading characters
-                if ($prefix !== '') {
-                    if (is_numeric($dynamicBib)) {
-                        $prefixLen = strlen($prefix);
-                        if (strlen($dynamicBib) >= $prefixLen) {
-                            $dynamicBib = substr_replace($dynamicBib, $prefix, 0, $prefixLen);
-                        } else {
-                            $dynamicBib = $prefix . $dynamicBib;
+                    // Apply quota zero-padding before slicing last N characters
+                    if ($p->category && $p->category->quota > 0) {
+                        $padLength = strlen((string) $p->category->quota);
+                        if (is_numeric($dynamicBib)) {
+                            $dynamicBib = str_pad($dynamicBib, $padLength, '0', STR_PAD_LEFT);
                         }
-                    } else {
-                        $dynamicBib = $prefix . $dynamicBib;
                     }
+
+                    if ($takeLastTrimmed !== '' && is_numeric($takeLastTrimmed)) {
+                        $numChars = (int) $takeLastTrimmed;
+                        if ($numChars > 0) {
+                            $dynamicBib = substr($dynamicBib, -$numChars);
+                        }
+                    }
+                }
+
+                // Prepend prefix cleanly without overwriting participant BIB digits
+                if ($prefix !== '') {
+                    $dynamicBib = $prefix . $dynamicBib;
                 }
                 $dynamicBib = trim($dynamicBib ?? '') === '' ? '-' : $dynamicBib;
+                $fullBibNumber = $request->boolean('is_custom_range')
+                    ? (string) $dynamicBib
+                    : (trim((string) ($bibNum ?? '')) !== '' ? (string) $bibNum : (string) $dynamicBib);
                 
                 $gender = isset($pOverride['gender']) ? $pOverride['gender'] : $p->gender;
                 $genderVal = '';
@@ -3452,6 +3504,29 @@ class EventController extends Controller
                 $pCouponCode = trim($pCouponCode ?? '') === '' ? '-' : $pCouponCode;
 
                 foreach ($texts as $t) {
+                    if ((isset($t['type']) && $t['type'] === 'qr') || trim($t['text'] ?? '') === '[qr]') {
+                        $qrSize = isset($t['size']) ? (float) $t['size'] : (float) ($t['fontSize'] ?? 90);
+                        $qrX = (float) ($t['left'] ?? 0);
+                        $qrY = (float) ($t['top'] ?? 0);
+                        if (isset($t['originX']) && $t['originX'] === 'center') {
+                            $qrX -= ($qrSize / 2);
+                        }
+                        if (isset($t['originY']) && $t['originY'] === 'center') {
+                            $qrY -= ($qrSize / 2);
+                        }
+                        $qrStyle = [
+                            'border' => 0,
+                            'vpadding' => 2,
+                            'hpadding' => 2,
+                            'fgcolor' => [0, 0, 0],
+                            'bgcolor' => [255, 255, 255],
+                            'module_width' => 1,
+                            'module_height' => 1,
+                        ];
+                        $pdf->write2DBarcode((string) $fullBibNumber, 'QRCODE,M', $qrX, $qrY, $qrSize, $qrSize, $qrStyle, 'N');
+                        continue;
+                    }
+
                     $textValue = str_replace(
                         [
                             '{emergency_contact_number}', '[E#]',

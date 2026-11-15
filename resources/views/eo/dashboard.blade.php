@@ -93,7 +93,7 @@
             </div>
             <h3 class="text-2xl font-bold font-mono text-white">{{ number_format($totalParticipants) }}</h3>
             <div class="mt-1.5 text-xs text-slate-400 flex items-center justify-between">
-                <span>Peserta terdaftar</span>
+                <span>Peserta lunas</span>
                 <span class="text-slate-500 group-hover:text-amber-400 transition-colors text-xs font-medium">Buka &rarr;</span>
             </div>
         </a>

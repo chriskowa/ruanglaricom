@@ -7,6 +7,9 @@
 @section('title', 'Participants - ' . $event->name)
 
 @push('styles')
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Anton&family=Bebas+Neue&family=Montserrat:wght@400;700;800&display=swap" rel="stylesheet">
     <style id="eo-col-visibility-style"></style>
     <script>
         // Apply column visibility immediately to prevent layout flash
@@ -147,6 +150,10 @@
                                 <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
                                 Print BIB
                             </button>
+                            <a href="{{ route('events.bib-check', $event->slug) }}" target="_blank" rel="noopener" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 font-bold text-xs flex items-center gap-1.5 transition-colors" title="Buka Layar TV BIB Check">
+                                <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
+                                BIB Check
+                            </a>
                             <button type="button" onclick="openDoorprizeModal()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs flex items-center gap-1.5 transition-colors">
                                 <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5a2 2 0 10-2 2h2zm0 0H4m8 0h8m-8 0a2 2 0 102 2h-2zm0 0a2 2 0 11-2 2h2z" /></svg>
                                 Doorprize
@@ -1155,9 +1162,14 @@
                         </h3>
                         <p class="text-xs text-slate-400 mt-1">Desain letak teks BIB dan cetak ke format PDF.</p>
                     </div>
-                    <button type="button" onclick="closeBibModal()" class="text-slate-400 hover:text-white transition-colors">
-                        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                    </button>
+                    <div class="flex items-center gap-3">
+                        <a href="{{ route('events.bib-check', $event->slug) }}" target="_blank" rel="noopener" class="px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-emerald-400 transition">
+                            Buka Layar TV BIB Check
+                        </a>
+                        <button type="button" onclick="closeBibModal()" class="text-slate-400 hover:text-white transition-colors">
+                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                        </button>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -1178,6 +1190,9 @@
                                     <input type="text" id="bibPrefix" placeholder="Misal: 5" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white mt-1">
                                 </div>
                                 <div class="text-xs text-slate-500 italic mt-1">Contoh: PAOLORUNFE-2026-01 &rarr; 01 (jika diisi "PAOLORUNFE-2026-")</div>
+                                <button type="button" onclick="saveBibCheckSettings(this)" class="w-full mt-1 px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-emerald-400 transition">
+                                    Simpan Desain & Format ke BIB Check
+                                </button>
                             </div>
                         </div>
                         <div class="border-t border-slate-700 pt-3">
@@ -1228,6 +1243,7 @@
                                 <button type="button" onclick="addBibText('[EN]')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition" title="Nama Kontak Darurat">[EN] (Nama Darurat)</button>
                                 <button type="button" onclick="addBibText('[GR]')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition" title="Group (Kategori Umur)">[GR] (Group)</button>
                                 <button type="button" onclick="addBibText('[KP]')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition" title="Kode Kupon">[KP] (Kupon)</button>
+                                <button type="button" onclick="addBibQr()" class="px-2 py-1 bg-yellow-600/30 hover:bg-yellow-600/50 border border-yellow-500/40 rounded text-xs text-yellow-200 transition" title="Tambahkan QR Code berisi nomor BIB lengkap">[qr] (QR BIB)</button>
                             </div>
                         </div>
                         <div>
@@ -1274,6 +1290,7 @@
                                     <option value="Montserrat">Montserrat</option>
                                     <option value="Montserrat ExtraBold">Montserrat ExtraBold</option>
                                     <option value="Anton">Anton (Bold)</option>
+                                    <option value="Bebas Neue">Bebas Neue</option>
                                 </select>
                             </div>
                             <div>
@@ -1733,6 +1750,10 @@
                                 <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
                                 Print BIB
                             </button>
+                            <a href="{{ route('events.bib-check', $event->slug) }}" target="_blank" rel="noopener" onclick="closeParticipantsActionsModal()" class="w-full px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 text-xs font-medium flex items-center gap-2 transition-colors">
+                                <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
+                                Layar TV BIB Check
+                            </a>
                             <button type="button" onclick="closeParticipantsActionsModal(); openDoorprizeModal();" class="w-full px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium flex items-center gap-2 transition-colors">
                                 <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5a2 2 0 10-2 2h2zm0 0H4m8 0h8m-8 0a2 2 0 102 2h-2zm0 0a2 2 0 11-2 2h2z" /></svg>
                                 Doorprize
@@ -5732,15 +5753,39 @@
     };
 </script>
 
-<!-- Fabric JS for BIB Canvas -->
-<style>
-    @import url('https://fonts.googleapis.com/css2?family=Anton&family=Montserrat:wght@400;700;800&display=swap');
-</style>
+<!-- Fabric JS & QRCode for BIB Canvas -->
+<script src="{{ asset('js/kalender-pelari/qrcode.min.js') }}"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
 <script>
     let bibCanvas = null;
     let bibImageBase64 = null;
     const eventId = {{ $event->id }};
+
+    function refreshBibCanvasFonts(targetFamily = null) {
+        if (!bibCanvas || typeof fabric === 'undefined') return;
+        if (fabric.util && fabric.util.clearFabricFontCache) {
+            fabric.util.clearFabricFontCache(targetFamily || undefined);
+        }
+        bibCanvas.getObjects('text').forEach(obj => {
+            obj.set({ dirty: true });
+            obj.initDimensions();
+            obj.setCoords();
+        });
+        bibCanvas.requestRenderAll();
+    }
+
+    function preloadBibFonts() {
+        if (!document.fonts || !document.fonts.load) return Promise.resolve();
+        const specs = [
+            '400 40px "Montserrat"',
+            '700 40px "Montserrat"',
+            '800 40px "Montserrat"',
+            '400 40px "Anton"',
+            '400 40px "Bebas Neue"'
+        ];
+        return Promise.all(specs.map(s => document.fonts.load(s).catch(() => null)))
+            .then(() => refreshBibCanvasFonts());
+    }
 
     window.currentParticipantsList = [];
     window.bibOverrides = {};
@@ -5858,9 +5903,25 @@
     function saveBibPreset(quiet = false) {
         if (!bibCanvas) return;
         
-        const objects = bibCanvas.getObjects('text');
+        const objects = bibCanvas.getObjects().filter(obj => obj.type === 'text' || obj.isQrCode);
         const textElements = objects.map(obj => {
+            if (obj.isQrCode) {
+                return {
+                    type: 'qr',
+                    text: '[qr]',
+                    left: obj.left,
+                    top: obj.top,
+                    size: Math.round(obj.getScaledWidth()),
+                    fontSize: Math.round(obj.getScaledWidth()),
+                    fill: '#000000',
+                    fontFamily: 'Helvetica',
+                    originX: obj.originX,
+                    originY: obj.originY,
+                    angle: obj.angle || 0
+                };
+            }
             return {
+                type: 'text',
                 text: obj.originalText || obj.text,
                 left: obj.left,
                 top: obj.top,
@@ -5926,13 +5987,17 @@
                 document.getElementById('bibMaxNameLength').value = preset.max_name_length;
             }
 
-            // Clear existing texts
-            const existingTexts = bibCanvas.getObjects('text');
-            existingTexts.forEach(obj => bibCanvas.remove(obj));
+            // Clear existing texts and QR codes
+            const existingObjects = bibCanvas.getObjects().filter(obj => obj.type === 'text' || obj.isQrCode);
+            existingObjects.forEach(obj => bibCanvas.remove(obj));
 
-            // Load texts
+            // Load texts and QR codes
             if (Array.isArray(preset.texts)) {
                 preset.texts.forEach(t => {
+                    if (t.type === 'qr' || t.text === '[qr]') {
+                        addBibQr(t);
+                        return;
+                    }
                     const text = new fabric.Text(t.text, {
                         left: t.left,
                         top: t.top,
@@ -6066,6 +6131,7 @@
             return {
                 '#': bibNum,
                 '{bib_number}': bibNum,
+                '{full_bib}': bibNum,
                 '[N]': '-',
                 '{name}': '-',
                 '[C]': '-',
@@ -6117,44 +6183,42 @@
                     }
                 }
 
-                const stripVal = document.getElementById('bibTakeLast').value;
+                const stripVal = (document.getElementById('bibTakeLast').value || '').trim();
                 const prefixVal = document.getElementById('bibPrefix').value || '';
                 let bibNum = overrides.bib_number !== undefined ? overrides.bib_number : (data.bib_number || '-');
-                if (bibNum !== '-' && bibNum.includes('-')) {
-                    const parts = bibNum.split('-');
-                    bibNum = parts[parts.length - 1];
-                } else if (bibNum !== '-' && stripVal) {
-                    if (/^\d+$/.test(stripVal)) {
-                        const numChars = parseInt(stripVal, 10);
-                        bibNum = bibNum.slice(-numChars);
-                    } else {
-                        bibNum = bibNum.replace(stripVal, '');
-                    }
-                }
-
-                // Apply quota formatting if category has quota
                 const categoryQuota = parseInt(overrides.category_quota !== undefined ? overrides.category_quota : (data.category_quota || 0), 10);
-                if (categoryQuota > 0 && /^\d+$/.test(bibNum)) {
-                    const padLength = String(categoryQuota).length;
-                    bibNum = String(bibNum).padStart(padLength, '0');
-                }
 
                 if (bibNum !== '-') {
-                    if (prefixVal !== '' && /^\d+$/.test(bibNum)) {
-                        const prefixLen = prefixVal.length;
-                        if (bibNum.length >= prefixLen) {
-                            bibNum = prefixVal + bibNum.substring(prefixLen);
-                        } else {
-                            bibNum = prefixVal + bibNum;
-                        }
-                    } else {
-                        bibNum = prefixVal + bibNum;
+                    if (stripVal !== '' && !/^\d+$/.test(stripVal)) {
+                        // Text-strip mode: remove exact substring (e.g. "PAOLORUNFE-2026-")
+                        bibNum = bibNum.replaceAll(stripVal, '');
+                    } else if (bibNum.includes('-')) {
+                        const parts = bibNum.split('-');
+                        bibNum = parts[parts.length - 1];
                     }
+
+                    // Apply quota zero-padding before slicing last N characters
+                    if (categoryQuota > 0 && /^\d+$/.test(bibNum)) {
+                        const padLength = String(categoryQuota).length;
+                        bibNum = String(bibNum).padStart(padLength, '0');
+                    }
+
+                    if (stripVal !== '' && /^\d+$/.test(stripVal)) {
+                        const numChars = parseInt(stripVal, 10);
+                        if (numChars > 0) {
+                            bibNum = bibNum.slice(-numChars);
+                        }
+                    }
+
+                    bibNum = bibNum.trim() === '' ? '-' : prefixVal + bibNum;
                 }
+
+                const fullBibNum = overrides.bib_number !== undefined ? overrides.bib_number : (data.bib_number || bibNum);
 
                 return {
                     '#': bibNum,
                     '{bib_number}': bibNum,
+                    '{full_bib}': fullBibNum,
                     '[N]': name,
                     '{name}': name,
                     '[C]': category,
@@ -6195,6 +6259,7 @@
         return {
             '#': bibNum,
             '{bib_number}': bibNum,
+            '{full_bib}': '10234',
             '[N]': dummyName,
             '{name}': dummyName,
             '[C]': '10K',
@@ -6234,6 +6299,17 @@
                     obj.set({ text: obj.originalText });
                 }
             }
+        });
+        bibCanvas.getObjects().filter(obj => obj.isQrCode).forEach(obj => {
+            const qrValue = isPreview ? String(data['{full_bib}'] || data['#'] || '10234') : '[qr]';
+            const newUrl = createQrDataUrl(qrValue);
+            const currentScaleX = obj.scaleX;
+            const currentScaleY = obj.scaleY;
+            obj.setSrc(newUrl, () => {
+                obj.set({ scaleX: currentScaleX, scaleY: currentScaleY });
+                obj.setCoords();
+                bibCanvas.requestRenderAll();
+            });
         });
         bibCanvas.renderAll();
     }
@@ -6559,9 +6635,11 @@
             setTimeout(function() {
                 loadBibPreset(true);
                 window.loadBibParticipant(window.activeParticipantIndex || 0);
+                preloadBibFonts();
             }, 100);
         } else {
             window.loadBibParticipant(window.activeParticipantIndex || 0);
+            preloadBibFonts();
         }
     }
 
@@ -6631,6 +6709,79 @@
         bibCanvas.setActiveObject(text);
     }
 
+    function createQrDataUrl(text, size = 200) {
+        const tempDiv = document.createElement('div');
+        tempDiv.style.position = 'fixed';
+        tempDiv.style.left = '-9999px';
+        tempDiv.style.top = '-9999px';
+        document.body.appendChild(tempDiv);
+
+        new QRCode(tempDiv, {
+            text: String(text || '[qr]'),
+            width: size,
+            height: size,
+            colorDark: '#000000',
+            colorLight: '#ffffff',
+            correctLevel: QRCode.CorrectLevel.M
+        });
+
+        const qrCanvas = tempDiv.querySelector('canvas');
+        const padding = 12;
+        const outCanvas = document.createElement('canvas');
+        outCanvas.width = size + padding * 2;
+        outCanvas.height = size + padding * 2;
+        const ctx = outCanvas.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, outCanvas.width, outCanvas.height);
+
+        if (qrCanvas) {
+            ctx.drawImage(qrCanvas, padding, padding, size, size);
+        }
+
+        const dataUrl = outCanvas.toDataURL('image/png');
+        document.body.removeChild(tempDiv);
+        return dataUrl;
+    }
+
+    function addBibQr(opts = null) {
+        if (!bibCanvas) return;
+
+        const previewCheckbox = document.getElementById('bibPreviewData');
+        let qrValue = '[qr]';
+        if (previewCheckbox && previewCheckbox.checked) {
+            const data = getPreviewData();
+            qrValue = String(data['{full_bib}'] || data['#'] || '10234');
+        }
+
+        const dataUrl = createQrDataUrl(qrValue);
+        fabric.Image.fromURL(dataUrl, function(img) {
+            const targetSize = (opts && opts.size) ? parseFloat(opts.size) : 90;
+            const scale = targetSize / (img.width || 224);
+
+            img.set({
+                left: (opts && opts.left !== undefined) ? opts.left : (bibCanvas.width / 2),
+                top: (opts && opts.top !== undefined) ? opts.top : (bibCanvas.height / 2),
+                originX: (opts && opts.originX) || 'center',
+                originY: (opts && opts.originY) || 'center',
+                scaleX: scale,
+                scaleY: scale,
+                angle: (opts && opts.angle) || 0,
+                cornerSize: 12,
+                transparentCorners: false,
+                lockUniScaling: true
+            });
+            img.setControlsVisibility({ mt: false, mb: false, ml: false, mr: false });
+            img.isQrCode = true;
+            img.originalText = '[qr]';
+
+            bibCanvas.add(img);
+            if (!opts) {
+                bibCanvas.setActiveObject(img);
+            }
+            bibCanvas.renderAll();
+        });
+    }
+
     const textSettingsPanel = document.getElementById('bibTextSettings');
     const fontSizeInput = document.getElementById('bibFontSize');
     const fontColorInput = document.getElementById('bibFontColor');
@@ -6644,16 +6795,26 @@
 
     function onBibObjectSelected(e) {
         const obj = e.selected ? e.selected[0] : e.target;
+        if (obj && obj.isQrCode) {
+            textSettingsPanel.classList.remove('hidden');
+            fontSizeInput.value = Math.round(obj.getScaledWidth());
+            posXInput.value = Math.round(obj.left);
+            posYInput.value = Math.round(obj.top);
+            return;
+        }
         if (obj && obj.type === 'text') {
             textSettingsPanel.classList.remove('hidden');
             fontSizeInput.value = Math.round(obj.fontSize * obj.scaleX);
             fontColorInput.value = obj.fill;
             posXInput.value = Math.round(obj.left);
             posYInput.value = Math.round(obj.top);
-            if (fontFamilyInput.querySelector(`option[value="${obj.fontFamily}"]`)) {
+            const displayFont = obj.customFontFamily || obj.fontFamily;
+            if (fontFamilyInput.querySelector(`option[value="${displayFont}"]`)) {
+                fontFamilyInput.value = displayFont;
+            } else if (fontFamilyInput.querySelector(`option[value="${obj.fontFamily}"]`)) {
                 fontFamilyInput.value = obj.fontFamily;
             }
-            if (obj.fontWeight === 'bold') {
+            if (obj.fontWeight === 'bold' || obj.fontWeight === 700 || obj.fontWeight === 800) {
                 fontBoldBtn.classList.add('bg-slate-700');
             } else {
                 fontBoldBtn.classList.remove('bg-slate-700');
@@ -6679,6 +6840,12 @@
 
     function onBibObjectModified(e) {
         const obj = e.target;
+        if (obj && obj.isQrCode) {
+            fontSizeInput.value = Math.round(obj.getScaledWidth());
+            posXInput.value = Math.round(obj.left);
+            posYInput.value = Math.round(obj.top);
+            return;
+        }
         if (obj && obj.type === 'text') {
             fontSizeInput.value = Math.round(obj.fontSize * obj.scaleX);
             posXInput.value = Math.round(obj.left);
@@ -6688,7 +6855,7 @@
 
     function onBibObjectMoving(e) {
         const obj = e.target;
-        if (obj && obj.type === 'text') {
+        if (obj && (obj.type === 'text' || obj.isQrCode)) {
             posXInput.value = Math.round(obj.left);
             posYInput.value = Math.round(obj.top);
         }
@@ -6696,6 +6863,13 @@
 
     fontSizeInput.addEventListener('input', function() {
         const obj = bibCanvas.getActiveObject();
+        if (obj && obj.isQrCode) {
+            const targetSize = Math.max(20, parseInt(this.value, 10) || 90);
+            const scale = targetSize / (obj.width || 224);
+            obj.set({ scaleX: scale, scaleY: scale });
+            bibCanvas.renderAll();
+            return;
+        }
         if (obj && obj.type === 'text') {
             obj.set({ fontSize: parseInt(this.value, 10), scaleX: 1, scaleY: 1 });
             bibCanvas.renderAll();
@@ -6712,7 +6886,7 @@
 
     posXInput.addEventListener('input', function() {
         const obj = bibCanvas.getActiveObject();
-        if (obj && obj.type === 'text') {
+        if (obj && (obj.type === 'text' || obj.isQrCode)) {
             obj.set({ left: parseFloat(this.value) || 0 });
             bibCanvas.renderAll();
         }
@@ -6720,39 +6894,67 @@
 
     posYInput.addEventListener('input', function() {
         const obj = bibCanvas.getActiveObject();
-        if (obj && obj.type === 'text') {
+        if (obj && (obj.type === 'text' || obj.isQrCode)) {
             obj.set({ top: parseFloat(this.value) || 0 });
             bibCanvas.renderAll();
         }
     });
 
-    fontFamilyInput.addEventListener('change', function() {
+    fontFamilyInput.addEventListener('change', async function() {
         const obj = bibCanvas.getActiveObject();
-        if (obj && obj.type === 'text') {
-            let selectedFont = this.value;
-            if (selectedFont === 'Montserrat ExtraBold') {
-                obj.set({ fontFamily: 'Montserrat', fontWeight: 800, customFontFamily: 'Montserrat ExtraBold' });
-            } else {
-                obj.set({ fontFamily: selectedFont, fontWeight: 'normal', customFontFamily: selectedFont });
-                if (fontBoldBtn.classList.contains('bg-slate-700')) {
-                    obj.set({ fontWeight: 'bold' });
-                }
-            }
-            bibCanvas.renderAll();
+        if (!obj || obj.type !== 'text') return;
+
+        const selectedFont = this.value;
+        let family = selectedFont;
+        let weight = fontBoldBtn.classList.contains('bg-slate-700') ? 'bold' : 'normal';
+        let customFamily = selectedFont;
+
+        if (selectedFont === 'Montserrat ExtraBold') {
+            family = 'Montserrat';
+            weight = 800;
+            customFamily = 'Montserrat ExtraBold';
+        } else if (selectedFont === 'Anton' || selectedFont === 'Bebas Neue') {
+            // Display fonts only have regular (400) weight
+            weight = 'normal';
+            fontBoldBtn.classList.remove('bg-slate-700');
         }
+
+        const canvasFontFamily = (family === 'Courier') ? 'Courier New' : family;
+
+        obj.set({
+            fontFamily: canvasFontFamily,
+            fontWeight: weight,
+            customFontFamily: customFamily,
+            dirty: true
+        });
+
+        if (document.fonts && document.fonts.load && ['Montserrat', 'Anton', 'Bebas Neue'].includes(family)) {
+            const loadWeight = weight === 'bold' ? '700' : (weight === 800 ? '800' : '400');
+            try {
+                await document.fonts.load(`${loadWeight} 40px "${family}"`);
+            } catch (e) {}
+        }
+
+        refreshBibCanvasFonts(canvasFontFamily);
     });
 
-    fontBoldBtn.addEventListener('click', function() {
+    fontBoldBtn.addEventListener('click', async function() {
         const obj = bibCanvas.getActiveObject();
         if (obj && obj.type === 'text') {
-            const isBold = obj.fontWeight === 'bold';
-            obj.set({ fontWeight: isBold ? 'normal' : 'bold' });
+            const isBold = obj.fontWeight === 'bold' || obj.fontWeight === 700 || obj.fontWeight === 800;
+            const nextWeight = isBold ? 'normal' : 'bold';
+            obj.set({ fontWeight: nextWeight, dirty: true });
             if (isBold) {
                 this.classList.remove('bg-slate-700');
             } else {
                 this.classList.add('bg-slate-700');
             }
-            bibCanvas.renderAll();
+            if (document.fonts && document.fonts.load && obj.fontFamily === 'Montserrat') {
+                try {
+                    await document.fonts.load(`${nextWeight === 'bold' ? '700' : '400'} 40px "Montserrat"`);
+                } catch (e) {}
+            }
+            refreshBibCanvasFonts(obj.fontFamily);
         }
     });
 
@@ -6806,6 +7008,70 @@
         }
     }
 
+    async function saveBibCheckSettings(btn) {
+        const takeLast = document.getElementById('bibTakeLast').value || '';
+        const prefix = document.getElementById('bibPrefix').value || '';
+        const maxNameLength = parseInt(document.getElementById('bibMaxNameLength')?.value || '18', 10) || 18;
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = 'Menyimpan...';
+
+        const payload = {
+            take_last: takeLast,
+            prefix: prefix,
+            max_name_length: maxNameLength,
+        };
+
+        if (bibImageBase64 && bibCanvas) {
+            payload.image_base64 = bibImageBase64;
+            payload.canvas_width = bibCanvas.width;
+            payload.canvas_height = bibCanvas.height;
+            payload.texts = bibCanvas.getObjects('text').map(obj => ({
+                text: obj.originalText || obj.text,
+                left: obj.left,
+                top: obj.top,
+                fontSize: obj.fontSize * obj.scaleX,
+                fill: obj.fill,
+                fontFamily: obj.customFontFamily || obj.fontFamily,
+                fontWeight: obj.fontWeight,
+                fontStyle: obj.fontStyle || 'normal',
+                originX: obj.originX,
+                originY: obj.originY,
+                angle: obj.angle || 0
+            }));
+        }
+
+        try {
+            const response = await fetch(@json(route('eo.events.participants.bib-check-settings', $event->id)), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
+                },
+                body: JSON.stringify(payload)
+            });
+            if (response.ok) {
+                btn.textContent = 'Tersimpan ke BIB Check';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2200);
+            } else {
+                btn.textContent = 'Gagal menyimpan';
+                setTimeout(() => {
+                    btn.textContent = originalText;
+                }, 2200);
+            }
+        } catch (e) {
+            btn.textContent = 'Gagal menyimpan';
+            setTimeout(() => {
+                btn.textContent = originalText;
+            }, 2200);
+        } finally {
+            btn.disabled = false;
+        }
+    }
+
     function generateBibPdf(btn, isSingle = false) {
         if (!bibImageBase64) {
             alert('Silakan upload background gambar BIB terlebih dahulu.');
@@ -6815,9 +7081,27 @@
         // Auto save preset silently
         saveBibPreset(true);
 
-        const objects = bibCanvas.getObjects('text');
+        const objects = bibCanvas.getObjects().filter(obj => obj.type === 'text' || obj.isQrCode);
         const textElements = objects.map(obj => {
+            if (obj.isQrCode) {
+                return {
+                    type: 'qr',
+                    text: '[qr]',
+                    left: obj.left,
+                    top: obj.top,
+                    size: Math.round(obj.getScaledWidth()),
+                    fontSize: Math.round(obj.getScaledWidth()),
+                    fill: '#000000',
+                    fontFamily: 'Helvetica',
+                    fontWeight: 'normal',
+                    fontStyle: 'normal',
+                    originX: obj.originX,
+                    originY: obj.originY,
+                    angle: obj.angle || 0
+                };
+            }
             return {
+                type: 'text',
                 text: obj.originalText || obj.text,
                 left: obj.left,
                 top: obj.top,

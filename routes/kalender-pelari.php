@@ -23,6 +23,10 @@ Route::group([
         ->name('landing')
         ->middleware($anonThrottle);
 
+    Route::get('/studio', [WizardController::class, 'instantStudio'])
+        ->name('studio')
+        ->middleware($anonThrottle);
+
     Route::get('/buat', [WizardController::class, 'index'])
         ->name('wizard')
         ->middleware($anonThrottle);
@@ -45,6 +49,10 @@ Route::group([
 
     Route::get('/api/events/search', [ProjectApiController::class, 'searchEvents'])
         ->name('api.events.search')
+        ->middleware($anonThrottle);
+
+    Route::get('/api/templates/athletes', [App\Http\Controllers\Admin\KalenderPelariAdminController::class, 'apiActiveTemplates'])
+        ->name('api.templates.athletes')
         ->middleware($anonThrottle);
 });
 

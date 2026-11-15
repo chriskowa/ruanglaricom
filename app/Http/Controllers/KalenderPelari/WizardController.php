@@ -75,6 +75,26 @@ class WizardController extends Controller
         private readonly ProjectService $projects,
     ) {}
 
+    public function instantStudio(Request $request)
+    {
+        $current = (int) now()->format('Y');
+        $year = (int) $request->query('year', $current + 1);
+        $format = $request->query('format', 'A4_LANDSCAPE');
+        $template = $request->query('template', 'classic');
+
+        $user = $request->user();
+        $name = $user ? "Kalender Lari {$user->name} {$year}" : "Kalender Pelari {$year}";
+
+        $project = $this->projects->createTrial([
+            'name' => $name,
+            'year' => $year,
+            'format_type' => $format,
+            'template_family' => $template,
+        ], $user);
+
+        return redirect()->to($project->routeEditor());
+    }
+
     public function index(Request $request)
     {
         $type = $request->old('type', $request->query('type'));

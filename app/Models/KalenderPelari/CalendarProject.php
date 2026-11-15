@@ -28,7 +28,7 @@ class CalendarProject extends Model
     protected $fillable = [
         'user_id', 'template_id', 'cover_asset_id', 'anonymous_uuid',
         'name', 'year', 'format_type', 'is_anonymous', 'start_week_on',
-        'status', 'state_draft', 'version_counter', 'expires_at',
+        'status', 'state_draft', 'version_counter', 'admin_notes', 'expires_at',
     ];
 
     protected $casts = [

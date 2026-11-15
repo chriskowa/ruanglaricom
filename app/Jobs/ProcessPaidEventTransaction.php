@@ -4,9 +4,12 @@ namespace App\Jobs;
 
 use App\Models\Transaction;
 use App\Models\Wallet;
+use App\Models\WalletTransaction;
 use App\Services\PlatformWalletService;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
@@ -29,15 +32,21 @@ class ProcessPaidEventTransaction implements ShouldQueue
      */
     public function handle(): void
     {
-        try {
+        $lock = Cache::lock('process_paid_tx_' . $this->transaction->id, 30);
+
+        $execute = function () {
             // Reload transaction with relationships
             $this->transaction->refresh();
             $this->transaction->load(['participants.category', 'event.user', 'coupon']);
 
+            if (($this->transaction->payment_status ?? null) !== 'paid') {
+                return;
+            }
+
             // 1. Generate BIB Numbers (sort by target_time)
             $this->generateBibNumbers();
 
-            // 2. Deposit to EO wallet
+            // 2. Deposit to EO wallet (idempotent)
             $this->depositToEOWallet();
 
             // 3. Recalculate coupon used_count
@@ -77,7 +86,10 @@ class ProcessPaidEventTransaction implements ShouldQueue
             Log::info('ProcessPaidEventTransaction completed', [
                 'transaction_id' => $this->transaction->id,
             ]);
+        };
 
+        try {
+            $lock->block(10, $execute);
         } catch (\Exception $e) {
             Log::error('ProcessPaidEventTransaction failed', [
                 'transaction_id' => $this->transaction->id,
@@ -105,6 +117,10 @@ class ProcessPaidEventTransaction implements ShouldQueue
         $baseNumber = 1;
 
         foreach ($participants as $participant) {
+            if (! empty($participant->bib_number)) {
+                continue;
+            }
+
             $bibNumber = sprintf('%s-%s-%04d', $eventCode, $year, $baseNumber);
 
             // Ensure unique BIB number
@@ -119,7 +135,7 @@ class ProcessPaidEventTransaction implements ShouldQueue
     }
 
     /**
-     * Deposit organizer amount to EO wallet and platform fee to platform wallet
+     * Deposit organizer amount to EO wallet and platform fee to platform wallet idempotently.
      */
     protected function depositToEOWallet(): void
     {
@@ -144,65 +160,84 @@ class ProcessPaidEventTransaction implements ShouldQueue
             return;
         }
 
-        // Get or create wallet for organizer
-        $wallet = Wallet::firstOrCreate(
-            ['user_id' => $organizer->id],
-            ['balance' => 0, 'locked_balance' => 0]
-        );
-
         $finalAmount = (float) $this->transaction->final_amount;
         $adminFee = (float) $this->transaction->admin_fee;
         $organizerAmount = max(0, $finalAmount - $adminFee);
 
-        $balanceBefore = (float) $wallet->balance;
-        $wallet->increment('balance', $organizerAmount);
-        $balanceAfter = (float) $wallet->balance;
+        DB::transaction(function () use ($organizer, $finalAmount, $adminFee, $organizerAmount) {
+            $wallet = Wallet::firstOrCreate(
+                ['user_id' => $organizer->id],
+                ['balance' => 0, 'locked_balance' => 0]
+            );
+            $wallet = Wallet::where('id', $wallet->id)->lockForUpdate()->first();
 
-        // Create wallet transaction record
-        $wallet->transactions()->create([
-            'type' => 'deposit',
-            'amount' => $organizerAmount,
-            'balance_before' => $balanceBefore,
-            'balance_after' => $balanceAfter,
-            'status' => 'completed',
-            'description' => 'Pembayaran event: '.$this->transaction->event->name,
-            'reference_id' => $this->transaction->id,
-            'reference_type' => Transaction::class,
-            'metadata' => [
-                'event_id' => $this->transaction->event_id,
-                'event_name' => $this->transaction->event->name,
-                'midtrans_order_id' => $this->transaction->midtrans_order_id,
-                'final_amount' => $finalAmount,
-                'admin_fee' => $adminFee,
-            ],
-            'processed_at' => now(),
-        ]);
+            $alreadyDeposited = WalletTransaction::where('wallet_id', $wallet->id)
+                ->where('reference_type', Transaction::class)
+                ->where('reference_id', $this->transaction->id)
+                ->where('type', 'deposit')
+                ->exists();
 
-        if ($adminFee > 0) {
-            $platformWalletService = app(PlatformWalletService::class);
-            $platformWallet = $platformWalletService->getPlatformWallet();
-            $platformWallet->refresh();
+            if (! $alreadyDeposited && $organizerAmount > 0) {
+                $balanceBefore = (float) $wallet->balance;
+                $balanceAfter = $balanceBefore + $organizerAmount;
+                $wallet->balance = $balanceAfter;
+                $wallet->save();
 
-            $platformBefore = (float) $platformWallet->balance;
-            $platformWallet->balance = $platformBefore + $adminFee;
-            $platformWallet->save();
+                $wallet->transactions()->create([
+                    'type' => 'deposit',
+                    'amount' => $organizerAmount,
+                    'balance_before' => $balanceBefore,
+                    'balance_after' => $balanceAfter,
+                    'status' => 'completed',
+                    'description' => 'Pembayaran event: '.$this->transaction->event->name,
+                    'reference_id' => $this->transaction->id,
+                    'reference_type' => Transaction::class,
+                    'metadata' => [
+                        'event_id' => $this->transaction->event_id,
+                        'event_name' => $this->transaction->event->name,
+                        'midtrans_order_id' => $this->transaction->midtrans_order_id,
+                        'final_amount' => $finalAmount,
+                        'admin_fee' => $adminFee,
+                    ],
+                    'processed_at' => now(),
+                ]);
+            }
 
-            $platformWallet->transactions()->create([
-                'type' => 'fee',
-                'amount' => $adminFee,
-                'balance_before' => $platformBefore,
-                'balance_after' => (float) $platformWallet->balance,
-                'status' => 'completed',
-                'description' => 'Platform fee event: '.$this->transaction->event->name,
-                'reference_id' => $this->transaction->id,
-                'reference_type' => Transaction::class,
-                'metadata' => [
-                    'event_id' => $this->transaction->event_id,
-                    'event_name' => $this->transaction->event->name,
-                    'midtrans_order_id' => $this->transaction->midtrans_order_id,
-                ],
-                'processed_at' => now(),
-            ]);
-        }
+            if ($adminFee > 0) {
+                $platformWalletService = app(PlatformWalletService::class);
+                $platformWallet = $platformWalletService->getPlatformWallet();
+                $platformWallet = Wallet::where('id', $platformWallet->id)->lockForUpdate()->first();
+
+                $feeAlreadyRecorded = WalletTransaction::where('wallet_id', $platformWallet->id)
+                    ->where('reference_type', Transaction::class)
+                    ->where('reference_id', $this->transaction->id)
+                    ->where('type', 'fee')
+                    ->exists();
+
+                if (! $feeAlreadyRecorded) {
+                    $platformBefore = (float) $platformWallet->balance;
+                    $platformAfter = $platformBefore + $adminFee;
+                    $platformWallet->balance = $platformAfter;
+                    $platformWallet->save();
+
+                    $platformWallet->transactions()->create([
+                        'type' => 'fee',
+                        'amount' => $adminFee,
+                        'balance_before' => $platformBefore,
+                        'balance_after' => $platformAfter,
+                        'status' => 'completed',
+                        'description' => 'Platform fee event: '.$this->transaction->event->name,
+                        'reference_id' => $this->transaction->id,
+                        'reference_type' => Transaction::class,
+                        'metadata' => [
+                            'event_id' => $this->transaction->event_id,
+                            'event_name' => $this->transaction->event->name,
+                            'midtrans_order_id' => $this->transaction->midtrans_order_id,
+                        ],
+                        'processed_at' => now(),
+                    ]);
+                }
+            }
+        });
     }
 }
