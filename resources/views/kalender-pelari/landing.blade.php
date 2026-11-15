@@ -168,7 +168,7 @@
 <div id="top" class="kp-landing bg-slate-950 text-slate-100 pt-0">
     {{-- Section 1: Hero & Interactive Specimen --}}
     <section id="pratinjau" class="border-b border-slate-800">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-10 sm:pt-14 pb-10 sm:pb-14 lg:pb-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 pt-10 sm:pt-14 pb-10 sm:pb-14 lg:pb-16">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
                 {{-- Left Column --}}
                 <div class="lg:col-span-6">
@@ -356,7 +356,7 @@
 
     {{-- Section 2: Template Showcase (Visual Preview + Real Photos + Uniform Cards) --}}
     <section id="template" class="border-b border-slate-800">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
             <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
                 <div>
                     <h2 class="text-2xl sm:text-3xl text-white">Enam Gaya Tata Letak Siap Pakai</h2>
@@ -421,7 +421,7 @@
 
     {{-- Section 3: Asymmetric Workflow & Technical Print Specs --}}
     <section id="spesifikasi" class="border-b border-slate-800">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                 {{-- Left: 3-Step Workflow --}}
                 <div class="lg:col-span-6">
@@ -502,7 +502,7 @@
 
     {{-- Section 4: FAQ & Closing CTA --}}
     <section id="faq">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
             <div class="mb-8">
                 <h2 class="text-2xl sm:text-3xl text-white">Pertanyaan yang Sering Diajukan</h2>
                 <p class="text-sm text-slate-300 mt-1.5">Detail mengenai format ekspor, penanggalan Indonesia, dan privasi foto Anda.</p>
