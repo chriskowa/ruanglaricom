@@ -1,4 +1,4 @@
-@extends('layouts.pacerhub')
+@extends('layouts.pacerhub', ['skipHeavyAssets' => true, 'skipLoader' => true])
 
 @section('title', 'Ruang Lari | Media Lari Indonesia, Race, Training & Running Tools')
 @section('meta_title', 'Ruang Lari | Media Lari Indonesia, Race, Training & Running Tools')

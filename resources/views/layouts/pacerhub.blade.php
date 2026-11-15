@@ -313,11 +313,13 @@
 </head>
 <body class="{{ isset($lightMode) && $lightMode ? 'bg-slate-50 text-slate-900' : 'bg-dark text-white' }} font-sans antialiased flex flex-col min-h-screen">
 
+    @if(empty($skipLoader))
     <div id="loader" class="loader-overlay" style="{{ isset($lightMode) && $lightMode ? 'background: #f8fafc;' : '' }}">
         <div class="text-4xl font-black italic tracking-tighter animate-pulse {{ isset($lightMode) && $lightMode ? 'text-slate-900' : '' }}">
             RUANG<span class="text-primary" style="{{ isset($lightMode) && $lightMode ? 'color: #000000ff;' : '' }}">LARI</span>
         </div>
     </div>
+    @endif
 
     <div id="app" class="flex flex-col min-h-screen">
         
@@ -384,8 +386,11 @@
     @endauth
 
     @stack('scripts')
+    @if(empty($skipHeavyAssets))
     <script defer src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+    @endif
     <script>
+        @if(empty($skipHeavyAssets))
         try {
             if (window.AOS && typeof window.AOS.init === 'function') {
                 window.AOS.init({
@@ -395,6 +400,7 @@
                 });
             }
         } catch (e) {}
+        @endif
         
         (function () {
             function hideLoader() {

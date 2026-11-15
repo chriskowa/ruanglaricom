@@ -354,6 +354,7 @@ class PageController extends Controller
             'factualStats'              => $factualStats,
             'latestMarketplaceProducts' => $latestMarketplaceProducts,
             'skipHeavyAssets'           => true,
+            'skipLoader'                => true,
         ]);
     }
 }

@@ -1215,6 +1215,54 @@ setupThemeMode();
 setupStudioTheme();
 setupChoiceStripsSlideTouch();
 
+async function consumeLandingPhotoHandoff() {
+  if (typeof window === 'undefined' || !window.indexedDB) return;
+  try {
+    const db = await new Promise((resolve, reject) => {
+      const req = window.indexedDB.open('kp_landing_handoff', 1);
+      req.onupgradeneeded = () => {
+        if (!req.result.objectStoreNames.contains('photos')) {
+          req.result.createObjectStore('photos');
+        }
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+
+    const record = await new Promise((resolve) => {
+      const tx = db.transaction('photos', 'readwrite');
+      const store = tx.objectStore('photos');
+      const getReq = store.get('cover_photo');
+      getReq.onsuccess = () => {
+        const val = getReq.result;
+        if (val) store.delete('cover_photo');
+        resolve(val || null);
+      };
+      getReq.onerror = () => resolve(null);
+      tx.oncomplete = () => db.close();
+      tx.onerror = () => db.close();
+    });
+
+    if (!record || !record.blob) return;
+    if (record.ts && Date.now() - record.ts > 30 * 60 * 1000) return;
+
+    const url = URL.createObjectURL(record.blob);
+    const image = new Image();
+    try {
+      image.src = url;
+      await image.decode();
+      setSlotPhoto(0, 0, image);
+      syncCollageControls();
+      render();
+      if (status) status.textContent = 'Foto Anda dimuat lokal dari halaman awal.';
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  } catch (e) {
+    // Abaikan jika IndexedDB tidak tersedia
+  }
+}
+
 if (window.KP_INITIAL_DRAFT && typeof window.KP_STUDIO?.loadProjectData === 'function') {
   window.KP_STUDIO.loadProjectData(window.KP_INITIAL_DRAFT).then(() => {
     handleUrlParameters();
@@ -1222,6 +1270,7 @@ if (window.KP_INITIAL_DRAFT && typeof window.KP_STUDIO?.loadProjectData === 'fun
     buildSlides();
     applyPreviewZoom();
     render();
+    consumeLandingPhotoHandoff();
   });
 } else {
   handleUrlParameters();
@@ -1229,6 +1278,7 @@ if (window.KP_INITIAL_DRAFT && typeof window.KP_STUDIO?.loadProjectData === 'fun
   buildSlides();
   applyPreviewZoom();
   render();
+  consumeLandingPhotoHandoff();
 }
 if (document.fonts) document.fonts.ready.then(() => { applyPreviewZoom(); render(); });
 window.addEventListener('load', () => { applyPreviewZoom(); render(); });

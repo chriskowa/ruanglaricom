@@ -248,15 +248,20 @@
 
                         {{-- Specimen Sheet --}}
                         <div class="bg-slate-950 border border-slate-800 rounded-lg overflow-hidden">
-                            {{-- Top Photo Area --}}
-                            <div class="relative aspect-[16/9] bg-slate-800 overflow-hidden border-b border-slate-800">
-                                <img src="{{ asset($heroPhoto) }}"
+                            {{-- Top Photo Area (Click or Drop Photo) --}}
+                            <div id="kpSpecimenPhotoDrop" class="relative aspect-[16/9] bg-slate-800 overflow-hidden border-b border-slate-800 cursor-pointer group" title="Klik atau seret foto lari Anda ke sini">
+                                <img id="kpSpecimenPhotoImg"
+                                     src="{{ asset($heroPhoto) }}"
+                                     data-default-src="{{ asset($heroPhoto) }}"
                                      alt="Contoh foto pelari pada tata letak kalender"
-                                     class="w-full h-full object-cover object-center">
+                                     class="w-full h-full object-cover object-center transition duration-150">
+                                <div class="absolute top-2.5 right-2.5 px-2.5 py-1 rounded bg-slate-950 border border-slate-800 text-[11px] font-semibold text-slate-200 group-hover:border-neon group-hover:text-neon transition duration-150">
+                                    Klik / Seret Foto
+                                </div>
                                 <div class="absolute inset-x-0 bottom-0 bg-slate-950 border-t border-slate-800 px-3.5 py-2.5 flex items-center justify-between gap-3">
                                     <div class="min-w-0">
                                         <div id="kpSpecimenTitle" class="kp-heading text-sm sm:text-base text-white truncate">JANUARI {{ $nextYear }}</div>
-                                        <div class="kp-mono text-[11px] text-slate-300 truncate">BOROBUDUR MARATHON · 42.195 KM</div>
+                                        <div id="kpSpecimenSubtitle" class="kp-mono text-[11px] text-slate-300 truncate">BOROBUDUR MARATHON · 42.195 KM</div>
                                     </div>
                                     <div class="shrink-0 flex items-center gap-2">
                                         <div class="w-7 h-7 rounded bg-white p-1 flex items-center justify-center" title="Slot QR Code Strava">
@@ -347,6 +352,28 @@
                                     @endforeach
                                 </div>
                             </div>
+                        </div>
+
+                        {{-- Interactive Local Photo Try-On Bar (Zero Server Upload) --}}
+                        <div class="mt-3 pt-3 border-t border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                            <input type="file" id="kpLandingPhotoInput" accept="image/jpeg,image/png,image/webp" class="hidden">
+                            <div class="flex items-center gap-2">
+                                <button type="button" id="kpUploadPhotoBtn"
+                                        class="inline-flex items-center justify-center h-9 px-3.5 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-white transition duration-150 whitespace-nowrap">
+                                    + Coba Foto Anda
+                                </button>
+                                <button type="button" id="kpResetPhotoBtn"
+                                        class="hidden inline-flex items-center justify-center h-9 px-3 rounded-md bg-slate-950 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-300 transition duration-150 whitespace-nowrap">
+                                    Reset
+                                </button>
+                            </div>
+                            <a id="kpContinueWithPhotoBtn" href="{{ $studioUrl }}"
+                               class="hidden inline-flex items-center justify-center h-9 px-4 rounded-md bg-neon hover:bg-lime-300 text-slate-950 text-xs font-bold transition duration-150 whitespace-nowrap">
+                                Masuk Studio dengan Foto Ini
+                            </a>
+                            <span id="kpPhotoHint" class="text-[11px] text-slate-400">
+                                Diproses lokal di browser, tidak tersimpan di server/filemanager.
+                            </span>
                         </div>
                     </div>
                 </div>
@@ -633,6 +660,113 @@ document.addEventListener('DOMContentLoaded', function () {
             if (titleLabel) titleLabel.textContent = panels[key].title;
         });
     });
+
+    // Local Photo Preview & Zero-Storage IndexedDB Handoff to Studio
+    const photoInput = document.getElementById('kpLandingPhotoInput');
+    const photoDrop = document.getElementById('kpSpecimenPhotoDrop');
+    const photoImg = document.getElementById('kpSpecimenPhotoImg');
+    const uploadBtn = document.getElementById('kpUploadPhotoBtn');
+    const resetBtn = document.getElementById('kpResetPhotoBtn');
+    const continueBtn = document.getElementById('kpContinueWithPhotoBtn');
+    const photoHint = document.getElementById('kpPhotoHint');
+    const subtitleLabel = document.getElementById('kpSpecimenSubtitle');
+    let currentObjectUrl = null;
+
+    function openHandoffDb() {
+        return new Promise(function (resolve, reject) {
+            if (!window.indexedDB) return reject(new Error('IndexedDB unsupported'));
+            const req = window.indexedDB.open('kp_landing_handoff', 1);
+            req.onupgradeneeded = function () {
+                const db = req.result;
+                if (!db.objectStoreNames.contains('photos')) {
+                    db.createObjectStore('photos');
+                }
+            };
+            req.onsuccess = function () { resolve(req.result); };
+            req.onerror = function () { reject(req.error); };
+        });
+    }
+
+    async function saveLandingPhotoBlob(blob, filename) {
+        try {
+            const db = await openHandoffDb();
+            return new Promise(function (resolve, reject) {
+                const tx = db.transaction('photos', 'readwrite');
+                tx.objectStore('photos').put({ blob: blob, name: filename, ts: Date.now() }, 'cover_photo');
+                tx.oncomplete = function () { db.close(); resolve(true); };
+                tx.onerror = function () { db.close(); reject(tx.error); };
+            });
+        } catch (e) {
+            return false;
+        }
+    }
+
+    async function clearLandingPhotoBlob() {
+        try {
+            const db = await openHandoffDb();
+            return new Promise(function (resolve) {
+                const tx = db.transaction('photos', 'readwrite');
+                tx.objectStore('photos').delete('cover_photo');
+                tx.oncomplete = function () { db.close(); resolve(); };
+                tx.onerror = function () { db.close(); resolve(); };
+            });
+        } catch (e) {}
+    }
+
+    async function handleSelectedPhoto(file) {
+        if (!file || !file.type || !file.type.startsWith('image/')) return;
+        if (currentObjectUrl) URL.revokeObjectURL(currentObjectUrl);
+        currentObjectUrl = URL.createObjectURL(file);
+        if (photoImg) photoImg.src = currentObjectUrl;
+        if (subtitleLabel) subtitleLabel.textContent = file.name.toUpperCase() + ' · PRATINJAU LOKAL';
+
+        await saveLandingPhotoBlob(file, file.name);
+
+        if (resetBtn) resetBtn.classList.remove('hidden');
+        if (continueBtn) continueBtn.classList.remove('hidden');
+        if (photoHint) photoHint.classList.add('hidden');
+    }
+
+    if (uploadBtn && photoInput) {
+        uploadBtn.addEventListener('click', function () { photoInput.click(); });
+    }
+    if (photoDrop && photoInput) {
+        photoDrop.addEventListener('click', function () { photoInput.click(); });
+        photoDrop.addEventListener('dragover', function (e) {
+            e.preventDefault();
+            photoDrop.classList.add('ring-2', 'ring-neon');
+        });
+        photoDrop.addEventListener('dragleave', function () {
+            photoDrop.classList.remove('ring-2', 'ring-neon');
+        });
+        photoDrop.addEventListener('drop', function (e) {
+            e.preventDefault();
+            photoDrop.classList.remove('ring-2', 'ring-neon');
+            const file = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+            if (file) handleSelectedPhoto(file);
+        });
+    }
+    if (photoInput) {
+        photoInput.addEventListener('change', function (e) {
+            const file = e.target.files && e.target.files[0];
+            if (file) handleSelectedPhoto(file);
+        });
+    }
+    if (resetBtn) {
+        resetBtn.addEventListener('click', async function () {
+            if (currentObjectUrl) {
+                URL.revokeObjectURL(currentObjectUrl);
+                currentObjectUrl = null;
+            }
+            if (photoImg) photoImg.src = photoImg.getAttribute('data-default-src');
+            if (subtitleLabel) subtitleLabel.textContent = 'BOROBUDUR MARATHON · 42.195 KM';
+            if (photoInput) photoInput.value = '';
+            resetBtn.classList.add('hidden');
+            if (continueBtn) continueBtn.classList.add('hidden');
+            if (photoHint) photoHint.classList.remove('hidden');
+            await clearLandingPhotoBlob();
+        });
+    }
 });
 </script>
 @endpush
