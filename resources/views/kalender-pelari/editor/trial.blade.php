@@ -29,47 +29,47 @@
             } catch (e) {}
         })();
     </script>
-    <header class="flex items-center justify-between border-b border-slate-800 bg-slate-900 px-4 py-2 sm:px-6 shrink-0 h-13 z-30 w-full">
-        <div class="flex items-center gap-4 min-w-0">
-            <a href="{{ route('kalender-pelari.landing') }}" class="brand-title flex items-center gap-2 text-white hover:text-slate-200">
-                <span class="inline-block w-2.5 h-2.5 rounded bg-red-600"></span>
-                <span class="font-bold tracking-tight text-sm sm:text-base font-['Inter_Tight','Sora',sans-serif]">RUANG LARI / CALENDAR STUDIO</span>
+    <header class="flex items-center justify-between border-b border-slate-800 bg-slate-900 px-4 sm:px-6 shrink-0 h-14 z-30 w-full gap-3">
+        <div class="flex items-center gap-3 min-w-0">
+            <a href="{{ route('kalender-pelari.landing') }}" class="brand-title flex items-center gap-2 text-white hover:text-slate-200 whitespace-nowrap shrink-0">
+                <img src="{{ asset('images/logo saja ruang lari.png') }}" alt="Ruang Lari" class="w-5 h-5 object-contain shrink-0">
+                <span class="font-bold tracking-tight text-sm font-['Inter_Tight','Sora',sans-serif]">RUANG LARI / STUDIO</span>
             </a>
             <span class="hidden md:inline text-slate-600">|</span>
             <div class="hidden sm:flex items-center gap-2 min-w-0">
-                <span id="kpProjectNameDisplay" class="truncate text-xs font-semibold text-slate-300 max-w-[200px]">{{ $project->name ?? 'Kalender Pelari' }}</span>
-                <span id="kpSaveIndicator" class="text-xs font-mono text-emerald-400">Tersimpan</span>
+                <span id="kpProjectNameDisplay" class="truncate text-xs font-semibold text-slate-300 max-w-[180px]">{{ $project->name ?? 'Kalender Pelari' }}</span>
+                <span id="kpSaveIndicator" class="text-xs font-mono text-emerald-400 whitespace-nowrap">Tersimpan</span>
             </div>
         </div>
 
-        <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+        <div class="flex items-center gap-2 shrink-0">
             <!-- Studio Interface Theme Switcher -->
             <div class="studio-theme-toggle flex items-center rounded-md border border-slate-700 bg-slate-800 p-0.5 text-xs font-semibold shrink-0" role="group" aria-label="Tema Antarmuka Studio">
-                <button type="button" class="btn-studio-dark px-2.5 py-1 rounded transition text-white active" title="Tampilan Studio Mode Gelap">
+                <button type="button" class="btn-studio-dark rounded transition text-white active" title="Tampilan Studio Mode Gelap">
                     Studio Gelap
                 </button>
-                <button type="button" class="btn-studio-light px-2.5 py-1 rounded transition text-slate-400 hover:text-white" title="Tampilan Studio Mode Terang">
+                <button type="button" class="btn-studio-light rounded transition text-slate-400 hover:text-white" title="Tampilan Studio Mode Terang">
                     Studio Terang
                 </button>
             </div>
 
             @if($project->is_anonymous)
                 <a href="{{ $authLoginUrl }}?redirect_to={{ urlencode(request()->fullUrl()) }}"
-                   class="mt-8 rounded-md border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-700 hover:text-white transition inline-flex items-center justify-center">
+                   class="btn-header-action rounded-md border border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white transition">
                     Simpan
                 </a>
             @else
                 <a href="{{ route('kalender-pelari.my-projects') }}"
-                   class="mt-8 rounded-md border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-700 hover:text-white transition inline-flex items-center justify-center">
+                   class="btn-header-action rounded-md border border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white transition">
                     Proyek Saya
                 </a>
             @endif
             <button type="button" onclick="document.getElementById('download')?.click()"
-                    class="rounded-md border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-700 hover:text-white transition inline-flex items-center justify-center">
+                    class="btn-header-action rounded-md border border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white transition">
                 Unduh
             </button>
             <button type="button" onclick="document.getElementById('print')?.click()"
-                    class="rounded-md border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-semibold text-slate-200 hover:bg-slate-700 hover:text-white transition inline-flex items-center justify-center">
+                    class="btn-header-action rounded-md border border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white transition">
                 PDF
             </button>
         </div>
@@ -128,11 +128,6 @@
             <nav class="inspector-nav" aria-label="Navigasi pengaturan">
                 <a href="#designSection">Desain</a>
                 <a href="#contentSection">Konten</a>
-                <a href="#assetsSection">Stiker</a>
-                <a href="#positionSection">Posisi</a>
-                <a href="#ruangLariSection">Ruang Lari</a>
-                <a href="#exportSection">Ekspor</a>
-            </nav>
                 <a href="#assetsSection">Stiker</a>
                 <a href="#positionSection">Posisi</a>
                 <a href="#ruangLariSection">Ruang Lari</a>

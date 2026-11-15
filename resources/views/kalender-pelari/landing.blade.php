@@ -1,8 +1,4 @@
-@extends('layouts.pacerhub', [
-    'hideFooter' => false,
-    'hideChat' => true,
-    'hideNav' => false,
-])
+@extends('layouts.pacerhub', ['hideFooter' => false, 'hideChat' => true, 'hideNav' => false])
 
 @section('title', $pageMetaTitle)
 @section('meta_title', $pageMetaTitle)
@@ -11,297 +7,632 @@
 @push('styles')
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sora:wght@700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sora:wght@700;800&display=swap" rel="stylesheet">
+<style>
+    .kp-landing {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .kp-landing h1,
+    .kp-landing h2,
+    .kp-landing h3,
+    .kp-heading {
+        font-family: 'Inter Tight', 'Sora', sans-serif;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+    }
+    .kp-mono {
+        font-family: 'JetBrains Mono', monospace;
+        font-variant-numeric: tabular-nums;
+    }
+    .kp-faq-item summary::-webkit-details-marker {
+        display: none;
+    }
+    .kp-faq-item[open] .kp-faq-chevron {
+        transform: rotate(180deg);
+    }
+</style>
 @endpush
 
 @push('structured_data')
-<meta name="keywords" content="kalender lari, kalender pelari {{ $nextYear }}, buat kalender lari, cetak kalender marathon, desain kalender foto lari, running calendar studio, jadwal lari indonesia">
+<meta name="keywords" content="kalender pelari {{ $nextYear }}, buat kalender lari custom, kalender meja A4 lari, kalender dinding A3 pelari, template kalender strava, kalender libur nasional indonesia {{ $nextYear }}, cetak kalender pdf 300 dpi">
+<meta name="robots" content="index, follow">
+<link rel="canonical" href="{{ url('/kalender-pelari') }}">
+<meta property="og:type" content="website">
+<meta property="og:url" content="{{ url('/kalender-pelari') }}">
 <meta property="og:title" content="{{ $pageMetaTitle }}">
 <meta property="og:description" content="{{ $pageMetaDescription }}">
-<meta property="og:type" content="website">
-<meta property="og:url" content="{{ url()->current() }}">
+<meta property="og:image" content="{{ asset('images/kalender-pelari/bg/788438538_18142926247584739_300127733191259686_n.jpg') }}">
 <meta name="twitter:card" content="summary_large_image">
-
-@php
-$schemaData = [
-    '@context' => 'https://schema.org',
-    '@graph' => [
-        [
-            '@type' => 'WebApplication',
-            'name' => 'Ruang Lari Calendar Studio',
-            'url' => route('kalender-pelari.landing'),
-            'applicationCategory' => 'DesignApplication',
-            'operatingSystem' => 'Web Browser',
-            'description' => $pageMetaDescription,
-            'offers' => [
-                '@type' => 'Offer',
-                'price' => '0',
-                'priceCurrency' => 'IDR'
-            ]
-        ],
-        [
-            '@type' => 'FAQPage',
-            'mainEntity' => [
-                [
-                    '@type' => 'Question',
-                    'name' => 'Apakah hasil kalender bisa dicetak sampai 13 halaman?',
-                    'acceptedAnswer' => [
-                        '@type' => 'Answer',
-                        'text' => 'Ya, Studio Calendar Ruang Lari menghasilkan 13 halaman lengkap (1 Sampul Utama + 12 Halaman Bulan Januari sampai Desember) dalam format PDF siap cetak atau PNG satuan.'
-                    ]
-                ],
-                [
-                    '@type' => 'Question',
-                    'name' => 'Berapa resolusi cetak yang dihasilkan?',
-                    'acceptedAnswer' => [
-                        '@type' => 'Answer',
-                        'text' => 'Engine Canvas mengekspor dengan resolusi cetak standar percetakan profesional 300 DPI (hingga 3780 x 5669 piksel untuk kalender dinding dan 2382 x 1590 piksel untuk kalender meja/A4).'
-                    ]
-                ],
-                [
-                    '@type' => 'Question',
-                    'name' => 'Apakah jadwal hari libur nasional Indonesia sudah tercantum otomatis?',
-                    'acceptedAnswer' => [
-                        '@type' => 'Answer',
-                        'text' => 'Benar. Sistem kalender memuat database hari libur nasional Indonesia resmi untuk tahun 2025, 2026, 2027 dan seterusnya secara otomatis dengan penandaan warna khusus.'
-                    ]
-                ],
-                [
-                    '@type' => 'Question',
-                    'name' => 'Apakah bisa mendesain tanpa mendaftar akun terlebih dahulu?',
-                    'acceptedAnswer' => [
-                        '@type' => 'Answer',
-                        'text' => 'Bisa. Studio dapat langsung dicoba secara gratis dalam mode trial tanpa login. Anda dapat login kapan saja untuk menyimpan proyek secara permanen ke akun pelari Anda.'
-                    ]
-                ]
-            ]
-        ]
-    ]
-];
-@endphp
+<meta name="twitter:title" content="{{ $pageMetaTitle }}">
+<meta name="twitter:description" content="{{ $pageMetaDescription }}">
 <script type="application/ld+json">
-{!! json_encode($schemaData, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE) !!}
+{
+  "@@context": "https://schema.org",
+  "@@type": "WebApplication",
+  "name": "Kalender Pelari Ruang Lari",
+  "url": "{{ url('/kalender-pelari') }}",
+  "applicationCategory": "DesignApplication",
+  "operatingSystem": "Web Browser",
+  "description": "{{ $pageMetaDescription }}",
+  "offers": {
+    "@@type": "Offer",
+    "price": "0",
+    "priceCurrency": "IDR"
+  },
+  "featureList": [
+    "Export PDF 300 DPI siap cetak ukuran A4 dan A3",
+    "Format 1 bulan, 2 bulan, dan 4 bulan per lembar",
+    "Sinkronisasi tanggal merah dan cuti bersama resmi Indonesia",
+    "Penanda jadwal race lari Indonesia dan World Marathon Majors",
+    "QR Code tautan Strava atau galeri foto pelari"
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org",
+  "@@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@@type": "Question",
+      "name": "Apakah kalender lari ini bisa langsung dicetak ke percetakan?",
+      "acceptedAnswer": {
+        "@@type": "Answer",
+        "text": "Ya. File diekspor dalam format PDF beresolusi 300 DPI pada rasio A4 Landscape untuk kalender meja maupun A3 Portrait untuk kalender dinding, lengkap dengan 13 halaman termasuk cover depan."
+      }
+    },
+    {
+      "@@type": "Question",
+      "name": "Apakah tanggal merah Indonesia sudah tersedia otomatis?",
+      "acceptedAnswer": {
+        "@@type": "Answer",
+        "text": "Ya. Data tanggal libur nasional, cuti bersama, serta jadwal lomba lari populer di Indonesia dan luar negeri otomatis tertanam pada penanggalan."
+      }
+    },
+    {
+      "@@type": "Question",
+      "name": "Apakah foto pribadi dan teks desain aman?",
+      "acceptedAnswer": {
+        "@@type": "Answer",
+        "text": "Semua foto yang Anda unggah diproses langsung di browser untuk penyusunan tata letak dan ekspor PDF."
+      }
+    }
+  ]
+}
 </script>
 @endpush
 
 @section('content')
-<main class="bg-slate-950 text-slate-100 pt-0">
-    <!-- HERO SECTION -->
-    <section class="border-b border-slate-800 bg-gradient-to-b from-slate-900 to-slate-950">
-        <div class="mx-auto max-w-7xl px-5 py-12 sm:px-8 lg:py-20">
-            <div class="grid gap-10 lg:grid-cols-12 lg:items-center">
-                <div class="lg:col-span-7 space-y-6">
-                    <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white font-['Inter_Tight','Sora',sans-serif]">
-                        Buat Kalender Lari Custom {{ $nextYear }} & Cetak PDF.
+@php
+    $heroPhoto = 'images/kalender-pelari/bg/788438538_18142926247584739_300127733191259686_n.jpg';
+
+    $templateVisuals = [
+        'bold' => [
+            'photo' => 'images/kalender-pelari/bg/788438538_18142926247584739_300127733191259686_n.jpg',
+            'tag' => 'A4 / A3',
+            'barClass' => 'bg-neon text-slate-950',
+            'label' => 'JAN ' . $nextYear,
+            'stat' => '42.2 KM',
+        ],
+        'strava' => [
+            'photo' => 'images/kalender-pelari/bg/815920233_18619567672013478_7707120302547332417_n.jpg',
+            'tag' => 'Telemetri',
+            'barClass' => 'bg-strava text-white',
+            'label' => 'PACE 4:45',
+            'stat' => '184 KM/BLN',
+        ],
+        'classic' => [
+            'photo' => 'images/kalender-pelari/bg/819207920_18620464486013478_340093240344695805_n.jpg',
+            'tag' => 'Editorial',
+            'barClass' => 'bg-slate-800 text-white border-b border-slate-700',
+            'label' => '21.1 KM',
+            'stat' => 'RACE DAY',
+        ],
+        'night' => [
+            'photo' => 'images/kalender-pelari/bg/825352127_18622491895013478_5874230830227099846_n.jpg',
+            'tag' => 'Kontras Gelap',
+            'barClass' => 'bg-slate-950 text-neon border-b border-slate-800',
+            'label' => 'NIGHT RUN',
+            'stat' => '10.0 KM',
+        ],
+        'badge' => [
+            'photo' => 'images/kalender-pelari/bg/830540436_18146023228584739_537799408712608694_n.jpg',
+            'tag' => 'Finisher',
+            'barClass' => 'bg-slate-800 text-neon border-b border-slate-700',
+            'label' => 'FINISHER',
+            'stat' => 'MEDAL LOG',
+        ],
+        'topography' => [
+            'photo' => 'images/kalender-pelari/bg/840363425_18625537549013478_2717575911219471235_n.jpg',
+            'tag' => 'Trail & Elevasi',
+            'barClass' => 'bg-slate-900 text-slate-100 border-b border-slate-700',
+            'label' => 'ULTRA 50K',
+            'stat' => '+1,420M EG',
+        ],
+    ];
+
+    $janDays = [
+        ['d' => '', 'm' => false], ['d' => '', 'm' => false], ['d' => '', 'm' => false],
+        ['d' => '1', 'm' => 'red'], ['d' => '2', 'm' => false], ['d' => '3', 'm' => false], ['d' => '4', 'm' => 'red'],
+        ['d' => '5', 'm' => false], ['d' => '6', 'm' => false], ['d' => '7', 'm' => false], ['d' => '8', 'm' => false],
+        ['d' => '9', 'm' => false], ['d' => '10', 'm' => false], ['d' => '11', 'm' => 'race'],
+        ['d' => '12', 'm' => false], ['d' => '13', 'm' => false], ['d' => '14', 'm' => false], ['d' => '15', 'm' => false],
+        ['d' => '16', 'm' => false], ['d' => '17', 'm' => false], ['d' => '18', 'm' => 'red'],
+        ['d' => '19', 'm' => false], ['d' => '20', 'm' => false], ['d' => '21', 'm' => false], ['d' => '22', 'm' => false],
+        ['d' => '23', 'm' => false], ['d' => '24', 'm' => false], ['d' => '25', 'm' => 'race'],
+        ['d' => '26', 'm' => false], ['d' => '27', 'm' => false], ['d' => '28', 'm' => false], ['d' => '29', 'm' => 'red'],
+        ['d' => '30', 'm' => false], ['d' => '31', 'm' => false], ['d' => '', 'm' => false],
+    ];
+@endphp
+
+<div id="top" class="kp-landing bg-slate-950 text-slate-100 pt-0">
+    {{-- Section 1: Hero & Interactive Specimen --}}
+    <section id="pratinjau" class="border-b border-slate-800">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 pt-10 sm:pt-14 pb-10 sm:pb-14 lg:pb-16">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
+                {{-- Left Column --}}
+                <div class="lg:col-span-6">
+                    <h1 class="text-3xl sm:text-4xl lg:text-5xl text-white leading-[1.1] mb-4">
+                        Buat Kalender Lari {{ $nextYear }} dan Cetak PDF Presisi
                     </h1>
-                    <p class="text-base sm:text-lg leading-relaxed text-slate-300 max-w-2xl">
-                        Rancang kalender fisik 13 halaman (Cover + 12 Bulan) lengkap dengan foto maraton terbaik,
-                        target kilometer, jadwal lomba lari nasional, dan QR code profil pelari resmi Anda.
+                    <p class="text-sm sm:text-base text-slate-300 leading-relaxed mb-6 max-w-xl">
+                        Susun foto finis terbaikmu ke dalam tata letak kalender meja A4 atau kalender dinding A3. Sudah dilengkapi tanggal merah resmi Indonesia, penanda lomba lari nasional, dan QR Code profil Strava dalam 13 halaman siap cetak.
                     </p>
 
-                    <div class="flex flex-col sm:flex-row gap-3 pt-2">
+                    {{-- Symmetric Equal-Width Equal-Height CTAs --}}
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md mb-4">
                         <a href="{{ $studioUrl }}"
-                           class="inline-flex items-center justify-center rounded-md bg-red-600 px-6 py-3.5 text-sm font-bold text-white shadow-sm hover:bg-red-700 transition">
-                            Mulai Desain Kalender
+                           class="inline-flex items-center justify-center h-11 px-5 rounded-md bg-neon hover:bg-lime-300 text-slate-950 text-sm font-bold transition duration-150">
+                            Mulai Desain
                         </a>
-                        <a href="#pilihan-desain"
-                           class="inline-flex items-center justify-center rounded-md border border-slate-700 bg-slate-900 px-6 py-3.5 text-sm font-semibold text-slate-200 hover:bg-slate-800 hover:text-white transition">
-                            Lihat 36 Desain Template
+                        <a href="{{ $wizardUrl }}"
+                           class="inline-flex items-center justify-center h-11 px-5 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-sm font-semibold transition duration-150">
+                            Wizard Cepat
+                        </a>
+                    </div>
+                    <div class="mb-8">
+                        <a href="{{ route('kalender-pelari.my-projects') }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-slate-300 hover:text-neon transition duration-150">
+                            <span>Buka Proyek Kalender Tersimpan</span>
+                            <span aria-hidden="true">-&gt;</span>
                         </a>
                     </div>
 
-                    <div class="grid grid-cols-3 gap-4 pt-4 border-t border-slate-800 text-xs text-slate-400">
+                    {{-- Clean Spec Metrics Strip --}}
+                    <div class="grid grid-cols-3 gap-3 pt-6 border-t border-slate-800">
                         <div>
-                            <span class="block text-white font-bold text-sm">300 DPI</span>
-                            Kualitas cetak tajam
+                            <div class="kp-mono text-base sm:text-lg font-bold text-white">300 DPI</div>
+                            <div class="text-xs text-slate-400 mt-0.5">Output PDF Cetak</div>
                         </div>
                         <div>
-                            <span class="block text-white font-bold text-sm">36 Template</span>
-                            Desain atletik siap pakai
+                            <div class="kp-mono text-base sm:text-lg font-bold text-white">13 Hal</div>
+                            <div class="text-xs text-slate-400 mt-0.5">Cover & 12 Bulan</div>
                         </div>
                         <div>
-                            <span class="block text-white font-bold text-sm">Trial Bebas</span>
-                            Coba tanpa registrasi
+                            <div class="kp-mono text-base sm:text-lg font-bold text-white">Gratis</div>
+                            <div class="text-xs text-slate-400 mt-0.5">Tanpa Registrasi</div>
                         </div>
                     </div>
                 </div>
 
-                <div class="lg:col-span-5">
-                    <div class="rounded-lg border border-slate-800 bg-slate-900 p-4 shadow-xl">
-                        <div class="flex items-center justify-between pb-3 border-b border-slate-800 text-xs">
-                            <span class="font-bold text-white">Pratinjau Format Cetak</span>
-                            <span class="text-sky-400 font-mono">A4 Landscape / Wall A3</span>
+                {{-- Right Column: Interactive Live Calendar Specimen --}}
+                <div class="lg:col-span-6">
+                    <div class="bg-slate-900 border border-slate-800 rounded-lg p-4 sm:p-5">
+                        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4 pb-3 border-b border-slate-800">
+                            <div>
+                                <div class="text-xs font-semibold text-white">Simulasi Tata Letak</div>
+                                <div id="kpSpecimenMeta" class="kp-mono text-[11px] text-slate-400 mt-0.5">Format 1 Bulan · Meja A4 Landscape</div>
+                            </div>
+
+                            {{-- Symmetric 3-Tab Format Switcher --}}
+                            <div class="grid grid-cols-3 gap-1.5 bg-slate-950 p-1 rounded-md border border-slate-800" role="tablist" aria-label="Pilih format halaman kalender">
+                                <button type="button"
+                                        data-specimen-tab="1m"
+                                        aria-selected="true"
+                                        class="kp-tab-btn h-8 px-2.5 rounded-md text-xs font-bold bg-neon text-slate-950 transition duration-150 whitespace-nowrap">
+                                    1 Bulan
+                                </button>
+                                <button type="button"
+                                        data-specimen-tab="2m"
+                                        aria-selected="false"
+                                        class="kp-tab-btn h-8 px-2.5 rounded-md text-xs font-semibold bg-slate-950 text-slate-300 hover:text-white transition duration-150 whitespace-nowrap">
+                                    2 Bulan
+                                </button>
+                                <button type="button"
+                                        data-specimen-tab="4m"
+                                        aria-selected="false"
+                                        class="kp-tab-btn h-8 px-2.5 rounded-md text-xs font-semibold bg-slate-950 text-slate-300 hover:text-white transition duration-150 whitespace-nowrap">
+                                    4 Bulan
+                                </button>
+                            </div>
                         </div>
-                        <div class="mt-3 aspect-[4/3] rounded bg-slate-950 border border-slate-800 overflow-hidden relative flex flex-col justify-between p-4">
-                            <div class="flex justify-between items-start">
-                                <div>
-                                    <span class="text-xs font-bold text-red-500 uppercase tracking-wider font-mono">Ruang Lari</span>
-                                    <h3 class="text-lg font-extrabold text-white font-['Inter_Tight','Sora',sans-serif]">Januari {{ $nextYear }}</h3>
+
+                        {{-- Specimen Sheet --}}
+                        <div class="bg-slate-950 border border-slate-800 rounded-lg overflow-hidden">
+                            {{-- Top Photo Area --}}
+                            <div class="relative aspect-[16/9] bg-slate-800 overflow-hidden border-b border-slate-800">
+                                <img src="{{ asset($heroPhoto) }}"
+                                     alt="Contoh foto pelari pada tata letak kalender"
+                                     class="w-full h-full object-cover object-center">
+                                <div class="absolute inset-x-0 bottom-0 bg-slate-950 border-t border-slate-800 px-3.5 py-2.5 flex items-center justify-between gap-3">
+                                    <div class="min-w-0">
+                                        <div id="kpSpecimenTitle" class="kp-heading text-sm sm:text-base text-white truncate">JANUARI {{ $nextYear }}</div>
+                                        <div class="kp-mono text-[11px] text-slate-300 truncate">BOROBUDUR MARATHON · 42.195 KM</div>
+                                    </div>
+                                    <div class="shrink-0 flex items-center gap-2">
+                                        <div class="w-7 h-7 rounded bg-white p-1 flex items-center justify-center" title="Slot QR Code Strava">
+                                            <div class="w-full h-full grid grid-cols-3 gap-0.5">
+                                                <span class="bg-slate-950 block"></span><span class="bg-white block"></span><span class="bg-slate-950 block"></span>
+                                                <span class="bg-white block"></span><span class="bg-slate-950 block"></span><span class="bg-slate-950 block"></span>
+                                                <span class="bg-slate-950 block"></span><span class="bg-slate-950 block"></span><span class="bg-white block"></span>
+                                            </div>
+                                        </div>
+                                        <span class="kp-mono text-[10px] font-bold text-slate-300">QR</span>
+                                    </div>
                                 </div>
-                                <span class="px-2 py-0.5 rounded text-[10px] font-mono bg-slate-800 text-slate-300 border border-slate-700">Cover + 12 Bulan</span>
                             </div>
-                            <div class="py-4 text-center">
-                                <span class="text-xs text-slate-400">Mode Kolase 1–5 Foto Pribadi & Stiker Atletik</span>
+
+                            {{-- Mode 1 Bulan --}}
+                            <div id="kpSpecimen1m" class="p-3.5 sm:p-4">
+                                <div class="grid grid-cols-7 gap-1 text-center mb-2">
+                                    @foreach(['SEN', 'SEL', 'RAB', 'KAM', 'JUM', 'SAB', 'MIN'] as $dayName)
+                                        <div class="kp-mono text-[10px] font-bold {{ $dayName === 'MIN' ? 'text-red-400' : 'text-slate-400' }}">{{ $dayName }}</div>
+                                    @endforeach
+                                </div>
+                                <div class="grid grid-cols-7 gap-1 text-center">
+                                    @foreach($janDays as $cell)
+                                        @php
+                                            $cellClass = 'text-slate-200 bg-slate-900 border-slate-800';
+                                            if ($cell['d'] === '') {
+                                                $cellClass = 'bg-transparent border-transparent text-transparent';
+                                            } elseif ($cell['m'] === 'red') {
+                                                $cellClass = 'text-red-400 bg-slate-900 border-slate-800 font-bold';
+                                            } elseif ($cell['m'] === 'race') {
+                                                $cellClass = 'text-slate-950 bg-neon border-neon font-bold';
+                                            }
+                                        @endphp
+                                        <div class="kp-mono h-7 rounded flex items-center justify-center text-xs border {{ $cellClass }}">
+                                            {{ $cell['d'] ?: '·' }}
+                                        </div>
+                                    @endforeach
+                                </div>
+                                <div class="mt-3 pt-2.5 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-300">
+                                    <span class="inline-flex items-center gap-1.5">
+                                        <span class="w-2.5 h-2.5 rounded bg-neon inline-block"></span>
+                                        Jadwal Lomba / Long Run
+                                    </span>
+                                    <span class="inline-flex items-center gap-1.5">
+                                        <span class="w-2.5 h-2.5 rounded bg-red-500 inline-block"></span>
+                                        Libur Nasional Indonesia
+                                    </span>
+                                </div>
                             </div>
-                            <div class="flex justify-between items-end text-[10px] text-slate-400 border-t border-slate-800 pt-2">
-                                <span>Hari Libur Nasional Otomatis</span>
-                                <span class="text-sky-400 font-mono">QR Code Profil Aktif</span>
+
+                            {{-- Mode 2 Bulan --}}
+                            <div id="kpSpecimen2m" class="hidden p-3.5 sm:p-4">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    @foreach(['JANUARI', 'FEBRUARI'] as $mName)
+                                        <div class="bg-slate-900 border border-slate-800 rounded p-2.5">
+                                            <div class="kp-mono text-xs font-bold text-white mb-2 flex items-center justify-between">
+                                                <span>{{ $mName }} {{ $nextYear }}</span>
+                                                <span class="text-neon">6 HAL</span>
+                                            </div>
+                                            <div class="grid grid-cols-7 gap-1 text-center kp-mono text-[10px] text-slate-400 mb-1">
+                                                <span>S</span><span>S</span><span>R</span><span>K</span><span>J</span><span>S</span><span class="text-red-400">M</span>
+                                            </div>
+                                            <div class="grid grid-cols-7 gap-1 text-center kp-mono text-[10px]">
+                                                @for($i = 1; $i <= 28; $i++)
+                                                    <span class="py-0.5 rounded {{ $i === 11 || $i === 25 ? 'bg-neon text-slate-950 font-bold' : ($i % 7 === 0 ? 'text-red-400' : 'text-slate-300') }}">{{ $i }}</span>
+                                                @endfor
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            </div>
+
+                            {{-- Mode 4 Bulan --}}
+                            <div id="kpSpecimen4m" class="hidden p-3.5 sm:p-4">
+                                <div class="grid grid-cols-2 gap-2.5">
+                                    @foreach(['JAN', 'FEB', 'MAR', 'APR'] as $qName)
+                                        <div class="bg-slate-900 border border-slate-800 rounded p-2">
+                                            <div class="kp-mono text-[11px] font-bold text-white mb-1.5 flex items-center justify-between">
+                                                <span>{{ $qName }} {{ $nextYear }}</span>
+                                                <span class="text-slate-400">Q1/3</span>
+                                            </div>
+                                            <div class="grid grid-cols-7 gap-0.5 text-center kp-mono text-[9px]">
+                                                @for($i = 1; $i <= 21; $i++)
+                                                    <span class="py-0.5 rounded {{ $i === 14 ? 'bg-neon text-slate-950 font-bold' : ($i % 7 === 0 ? 'text-red-400' : 'text-slate-300') }}">{{ $i }}</span>
+                                                @endfor
+                                            </div>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
                         </div>
-                        <p class="text-center text-xs text-slate-400 mt-3">
-                            Semua elemen dapat digeser, diperbesar, dan disesuaikan langsung di editor canvas.
-                        </p>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- TEMPLATE SHOWCASE -->
-    <section id="pilihan-desain" class="mx-auto max-w-7xl px-5 py-16 sm:px-8">
-        <div class="max-w-2xl mb-12">
-            <h2 class="text-2xl sm:text-3xl font-extrabold text-white font-['Inter_Tight','Sora',sans-serif]">
-                36 Pilihan Desain Kalender Atletik
-            </h2>
-            <p class="mt-3 text-sm text-slate-300">
-                Pilih gaya yang mencerminkan perjalanan lari Anda: dari gaya race kontras tinggi, minimalis Skandinavia, hingga nuansa rute Strava dan nomor dada maraton.
-            </p>
-        </div>
-
-        <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            @foreach($templateHighlights as $tpl)
-            <div class="rounded-lg border border-slate-800 bg-slate-900 p-5 flex flex-col justify-between hover:border-slate-700 transition">
+    {{-- Section 2: Template Showcase (Visual Preview + Real Photos + Uniform Cards) --}}
+    <section id="template" class="border-b border-slate-800">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
                 <div>
-                    <div class="flex items-center justify-between mb-3">
-                        <span class="text-xs font-mono text-sky-400 uppercase tracking-wider">{{ $tpl['id'] }}</span>
-                        <span class="text-xs text-slate-500">Preset Siap Pakai</span>
-                    </div>
-                    <h3 class="text-lg font-bold text-white font-['Inter_Tight','Sora',sans-serif]">{{ $tpl['name'] }}</h3>
-                    <p class="mt-2 text-xs leading-relaxed text-slate-300">{{ $tpl['desc'] }}</p>
+                    <h2 class="text-2xl sm:text-3xl text-white">Enam Gaya Tata Letak Siap Pakai</h2>
+                    <p class="text-sm text-slate-300 mt-1.5 max-w-2xl">
+                        Pilih karakter visual yang cocok untuk kalender pribadi maupun edisi komunitas. Setiap template tetap bisa diubah font, warna aksen, dan isi tanggalnya di studio.
+                    </p>
                 </div>
-                <div class="mt-6 pt-4 border-t border-slate-800">
-                    <a href="{{ $studioUrl }}?template={{ $tpl['id'] }}"
-                       class="inline-flex w-full items-center justify-center rounded-md border border-slate-700 bg-slate-800 py-2 text-xs font-semibold text-slate-200 hover:bg-slate-700 hover:text-white transition">
-                        Gunakan Desain Ini
+                <a href="{{ $studioUrl }}"
+                   class="inline-flex items-center justify-center h-10 px-4 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold text-white transition duration-150 shrink-0 self-start md:self-auto">
+                    Lihat Semua di Studio
+                </a>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                @foreach($templateHighlights as $tpl)
+                    @php
+                        $vis = $templateVisuals[$tpl['id']] ?? $templateVisuals['bold'];
+                    @endphp
+                    <article class="flex flex-col justify-between bg-slate-900 border border-slate-800 rounded-lg overflow-hidden hover:border-slate-700 transition duration-150">
+                        <div>
+                            {{-- Miniature Visual Specimen --}}
+                            <div class="bg-slate-950 border-b border-slate-800 p-3">
+                                <div class="rounded overflow-hidden border border-slate-800 bg-slate-900">
+                                    <div class="px-2.5 py-1.5 flex items-center justify-between kp-mono text-[10px] font-bold {{ $vis['barClass'] }}">
+                                        <span>{{ $vis['label'] }}</span>
+                                        <span>{{ $vis['stat'] }}</span>
+                                    </div>
+                                    <div class="aspect-[16/10] bg-slate-800 overflow-hidden">
+                                        <img src="{{ asset($vis['photo']) }}"
+                                             alt="Pratinjau template {{ $tpl['name'] }}"
+                                             loading="lazy"
+                                             class="w-full h-full object-cover object-center">
+                                    </div>
+                                    <div class="p-2 bg-slate-950 grid grid-cols-7 gap-1 text-center kp-mono text-[9px] text-slate-400">
+                                        <span>1</span><span>2</span><span>3</span><span>4</span>
+                                        <span class="bg-neon text-slate-950 font-bold rounded-sm">5</span>
+                                        <span>6</span><span class="text-red-400">7</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="p-5 pb-3">
+                                <div class="flex items-center justify-between gap-2 mb-2">
+                                    <h3 class="text-base sm:text-lg text-white">{{ $tpl['name'] }}</h3>
+                                    <span class="kp-mono text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 shrink-0">{{ $vis['tag'] }}</span>
+                                </div>
+                                <p class="text-sm text-slate-300 leading-relaxed">{{ $tpl['desc'] }}</p>
+                            </div>
+                        </div>
+
+                        <div class="px-5 pb-5 pt-2">
+                            <a href="{{ $studioUrl }}?template={{ $tpl['id'] }}"
+                               class="w-full inline-flex items-center justify-center h-10 px-4 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold text-white transition duration-150">
+                                Gunakan {{ $tpl['name'] }}
+                            </a>
+                        </div>
+                    </article>
+                @endforeach
+            </div>
+        </div>
+    </section>
+
+    {{-- Section 3: Asymmetric Workflow & Technical Print Specs --}}
+    <section id="spesifikasi" class="border-b border-slate-800">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                {{-- Left: 3-Step Workflow --}}
+                <div class="lg:col-span-6">
+                    <h2 class="text-2xl sm:text-3xl text-white mb-2">Alur Kerja dari Foto ke File Siap Cetak</h2>
+                    <p class="text-sm text-slate-300 mb-6">
+                        Tanpa instalasi software desain. Atur penanggalan, masukkan foto terbaik tiap bulan, lalu unduh satu berkas PDF utuh.
+                    </p>
+
+                    <div class="space-y-3.5">
+                        <div class="bg-slate-900 border border-slate-800 rounded-lg p-5 flex items-start gap-4">
+                            <span class="kp-mono text-sm font-bold text-slate-950 bg-neon px-2.5 py-1 rounded shrink-0">01</span>
+                            <div>
+                                <h3 class="text-base text-white">Pilih Format Kertas & Template</h3>
+                                <p class="text-sm text-slate-300 mt-1 leading-relaxed">Tentukan kalender meja A4 atau kalender dinding A3, lalu pilih tampilan 1 bulan, 2 bulan, atau 4 bulan per lembar.</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-900 border border-slate-800 rounded-lg p-5 flex items-start gap-4">
+                            <span class="kp-mono text-sm font-bold text-white bg-slate-800 border border-slate-700 px-2.5 py-1 rounded shrink-0">02</span>
+                            <div>
+                                <h3 class="text-base text-white">Unggah Foto & Tandai Target Lomba</h3>
+                                <p class="text-sm text-slate-300 mt-1 leading-relaxed">Pasang foto lari per halaman, sisipkan catatan jarak atau pace, dan aktifkan penanda otomatis libur nasional serta jadwal race.</p>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-900 border border-slate-800 rounded-lg p-5 flex items-start gap-4">
+                            <span class="kp-mono text-sm font-bold text-white bg-slate-800 border border-slate-700 px-2.5 py-1 rounded shrink-0">03</span>
+                            <div>
+                                <h3 class="text-base text-white">Ekspor PDF 300 DPI</h3>
+                                <p class="text-sm text-slate-300 mt-1 leading-relaxed">Unduh paket lengkap 13 halaman (cover depan plus Januari hingga Desember) siap dibawa ke percetakan digital terdekat.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {{-- Right: Crisp Specification Table --}}
+                <div class="lg:col-span-6">
+                    <div class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
+                        <div class="px-5 py-4 border-b border-slate-800 flex items-center justify-between gap-2">
+                            <h3 class="text-base text-white">Spesifikasi Teknis Cetak</h3>
+                            <span class="kp-mono text-xs text-neon font-semibold">STANDAR PERCETAKAN</span>
+                        </div>
+                        <dl class="divide-y divide-slate-800 text-sm">
+                            <div class="px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                <dt class="text-slate-300">Resolusi Ekspor PDF</dt>
+                                <dd class="kp-mono text-white font-semibold">300 DPI Tajam</dd>
+                            </div>
+                            <div class="px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                <dt class="text-slate-300">Kalender Meja</dt>
+                                <dd class="kp-mono text-white font-semibold">A4 Landscape (297 x 210 mm)</dd>
+                            </div>
+                            <div class="px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                <dt class="text-slate-300">Kalender Dinding</dt>
+                                <dd class="kp-mono text-white font-semibold">A3 Portrait (297 x 420 mm)</dd>
+                            </div>
+                            <div class="px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                <dt class="text-slate-300">Opsi Tata Letak Halaman</dt>
+                                <dd class="kp-mono text-white font-semibold">1, 2, atau 4 Bulan / Lembar</dd>
+                            </div>
+                            <div class="px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                <dt class="text-slate-300">Kalender Libur & Lomba</dt>
+                                <dd class="kp-mono text-white font-semibold">Libur RI {{ $nextYear }} + Event Lari</dd>
+                            </div>
+                            <div class="px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                <dt class="text-slate-300">Integrasi Tautan</dt>
+                                <dd class="kp-mono text-white font-semibold">QR Code Strava / Galeri</dd>
+                            </div>
+                            <div class="px-5 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                                <dt class="text-slate-300">Privasi Berkas Foto</dt>
+                                <dd class="text-slate-200 font-medium">Diproses Lokal di Browser</dd>
+                            </div>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {{-- Section 4: FAQ & Closing CTA --}}
+    <section id="faq">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
+            <div class="mb-8">
+                <h2 class="text-2xl sm:text-3xl text-white">Pertanyaan yang Sering Diajukan</h2>
+                <p class="text-sm text-slate-300 mt-1.5">Detail mengenai format ekspor, penanggalan Indonesia, dan privasi foto Anda.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-12">
+                <details class="kp-faq-item bg-slate-900 border border-slate-800 rounded-lg p-5">
+                    <summary class="flex items-center justify-between gap-3 cursor-pointer list-none text-sm sm:text-base font-semibold text-white">
+                        <span>Apakah hasil PDF bisa langsung dicetak oleh percetakan?</span>
+                        <svg class="kp-faq-chevron w-4 h-4 text-slate-400 shrink-0 transition duration-150" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </summary>
+                    <p class="text-sm text-slate-300 mt-3 leading-relaxed">
+                        Ya. Studio mengekspor file PDF beresolusi 300 DPI pada rasio A4 Landscape atau A3 Portrait berisi 13 halaman lengkap dari cover hingga Desember.
+                    </p>
+                </details>
+
+                <details class="kp-faq-item bg-slate-900 border border-slate-800 rounded-lg p-5">
+                    <summary class="flex items-center justify-between gap-3 cursor-pointer list-none text-sm sm:text-base font-semibold text-white">
+                        <span>Apakah tanggal merah Indonesia sudah tersedia otomatis?</span>
+                        <svg class="kp-faq-chevron w-4 h-4 text-slate-400 shrink-0 transition duration-150" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </summary>
+                    <p class="text-sm text-slate-300 mt-3 leading-relaxed">
+                        Ya. Tanggal libur nasional, cuti bersama resmi di Indonesia, dan daftar jadwal lomba lari populer sudah tertanam langsung pada kalender {{ $nextYear }}.
+                    </p>
+                </details>
+
+                <details class="kp-faq-item bg-slate-900 border border-slate-800 rounded-lg p-5">
+                    <summary class="flex items-center justify-between gap-3 cursor-pointer list-none text-sm sm:text-base font-semibold text-white">
+                        <span>Apakah perlu mendaftar atau membayar sebelum mengunduh?</span>
+                        <svg class="kp-faq-chevron w-4 h-4 text-slate-400 shrink-0 transition duration-150" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </summary>
+                    <p class="text-sm text-slate-300 mt-3 leading-relaxed">
+                        Tidak perlu membuat akun. Anda bisa langsung membuka Studio atau Wizard Cepat, menyusun seluruh halaman, dan mengekspor berkas PDF secara gratis.
+                    </p>
+                </details>
+
+                <details class="kp-faq-item bg-slate-900 border border-slate-800 rounded-lg p-5">
+                    <summary class="flex items-center justify-between gap-3 cursor-pointer list-none text-sm sm:text-base font-semibold text-white">
+                        <span>Bagaimana keamanan foto pribadi yang saya unggah?</span>
+                        <svg class="kp-faq-chevron w-4 h-4 text-slate-400 shrink-0 transition duration-150" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                        </svg>
+                    </summary>
+                    <p class="text-sm text-slate-300 mt-3 leading-relaxed">
+                        Foto yang Anda pilih diproses langsung di browser perangkat Anda untuk pratinjau dan pembuatan dokumen cetak.
+                    </p>
+                </details>
+            </div>
+
+            {{-- Solid Closing CTA Banner --}}
+            <div class="bg-slate-900 border border-slate-800 rounded-lg p-6 sm:p-8 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+                <div class="max-w-xl">
+                    <h2 class="text-xl sm:text-2xl text-white">Siap Menyusun Kalender Lari {{ $nextYear }}?</h2>
+                    <p class="text-sm text-slate-300 mt-1.5">
+                        Mulai dari kanvas studio lengkap atau gunakan mode wizard bertahap untuk hasil cepat dalam hitungan menit.
+                    </p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 shrink-0 w-full lg:w-auto">
+                    <a href="{{ $studioUrl }}"
+                       class="inline-flex items-center justify-center h-11 px-6 rounded-md bg-neon hover:bg-lime-300 text-slate-950 text-sm font-bold transition duration-150 whitespace-nowrap">
+                        Buka Studio Desain
+                    </a>
+                    <a href="{{ $wizardUrl }}"
+                       class="inline-flex items-center justify-center h-11 px-6 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-sm font-semibold transition duration-150 whitespace-nowrap">
+                        Coba Mode Wizard
                     </a>
                 </div>
             </div>
-            @endforeach
         </div>
     </section>
-
-    <!-- FITUR UNGGULAN -->
-    <section class="border-t border-slate-800 bg-slate-900/50">
-        <div class="mx-auto max-w-7xl px-5 py-16 sm:px-8">
-            <div class="max-w-2xl mb-12">
-                <h2 class="text-2xl sm:text-3xl font-extrabold text-white font-['Inter_Tight','Sora',sans-serif]">
-                    Dirancang Khusus untuk Kebutuhan Pelari
-                </h2>
-                <p class="mt-3 text-sm text-slate-300">
-                    Bukan template kalender biasa. Dibuat dengan presisi data dan instrumen lari untuk mengabadikan pencapaian Anda.
-                </p>
-            </div>
-
-            <div class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
-                <div class="space-y-3">
-                    <div class="w-10 h-10 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center text-red-500 font-bold text-sm">
-                        HD
-                    </div>
-                    <h3 class="text-base font-bold text-white">Ekspor 300 DPI</h3>
-                    <p class="text-xs text-slate-300 leading-relaxed">
-                        Hasil render HTML5 Canvas beresolusi cetak tinggi (hingga 3780 x 5669 px) sehingga cetakan tidak akan pecah atau buram.
-                    </p>
-                </div>
-
-                <div class="space-y-3">
-                    <div class="w-10 h-10 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center text-sky-400 font-bold text-sm">
-                        QR
-                    </div>
-                    <h3 class="text-base font-bold text-white">QR Code Profil Resmi</h3>
-                    <p class="text-xs text-slate-300 leading-relaxed">
-                        Tiap lembar kalender menyematkan kode QR yang jika di-scan langsung membuka profil dan rekap log lari Anda di Ruang Lari.
-                    </p>
-                </div>
-
-                <div class="space-y-3">
-                    <div class="w-10 h-10 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center text-emerald-400 font-bold text-sm">
-                        RI
-                    </div>
-                    <h3 class="text-base font-bold text-white">Libur Nasional Otomatis</h3>
-                    <p class="text-xs text-slate-300 leading-relaxed">
-                        Database hari libur nasional Indonesia otomatis menghitung tanggal merah dan cuti bersama resmi tanpa repot manual.
-                    </p>
-                </div>
-
-                <div class="space-y-3">
-                    <div class="w-10 h-10 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center text-amber-400 font-bold text-sm">
-                        RC
-                    </div>
-                    <h3 class="text-base font-bold text-white">Agenda Race Terintegrasi</h3>
-                    <p class="text-xs text-slate-300 leading-relaxed">
-                        Tandai jadwal lomba lari maraton nasional se-Indonesia (Maybank, Borobudur, Pocari) langsung ke atas tanggal kalender.
-                    </p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- FAQ SECTION -->
-    <section class="border-t border-slate-800 mx-auto max-w-7xl px-5 py-16 sm:px-8">
-        <div class="max-w-2xl mb-12">
-            <h2 class="text-2xl sm:text-3xl font-extrabold text-white font-['Inter_Tight','Sora',sans-serif]">
-                Pertanyaan Seputar Kalender Pelari
-            </h2>
-            <p class="mt-3 text-sm text-slate-300">
-                Informasi teknis dan panduan pencetakan kalender pribadi Anda.
-            </p>
-        </div>
-
-        <div class="grid gap-6 md:grid-cols-2">
-            <div class="rounded-lg border border-slate-800 bg-slate-900 p-5 space-y-2">
-                <h3 class="text-sm font-bold text-white">Apakah kalender bisa dicetak hingga 13 halaman?</h3>
-                <p class="text-xs text-slate-300 leading-relaxed">
-                    Ya, fitur Cetak PDF merender 13 halaman lengkap (1 Sampul Utama + 12 Halaman Bulan) dalam satu file dokumen teratur tanpa margin terpotong.
-                </p>
-            </div>
-
-            <div class="rounded-lg border border-slate-800 bg-slate-900 p-5 space-y-2">
-                <h3 class="text-sm font-bold text-white">Format ukuran apa saja yang tersedia?</h3>
-                <p class="text-xs text-slate-300 leading-relaxed">
-                    Tersedia format Kalender Meja (A4 Landscape 297 × 210 mm) dan Kalender Dinding (A3/Wall 320 × 480 mm). Format 1 bulan atau 2 bulan per halaman juga dapat diatur bebas.
-                </p>
-            </div>
-
-            <div class="rounded-lg border border-slate-800 bg-slate-900 p-5 space-y-2">
-                <h3 class="text-sm font-bold text-white">Apakah saya harus login untuk mendesain?</h3>
-                <p class="text-xs text-slate-300 leading-relaxed">
-                    Tidak wajib. Anda dapat langsung mendesain dalam mode trial. Proyek akan tersimpan sementara di browser, dan Anda dapat mengaitkannya ke akun kapan saja.
-                </p>
-            </div>
-
-            <div class="rounded-lg border border-slate-800 bg-slate-900 p-5 space-y-2">
-                <h3 class="text-sm font-bold text-white">Bagaimana cara menyimpan backup proyek?</h3>
-                <p class="text-xs text-slate-300 leading-relaxed">
-                    Di dalam studio, Anda dapat mengunduh file proyek berekstensi .json. File ini menyimpan seluruh posisi foto, teks, dan stiker untuk dibuka kembali di kemudian hari.
-                </p>
-            </div>
-        </div>
-
-        <!-- BOTTOM CTA -->
-        <div class="mt-16 rounded-lg border border-slate-800 bg-slate-900 p-8 text-center sm:p-12">
-            <h3 class="text-2xl sm:text-3xl font-extrabold text-white font-['Inter_Tight','Sora',sans-serif]">
-                Mulai Susun Kalender Lari Anda Sekarang
-            </h3>
-            <p class="mt-3 text-sm text-slate-300 max-w-xl mx-auto">
-                Buka studio desain gratis, pilih foto terbaik Anda, dan cetak kalender maraton impian Anda dalam hitungan menit.
-            </p>
-            <div class="mt-6">
-                <a href="{{ $studioUrl }}"
-                   class="inline-flex items-center justify-center rounded-md bg-red-600 px-8 py-3.5 text-sm font-bold text-white shadow-sm hover:bg-red-700 transition">
-                    Buka Calendar Studio
-                </a>
-            </div>
-        </div>
-    </section>
-</main>
+</div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    // Hero Interactive Calendar Specimen Switcher (1M / 2M / 4M)
+    const tabButtons = document.querySelectorAll('.kp-tab-btn');
+    const panels = {
+        '1m': {
+            el: document.getElementById('kpSpecimen1m'),
+            meta: 'Format 1 Bulan · Meja A4 Landscape',
+            title: 'JANUARI {{ $nextYear }}'
+        },
+        '2m': {
+            el: document.getElementById('kpSpecimen2m'),
+            meta: 'Format 2 Bulan · 7 Halaman Ringkas',
+            title: 'JAN - FEB {{ $nextYear }}'
+        },
+        '4m': {
+            el: document.getElementById('kpSpecimen4m'),
+            meta: 'Format 4 Bulan · Rekap Kuartal Cetak',
+            title: 'JAN - APR {{ $nextYear }}'
+        }
+    };
+    const metaLabel = document.getElementById('kpSpecimenMeta');
+    const titleLabel = document.getElementById('kpSpecimenTitle');
+
+    tabButtons.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            const key = btn.getAttribute('data-specimen-tab');
+            if (!panels[key]) return;
+
+            tabButtons.forEach(function (other) {
+                const isActive = other === btn;
+                other.setAttribute('aria-selected', isActive ? 'true' : 'false');
+                other.classList.toggle('bg-neon', isActive);
+                other.classList.toggle('text-slate-950', isActive);
+                other.classList.toggle('font-bold', isActive);
+                other.classList.toggle('bg-slate-950', !isActive);
+                other.classList.toggle('text-slate-300', !isActive);
+                other.classList.toggle('font-semibold', !isActive);
+            });
+
+            Object.keys(panels).forEach(function (k) {
+                if (panels[k].el) {
+                    panels[k].el.classList.toggle('hidden', k !== key);
+                }
+            });
+
+            if (metaLabel) metaLabel.textContent = panels[key].meta;
+            if (titleLabel) titleLabel.textContent = panels[key].title;
+        });
+    });
+});
+</script>
+@endpush

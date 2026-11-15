@@ -77,6 +77,8 @@ class ProjectService
     {
         return CalendarProject::where('user_id', $user->id)
             ->whereNull('deleted_at')
+            ->with('coverAsset')
+            ->withCount('pages')
             ->orderByDesc('updated_at')
             ->paginate($perPage);
     }

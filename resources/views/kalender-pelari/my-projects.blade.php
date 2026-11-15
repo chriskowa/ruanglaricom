@@ -1,168 +1,252 @@
-@extends('layouts.pacerhub')
+@extends('layouts.pacerhub', ['hideFooter' => false, 'hideChat' => true, 'hideNav' => false])
 
-@section('page-title', 'Proyek Kalender Saya — RuangLari KalenderPelari')
+@section('title', 'Proyek Kalender Saya - Ruang Lari')
+@section('meta_title', 'Proyek Kalender Saya - Ruang Lari')
+@section('meta_description', 'Kelola proyek desain kalender lari pribadi Anda, buka editor studio, lihat pratinjau cetak, atau hapus proyek yang tidak diperlukan.')
 
-@push('meta-head')
-    <meta name="robots" content="noindex,nofollow">
-    <meta name="description" content="Kelola semua proyek desain kalender lari pribadi Anda — edit, hapus, cetak, atau checkout untuk dicetak.">
+@push('styles')
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sora:wght@700;800&display=swap" rel="stylesheet">
+<style>
+    .kp-projects {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .kp-projects h1,
+    .kp-projects h2,
+    .kp-projects h3 {
+        font-family: 'Inter Tight', 'Sora', sans-serif;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+    }
+    .kp-mono {
+        font-family: 'JetBrains Mono', monospace;
+        font-variant-numeric: tabular-nums;
+    }
+</style>
+@endpush
+
+@push('structured_data')
+<meta name="robots" content="noindex,nofollow">
 @endpush
 
 @section('content')
-<main id="tool-container" class="min-h-screen bg-slate-950 pt-6 pb-32 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-7xl mx-auto">
-        <header class="mb-10">
-            <div class="flex items-center gap-2 mb-4 text-xs uppercase tracking-widest text-slate-400">
-                <a href="{{ route('kalender-pelari.landing') }}" class="hover:text-white transition-colors">KalenderPelari</a>
-                <span>/</span>
-                <span class="text-slate-200">Proyek Saya</span>
-            </div>
-            <div class="flex flex-wrap items-end justify-between gap-4">
+@php
+    $templatePhotos = [
+        'bold' => 'images/kalender-pelari/bg/788438538_18142926247584739_300127733191259686_n.jpg',
+        'strava' => 'images/kalender-pelari/bg/815920233_18619567672013478_7707120302547332417_n.jpg',
+        'classic' => 'images/kalender-pelari/bg/819207920_18620464486013478_340093240344695805_n.jpg',
+        'night' => 'images/kalender-pelari/bg/825352127_18622491895013478_5874230830227099846_n.jpg',
+        'badge' => 'images/kalender-pelari/bg/830540436_18146023228584739_537799408712608694_n.jpg',
+        'topography' => 'images/kalender-pelari/bg/840363425_18625537549013478_2717575911219471235_n.jpg',
+    ];
+
+    $formatLabels = [
+        'A4_LANDSCAPE' => 'Meja A4 Landscape',
+        'A3_LANDSCAPE' => 'Dinding A3 Landscape',
+        'A3_PORTRAIT' => 'Dinding A3 Portrait',
+        'DESK_CALENDAR' => 'Kalender Meja',
+    ];
+
+    $statusLabels = [
+        'ACTIVE' => ['label' => 'Aktif', 'class' => 'bg-slate-800 text-neon'],
+        'DRAFT_SAVED' => ['label' => 'Tersimpan', 'class' => 'bg-slate-800 text-slate-200'],
+        'DRAFT_TRIAL' => ['label' => 'Draft Uji Coba', 'class' => 'bg-slate-800 text-slate-300'],
+        'PENDING_CHECKOUT' => ['label' => 'Menunggu Bayar', 'class' => 'bg-slate-800 text-amber-300'],
+        'PRODUCTION_ACTIVE' => ['label' => 'Siap Cetak', 'class' => 'bg-neon text-slate-950'],
+        'ARCHIVED' => ['label' => 'Diarsipkan', 'class' => 'bg-slate-800 text-slate-400'],
+        'EXPIRED_TRIAL' => ['label' => 'Kedaluwarsa', 'class' => 'bg-slate-800 text-red-300'],
+    ];
+
+    $capacityPct = $free_limit > 0 ? min(100, (int) round(($total_owned / $free_limit) * 100)) : 100;
+@endphp
+
+<div class="kp-projects bg-slate-950 text-slate-100 min-h-screen pt-10 sm:pt-12 pb-20">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6">
+        {{-- Breadcrumb & Header Row --}}
+        <div class="mb-6">
+            <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-xs text-slate-400 mb-3">
+                <a href="{{ route('kalender-pelari.landing') }}" class="hover:text-white transition duration-150">Kalender Pelari</a>
+                <span aria-hidden="true">/</span>
+                <span class="text-slate-200 font-medium">Proyek Saya</span>
+            </nav>
+
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
                 <div>
-                    <h1 class="text-3xl sm:text-4xl font-extrabold text-slate-50 mb-2 font-['Inter_Tight',sans-serif] tracking-tight">
-                        <span class="text-sky-400">Proyek</span> Kalender Saya
-                    </h1>
-                    <p class="text-slate-300 max-w-2xl text-sm sm:text-base">
-                        Semua proyek kalender yang Anda simpan. Edit, hapus, unduh PNG resolusi tinggi, atau cetak 13 halaman PDF.
+                    <h1 class="text-2xl sm:text-3xl text-white">Proyek Kalender Saya</h1>
+                    <p class="text-sm text-slate-300 mt-1.5 max-w-2xl">
+                        Kelola seluruh desain kalender yang sudah Anda simpan, lanjutkan pengeditan di studio, atau buka pratinjau PDF siap cetak.
                     </p>
                 </div>
-                <div class="flex items-center gap-3">
+
+                {{-- Symmetric Action Buttons --}}
+                <div class="grid grid-cols-2 sm:flex sm:items-center gap-2.5 shrink-0">
                     @if(auth()->check() && auth()->user()->isAdmin())
                         <a href="{{ route('admin.kalender-pelari.projects.index') }}"
-                           class="inline-flex items-center gap-2 px-4 py-2.5 rounded-md bg-slate-800 border border-slate-700 text-slate-200 font-semibold text-sm hover:bg-slate-700 transition-colors">
-                            <i class="fas fa-tasks text-xs"></i>
-                            <span>Admin Antrean Cetak</span>
+                           class="col-span-2 sm:col-span-1 inline-flex items-center justify-center h-10 px-4 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold text-white transition duration-150 whitespace-nowrap">
+                            Antrean Admin
                         </a>
                     @endif
+                    <a href="{{ route('kalender-pelari.wizard') }}"
+                       class="inline-flex items-center justify-center h-10 px-4 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold text-white transition duration-150 whitespace-nowrap">
+                        Wizard
+                    </a>
                     <a href="{{ route('kalender-pelari.studio') }}"
-                       class="inline-flex items-center gap-2 px-5 py-2.5 rounded-md bg-red-600 text-white font-bold text-sm hover:bg-red-700 transition-colors">
-                        + Buat Kalender Baru
+                       class="inline-flex items-center justify-center h-10 px-4 rounded-md bg-neon hover:bg-lime-300 text-slate-950 text-sm font-bold transition duration-150 whitespace-nowrap">
+                        + Buat Kalender
                     </a>
                 </div>
             </div>
+        </div>
 
-            @if($can_create_new === false)
-                <div class="mt-5 rounded-xl border border-amber-400/30 bg-amber-400/5 p-4 flex items-start gap-3">
-                    <div class="shrink-0 text-amber-400 text-lg pt-0.5"><i class="fa-solid fa-triangle-exclamation"></i></div>
-                    <div class="flex-1">
-                        <h3 class="font-bold text-amber-200 text-sm mb-1">Free Tier Penuh ({{ $total_owned }}/{{ $free_limit }} proyek)</h3>
-                        <p class="text-slate-300 text-sm">Anda sudah mencapai batas free tier {{ $free_limit }} proyek. Hapus proyek yang tidak digunakan atau upgrade paket untuk menambah kapasitas.</p>
+        {{-- Solid Capacity Status Strip --}}
+        <div class="bg-slate-900 border border-slate-800 rounded-lg p-4 mb-6">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div class="flex items-start sm:items-center gap-3">
+                    <span class="mt-1 sm:mt-0 w-2.5 h-2.5 rounded-sm shrink-0 {{ $can_create_new === false ? 'bg-amber-400' : 'bg-neon' }}"></span>
+                    <div>
+                        <div class="text-sm font-semibold text-white">
+                            @if($can_create_new === false)
+                                Batas Penyimpanan Gratis Penuh
+                            @else
+                                Kapasitas Penyimpanan Proyek
+                            @endif
+                        </div>
+                        <p class="text-xs text-slate-300 mt-0.5">
+                            @if($can_create_new === false)
+                                Hapus proyek lama yang sudah tidak dipakai agar bisa membuat desain kalender baru.
+                            @else
+                                Setiap akun dapat menyimpan hingga {{ $free_limit }} proyek kalender secara gratis dan melakukan autosave di editor.
+                            @endif
+                        </p>
                     </div>
                 </div>
-            @else
-                <div class="mt-5 rounded-xl border border-sky-400/20 bg-sky-400/5 p-4 flex items-start gap-3">
-                    <div class="shrink-0 text-sky-400 text-lg pt-0.5"><i class="fa-solid fa-inbox"></i></div>
-                    <div class="flex-1 text-sm">
-                        <span class="font-bold text-sky-200">Kapasitas:</span>
-                        <span class="text-slate-200 ml-2">{{ $total_owned }} / {{ $free_limit }} proyek free tersimpan.</span>
+                <div class="sm:w-44 shrink-0">
+                    <div class="flex items-center justify-between text-xs mb-1.5">
+                        <span class="text-slate-400">Terpakai</span>
+                        <span class="kp-mono font-bold text-white">{{ $total_owned }} / {{ $free_limit }}</span>
+                    </div>
+                    <div class="w-full h-2 bg-slate-950 border border-slate-800 rounded-sm overflow-hidden">
+                        <div class="h-full rounded-sm {{ $can_create_new === false ? 'bg-amber-400' : 'bg-neon' }}" style="width: {{ $capacityPct }}%;"></div>
                     </div>
                 </div>
-            @endif
+            </div>
+        </div>
 
-            @if(session('success'))
-                <div class="mt-5 rounded-xl border border-emerald-400/30 bg-emerald-400/5 p-4 text-emerald-200 text-sm">
-                    <i class="fa-solid fa-circle-check text-emerald-400 mr-2"></i>
-                    {{ session('success') }}
-                </div>
-            @endif
-        </header>
+        @if(session('success'))
+            <div class="bg-slate-900 border border-slate-700 rounded-md px-4 py-3 mb-6 flex items-center gap-3 text-sm text-white">
+                <span class="w-2 h-2 rounded-sm bg-neon shrink-0"></span>
+                <span>{{ session('success') }}</span>
+            </div>
+        @endif
 
         @if($projects->isEmpty())
-            <section class="rounded-2xl border border-dashed border-slate-700 bg-slate-900/30 p-16 text-center">
-                <div class="text-slate-500 text-6xl mb-5"><i class="fa-regular fa-folder-open"></i></div>
-                <h2 class="text-2xl font-bold text-slate-100 mb-2">Belum ada proyek tersimpan</h2>
-                <p class="text-slate-300 mb-7 max-w-md mx-auto">
-                    Coba buat kalender pertama Anda lewat wizard 5 langkah — tanpa login pun bisa, lalu login kapan saja untuk menyimpan permanen.
+            <section class="bg-slate-900 border border-slate-800 rounded-lg p-8 sm:p-12 text-center">
+                <h2 class="text-xl sm:text-2xl text-white mb-2">Belum Ada Proyek Tersimpan</h2>
+                <p class="text-sm text-slate-300 max-w-md mx-auto mb-6 leading-relaxed">
+                    Mulai rancang kalender lari Anda di Studio Editor atau gunakan Wizard 5 langkah untuk menyusun seluruh halaman lebih cepat.
                 </p>
-                <a href="{{ route('kalender-pelari.studio') }}"
-                   class="inline-flex items-center gap-2 px-6 py-3 rounded-md bg-red-600 text-white font-bold hover:bg-red-700 transition-colors">
-                    Mulai Desain Kalender
-                </a>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-sm mx-auto">
+                    <a href="{{ route('kalender-pelari.studio') }}"
+                       class="inline-flex items-center justify-center h-10 px-5 rounded-md bg-neon hover:bg-lime-300 text-slate-950 text-sm font-bold transition duration-150">
+                        Buka Studio Editor
+                    </a>
+                    <a href="{{ route('kalender-pelari.wizard') }}"
+                       class="inline-flex items-center justify-center h-10 px-5 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-sm font-semibold transition duration-150">
+                        Wizard Cepat
+                    </a>
+                </div>
             </section>
         @else
             <section class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                 @foreach($projects as $p)
-                    <article class="group relative rounded-2xl overflow-hidden border border-slate-800 bg-slate-900/60 hover:border-sky-400/40 transition-colors">
-                        <a href="{{ $p->routeEditor() }}" class="block">
-                            <div class="aspect-[4/3] bg-gradient-to-br from-slate-800 to-slate-950 relative overflow-hidden">
-                                <div class="absolute inset-0 opacity-40 pattern-dots pattern-slate-700 pattern-bg-transparent pattern-size-2"></div>
-                                <div class="absolute top-3 left-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono uppercase tracking-wider
-                                    {{ $p->status === 'ACTIVE' ? 'bg-emerald-400/10 text-emerald-300 border border-emerald-400/20'
-                                       : ($p->status === 'DRAFT_TRIAL' ? 'bg-amber-400/10 text-amber-300 border border-amber-400/20'
-                                       : 'bg-slate-400/10 text-slate-300 border border-slate-400/20') }}">
-                                    {{ $p->status }}
+                    @php
+                        $coverUrl = $p->coverAsset?->storagePublicUrl();
+                        $fallbackImg = $templatePhotos[$p->template_id ?? 'bold'] ?? $templatePhotos['bold'];
+                        $thumbSrc = $coverUrl ?: asset($fallbackImg);
+                        $formatText = $formatLabels[$p->format_type] ?? str_replace('_', ' ', (string) $p->format_type);
+                        $statusInfo = $statusLabels[$p->status] ?? ['label' => $p->status, 'class' => 'bg-slate-800 text-slate-300'];
+                    @endphp
+
+                    <article class="flex flex-col justify-between bg-slate-900 border border-slate-800 rounded-lg overflow-hidden hover:border-slate-700 transition duration-150">
+                        <div>
+                            {{-- Cover Specimen Thumbnail --}}
+                            <a href="{{ $p->routeEditor() }}" class="block bg-slate-950 border-b border-slate-800 p-3 focus:outline-none">
+                                <div class="rounded overflow-hidden border border-slate-800 bg-slate-900">
+                                    <div class="px-2.5 py-1.5 bg-slate-900 border-b border-slate-800 flex items-center justify-between gap-2">
+                                        <span class="kp-mono text-[10px] font-bold px-2 py-0.5 rounded {{ $statusInfo['class'] }}">
+                                            {{ $statusInfo['label'] }}
+                                        </span>
+                                        <span class="kp-mono text-[11px] font-semibold text-slate-300">
+                                            {{ $p->year }}
+                                        </span>
+                                    </div>
+                                    <div class="aspect-[16/10] bg-slate-800 overflow-hidden">
+                                        <img src="{{ $thumbSrc }}"
+                                             alt="Pratinjau {{ $p->name }}"
+                                             loading="lazy"
+                                             class="w-full h-full object-cover object-center">
+                                    </div>
+                                    <div class="px-2.5 py-1.5 bg-slate-950 flex items-center justify-between kp-mono text-[10px] text-slate-400">
+                                        <span>{{ strtoupper($p->template_id ?: 'BOLD') }}</span>
+                                        <span>{{ $p->pages_count ?? 13 }} HALAMAN</span>
+                                    </div>
                                 </div>
-                                <div class="absolute top-3 right-3 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-[11px] font-mono text-slate-300 bg-slate-800/70 border border-slate-700">
-                                    <i class="fa-solid fa-calendar-days text-[10px] text-slate-400"></i>
-                                    {{ $p->year }}
-                                </div>
-                                <div class="absolute bottom-0 inset-x-0 h-1.5
-                                    {{ $p->format_type === 'A4_LANDSCAPE' ? 'bg-sky-400/70' :
-                                       ($p->format_type === 'A3_LANDSCAPE' ? 'bg-violet-400/70' :
-                                       ($p->format_type === 'DESK_CALENDAR' ? 'bg-emerald-400/70' : 'bg-pink-400/70')) }}"></div>
-                            </div>
-                        </a>
-                        <div class="p-5">
-                            <a href="{{ $p->routeEditor() }}" class="block">
-                                <h3 class="text-lg font-bold text-slate-50 mb-1 group-hover:text-sky-300 transition-colors truncate">
-                                    {{ $p->name }}
-                                </h3>
-                                <p class="text-xs text-slate-400 mb-4 font-mono">
-                                    {{ $p->format_type }} · {{ $p->pages_count ?? 0 }} halaman · v{{ $p->version_counter ?? 1 }}
-                                </p>
                             </a>
-                            <div class="flex items-center gap-2 text-xs">
-                                <a href="{{ $p->routeEditor() }}"
-                                   class="flex-1 inline-flex justify-center items-center gap-1.5 px-3 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-100 font-semibold border border-slate-700 transition-colors">
-                                    <i class="fa-solid fa-pen-to-square"></i>
-                                    Edit
+
+                            {{-- Project Metadata --}}
+                            <div class="p-5 pb-3">
+                                <a href="{{ $p->routeEditor() }}" class="block group">
+                                    <h2 class="text-base sm:text-lg text-white group-hover:text-neon transition duration-150 truncate">
+                                        {{ $p->name }}
+                                    </h2>
                                 </a>
-                                <a href="{{ route('kalender-pelari.print.preview', $p) }}"
-                                   class="inline-flex items-center justify-center w-10 h-10 rounded-md bg-slate-800 hover:bg-violet-400/10 text-slate-300 hover:text-violet-300 border border-slate-700 hover:border-violet-400/30 transition-colors"
-                                   title="Cetak Preview">
-                                    <i class="fa-solid fa-eye"></i>
-                                </a>
-                                <form method="POST"
-                                      action="{{ route('kalender-pelari.destroy', $p) }}"
-                                      onsubmit="return confirm('Hapus proyek {{ \Illuminate\Support\Str::limit($p->name, 40) }}? Data halaman dan elemen ikut terhapus permanen.');"
-                                      class="inline">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit"
-                                            class="inline-flex items-center justify-center w-10 h-10 rounded-md bg-slate-800 hover:bg-rose-500/10 text-slate-300 hover:text-rose-300 border border-slate-700 hover:border-rose-500/30 transition-colors"
-                                            title="Hapus Proyek">
-                                        <i class="fa-solid fa-trash"></i>
-                                    </button>
-                                </form>
+                                <div class="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-300">
+                                    <span>{{ $formatText }}</span>
+                                    <span class="text-slate-600" aria-hidden="true">/</span>
+                                    <span class="kp-mono text-slate-400">v{{ $p->version_counter ?? 1 }}</span>
+                                    @if($p->updated_at)
+                                        <span class="text-slate-600" aria-hidden="true">/</span>
+                                        <span class="text-slate-400">{{ $p->updated_at->diffForHumans() }}</span>
+                                    @endif
+                                </div>
                             </div>
+                        </div>
+
+                        {{-- Symmetric Card Actions --}}
+                        <div class="px-5 pb-5 pt-2 grid grid-cols-[1fr_auto_auto] gap-2">
+                            <a href="{{ $p->routeEditor() }}"
+                               class="inline-flex items-center justify-center h-9 px-3 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-white transition duration-150">
+                                Buka Editor
+                            </a>
+                            <a href="{{ route('kalender-pelari.print.preview', $p) }}"
+                               class="inline-flex items-center justify-center h-9 px-3 rounded-md bg-slate-950 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-200 hover:text-white transition duration-150"
+                               title="Pratinjau Cetak PDF">
+                                Pratinjau
+                            </a>
+                            <form method="POST"
+                                  action="{{ route('kalender-pelari.destroy', $p) }}"
+                                  onsubmit="return confirm('Hapus proyek {{ \Illuminate\Support\Str::limit($p->name, 40) }}? Data halaman dan elemen ikut terhapus permanen.');"
+                                  class="inline">
+                                @csrf
+                                @method('DELETE')
+                                <button type="submit"
+                                        class="inline-flex items-center justify-center h-9 px-3 rounded-md bg-slate-950 hover:bg-red-950 border border-slate-800 hover:border-red-900 text-xs font-medium text-slate-300 hover:text-red-200 transition duration-150"
+                                        title="Hapus Proyek">
+                                    Hapus
+                                </button>
+                            </form>
                         </div>
                     </article>
                 @endforeach
             </section>
 
             @if($projects->hasPages())
-                <nav class="mt-12 flex justify-center">
+                <nav aria-label="Navigasi halaman proyek" class="mt-8 flex justify-center">
                     {{ $projects->links() }}
                 </nav>
             @endif
         @endif
     </div>
-
-    <div class="max-w-7xl mx-auto mt-20 pt-10 border-t border-slate-800/60 grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
-        <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
-            <div class="text-sky-400 text-lg mb-2"><i class="fa-solid fa-layer-group"></i></div>
-            <h4 class="font-bold text-slate-100 mb-1">3 Proyek Free Tier</h4>
-            <p class="text-slate-400">Simpan hingga 3 desain kalender permanen secara gratis tanpa batas waktu.</p>
-        </div>
-        <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
-            <div class="text-emerald-400 text-lg mb-2"><i class="fa-solid fa-cloud-arrow-up"></i></div>
-            <h4 class="font-bold text-slate-100 mb-1">Autosave 2T</h4>
-            <p class="text-slate-400">Setiap perubahan disimpan otomatis dual-tier: localStorage client + server DB.</p>
-        </div>
-        <div class="rounded-xl border border-slate-800 bg-slate-900/40 p-5">
-            <div class="text-violet-400 text-lg mb-2"><i class="fa-solid fa-print"></i></div>
-            <h4 class="font-bold text-slate-100 mb-1">Cetak PDF 300 DPI</h4>
-            <p class="text-slate-400">Export PDF siap cetak CMYK atau lanjutkan checkout produksi cetak fisik premium.</p>
-        </div>
-    </div>
-</main>
+</div>
 @endsection

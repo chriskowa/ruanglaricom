@@ -3,171 +3,182 @@
 
 @section('title', 'Template Idola Lari - Admin Ruang Lari')
 
-@section('content')
-<div class="container mx-auto px-4 md:px-8 py-8 pt-0">
+@push('styles')
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sora:wght@700;800&display=swap" rel="stylesheet">
+<style>
+    .kp-admin-templates {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .kp-admin-templates h1,
+    .kp-admin-templates h2 {
+        font-family: 'Inter Tight', 'Sora', sans-serif;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+    }
+    .kp-mono {
+        font-family: 'JetBrains Mono', monospace;
+        font-variant-numeric: tabular-nums;
+    }
+</style>
+@endpush
 
-    <!-- Header Section -->
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+@section('content')
+<div class="kp-admin-templates max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 sm:pt-10 pb-12">
+
+    {{-- Header Section --}}
+    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
         <div>
-            <h1 class="text-2xl font-bold text-white tracking-tight" style="font-family: 'Inter Tight', 'Sora', sans-serif;">
-                MANAJEMEN TEMPLATE IDOLA LARI
-            </h1>
-            <p class="text-slate-300 text-sm mt-1">
-                Kelola paket foto idola atlet lari (Agus Prayogo, Odekta, Kipchoge, dll.) yang dapat diterapkan 1-klik di Studio Kalender.
+            <h1 class="text-2xl sm:text-3xl text-white">Manajemen Template Idola Lari</h1>
+            <p class="text-slate-300 text-sm mt-1.5 max-w-2xl">
+                Kelola paket foto atlet lari yang tersedia sebagai template cepat di Studio Kalender.
             </p>
         </div>
-        <div class="flex items-center gap-3">
-            <a href="{{ route('admin.kalender-pelari.projects.index') }}" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold rounded-md border border-slate-700 transition flex items-center gap-2">
-                <i class="fas fa-arrow-left"></i>
-                <span>Ke Proyek Cetak</span>
+
+        <div class="grid grid-cols-2 sm:flex sm:items-center gap-2.5 shrink-0">
+            <a href="{{ route('admin.kalender-pelari.projects.index') }}"
+               class="inline-flex items-center justify-center h-10 px-4 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-xs sm:text-sm font-semibold transition duration-150 whitespace-nowrap">
+                Proyek Cetak
             </a>
-            <a href="{{ route('admin.kalender-pelari.templates.create') }}" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-md shadow-sm transition flex items-center gap-2">
-                <i class="fas fa-plus"></i>
-                <span>Tambah Template Idola</span>
+            <a href="{{ route('admin.kalender-pelari.templates.create') }}"
+               class="inline-flex items-center justify-center h-10 px-4 rounded-md bg-neon hover:bg-lime-300 text-slate-950 text-xs sm:text-sm font-bold transition duration-150 whitespace-nowrap">
+                + Tambah Template
             </a>
         </div>
     </div>
 
-    <!-- Alert Notifications -->
+    {{-- Solid Flash Notification --}}
     @if(session('success'))
-        <div class="mb-6 p-4 rounded-md bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-sm font-semibold flex items-center justify-between">
-            <div class="flex items-center gap-2">
-                <i class="fas fa-check-circle"></i>
+        <div class="mb-6 px-4 py-3 rounded-md bg-slate-900 border border-slate-700 text-white text-sm flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2.5">
+                <span class="w-2 h-2 rounded-sm bg-neon shrink-0"></span>
                 <span>{{ session('success') }}</span>
             </div>
-            <button type="button" onclick="this.parentElement.remove()" class="text-emerald-400 hover:text-white">
-                <i class="fas fa-times"></i>
+            <button type="button" onclick="this.parentElement.remove()" class="text-xs font-semibold text-slate-400 hover:text-white transition">
+                Tutup
             </button>
         </div>
     @endif
 
-    <!-- KPI Summary Cards -->
-    <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
-        <div class="bg-slate-900 border border-slate-800 rounded-lg p-4">
-            <div class="text-xs font-semibold uppercase tracking-wider text-slate-400">Total Template Atlet</div>
-            <div class="text-2xl font-bold text-white font-mono mt-1">{{ number_format($totalAthletes) }}</div>
-            <div class="text-[11px] text-slate-400 mt-1">Koleksi template idola lari</div>
-        </div>
-
-        <div class="bg-slate-900 border border-slate-800 rounded-lg p-4">
-            <div class="text-xs font-semibold uppercase tracking-wider text-emerald-400">Template Aktif</div>
-            <div class="text-2xl font-bold text-emerald-400 font-mono mt-1">{{ number_format($activeAthletes) }}</div>
-            <div class="text-[11px] text-slate-400 mt-1">Tampil di Studio Kalender</div>
-        </div>
-
-        <div class="bg-slate-900 border border-slate-800 rounded-lg p-4 col-span-2 md:col-span-1">
-            <div class="text-xs font-semibold uppercase tracking-wider text-sky-400">Integrasi Studio</div>
-            <div class="text-sm font-semibold text-white mt-1.5 flex items-center gap-2">
-                <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-                <span>API Tersinkronisasi</span>
+    {{-- Compact Single-Row Summary Bar --}}
+    <div class="bg-slate-900 border border-slate-800 rounded-lg px-5 py-3.5 mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div class="flex flex-wrap items-center gap-6">
+            <div class="flex items-center gap-2.5">
+                <span class="text-xs text-slate-400">Total Template</span>
+                <span class="kp-mono text-sm font-bold text-white">{{ number_format($totalAthletes) }}</span>
             </div>
-            <div class="text-[11px] text-slate-400 mt-1">Auto-load 13 slot foto ke canvas</div>
+            <div class="h-4 w-px bg-slate-800 hidden sm:block"></div>
+            <div class="flex items-center gap-2.5">
+                <span class="text-xs text-slate-400">Aktif di Studio</span>
+                <span class="kp-mono text-sm font-bold text-neon">{{ number_format($activeAthletes) }}</span>
+            </div>
+        </div>
+        <div class="text-xs text-slate-300">
+            Slot foto: <span class="kp-mono text-white font-semibold">13 halaman / paket</span>
         </div>
     </div>
 
-    <!-- Template Cards Grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {{-- Template Cards Grid --}}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
         @forelse($templates as $t)
-            <div class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden shadow-sm flex flex-col justify-between hover:border-slate-700 transition">
-                <!-- Cover Image & Header Tags -->
-                <div class="relative h-48 bg-slate-950 overflow-hidden border-b border-slate-800">
-                    <img src="{{ $t->cover_url }}" alt="{{ $t->name }}" class="w-full h-full object-cover">
-                    <div class="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-950/30 to-transparent"></div>
-                    
-                    <!-- Top Badges -->
-                    <div class="absolute top-3 left-3 flex items-center gap-2">
-                        <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-950/80 backdrop-blur-sm text-white border border-slate-800">
-                            {{ $t->category ?: 'Atlet' }}
-                        </span>
-                        @if($t->is_active)
-                            <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
-                                Aktif
+            <article class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden flex flex-col justify-between hover:border-slate-700 transition duration-150">
+                <div>
+                    {{-- Top Opaque Status Strip --}}
+                    <div class="px-4 py-2.5 bg-slate-950 border-b border-slate-800 flex items-center justify-between gap-2">
+                        <div class="flex items-center gap-2 min-w-0">
+                            <span class="kp-mono text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-200 truncate">
+                                {{ $t->category ?: 'Atlet' }}
                             </span>
-                        @else
-                            <span class="px-2 py-0.5 rounded text-[11px] font-semibold bg-slate-800 text-slate-400 border border-slate-700">
-                                Nonaktif
-                            </span>
-                        @endif
-                    </div>
-
-                    <!-- Photo counter badge -->
-                    <div class="absolute top-3 right-3">
-                        <span class="px-2 py-0.5 rounded text-[11px] font-mono font-semibold bg-slate-950/80 backdrop-blur-sm text-slate-200 border border-slate-800 flex items-center gap-1.5">
-                            <i class="fas fa-camera text-[10px]"></i>
-                            <span>{{ $t->filled_photos_count }}/13 Foto</span>
+                            @if($t->is_active)
+                                <span class="kp-mono text-[11px] font-bold px-2 py-0.5 rounded bg-neon text-slate-950">
+                                    Aktif
+                                </span>
+                            @else
+                                <span class="kp-mono text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-400">
+                                    Nonaktif
+                                </span>
+                            @endif
+                        </div>
+                        <span class="kp-mono text-[11px] font-semibold text-slate-300 shrink-0">
+                            {{ $t->filled_photos_count }}/13 Foto
                         </span>
                     </div>
 
-                    <!-- Title overlaid at bottom of image -->
-                    <div class="absolute bottom-3 left-3 right-3">
-                        <h2 class="text-base font-bold text-white tracking-tight line-clamp-1" style="font-family: 'Inter Tight', 'Sora', sans-serif;">
-                            {{ $t->name }}
-                        </h2>
-                        <div class="text-[11px] text-slate-400 font-mono mt-0.5">slug: {{ $t->slug }}</div>
+                    {{-- Clean Unobstructed Cover Image --}}
+                    <div class="aspect-[16/10] bg-slate-950 border-b border-slate-800 overflow-hidden">
+                        <img src="{{ $t->cover_url }}" alt="{{ $t->name }}" loading="lazy" class="w-full h-full object-cover object-center">
                     </div>
-                </div>
 
-                <!-- Body Content -->
-                <div class="p-4 flex-1 flex flex-col justify-between">
-                    <p class="text-xs text-slate-300 line-clamp-3 leading-relaxed mb-4">
-                        {{ strip_tags($t->bio) ?: 'Belum ada deskripsi profil atau biografi atlet.' }}
-                    </p>
+                    {{-- Body Content --}}
+                    <div class="p-5 pb-3">
+                        <h2 class="text-base sm:text-lg text-white line-clamp-1">{{ $t->name }}</h2>
+                        <div class="kp-mono text-[11px] text-slate-400 mt-0.5 mb-3 truncate">{{ $t->slug }}</div>
 
-                    <!-- Template Preset Meta -->
-                    <div class="grid grid-cols-3 gap-2 p-2.5 rounded-md bg-slate-950 border border-slate-800/80 text-[11px] mb-4">
-                        <div>
-                            <span class="text-slate-400 block text-[10px] uppercase">Aksen</span>
-                            <div class="flex items-center gap-1.5 mt-0.5">
-                                <span class="w-3 h-3 rounded-sm border border-slate-700" style="background-color: {{ $t->accent_color }};"></span>
-                                <span class="text-white font-mono text-[10px]">{{ $t->accent_color }}</span>
+                        <p class="text-xs text-slate-300 line-clamp-2 leading-relaxed mb-4">
+                            {{ strip_tags($t->bio) ?: 'Belum ada deskripsi profil atau biografi atlet.' }}
+                        </p>
+
+                        {{-- Template Preset Meta --}}
+                        <div class="grid grid-cols-3 gap-2 p-2.5 rounded-md bg-slate-950 border border-slate-800 text-[11px]">
+                            <div>
+                                <span class="text-slate-400 block text-[10px] uppercase">Aksen</span>
+                                <div class="flex items-center gap-1.5 mt-0.5">
+                                    <span class="w-3 h-3 rounded-sm border border-slate-700 shrink-0" style="background-color: {{ $t->accent_color }};"></span>
+                                    <span class="kp-mono text-white text-[10px] truncate">{{ $t->accent_color }}</span>
+                                </div>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block text-[10px] uppercase">Kertas</span>
+                                <span class="text-white font-medium capitalize mt-0.5 block truncate">{{ $t->paper_color }}</span>
+                            </div>
+                            <div>
+                                <span class="text-slate-400 block text-[10px] uppercase">Font</span>
+                                <span class="text-white font-medium truncate mt-0.5 block">{{ $t->default_font }}</span>
                             </div>
                         </div>
-                        <div>
-                            <span class="text-slate-400 block text-[10px] uppercase">Kertas</span>
-                            <span class="text-white font-medium capitalize mt-0.5 block">{{ $t->paper_color }}</span>
-                        </div>
-                        <div>
-                            <span class="text-slate-400 block text-[10px] uppercase">Font</span>
-                            <span class="text-white font-medium truncate mt-0.5 block">{{ $t->default_font }}</span>
-                        </div>
                     </div>
+                </div>
 
-                    <!-- Actions -->
-                    <div class="flex items-center justify-between pt-3 border-t border-slate-800">
-                        <span class="text-[11px] text-slate-400 font-mono">Urutan: #{{ $t->sort_order }}</span>
-                        <div class="flex items-center gap-2">
-                            <a href="{{ route('admin.kalender-pelari.templates.edit', $t) }}" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-md text-xs font-semibold border border-slate-700 transition flex items-center gap-1.5">
-                                <i class="fas fa-edit"></i>
-                                <span>Edit</span>
-                            </a>
-                            <form method="POST" action="{{ route('admin.kalender-pelari.templates.destroy', $t) }}" onsubmit="return confirm('Apakah Anda yakin ingin menghapus template atlet ini?')" class="inline">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="px-2.5 py-1.5 bg-slate-800 hover:bg-rose-900/60 text-slate-400 hover:text-rose-300 rounded-md text-xs transition" title="Hapus Template">
-                                    <i class="fas fa-trash-alt"></i>
-                                </button>
-                            </form>
-                        </div>
+                {{-- Footer Actions --}}
+                <div class="px-5 pb-5 pt-3 border-t border-slate-800 flex items-center justify-between gap-3">
+                    <span class="kp-mono text-xs text-slate-400">Urutan #{{ $t->sort_order }}</span>
+                    <div class="flex items-center gap-2">
+                        <a href="{{ route('admin.kalender-pelari.templates.edit', $t) }}"
+                           class="inline-flex items-center justify-center h-9 px-3.5 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-white transition duration-150">
+                            Edit
+                        </a>
+                        <form method="POST"
+                              action="{{ route('admin.kalender-pelari.templates.destroy', $t) }}"
+                              onsubmit="return confirm('Apakah Anda yakin ingin menghapus template atlet ini?')"
+                              class="inline">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit"
+                                    class="inline-flex items-center justify-center h-9 px-3 rounded-md bg-slate-950 hover:bg-red-950 border border-slate-800 hover:border-red-900 text-xs font-medium text-slate-300 hover:text-red-200 transition duration-150">
+                                Hapus
+                            </button>
+                        </form>
                     </div>
                 </div>
-            </div>
+            </article>
         @empty
-            <div class="col-span-full py-12 text-center text-slate-400 bg-slate-900 border border-slate-800 rounded-lg">
-                <div class="w-12 h-12 mx-auto mb-3 rounded-lg bg-slate-800 flex items-center justify-center text-slate-400">
-                    <i class="fas fa-images text-xl"></i>
-                </div>
-                <div class="font-semibold text-white">Belum ada template idola lari</div>
-                <p class="text-xs text-slate-400 mt-1">Buat template atlet pertama agar foto contoh dapat dipilih oleh pengguna di Studio Kalender.</p>
-                <a href="{{ route('admin.kalender-pelari.templates.create') }}" class="inline-block mt-4 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-md transition">
-                    Tambah Template Sekarang
+            <div class="col-span-full py-12 px-6 text-center bg-slate-900 border border-slate-800 rounded-lg">
+                <h2 class="text-lg text-white">Belum Ada Template Idola Lari</h2>
+                <p class="text-sm text-slate-300 mt-1.5 max-w-md mx-auto">
+                    Buat template atlet pertama agar foto contoh siap dipilih oleh pengguna di Studio Kalender.
+                </p>
+                <a href="{{ route('admin.kalender-pelari.templates.create') }}"
+                   class="inline-flex items-center justify-center h-10 px-5 mt-5 rounded-md bg-neon hover:bg-lime-300 text-slate-950 text-sm font-bold transition duration-150">
+                    + Tambah Template Sekarang
                 </a>
             </div>
         @endforelse
     </div>
 
-    <!-- Pagination -->
+    {{-- Pagination --}}
     @if($templates->hasPages())
-        <div class="mt-6">
+        <div class="mt-8">
             {{ $templates->links() }}
         </div>
     @endif
