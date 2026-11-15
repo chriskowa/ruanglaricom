@@ -433,6 +433,21 @@
         border: 1px solid #1e293b !important;
         box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2) !important;
     }
+    .prose iframe[src*="datawrapper.dwcdn.net"],
+    .prose iframe[id^="datawrapper-chart-"],
+    .prose iframe[src*="docs.google.com/spreadsheets"] {
+        aspect-ratio: auto !important;
+        width: 100% !important;
+        min-width: 100% !important;
+        border-radius: 0.5rem !important;
+        border: 1px solid #1e293b !important;
+    }
+    .prose iframe[src*="datawrapper.dwcdn.net"]:not([src*="dark=true"]),
+    .prose iframe[id^="datawrapper-chart-"]:not([src*="dark=true"]),
+    .prose iframe[src*="docs.google.com/spreadsheets"] {
+        background-color: #ffffff !important;
+        filter: invert(0.92) hue-rotate(180deg) contrast(0.95);
+    }
     .prose hr {
         border: none !important;
         border-top: 1px solid #334155 !important;
@@ -828,6 +843,18 @@
                 wrapper.appendChild(table);
             }
         });
+    });
+
+    window.addEventListener('message', function(event) {
+        if (!event.data || event.data['datawrapper-height'] === undefined) return;
+        var iframes = document.querySelectorAll('iframe');
+        for (var chartId in event.data['datawrapper-height']) {
+            for (var i = 0; i < iframes.length; i++) {
+                if (iframes[i].contentWindow === event.source) {
+                    iframes[i].style.height = event.data['datawrapper-height'][chartId] + 'px';
+                }
+            }
+        }
     });
 </script>
 @endpush

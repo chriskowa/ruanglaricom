@@ -540,7 +540,7 @@
         height: 500,
         plugins: 'advlist autolink lists link image charmap preview anchor pagebreak code fullscreen',
         toolbar: 'undo redo | formatselect | bold italic backcolor | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | removeformat | image code fullscreen',
-        extended_valid_elements: 'svg[*],defs[*],pattern[*],desc[*],metadata[*],g[*],mask[*],path[*],line[*],marker[*],rect[*],circle[*],ellipse[*],polygon[*],polyline[*],linearGradient[*],radialGradient[*],stop[*],text[*],tspan[*],use[*],style[*]',
+        extended_valid_elements: 'svg[*],defs[*],pattern[*],desc[*],metadata[*],g[*],mask[*],path[*],line[*],marker[*],rect[*],circle[*],ellipse[*],polygon[*],polyline[*],linearGradient[*],radialGradient[*],stop[*],text[*],tspan[*],use[*],style[*],iframe[*]',
         custom_elements: 'svg,defs,pattern,desc,metadata,g,mask,path,line,marker,rect,circle,ellipse,polygon,polyline,linearGradient,radialGradient,stop,text,tspan,use',
         valid_children: '+body[style|svg],+div[style|svg],+p[style|svg],+svg[defs|g|path|circle|rect|line|polyline|polygon|text|linearGradient|radialGradient|stop|use|style],+g[svg|defs|g|path|circle|rect|line|polyline|polygon|text|use]',
         skin: 'oxide-dark',
