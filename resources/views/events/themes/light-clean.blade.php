@@ -379,7 +379,7 @@
     </script>
 
     @if(env('RECAPTCHA_SITE_KEY_v3'))
-        <script src="https://www.google.com/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY_v3') }}"></script>
+        <script src="https://www.google.com/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY_v3') }}" async defer></script>
     @endif
 
     <!-- Fonts: Inter Tight & Sora (Headings pakem), Plus Jakarta Sans (Body), JetBrains Mono (Numbers) -->
@@ -387,8 +387,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&family=Sora:wght@700;800&display=swap" rel="stylesheet">
 
-    <!-- FontAwesome 6.5.1 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- FontAwesome 6.5.1 (Non-blocking preload) -->
+    <link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer"></noscript>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -458,36 +460,51 @@
             $countdownLabel = 'Pendaftaran Ditutup Dalam';
         }
 
-        // Precompute Jersey Stock
-        $jerseyStockData = [];
-        $event->load('jerseyStock');
-        if ($event->jerseyStock) {
-            $jerseySizesList = $event->jersey_sizes ?? ['XS','S','M','L','XL','2XL','3XL'];
-            foreach ($jerseySizesList as $sz) {
-                $col = strtolower($sz);
-                $quota = $event->jerseyStock->$col ?? null;
-                if ($quota !== null) {
-                    $checkSizes = [strtoupper(trim($sz))];
-                    if (strtoupper(trim($sz)) === '2XL' || strtoupper(trim($sz)) === 'XXL') {
-                        $checkSizes = ['2XL', 'XXL'];
-                    } elseif (strtoupper(trim($sz)) === '3XL' || strtoupper(trim($sz)) === 'XXXL') {
-                        $checkSizes = ['3XL', 'XXXL'];
-                    }
-
-                    $usedCount = \App\Models\Participant::whereNotNull('jersey_size')
-                        ->whereIn(\DB::raw('UPPER(TRIM(jersey_size))'), $checkSizes)
-                        ->whereHas('transaction', fn($q) => $q->where('event_id', $event->id)->whereIn('payment_status', ['paid','cod']))
-                        ->count();
-                    $jerseyStockData[$sz] = ['quota' => (int) $quota, 'remaining' => max(0, (int)$quota - $usedCount)];
-                }
-            }
-        }
-
         $hasFormFieldsConfig = isset($event->premium_amenities['form_fields']) && is_array($event->premium_amenities['form_fields']);
         $formFields = $hasFormFieldsConfig ? $event->premium_amenities['form_fields'] : [];
         $showJersey = $hasFormFieldsConfig ? !empty($formFields['jersey_size']) : true;
         $showTargetTime = !empty($formFields['target_time']);
         $showStravaField = !empty($formFields['strava_activity']) || !empty($formFields['strava_url']);
+
+        // Precompute Jersey Stock (1 grouped query, skipped when jersey field is disabled)
+        $jerseyStockData = [];
+        if ($showJersey) {
+            $event->loadMissing('jerseyStock');
+            if ($event->jerseyStock) {
+                $usedBySize = \Illuminate\Support\Facades\Cache::remember('event_jersey_used_' . $event->id, 15, function () use ($event) {
+                    return \App\Models\Participant::query()
+                        ->join('transactions', 'participants.transaction_id', '=', 'transactions.id')
+                        ->where('transactions.event_id', $event->id)
+                        ->whereIn('transactions.payment_status', ['paid', 'cod'])
+                        ->whereNotNull('participants.jersey_size')
+                        ->selectRaw('UPPER(TRIM(participants.jersey_size)) as size_key, COUNT(*) as total')
+                        ->groupByRaw('UPPER(TRIM(participants.jersey_size))')
+                        ->pluck('total', 'size_key')
+                        ->all();
+                });
+
+                $jerseySizesList = $event->jersey_sizes ?? ['XS','S','M','L','XL','2XL','3XL'];
+                foreach ($jerseySizesList as $sz) {
+                    $col = strtolower($sz);
+                    $quota = $event->jerseyStock->$col ?? null;
+                    if ($quota !== null) {
+                        $upperSz = strtoupper(trim($sz));
+                        $checkSizes = [$upperSz];
+                        if ($upperSz === '2XL' || $upperSz === 'XXL') {
+                            $checkSizes = ['2XL', 'XXL'];
+                        } elseif ($upperSz === '3XL' || $upperSz === 'XXXL') {
+                            $checkSizes = ['3XL', 'XXXL'];
+                        }
+
+                        $usedCount = 0;
+                        foreach ($checkSizes as $sizeKey) {
+                            $usedCount += (int) ($usedBySize[$sizeKey] ?? 0);
+                        }
+                        $jerseyStockData[$sz] = ['quota' => (int) $quota, 'remaining' => max(0, (int)$quota - $usedCount)];
+                    }
+                }
+            }
+        }
 
         $ticketDate = $event->start_at
             ? \Carbon\Carbon::parse($event->start_at)->isoFormat('D MMM Y, HH:mm')
@@ -496,7 +513,7 @@
     @endphp
 
     @if($showMidtrans && $midtransClientKey)
-        <script type="text/javascript" src="{{ $midtransUrl }}/snap/snap.js" data-client-key="{{ $midtransClientKey }}"></script>
+        <script type="text/javascript" src="{{ $midtransUrl }}/snap/snap.js" data-client-key="{{ $midtransClientKey }}" defer></script>
     @endif
 
     <style>
@@ -2696,7 +2713,7 @@
 
     <!-- Scripts Section -->
     @if(($hasPaidParticipants ?? false) && $event->show_participant_list)
-        <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+        <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
         <script>
             (function() {
                 if (typeof Vue !== 'undefined') {
