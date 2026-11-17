@@ -2389,20 +2389,9 @@ class EventController extends Controller
             } catch (\Throwable $e) {}
         }
 
-        // Generate BIB if missing
-        if (empty($participant->bib_number) && $participant->category) {
-            $catId = $participant->category->id;
-            $prefix = strtoupper(substr($participant->category->name, 0, 2));
-            $lastBib = \App\Models\Participant::where('race_category_id', $catId)
-                ->whereNotNull('bib_number')
-                ->orderByRaw('LENGTH(bib_number) DESC, bib_number DESC')
-                ->value('bib_number');
-            $nextNumber = 1;
-            if ($lastBib && preg_match('/(\d+)$/', $lastBib, $matches)) {
-                $nextNumber = intval($matches[1]) + 1;
-            }
-            $participant->bib_number = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
-            $participant->save();
+        // Generate BIB if missing (global per-event increment)
+        if (empty($participant->bib_number)) {
+            $this->assignNextEventBibNumber($event, $participant);
         }
 
         // Send email confirmation
@@ -2540,20 +2529,9 @@ class EventController extends Controller
                 $affectedCategories[$participant->category->id] = $participant->category;
             }
 
-            // Generate BIB if missing
-            if (empty($participant->bib_number) && $participant->category) {
-                $catId = $participant->category->id;
-                $prefix = strtoupper(substr($participant->category->name, 0, 2));
-                $lastBib = \App\Models\Participant::where('race_category_id', $catId)
-                    ->whereNotNull('bib_number')
-                    ->orderByRaw('LENGTH(bib_number) DESC, bib_number DESC')
-                    ->value('bib_number');
-                $nextNumber = 1;
-                if ($lastBib && preg_match('/(\d+)$/', $lastBib, $matches)) {
-                    $nextNumber = intval($matches[1]) + 1;
-                }
-                $participant->bib_number = $prefix . str_pad($nextNumber, 4, '0', STR_PAD_LEFT);
-                $participant->save();
+            // Generate BIB if missing (global per-event increment)
+            if (empty($participant->bib_number)) {
+                $this->assignNextEventBibNumber($event, $participant);
             }
 
             try {
@@ -3668,6 +3646,57 @@ class EventController extends Controller
             'success' => true,
             'data' => $participants
         ]);
+    }
+
+    /**
+     * Assign next unique BIB number using global per-event increment.
+     */
+    private function assignNextEventBibNumber(Event $event, \App\Models\Participant $participant): void
+    {
+        if (! empty($participant->bib_number)) {
+            return;
+        }
+
+        $bibNumbers = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
+            $q->where('event_id', $event->id);
+        })
+            ->whereNotNull('bib_number')
+            ->pluck('bib_number');
+
+        $maxNumber = null;
+        $prefix = '';
+        $suffixLength = 4;
+
+        foreach ($bibNumbers as $bib) {
+            if (! preg_match('/(\d+)\s*$/', (string) $bib, $m)) {
+                continue;
+            }
+
+            $number = (int) $m[1];
+            if ($maxNumber === null || $number > $maxNumber) {
+                $maxNumber = $number;
+                $suffixLength = strlen($m[1]);
+                $prefix = substr((string) $bib, 0, -$suffixLength);
+            }
+        }
+
+        if ($maxNumber !== null) {
+            $nextNumber = $maxNumber + 1;
+        } else {
+            $eventCode = strtoupper(\Illuminate\Support\Str::limit(\Illuminate\Support\Str::slug($event->name, ''), 10, ''));
+            $year = $event->start_at ? $event->start_at->format('Y') : date('Y');
+            $prefix = $eventCode.'-'.$year.'-';
+            $nextNumber = 1;
+        }
+
+        $candidate = $prefix.str_pad((string) $nextNumber, $suffixLength, '0', STR_PAD_LEFT);
+        while (\App\Models\Participant::where('bib_number', $candidate)->exists()) {
+            $nextNumber++;
+            $candidate = $prefix.str_pad((string) $nextNumber, $suffixLength, '0', STR_PAD_LEFT);
+        }
+
+        $participant->bib_number = $candidate;
+        $participant->save();
     }
 
     private function formatBibName($name, $maxLength = 18)
