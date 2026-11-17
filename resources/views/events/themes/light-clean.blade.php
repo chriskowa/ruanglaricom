@@ -483,7 +483,9 @@
             }
         }
 
-        $formFields = $event->premium_amenities['form_fields'] ?? [];
+        $hasFormFieldsConfig = isset($event->premium_amenities['form_fields']) && is_array($event->premium_amenities['form_fields']);
+        $formFields = $hasFormFieldsConfig ? $event->premium_amenities['form_fields'] : [];
+        $showJersey = $hasFormFieldsConfig ? !empty($formFields['jersey_size']) : true;
         $showTargetTime = !empty($formFields['target_time']);
         $showStravaField = !empty($formFields['strava_activity']) || !empty($formFields['strava_url']);
 
@@ -2232,8 +2234,10 @@
                                                     </div>
                                                 </div>
 
+                                                @if($showJersey || $showTargetTime)
                                                 <!-- Jersey Size & Target Time -->
-                                                <div class="grid grid-cols-1 {{ $showTargetTime ? 'sm:grid-cols-2' : '' }} gap-3 items-start">
+                                                <div class="grid grid-cols-1 {{ ($showJersey && $showTargetTime) ? 'sm:grid-cols-2' : '' }} gap-3 items-start">
+                                                    @if($showJersey)
                                                     <div>
                                                         <div class="flex justify-between items-center mb-1">
                                                             <label class="text-xs font-bold text-slate-700 uppercase">Ukuran Jersey</label>
@@ -2259,6 +2263,7 @@
                                                             @endforeach
                                                         </select>
                                                     </div>
+                                                    @endif
 
                                                     @if($showTargetTime)
                                                     <div>
@@ -2267,6 +2272,7 @@
                                                     </div>
                                                     @endif
                                                 </div>
+                                                @endif
 
                                                 @if($showStravaField)
                                                 <div>

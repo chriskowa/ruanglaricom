@@ -1179,6 +1179,13 @@
             <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
         </button>
         <input type="hidden" class="cat-id">
+        <div class="flex items-center justify-between gap-3 mb-3 pb-2.5 border-b border-slate-700/70 pr-8">
+            <label class="inline-flex items-center gap-2 cursor-pointer select-none">
+                <input type="hidden" class="cat-is-active-hidden" value="0">
+                <input type="checkbox" class="cat-is-active rounded bg-slate-900 border-slate-600 text-yellow-400 focus:ring-yellow-400" value="1" checked>
+                <span class="text-xs font-semibold text-slate-200">Kategori Aktif (Tampil di Registrasi)</span>
+            </label>
+        </div>
         <div class="grid grid-cols-1 md:grid-cols-12 gap-4">
             <div class="md:col-span-3">
                 <label class="block text-xs font-medium text-slate-400 mb-1">Category Name <span class="text-red-400">*</span></label>
@@ -1715,6 +1722,20 @@
                         input.value = data[name];
                     }
                 }
+            }
+        }
+
+        const activeHidden = item.querySelector('.cat-is-active-hidden');
+        const activeCheckbox = item.querySelector('.cat-is-active');
+        if (activeHidden) {
+            activeHidden.name = `categories[${currentCategoryIndex}][is_active]`;
+        }
+        if (activeCheckbox) {
+            activeCheckbox.name = `categories[${currentCategoryIndex}][is_active]`;
+            if (data && data.is_active !== undefined && data.is_active !== null) {
+                activeCheckbox.checked = data.is_active === true || data.is_active === 1 || data.is_active === '1';
+            } else {
+                activeCheckbox.checked = true;
             }
         }
 
