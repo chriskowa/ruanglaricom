@@ -62,108 +62,105 @@
         --rep-btn-border: #cbd5e1;
     }
 
-    /* Container Theming */
+    /* Container Theming (Strictly scoped to #report-page-container so global header is never affected) */
     #report-page-container {
         background-color: var(--rep-canvas);
         color: var(--rep-body);
         transition: background-color 0.2s ease, color 0.2s ease;
     }
 
-    body.theme-light {
-        background-color: #f8fafc !important;
-        color: #0f172a !important;
-    }
     body.theme-light #report-page-container {
         background-color: #f8fafc !important;
         color: #334155 !important;
     }
-    body.theme-light .bg-card,
-    body.theme-light .rep-card {
+    body.theme-light #report-page-container .bg-card,
+    body.theme-light #report-page-container .rep-card {
         background-color: #ffffff !important;
         border-color: #e2e8f0 !important;
         color: #334155 !important;
         box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05) !important;
     }
-    body.theme-light .rep-card-subtle,
-    body.theme-light .bg-slate-900\/30,
-    body.theme-light .bg-slate-900\/40,
-    body.theme-light .bg-slate-900\/50,
-    body.theme-light .bg-slate-950\/50,
-    body.theme-light .bg-slate-950\/60 {
+    body.theme-light #report-page-container .rep-card-subtle,
+    body.theme-light #report-page-container .bg-slate-900\/30,
+    body.theme-light #report-page-container .bg-slate-900\/40,
+    body.theme-light #report-page-container .bg-slate-900\/50,
+    body.theme-light #report-page-container .bg-slate-950\/50,
+    body.theme-light #report-page-container .bg-slate-950\/60 {
         background-color: #f8fafc !important;
         border-color: #e2e8f0 !important;
     }
-    body.theme-light input,
-    body.theme-light select,
-    body.theme-light textarea {
+    body.theme-light #report-page-container input,
+    body.theme-light #report-page-container select,
+    body.theme-light #report-page-container textarea {
         background-color: #ffffff !important;
         border-color: #cbd5e1 !important;
         color: #0f172a !important;
     }
-    body.theme-light input::placeholder {
+    body.theme-light #report-page-container input::placeholder,
+    body.theme-light #report-page-container textarea::placeholder {
         color: #94a3b8 !important;
     }
-    body.theme-light .border-slate-700,
-    body.theme-light .border-slate-800,
-    body.theme-light .border-slate-700\/80,
-    body.theme-light .border-slate-700\/50,
-    body.theme-light .border-slate-800\/60 {
+    body.theme-light #report-page-container .border-slate-700,
+    body.theme-light #report-page-container .border-slate-800,
+    body.theme-light #report-page-container .border-slate-700\/80,
+    body.theme-light #report-page-container .border-slate-700\/50,
+    body.theme-light #report-page-container .border-slate-800\/60 {
         border-color: #e2e8f0 !important;
     }
-    body.theme-light .divide-slate-800 > :not([hidden]) ~ :not([hidden]) {
+    body.theme-light #report-page-container .divide-slate-800 > :not([hidden]) ~ :not([hidden]) {
         border-color: #e2e8f0 !important;
     }
-    body.theme-light .text-white {
+    body.theme-light #report-page-container .text-white:not([class*="bg-emerald-"]):not([class*="bg-rose-"]):not([class*="bg-orange-"]):not([class*="bg-cyan-"]):not([class*="bg-indigo-"]):not([class*="bg-blue-"]):not([class*="bg-amber-"]) {
         color: #0f172a !important;
     }
-    body.theme-light .text-slate-200,
-    body.theme-light .text-slate-300 {
+    body.theme-light #report-page-container .text-slate-200,
+    body.theme-light #report-page-container .text-slate-300 {
         color: #334155 !important;
     }
-    body.theme-light .text-slate-400 {
+    body.theme-light #report-page-container .text-slate-400 {
         color: #64748b !important;
     }
-    body.theme-light thead {
+    body.theme-light #report-page-container thead {
         background-color: #f8fafc !important;
         color: #475569 !important;
     }
-    body.theme-light tr:hover {
+    body.theme-light #report-page-container tr:hover {
         background-color: #f1f5f9 !important;
     }
-    body.theme-light .bg-slate-800 {
+    body.theme-light #report-page-container .bg-slate-800 {
         background-color: #f1f5f9 !important;
         color: #0f172a !important;
         border-color: #cbd5e1 !important;
     }
-    body.theme-light .bg-slate-800:hover {
+    body.theme-light #report-page-container .bg-slate-800:hover {
         background-color: #e2e8f0 !important;
     }
-    body.theme-light .bg-slate-900 {
+    body.theme-light #report-page-container .bg-slate-900 {
         background-color: #ffffff !important;
         border-color: #e2e8f0 !important;
     }
-    body.theme-light .bg-slate-950 {
-        background-color: #ffffff !important;
+    body.theme-light #report-page-container .bg-slate-950:not(.fixed) {
+        background-color: #f8fafc !important;
     }
 
     /* Modal surfaces in light mode */
-    body.theme-light #doorprizeModalCard,
-    body.theme-light #edit-modal > div,
-    body.theme-light #detail-modal > div,
-    body.theme-light #qrScanModal .relative,
-    body.theme-light #coupon-report-modal > div,
-    body.theme-light #activityLogModal .pointer-events-auto {
+    body.theme-light #report-page-container #doorprizeModalCard,
+    body.theme-light #report-page-container #edit-modal > div,
+    body.theme-light #report-page-container #detail-modal > div,
+    body.theme-light #report-page-container #qrScanModal .relative,
+    body.theme-light #report-page-container #coupon-report-modal > div,
+    body.theme-light #report-page-container #activityLogModal .pointer-events-auto {
         background-color: #ffffff !important;
         border-color: #e2e8f0 !important;
         color: #0f172a !important;
         box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
     }
-    body.theme-light #doorprizeModalCard .border-b,
-    body.theme-light #edit-modal .border-b,
-    body.theme-light #detail-modal .border-b,
-    body.theme-light #qrScanModal .border-b,
-    body.theme-light #coupon-report-modal .border-b,
-    body.theme-light #activityLogModal .border-b {
+    body.theme-light #report-page-container #doorprizeModalCard .border-b,
+    body.theme-light #report-page-container #edit-modal .border-b,
+    body.theme-light #report-page-container #detail-modal .border-b,
+    body.theme-light #report-page-container #qrScanModal .border-b,
+    body.theme-light #report-page-container #coupon-report-modal .border-b,
+    body.theme-light #report-page-container #activityLogModal .border-b {
         border-color: #e2e8f0 !important;
     }
 
@@ -251,7 +248,7 @@
 
 @section('content')
 <div id="report-page-container" class="min-h-screen py-6 sm:py-8 px-4 sm:px-6 lg:px-8">
-    <div class="max-w-6xl mx-auto space-y-6">
+    <div class="max-w-7xl mx-auto space-y-6">
 
         <!-- Header -->
         <div class="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between pb-5 border-b border-slate-800">
@@ -628,7 +625,7 @@
             </form>
 
             <!-- Sticky Quick Search & View Mode Switcher -->
-            <div class="mt-4 sticky top-2 z-20 bg-slate-900 border border-slate-800 p-2.5 rounded-lg shadow-md flex flex-wrap sm:flex-nowrap items-center gap-2">
+            <div class="mt-4 sticky top-20 z-20 bg-slate-900 border border-slate-800 p-2.5 rounded-lg shadow-md flex flex-wrap sm:flex-nowrap items-center gap-2">
                 <div class="relative flex-1 min-w-[200px]">
                     <svg class="w-4 h-4 absolute left-3 top-2.5 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
@@ -1153,6 +1150,18 @@
                         </button>
                     </div>
 
+                    <!-- Identitas Meja & Petugas -->
+                    <div class="mt-3 p-3 rounded-md bg-slate-950 border border-slate-800">
+                        <div class="flex items-center justify-between gap-2 mb-2">
+                            <span class="text-[11px] font-semibold text-slate-300">Identitas Meja &amp; Petugas (Tercatat di Database)</span>
+                            <span id="staff-identity-badge" class="text-[11px] font-mono text-emerald-400"></span>
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <input type="text" id="staff-desk-input" oninput="saveStaffIdentity()" placeholder="Meja / Loket (cth: Meja 1)" class="w-full bg-slate-900 border border-slate-800 rounded-md px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-slate-600">
+                            <input type="text" id="staff-name-input" oninput="saveStaffIdentity()" placeholder="Nama Petugas (cth: Budi)" class="w-full bg-slate-900 border border-slate-800 rounded-md px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-slate-600">
+                        </div>
+                    </div>
+
                     <!-- Mode Tabs -->
                     <div class="flex gap-1.5 mt-4 p-1 bg-slate-950 rounded-md border border-slate-800">
                         <button type="button" id="tab-qr-camera" onclick="switchQrMode('camera')" class="flex-1 py-1.5 text-xs font-semibold rounded-md bg-slate-800 text-white transition">Kamera Langsung</button>
@@ -1290,17 +1299,26 @@
             </div>
 
             <!-- Sub Header -->
-            <div class="p-3 bg-slate-950/50 border-b border-slate-800 flex flex-col sm:flex-row gap-2 justify-between items-center shrink-0">
-                <div class="relative w-full sm:w-64">
-                    <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-xs"></i>
-                    <input type="text" id="activity-log-search" oninput="renderActivityLogs(this.value)" placeholder="Cari BIB / Nama di log..." class="w-full bg-slate-950 border border-slate-800 rounded-md pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:border-slate-600 transition">
+            <div class="p-3 bg-slate-950/50 border-b border-slate-800 space-y-2.5 shrink-0">
+                <div class="flex items-center gap-1.5 p-1 bg-slate-900 rounded-md border border-slate-800">
+                    <button type="button" id="tab-log-server" onclick="switchActivityLogTab('server')" class="flex-1 py-1.5 px-3 rounded text-xs font-semibold bg-slate-800 text-white transition">Semua Petugas (Server)</button>
+                    <button type="button" id="tab-log-local" onclick="switchActivityLogTab('local')" class="flex-1 py-1.5 px-3 rounded text-xs font-semibold text-slate-400 hover:text-white transition">Perangkat Ini (Lokal)</button>
                 </div>
-                <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
-                    <span id="activity-log-count-summary" class="text-xs text-slate-400 font-mono">0 Log tercatat</span>
-                    <button type="button" onclick="clearActivityLogs()" class="px-2.5 py-1 text-xs rounded-md bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 border border-rose-500/30 font-semibold transition flex items-center gap-1">
-                        <i class="fa-solid fa-trash-can text-[10px]"></i>
-                        <span>Hapus Log</span>
-                    </button>
+                <div class="flex flex-col sm:flex-row gap-2 justify-between items-center">
+                    <div class="relative w-full sm:w-64">
+                        <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-xs"></i>
+                        <input type="text" id="activity-log-search" oninput="renderActiveLogTab(this.value)" placeholder="Cari BIB / Nama / Petugas..." class="w-full bg-slate-950 border border-slate-800 rounded-md pl-8 pr-3 py-1.5 text-xs text-white placeholder-slate-500 outline-none focus:border-slate-600 transition">
+                    </div>
+                    <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                        <span id="activity-log-count-summary" class="text-xs text-slate-400 font-mono">0 Log tercatat</span>
+                        <button type="button" id="btn-refresh-server-logs" onclick="fetchServerScans()" class="px-2.5 py-1 text-xs rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-semibold transition">
+                            Muat Ulang
+                        </button>
+                        <button type="button" id="btn-clear-local-logs" onclick="clearActivityLogs()" class="hidden px-2.5 py-1 text-xs rounded-md bg-rose-950/40 hover:bg-rose-900/60 text-rose-400 border border-rose-500/30 font-semibold transition flex items-center gap-1">
+                            <i class="fa-solid fa-trash-can text-[10px]"></i>
+                            <span>Hapus Log</span>
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -1450,9 +1468,114 @@
     }
 
     function openActivityLogModal() {
-        renderActivityLogs();
         const modal = document.getElementById('activityLogModal');
         if (modal) modal.classList.remove('hidden');
+        switchActivityLogTab(activeLogTab || 'server');
+    }
+
+    const recentScansEndpoint = "{{ route('report.recent-scans', $event->id) }}" + window.location.search;
+    let activeLogTab = 'server';
+    let serverScansCache = [];
+
+    function switchActivityLogTab(tab) {
+        activeLogTab = tab === 'local' ? 'local' : 'server';
+        const btnServer = document.getElementById('tab-log-server');
+        const btnLocal = document.getElementById('tab-log-local');
+        const btnRefresh = document.getElementById('btn-refresh-server-logs');
+        const btnClear = document.getElementById('btn-clear-local-logs');
+
+        if (btnServer && btnLocal) {
+            if (activeLogTab === 'server') {
+                btnServer.className = 'flex-1 py-1.5 px-3 rounded text-xs font-semibold bg-slate-800 text-white transition';
+                btnLocal.className = 'flex-1 py-1.5 px-3 rounded text-xs font-semibold text-slate-400 hover:text-white transition';
+            } else {
+                btnLocal.className = 'flex-1 py-1.5 px-3 rounded text-xs font-semibold bg-slate-800 text-white transition';
+                btnServer.className = 'flex-1 py-1.5 px-3 rounded text-xs font-semibold text-slate-400 hover:text-white transition';
+            }
+        }
+        if (btnRefresh) btnRefresh.classList.toggle('hidden', activeLogTab !== 'server');
+        if (btnClear) btnClear.classList.toggle('hidden', activeLogTab !== 'local');
+
+        const query = document.getElementById('activity-log-search')?.value || '';
+        if (activeLogTab === 'server') {
+            fetchServerScans();
+        } else {
+            updateActivityLogBadge();
+            renderActivityLogs(query);
+        }
+    }
+
+    function renderActiveLogTab(searchQuery = '') {
+        if (activeLogTab === 'server') {
+            renderServerScans(searchQuery);
+        } else {
+            renderActivityLogs(searchQuery);
+        }
+    }
+
+    function fetchServerScans() {
+        const container = document.getElementById('activity-log-list-container');
+        if (container && serverScansCache.length === 0) {
+            container.innerHTML = '<div class="text-center py-8 text-xs text-slate-400">Memuat riwayat scan dari server...</div>';
+        }
+        fetch(recentScansEndpoint, {
+            headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(r => r.json())
+        .then(res => {
+            if (res && res.success && Array.isArray(res.scans)) {
+                serverScansCache = res.scans;
+            }
+            const query = document.getElementById('activity-log-search')?.value || '';
+            renderServerScans(query);
+        })
+        .catch(() => {
+            if (container) {
+                container.innerHTML = '<div class="text-center py-8 text-xs text-rose-400">Gagal memuat riwayat scan dari server.</div>';
+            }
+        });
+    }
+
+    function renderServerScans(searchQuery = '') {
+        const container = document.getElementById('activity-log-list-container');
+        const summary = document.getElementById('activity-log-count-summary');
+        if (!container) return;
+
+        const query = (searchQuery || '').toLowerCase().trim();
+        const filtered = serverScansCache.filter(item => {
+            if (!query) return true;
+            return (item.name || '').toLowerCase().includes(query) ||
+                   (item.bib || '').toLowerCase().includes(query) ||
+                   (item.picked_up_by || '').toLowerCase().includes(query) ||
+                   (item.category || '').toLowerCase().includes(query);
+        });
+
+        if (summary) summary.textContent = `${filtered.length} Scan terbaru (Server)`;
+
+        if (filtered.length === 0) {
+            container.innerHTML = '<div class="text-center py-10 text-xs text-slate-400">Belum ada data pickup tercatat di server.</div>';
+            return;
+        }
+
+        container.innerHTML = filtered.map(item => `
+            <div class="bg-slate-950 border border-slate-800 rounded-md p-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                <div>
+                    <div class="text-xs font-bold text-white flex flex-wrap items-center gap-2">
+                        <span>${item.name}</span>
+                        <span class="px-1.5 py-0.5 bg-slate-800 text-slate-200 rounded text-[10px] font-mono font-bold">BIB #${item.bib}</span>
+                        <span class="px-1.5 py-0.5 bg-emerald-950 text-emerald-300 rounded text-[10px] font-semibold">Jersey ${item.jersey_size}</span>
+                    </div>
+                    <div class="text-[11px] text-slate-400 flex flex-wrap items-center gap-x-2 gap-y-0.5 mt-1">
+                        <span>${item.category}</span>
+                        <span>•</span>
+                        <span class="text-lime-300 font-semibold">Petugas/Meja: ${item.picked_up_by}</span>
+                    </div>
+                </div>
+                <div class="text-[11px] font-mono text-slate-400 self-end sm:self-center shrink-0">
+                    ${item.picked_up_at}
+                </div>
+            </div>
+        `).join('');
     }
 
     function closeActivityLogModal() {
@@ -1635,7 +1758,7 @@
 
         if (!card) return;
 
-        if (isError) {
+        if (isError && !(data && data.already_picked_up && data.participant)) {
             card.className = 'mt-4 p-3 rounded-md bg-rose-950/60 border border-rose-800/80 text-rose-200 text-xs block';
             card.innerHTML = `<div class="font-bold mb-1">Gagal Verifikasi</div><p class="text-slate-300 leading-relaxed">${message || 'Kode QR tidak dikenali atau belum lunas.'}</p>`;
             return;
@@ -1664,6 +1787,53 @@
         `;
     }
 
+    const staffStorageKey = 'ruanglari_report_staff_' + '{{ $event->id }}';
+
+    function loadStaffIdentity() {
+        try {
+            const raw = localStorage.getItem(staffStorageKey);
+            const parsed = raw ? JSON.parse(raw) : {};
+            const deskEl = document.getElementById('staff-desk-input');
+            const nameEl = document.getElementById('staff-name-input');
+            if (deskEl && parsed.desk) deskEl.value = parsed.desk;
+            if (nameEl && parsed.name) nameEl.value = parsed.name;
+        } catch (e) {}
+        updateStaffIdentityBadge();
+    }
+
+    function saveStaffIdentity() {
+        const desk = (document.getElementById('staff-desk-input')?.value || '').trim();
+        const name = (document.getElementById('staff-name-input')?.value || '').trim();
+        try {
+            localStorage.setItem(staffStorageKey, JSON.stringify({ desk, name }));
+        } catch (e) {}
+        updateStaffIdentityBadge();
+    }
+
+    function getActiveStaffLabel() {
+        let desk = (document.getElementById('staff-desk-input')?.value || '').trim();
+        let name = (document.getElementById('staff-name-input')?.value || '').trim();
+        if (!desk && !name) {
+            try {
+                const raw = localStorage.getItem(staffStorageKey);
+                const parsed = raw ? JSON.parse(raw) : {};
+                desk = (parsed.desk || '').trim();
+                name = (parsed.name || '').trim();
+            } catch (e) {}
+        }
+        if (desk && name) return `${desk} - ${name}`;
+        if (desk) return desk;
+        if (name) return name;
+        return 'Public Report Scanner';
+    }
+
+    function updateStaffIdentityBadge() {
+        const badge = document.getElementById('staff-identity-badge');
+        if (badge) badge.textContent = getActiveStaffLabel();
+    }
+
+    document.addEventListener('DOMContentLoaded', loadStaffIdentity);
+
     function verifyQrCodePayload(code) {
         if (!code || qrBusy) return;
         const now = Date.now();
@@ -1682,7 +1852,7 @@
             },
             body: JSON.stringify({
                 code: String(code).trim(),
-                picked_up_by: 'Public Report Scanner'
+                picked_up_by: getActiveStaffLabel()
             })
         })
         .then(r => r.json())
@@ -1692,7 +1862,7 @@
                 qrLastOkAt = Date.now();
                 setQrResult(res, false, res.message);
                 if (typeof addActivityLog === 'function' && res.participant) {
-                    addActivityLog('qr_scan', res.participant, 'Scan QR Verified');
+                    addActivityLog('qr_scan', res.participant, res.participant.picked_up_by || getActiveStaffLabel());
                 }
                 const filterForm = document.getElementById('report-filters');
                 if (filterForm && typeof fetchReport === 'function') {
@@ -1997,7 +2167,8 @@
                 'X-Requested-With': 'XMLHttpRequest'
             },
             body: JSON.stringify({
-                is_picked_up: nextStatus ? 1 : 0
+                is_picked_up: nextStatus ? 1 : 0,
+                picked_up_by: nextStatus && typeof getActiveStaffLabel === 'function' ? getActiveStaffLabel() : null
             })
         })
         .then(r => {

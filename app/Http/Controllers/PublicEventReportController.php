@@ -876,12 +876,17 @@ class PublicEventReportController extends Controller
             }
         }
 
-        if (isset($validated['is_picked_up'])) {
-            $participant->update([
-                'is_picked_up' => $isPickedUp,
-                'picked_up_at' => $isPickedUp ? now() : null,
-                'picked_up_by' => $isPickedUp ? (($validated['picked_up_by'] ?? null) ?: 'Public Report') : null,
-            ]);
+        if (isset($validated['is_picked_up']) && $isPickedUp !== $wasPickedUp) {
+            DB::transaction(function () use ($participant, $isPickedUp, $validated) {
+                $locked = Participant::whereKey($participant->id)->lockForUpdate()->first();
+                if ($locked) {
+                    $locked->update([
+                        'is_picked_up' => $isPickedUp,
+                        'picked_up_at' => $isPickedUp ? now() : null,
+                        'picked_up_by' => $isPickedUp ? (($validated['picked_up_by'] ?? null) ?: 'Public Report') : null,
+                    ]);
+                }
+            });
         }
 
         $participant->refresh();
@@ -959,72 +964,154 @@ class PublicEventReportController extends Controller
             }
         }
 
-        $query = Participant::query()
-            ->whereHas('transaction', fn($q) => $q->where('event_id', $eventModel->id));
+        $scanResult = DB::transaction(function () use ($eventModel, $participantId, $bib, $code, $request) {
+            $query = Participant::query()
+                ->whereHas('transaction', fn($q) => $q->where('event_id', $eventModel->id))
+                ->lockForUpdate();
 
-        if ($participantId) {
-            $participant = $query->where('id', $participantId)->first();
-        } elseif ($bib) {
-            $participant = $query->where('bib_number', $bib)->first();
-        } else {
-            $participant = $query->where(function($q) use ($code) {
-                $q->where('phone', $code)
-                  ->orWhere('id_card', $code)
-                  ->orWhere('email', $code)
-                  ->orWhere('name', 'like', "%{$code}%");
-            })->first();
-        }
+            if ($participantId) {
+                $participant = $query->where('id', $participantId)->first();
+            } elseif ($bib) {
+                $participant = $query->where('bib_number', $bib)->first();
+            } else {
+                $participant = $query->where(function ($q) use ($code) {
+                    $q->where('phone', $code)
+                        ->orWhere('id_card', $code)
+                        ->orWhere('email', $code)
+                        ->orWhere('name', 'like', "%{$code}%");
+                })->first();
+            }
 
-        if (! $participant) {
-            return response()->json([
-                'success' => false,
-                'message' => "Peserta dengan kode/BIB/identitas '{$code}' tidak ditemukan pada event ini.",
-            ], 404);
-        }
+            if (! $participant) {
+                return ['status' => 404, 'payload' => [
+                    'success' => false,
+                    'message' => "Peserta dengan kode/BIB/identitas '{$code}' tidak ditemukan pada event ini.",
+                ]];
+            }
 
-        $paymentStatus = (string) ($participant->transaction?->payment_status ?? 'pending');
-        if (! in_array($paymentStatus, ['paid', 'cod'], true)) {
-            return response()->json([
-                'success' => false,
-                'message' => "Tidak bisa pickup: pembayaran atas nama {$participant->name} belum lunas (Status: " . strtoupper($paymentStatus) . ").",
+            $paymentStatus = (string) ($participant->transaction?->payment_status ?? 'pending');
+            if (! in_array($paymentStatus, ['paid', 'cod'], true)) {
+                return ['status' => 422, 'payload' => [
+                    'success' => false,
+                    'message' => "Tidak bisa pickup: pembayaran atas nama {$participant->name} belum lunas (Status: " . strtoupper($paymentStatus) . ').',
+                    'participant' => [
+                        'id' => $participant->id,
+                        'name' => $participant->name,
+                        'bib_number' => $participant->bib_number ?: '-',
+                        'payment_status' => $paymentStatus,
+                    ],
+                ]];
+            }
+
+            $wasPickedUp = (bool) $participant->is_picked_up;
+            $pickedByInput = trim((string) $request->input('picked_up_by', ''));
+            $staffLabel = $pickedByInput !== '' ? mb_substr($pickedByInput, 0, 120) : 'Public QR Scanner';
+
+            if ($wasPickedUp) {
+                $pickedAtStr = $participant->picked_up_at ? $participant->picked_up_at->format('d/m/Y H:i') : '-';
+                $originalStaff = $participant->picked_up_by ?: 'Staff';
+
+                return ['status' => 409, 'payload' => [
+                    'success' => false,
+                    'already_picked_up' => true,
+                    'message' => "SUDAH DIAMBIL: {$participant->name} (BIB: {$participant->bib_number}) sudah diambil pada {$pickedAtStr} oleh {$originalStaff}.",
+                    'participant' => [
+                        'id' => $participant->id,
+                        'name' => $participant->name,
+                        'bib_number' => $participant->bib_number ?: '-',
+                        'jersey_size' => $participant->jersey_size ?: '-',
+                        'is_picked_up' => true,
+                        'picked_up_at' => $participant->picked_up_at ? $participant->picked_up_at->format('Y-m-d H:i:s') : null,
+                        'picked_up_by' => $originalStaff,
+                        'payment_status' => $paymentStatus,
+                        'age_group' => $participant->getAgeGroup($eventModel->start_at),
+                        'addons' => $participant->addons ?? [],
+                    ],
+                ]];
+            }
+
+            $participant->update([
+                'is_picked_up' => true,
+                'picked_up_at' => now(),
+                'picked_up_by' => $staffLabel,
+            ]);
+
+            $participant->refresh();
+
+            return ['status' => 200, 'payload' => [
+                'success' => true,
+                'already_picked_up' => false,
+                'message' => "Berhasil verifikasi pickup untuk {$participant->name} (BIB: {$participant->bib_number}) oleh {$participant->picked_up_by}!",
                 'participant' => [
                     'id' => $participant->id,
                     'name' => $participant->name,
                     'bib_number' => $participant->bib_number ?: '-',
+                    'jersey_size' => $participant->jersey_size ?: '-',
+                    'is_picked_up' => true,
+                    'picked_up_at' => $participant->picked_up_at ? $participant->picked_up_at->format('Y-m-d H:i:s') : null,
+                    'picked_up_by' => $participant->picked_up_by,
                     'payment_status' => $paymentStatus,
-                ]
-            ], 422);
+                    'age_group' => $participant->getAgeGroup($eventModel->start_at),
+                    'addons' => $participant->addons ?? [],
+                ],
+                'jersey_sizes_pending_pickup' => $this->getJerseyPendingPickupCounts($eventModel),
+            ]];
+        });
+
+        return response()->json($scanResult['payload'], $scanResult['status']);
+    }
+
+    public function recentScans(Request $request, $event)
+    {
+        if (! $this->validateReportAccess($request, $event)) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Sesi kedaluwarsa atau signature tidak valid.',
+            ], 403);
         }
 
-        $wasPickedUp = (bool) $participant->is_picked_up;
+        $eventModel = Event::query()
+            ->where(function ($q) use ($event) {
+                if (is_numeric($event)) {
+                    $q->where('id', (int) $event);
+                } else {
+                    $q->where('slug', $event);
+                }
+            })
+            ->firstOrFail();
 
-        $participant->update([
-            'is_picked_up' => true,
-            'picked_up_at' => now(),
-            'picked_up_by' => $request->input('picked_up_by') ?: 'Public QR Scanner',
-        ]);
-
-        $participant->refresh();
+        $scans = Participant::query()
+            ->with(['category:id,name'])
+            ->join('transactions', 'transactions.id', '=', 'participants.transaction_id')
+            ->where('transactions.event_id', $eventModel->id)
+            ->where('participants.is_picked_up', true)
+            ->orderByDesc('participants.picked_up_at')
+            ->limit(50)
+            ->select([
+                'participants.id',
+                'participants.name',
+                'participants.bib_number',
+                'participants.jersey_size',
+                'participants.picked_up_at',
+                'participants.picked_up_by',
+                'participants.race_category_id',
+            ])
+            ->get()
+            ->map(function ($p) {
+                return [
+                    'id' => $p->id,
+                    'name' => $p->name,
+                    'bib' => $p->bib_number ?: '-',
+                    'jersey_size' => $p->jersey_size ?: '-',
+                    'category' => $p->category?->name ?? '-',
+                    'picked_up_by' => $p->picked_up_by ?: 'Staff',
+                    'picked_up_at' => $p->picked_up_at ? $p->picked_up_at->format('d M H:i:s') : '-',
+                ];
+            });
 
         return response()->json([
             'success' => true,
-            'already_picked_up' => $wasPickedUp,
-            'message' => $wasPickedUp 
-                ? "PERINGATAN: {$participant->name} (BIB: {$participant->bib_number}) SUDAH diambil sebelumnya pada " . ($participant->picked_up_at ? $participant->picked_up_at->format('d/m/Y H:i') : '') 
-                : "Berhasil verifikasi pickup untuk {$participant->name} (BIB: {$participant->bib_number})!",
-            'participant' => [
-                'id' => $participant->id,
-                'name' => $participant->name,
-                'bib_number' => $participant->bib_number ?: '-',
-                'jersey_size' => $participant->jersey_size ?: '-',
-                'is_picked_up' => true,
-                'picked_up_at' => $participant->picked_up_at ? $participant->picked_up_at->format('Y-m-d H:i:s') : null,
-                'picked_up_by' => $participant->picked_up_by,
-                'payment_status' => $paymentStatus,
-                'age_group' => $participant->getAgeGroup($eventModel->start_at),
-                'addons' => $participant->addons ?? [],
-            ],
-            'jersey_sizes_pending_pickup' => $this->getJerseyPendingPickupCounts($eventModel),
+            'scans' => $scans,
         ]);
     }
 

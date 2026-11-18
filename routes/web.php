@@ -531,6 +531,7 @@ Route::get('/reports/{event}/export', [App\Http\Controllers\PublicEventReportCon
 Route::get('/reports/{event}/export-xlsx', [App\Http\Controllers\PublicEventReportController::class, 'exportParticipantsXlsx'])->name('report.export.xlsx');
 Route::post('/reports/{event}/participants/{participant}/status', [App\Http\Controllers\PublicEventReportController::class, 'updateParticipantStatus'])->name('report.participant.status');
 Route::post('/reports/{event}/scan-qr', [App\Http\Controllers\PublicEventReportController::class, 'scanQr'])->name('report.scan-qr');
+Route::get('/reports/{event}/recent-scans', [App\Http\Controllers\PublicEventReportController::class, 'recentScans'])->name('report.recent-scans');
 Route::get('/reports/{event}/doorprize-list', [App\Http\Controllers\PublicEventReportController::class, 'doorprizeList'])->name('report.doorprize-list');
 
 
