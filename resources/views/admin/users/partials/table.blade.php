@@ -43,11 +43,32 @@
                             </span>
                         </td>
                         <td class="px-6 py-4">
-                            <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium 
-                                {{ $user->is_active ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-slate-500/10 text-slate-400 border border-slate-500/20' }}">
-                                <span class="w-1.5 h-1.5 rounded-full {{ $user->is_active ? 'bg-green-400' : 'bg-slate-400' }}"></span>
-                                {{ $user->is_active ? 'Active' : 'Inactive' }}
-                            </span>
+                            <div class="flex flex-col items-start gap-1.5">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium 
+                                    {{ $user->is_active ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-slate-500/10 text-slate-400 border border-slate-500/20' }}">
+                                    <span class="w-1.5 h-1.5 rounded-full {{ $user->is_active ? 'bg-green-400' : 'bg-slate-400' }}"></span>
+                                    {{ $user->is_active ? 'Active' : 'Inactive' }}
+                                </span>
+                                @if($user->latestOtpToken)
+                                    @php
+                                        $otp = $user->latestOtpToken;
+                                        $otpValid = !$otp->used && $otp->expires_at && $otp->expires_at->isFuture();
+                                    @endphp
+                                    <div class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[11px] font-medium border {{ $otpValid ? 'bg-amber-500/10 text-amber-300 border-amber-500/30' : 'bg-slate-800 text-slate-400 border-slate-700' }}"
+                                         title="Kode OTP terakhir {{ $otp->created_at?->format('d M Y H:i') }}">
+                                        <span>OTP: <strong class="text-white">{{ $otp->code }}</strong></span>
+                                        <span class="text-[10px]">
+                                            @if($otp->used)
+                                                (Terpakai)
+                                            @elseif($otpValid)
+                                                (s/d {{ $otp->expires_at->format('H:i') }})
+                                            @else
+                                                (Kedaluwarsa)
+                                            @endif
+                                        </span>
+                                    </div>
+                                @endif
+                            </div>
                         </td>
                         <td class="px-6 py-4">
                             <div class="flex flex-col gap-1.5">

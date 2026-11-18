@@ -1,381 +1,776 @@
-@extends('layouts.pacerhub')
+@extends('layouts.pacerhub', [
+    'skipHeavyAssets' => true,
+    'skipLoader' => true,
+])
+
+@php
+    $seoTitle = 'Direktori Pacer Lari Indonesia | Cari & Booking Pacer 10K, HM, Marathon | Ruang Lari';
+    $seoDesc = 'Temukan pacer lari berpengalaman dan terverifikasi di Indonesia untuk target waktu 10K, Half Marathon (21K), hingga Full Marathon (42K). Cek target pace, personal best, kota asal, dan lihat profil lengkapnya di Ruang Lari.';
+    $seoCanonical = route('pacer.index');
+    $verifiedCount = $pacers->where('verified', true)->count();
+    $cityCount = $cities->count();
+
+    $pacerAvatarUrl = function ($pacer) {
+        $avatar = $pacer->user?->avatar;
+        if ($avatar) {
+            if (str_starts_with($avatar, 'http')) {
+                return $avatar;
+            }
+            if (str_starts_with($avatar, '/storage')) {
+                return asset(ltrim($avatar, '/'));
+            }
+            return asset('storage/' . $avatar);
+        }
+        return ($pacer->user?->gender === 'female')
+            ? asset('images/default-female.svg')
+            : asset('images/default-male.svg');
+    };
+
+    $itemListElements = $pacers->take(30)->values()->map(function ($pacer, $idx) {
+        return [
+            '@type' => 'ListItem',
+            'position' => $idx + 1,
+            'item' => [
+                '@type' => 'Person',
+                'name' => $pacer->user?->name ?? $pacer->nickname ?? 'Pacer Ruang Lari',
+                'url' => route('pacer.show', $pacer->seo_slug),
+                'jobTitle' => 'Running Pacer (' . ($pacer->category ?: 'Road Run') . ')',
+            ],
+        ];
+    })->all();
+@endphp
+
+@section('title', $seoTitle)
+@section('meta_title', $seoTitle)
+@section('meta_description', $seoDesc)
+@section('meta_keywords', 'pacer lari indonesia, jasa pacer marathon, cari pacer half marathon, pacer 10k, booking pacer lari, komunitas pacer ruang lari')
+@section('canonical_url', $seoCanonical)
+
+@push('styles')
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sora:wght@700;800&display=swap" rel="stylesheet">
+<style>
+    .rl-pacers-page {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .rl-pacers-page h1,
+    .rl-pacers-page h2,
+    .rl-pacers-page h3,
+    .rl-heading {
+        font-family: 'Inter Tight', 'Sora', sans-serif;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+    }
+    .rl-mono {
+        font-family: 'JetBrains Mono', monospace;
+        font-variant-numeric: tabular-nums;
+    }
+    .rl-faq-item summary::-webkit-details-marker {
+        display: none;
+    }
+    .rl-faq-item[open] .rl-faq-chevron {
+        transform: rotate(180deg);
+    }
+</style>
+@endpush
+
+@push('structured_data')
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org",
+  "@@type": "CollectionPage",
+  "name": "{{ $seoTitle }}",
+  "description": "{{ $seoDesc }}",
+  "url": "{{ $seoCanonical }}",
+  "mainEntity": {
+    "@@type": "ItemList",
+    "numberOfItems": {{ $pacers->count() }},
+    "itemListElement": @json($itemListElements)
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org",
+  "@@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@@type": "Question",
+      "name": "Apa tugas pacer dalam event lari?",
+      "acceptedAnswer": {
+        "@@type": "Answer",
+        "text": "Pacer membantu pelari menjaga ritme kecepatan (pace) yang stabil sepanjang lomba agar finis sesuai target waktu pada kategori 10K, Half Marathon, maupun Full Marathon."
+      }
+    },
+    {
+      "@@type": "Question",
+      "name": "Bagaimana cara mencari dan memilih pacer di Ruang Lari?",
+      "acceptedAnswer": {
+        "@@type": "Answer",
+        "text": "Gunakan filter kota, kategori jarak (10K, HM 21K, FM 42K), target pace, dan catatan personal best (PB) untuk menemukan pacer yang sesuai dengan target lomba Anda."
+      }
+    },
+    {
+      "@@type": "Question",
+      "name": "Bagaimana cara mendaftar menjadi pacer resmi di Ruang Lari?",
+      "acceptedAnswer": {
+        "@@type": "Answer",
+        "text": "Pelari berpengalaman dapat mendaftar melalui halaman Daftar Pacer dengan melengkapi biodata, kota domisili, target pace, serta catatan Personal Best resmi."
+      }
+    }
+  ]
+}
+</script>
+@endpush
 
 @section('content')
-<div id="pacer-app" class="min-h-screen bg-dark text-white font-sans selection:bg-neon selection:text-dark">
-    
-    <!-- Hero / Header -->
-    <header class="relative pt-32 pb-12 px-4 text-center overflow-hidden">
-        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] bg-neon/10 rounded-full blur-[100px] -z-10"></div>
-        <h1 class="text-4xl md:text-6xl font-black tracking-tighter mb-4">
-            FIND YOUR <span class="text-neon">RHYTHM</span>
-        </h1>
-        <p class="text-slate-400 max-w-xl mx-auto text-sm md:text-base">
-            Temukan pacer profesional untuk membantu Anda mencapai target waktu terbaik di event lari berikutnya.
-        </p>
-    </header>
+<div id="pacer-directory" class="rl-pacers-page min-h-screen bg-slate-950 text-slate-100 pt-0">
 
-    <main class="max-w-7xl mx-auto px-4 pb-20">
-        
-        <!-- Mobile Search & Filter Bar -->
-        <div class="md:hidden sticky top-24 z-30 mb-6 space-y-3">
-            <div class="bg-card/80 backdrop-blur-md border border-slate-700 p-3 rounded-2xl shadow-xl flex gap-3">
-                <div class="relative flex-grow">
-                    <input v-model="filters.search" @input="debouncedSearch" type="text" placeholder="Cari nama..." class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-sm focus:border-neon focus:ring-1 focus:ring-neon outline-none text-white placeholder-slate-500 transition-all">
-                    <i class="fa-solid fa-search absolute left-3.5 top-3.5 text-slate-500"></i>
+    {{-- Hero Section (Clean, Compact, Zero Blobs/Glassmorphism) --}}
+    <section class="border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 pt-10 sm:pt-12 pb-8 sm:pb-10">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-end">
+                <div class="lg:col-span-8">
+                    <h1 class="text-3xl sm:text-4xl lg:text-5xl text-white leading-[1.1]">
+                        Direktori Pacer Lari Indonesia
+                    </h1>
+                    <p class="text-sm sm:text-base text-slate-300 mt-3 max-w-2xl leading-relaxed">
+                        Temukan pacer berpengalaman untuk menjaga ritme lari dan membantu Anda mencapai target waktu terbaik di kategori 10K, Half Marathon, hingga Full Marathon.
+                    </p>
+                    <div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-3 max-w-md">
+                        <a href="#daftar-pacer"
+                           class="inline-flex items-center justify-center h-11 px-5 rounded-md bg-neon hover:bg-lime-300 text-slate-950 text-sm font-bold transition duration-150">
+                            Cari Pacer Sekarang
+                        </a>
+                        <a href="{{ route('pacer.register') }}"
+                           class="inline-flex items-center justify-center h-11 px-5 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white text-sm font-semibold transition duration-150">
+                            + Daftar Jadi Pacer
+                        </a>
+                    </div>
                 </div>
-                <button @click="showMobileFilter = true" class="bg-slate-800 border border-slate-700 hover:border-neon text-white px-4 rounded-xl flex items-center justify-center transition-colors relative">
-                    <i class="fa-solid fa-sliders text-lg"></i>
-                    <span v-if="activeFilterCount > 0" class="absolute -top-2 -right-2 bg-neon text-dark text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">@{{ activeFilterCount }}</span>
-                </button>
+
+                {{-- Factual Stats Strip --}}
+                <div class="lg:col-span-4 grid grid-cols-3 gap-3 bg-slate-900 border border-slate-800 rounded-lg p-4">
+                    <div>
+                        <div class="rl-mono text-lg sm:text-xl font-bold text-white">{{ $pacers->count() }}</div>
+                        <div class="text-[11px] text-slate-400 mt-0.5">Total Pacer</div>
+                    </div>
+                    <div class="border-l border-slate-800 pl-3">
+                        <div class="rl-mono text-lg sm:text-xl font-bold text-neon">{{ $verifiedCount }}</div>
+                        <div class="text-[11px] text-slate-400 mt-0.5">Terverifikasi</div>
+                    </div>
+                    <div class="border-l border-slate-800 pl-3">
+                        <div class="rl-mono text-lg sm:text-xl font-bold text-white">{{ $cityCount }}</div>
+                        <div class="text-[11px] text-slate-400 mt-0.5">Kota</div>
+                    </div>
+                </div>
             </div>
         </div>
+    </section>
 
-        <div class="flex flex-col md:flex-row gap-8 items-start">
-            
-            <!-- Desktop Sidebar Filters -->
-            <aside class="hidden md:block w-72 flex-shrink-0 sticky top-32 space-y-8">
-                <!-- Search -->
+    {{-- Main Directory Section --}}
+    <section id="daftar-pacer" class="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+
+        {{-- Mobile Search & Filter Trigger --}}
+        <div class="md:hidden mb-5 flex items-center gap-2.5">
+            <div class="relative flex-1">
+                <input id="pacerSearchMobile"
+                       type="search"
+                       value="{{ request('search') }}"
+                       placeholder="Cari nama atau panggilan pacer..."
+                       class="w-full h-10 px-3.5 rounded-md bg-slate-900 border border-slate-700 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-neon">
+            </div>
+            <button type="button" id="btnOpenMobileFilter"
+                    class="inline-flex items-center justify-center h-10 px-4 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-white whitespace-nowrap shrink-0">
+                Filter <span id="mobileFilterBadge" class="rl-mono ml-1.5 hidden px-1.5 py-0.5 rounded bg-neon text-slate-950 text-[10px] font-bold">0</span>
+            </button>
+        </div>
+
+        <div class="flex flex-col md:flex-row gap-7 items-start">
+
+            {{-- Desktop Sidebar Filters --}}
+            <aside aria-label="Filter direktori pacer" class="hidden md:block w-72 shrink-0 bg-slate-900 border border-slate-800 rounded-lg p-5 space-y-5 sticky top-24">
+                <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+                    <h2 class="text-sm text-white">Filter Pacer</h2>
+                    <button type="button" id="btnResetDesktop" class="hidden text-xs font-semibold text-slate-400 hover:text-neon transition">
+                        Reset
+                    </button>
+                </div>
+
                 <div>
-                    <label class="block text-xs font-mono text-neon mb-2 uppercase tracking-widest">Search</label>
-                    <div class="relative">
-                        <input v-model="filters.search" @input="debouncedSearch" type="text" placeholder="Nama pacer..." class="w-full bg-card border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-sm focus:border-neon outline-none transition-colors">
-                        <i class="fa-solid fa-search absolute left-3.5 top-3.5 text-slate-500"></i>
+                    <label for="pacerSearchDesktop" class="block text-xs font-semibold text-slate-300 mb-1.5">Cari Nama</label>
+                    <input id="pacerSearchDesktop"
+                           type="search"
+                           value="{{ request('search') }}"
+                           placeholder="Nama atau panggilan..."
+                           class="w-full h-10 px-3 rounded-md bg-slate-950 border border-slate-700 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-neon">
+                </div>
+
+                <div>
+                    <span class="block text-xs font-semibold text-slate-300 mb-2">Kategori Jarak</span>
+                    <div class="grid grid-cols-2 gap-1.5" id="desktopCategoryGroup">
+                        @foreach(['All' => 'Semua', '10K' => '10K', 'HM (21K)' => 'HM (21K)', 'FM (42K)' => 'FM (42K)'] as $catVal => $catLabel)
+                            @php $isActiveCat = request('category', 'All') === $catVal; @endphp
+                            <button type="button"
+                                    data-category="{{ $catVal }}"
+                                    class="kp-cat-btn h-9 px-2.5 rounded-md border text-xs font-semibold transition duration-150 {{ $isActiveCat ? 'bg-neon text-slate-950 border-neon font-bold' : 'bg-slate-950 text-slate-300 border-slate-800 hover:border-slate-700 hover:text-white' }}">
+                                {{ $catLabel }}
+                            </button>
+                        @endforeach
                     </div>
                 </div>
 
-                <!-- Category -->
                 <div>
-                    <label class="block text-xs font-mono text-neon mb-3 uppercase tracking-widest">Category</label>
-                    <div class="flex flex-wrap gap-2">
-                        <button 
-                            v-for="cat in categories" 
-                            :key="cat"
-                            @click="setCategory(cat)"
-                            :class="[
-                                'px-3 py-1.5 rounded-lg text-xs font-bold border transition-all duration-300',
-                                filters.category === cat 
-                                    ? 'bg-neon text-dark border-neon shadow-[0_0_15px_rgba(204,255,0,0.3)]' 
-                                    : 'bg-slate-800/50 text-slate-400 border-slate-700 hover:border-slate-500 hover:text-white'
-                            ]"
-                        >
-                            @{{ cat }}
-                        </button>
-                    </div>
-                </div>
-
-                <!-- City -->
-                <div>
-                    <label class="block text-xs font-mono text-neon mb-2 uppercase tracking-widest">City</label>
-                    <select v-model="filters.city_id" @change="fetchPacers" class="w-full bg-card border border-slate-700 text-white px-4 py-3 rounded-xl focus:border-neon outline-none text-sm appearance-none cursor-pointer hover:bg-slate-800 transition-colors">
-                        <option value="">All Cities</option>
-                        <option v-for="city in cities" :key="city.id" :value="city.id">@{{ city.name }}</option>
+                    <label for="pacerCityDesktop" class="block text-xs font-semibold text-slate-300 mb-1.5">Kota Domisili</label>
+                    <select id="pacerCityDesktop"
+                            class="w-full h-10 px-3 rounded-md bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-neon">
+                        <option value="">Semua Kota</option>
+                        @foreach($cities as $city)
+                            <option value="{{ $city->id }}" @selected((string) request('city_id') === (string) $city->id)>{{ $city->name }}</option>
+                        @endforeach
                     </select>
                 </div>
 
-                <!-- Pace -->
                 <div>
-                    <label class="block text-xs font-mono text-neon mb-2 uppercase tracking-widest">Target Pace</label>
-                    <input v-model="filters.pace" @input="debouncedSearch" type="text" placeholder="e.g. 5:30" class="w-full bg-card border border-slate-700 rounded-xl px-4 py-3 text-sm focus:border-neon outline-none text-center font-mono placeholder-slate-600">
+                    <label for="pacerPaceDesktop" class="block text-xs font-semibold text-slate-300 mb-1.5">Target Pace</label>
+                    <input id="pacerPaceDesktop"
+                           type="text"
+                           value="{{ request('pace') }}"
+                           placeholder="Contoh: 5:30"
+                           class="rl-mono w-full h-10 px-3 rounded-md bg-slate-950 border border-slate-700 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-neon">
                 </div>
 
-                <!-- PBs -->
-                <div class="bg-card/50 rounded-xl p-4 border border-slate-800">
-                    <button @click="showAdvanced = !showAdvanced" class="flex items-center justify-between w-full text-xs font-mono text-slate-400 hover:text-neon transition-colors uppercase tracking-widest mb-3">
-                        <span>PB Requirements (Max)</span>
-                        <i class="fa-solid fa-chevron-down transition-transform duration-300" :class="showAdvanced ? 'rotate-180' : ''"></i>
-                    </button>
-                    
-                    <div v-show="showAdvanced" class="space-y-3 transition-all">
-                        <div v-for="(label, key) in pbFields" :key="key">
-                            <label class="text-[10px] text-slate-500 uppercase mb-1 block">@{{ label }}</label>
-                            <input v-model="filters[key]" @input="debouncedSearch" type="text" placeholder="00:00:00" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-center focus:border-neon outline-none">
-                        </div>
+                <details class="bg-slate-950 border border-slate-800 rounded-md p-3">
+                    <summary class="cursor-pointer list-none flex items-center justify-between text-xs font-semibold text-slate-300">
+                        <span>Batas Maksimal PB</span>
+                        <span class="text-slate-500 text-[11px]">Opsional</span>
+                    </summary>
+                    <div class="mt-3 space-y-2.5">
+                        @foreach(['pb_5k' => '5K PB', 'pb_10k' => '10K PB', 'pb_hm' => 'Half Marathon', 'pb_fm' => 'Full Marathon'] as $pbKey => $pbLabel)
+                            <div>
+                                <label for="desktop_{{ $pbKey }}" class="block text-[11px] text-slate-400 mb-1">{{ $pbLabel }}</label>
+                                <input id="desktop_{{ $pbKey }}"
+                                       data-pb-field="{{ $pbKey }}"
+                                       type="text"
+                                       value="{{ request($pbKey) }}"
+                                       placeholder="00:00:00"
+                                       class="rl-mono kp-pb-input w-full h-9 px-2.5 rounded-md bg-slate-900 border border-slate-700 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-neon">
+                            </div>
+                        @endforeach
                     </div>
-                </div>
-
-                <button v-if="activeFilterCount > 0" @click="resetFilters" class="w-full py-2 text-xs font-bold text-slate-500 hover:text-white transition-colors uppercase tracking-widest">
-                    Reset Filters
-                </button>
+                </details>
             </aside>
 
-            <!-- Results Grid -->
-            <div class="flex-grow w-full">
-                <!-- Status Bar -->
-                <div class="hidden md:flex justify-between items-center mb-6 pb-4 border-b border-slate-800">
-                    <p class="text-slate-400 text-sm">Showing <span class="text-white font-bold">@{{ pacers.length }}</span> professionals</p>
-                    <div class="flex gap-2">
-                        <!-- Future: Sort options -->
-                    </div>
+            {{-- Results Column --}}
+            <div class="flex-1 w-full min-w-0">
+                <div class="flex items-center justify-between gap-3 pb-4 mb-5 border-b border-slate-800">
+                    <p class="text-sm text-slate-300">
+                        Menampilkan <span id="pacerResultCount" class="rl-mono font-bold text-white">{{ $pacers->count() }}</span> pacer
+                    </p>
+                    <span id="pacerLoadingNote" class="hidden text-xs text-neon font-medium">Memuat data...</span>
                 </div>
 
-                <!-- Loading State -->
-                <div v-if="loading" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div v-for="n in 6" :key="n" class="bg-card rounded-2xl p-4 border border-slate-800 animate-pulse h-96">
-                        <div class="bg-slate-800 h-48 rounded-xl mb-4 w-full"></div>
-                        <div class="bg-slate-800 h-6 w-3/4 rounded mb-2"></div>
-                        <div class="bg-slate-800 h-4 w-1/2 rounded"></div>
-                    </div>
-                </div>
-
-                <!-- Empty State -->
-                <div v-else-if="pacers.length === 0" class="text-center py-20 bg-card/30 rounded-3xl border border-slate-800 border-dashed">
-                    <div class="w-20 h-20 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-6 text-slate-500">
-                        <i class="fa-solid fa-person-running text-3xl"></i>
-                    </div>
-                    <h3 class="text-xl font-bold text-white mb-2">No Pacers Found</h3>
-                    <p class="text-slate-400 mb-6 max-w-xs mx-auto">Try adjusting your filters or search terms to find what you're looking for.</p>
-                    <button @click="resetFilters" class="px-6 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg font-bold transition-colors">Clear All Filters</button>
-                </div>
-
-                <!-- Grid -->
-                <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                    <div v-for="pacer in pacers" :key="pacer.id" class="group bg-card rounded-2xl overflow-hidden border border-slate-800 hover:border-neon/50 transition-all duration-300 hover:-translate-y-1 hover:shadow-xl relative flex flex-col h-full">
-                        
-                        <!-- Badge -->
-                        <div class="absolute top-3 left-3 z-10">
-                            <span :class="[
-                                'px-2.5 py-1 rounded-md text-[10px] font-bold border backdrop-blur-md uppercase tracking-wider',
-                                pacer.verified 
-                                    ? 'bg-green-500/10 text-green-400 border-green-500/20' 
-                                    : 'bg-slate-800/80 text-slate-400 border-slate-600'
-                            ]">
-                                @{{ pacer.verified ? 'Verified' : 'Pacer' }}
-                            </span>
-                        </div>
-
-                        <!-- Image -->
-                        <div class="h-60 overflow-hidden relative bg-slate-900">
-                            <div class="absolute inset-0 bg-gradient-to-t from-card via-transparent to-transparent z-10 opacity-80 group-hover:opacity-60 transition-opacity duration-500"></div>
-                            
-                            <!-- Fallback logic for image handled in computed or template -->
-                            <img :src="getPacerImage(pacer)" loading="lazy" class="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-110 opacity-90 group-hover:opacity-100">
-                            
-                            <div class="absolute bottom-3 right-3 z-20 bg-neon text-dark font-black text-[10px] px-2 py-1 -skew-x-12 shadow-[2px_2px_0px_rgba(0,0,0,0.5)]">
-                                @{{ pacer.category }}
-                            </div>
-                        </div>
-
-                        <!-- Content -->
-                        <div class="p-5 relative z-20 flex flex-col flex-grow">
-                            <div class="flex justify-between items-end mb-4 border-b border-slate-800/50 pb-4">
-                                <div>
-                                    <p class="text-slate-500 text-[10px] uppercase tracking-wider mb-1">Target Pace</p>
-                                    <h3 class="font-mono text-3xl font-bold text-white group-hover:text-neon transition-colors">@{{ pacer.pace }}</h3>
+                {{-- SSR Pacer Grid (Crawlable by Googlebot immediately) --}}
+                <div id="pacerGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 {{ $pacers->isEmpty() ? 'hidden' : '' }}">
+                    @foreach($pacers as $pacer)
+                        <article class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden flex flex-col justify-between hover:border-slate-700 transition duration-150">
+                            <div>
+                                {{-- Clean Top Status Strip --}}
+                                <div class="px-4 py-2.5 bg-slate-950 border-b border-slate-800 flex items-center justify-between gap-2">
+                                    <span class="rl-mono text-[11px] font-bold px-2 py-0.5 rounded {{ $pacer->verified ? 'bg-neon text-slate-950' : 'bg-slate-800 text-slate-300' }}">
+                                        {{ $pacer->verified ? 'Verified' : 'Pacer' }}
+                                    </span>
+                                    <span class="rl-mono text-[11px] font-semibold text-slate-300">
+                                        {{ $pacer->category ?: 'Road Run' }}
+                                    </span>
                                 </div>
-                                <div class="text-right">
-                                    <p class="text-slate-500 text-[10px] uppercase tracking-wider mb-1">Experience</p>
-                                    <p class="font-mono text-sm font-bold text-slate-300">@{{ pacer.total_races }} <span class="text-xs font-normal text-slate-500">Races</span></p>
-                                </div>
-                            </div>
-                            
-                            <div class="flex-grow">
-                                <h4 class="font-bold text-lg text-white leading-tight mb-1">@{{ pacer.user.name }}</h4>
-                                <p v-if="pacer.nickname" class="text-neon text-sm italic font-medium">"@{{ pacer.nickname }}"</p>
-                                <div v-if="pacer.user.city" class="flex items-center gap-1.5 mt-2 text-xs text-slate-400">
-                                    <i class="fa-solid fa-location-dot text-slate-600"></i>
-                                    @{{ pacer.user.city.name }}
+
+                                {{-- Unobstructed Portrait --}}
+                                <a href="{{ route('pacer.show', $pacer->seo_slug) }}" class="block aspect-[4/3] bg-slate-800 border-b border-slate-800 overflow-hidden">
+                                    <img src="{{ $pacerAvatarUrl($pacer) }}"
+                                         alt="Pacer {{ $pacer->user?->name ?? 'Ruang Lari' }} - {{ $pacer->category }}"
+                                         loading="lazy"
+                                         onerror="this.onerror=null; this.src='{{ asset('images/default-male.svg') }}';"
+                                         class="w-full h-full object-cover object-center">
+                                </a>
+
+                                {{-- Card Body --}}
+                                <div class="p-5 pb-3">
+                                    <div class="flex items-end justify-between gap-3 pb-3.5 mb-3.5 border-b border-slate-800">
+                                        <div>
+                                            <div class="text-[11px] text-slate-400">Target Pace</div>
+                                            <div class="rl-mono text-2xl font-bold text-white mt-0.5">{{ $pacer->pace ?: '-' }}</div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-[11px] text-slate-400">Pengalaman</div>
+                                            <div class="rl-mono text-sm font-semibold text-slate-200 mt-0.5">{{ (int) $pacer->total_races }} Race</div>
+                                        </div>
+                                    </div>
+
+                                    <h3 class="text-base sm:text-lg text-white truncate">
+                                        <a href="{{ route('pacer.show', $pacer->seo_slug) }}" class="hover:text-neon transition duration-150">
+                                            {{ $pacer->user?->name ?? 'Pacer' }}
+                                        </a>
+                                    </h3>
+
+                                    @if($pacer->nickname)
+                                        <div class="text-xs font-medium text-slate-300 mt-0.5 truncate">"{{ $pacer->nickname }}"</div>
+                                    @endif
+
+                                    <div class="text-xs text-slate-400 mt-2 truncate">
+                                        {{ $pacer->user?->city?->name ?? 'Indonesia' }}
+                                    </div>
                                 </div>
                             </div>
 
-                            <a :href="'/pacer/' + pacer.seo_slug" class="mt-6 w-full block py-3 bg-slate-800 hover:bg-neon hover:text-dark text-white text-center rounded-xl text-xs font-black uppercase tracking-widest transition-all duration-300 group-hover:shadow-[0_0_15px_rgba(204,255,0,0.4)]">
-                                View Profile
-                            </a>
-                        </div>
-                    </div>
+                            <div class="px-5 pb-5 pt-2">
+                                <a href="{{ route('pacer.show', $pacer->seo_slug) }}"
+                                   class="w-full inline-flex items-center justify-center h-10 px-4 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-white transition duration-150">
+                                    Lihat Profil &amp; Booking
+                                </a>
+                            </div>
+                        </article>
+                    @endforeach
+                </div>
+
+                {{-- Empty State --}}
+                <div id="pacerEmptyState" class="{{ $pacers->isEmpty() ? '' : 'hidden' }} bg-slate-900 border border-slate-800 rounded-lg p-10 text-center">
+                    <h3 class="text-lg text-white">Pacer Tidak Ditemukan</h3>
+                    <p class="text-sm text-slate-300 mt-1.5 max-w-md mx-auto">
+                        Tidak ada pacer yang sesuai dengan filter pencarian Anda. Coba reset filter atau ubah target pace.
+                    </p>
+                    <button type="button" id="btnResetEmpty"
+                            class="mt-5 inline-flex items-center justify-center h-10 px-5 rounded-md bg-neon hover:bg-lime-300 text-slate-950 text-sm font-bold transition duration-150">
+                        Reset Filter
+                    </button>
                 </div>
             </div>
         </div>
+    </section>
 
-    </main>
+    {{-- SEO City Directory & FAQ Section --}}
+    <section class="border-t border-slate-800 bg-slate-950">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 py-10 sm:py-12 space-y-10">
+            @if($cities->isNotEmpty())
+            <div>
+                <h2 class="text-lg sm:text-xl text-white mb-3">Cari Pacer Berdasarkan Kota</h2>
+                <div class="flex flex-wrap gap-2">
+                    @foreach($cities as $city)
+                        <a href="{{ route('pacer.index', ['city_id' => $city->id]) }}"
+                           class="inline-flex items-center h-9 px-3.5 rounded-md bg-slate-900 hover:bg-slate-800 border border-slate-800 text-xs font-medium text-slate-200 hover:text-white transition duration-150">
+                            Pacer {{ $city->name }}
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+            @endif
 
-    <!-- Mobile Filter Drawer (Slide-over) -->
-    <div v-if="showMobileFilter" class="fixed inset-0 z-50 md:hidden">
-        <!-- Backdrop -->
-        <div @click="showMobileFilter = false" class="absolute inset-0 bg-dark/90 backdrop-blur-sm transition-opacity"></div>
-        
-        <!-- Drawer -->
-        <div class="absolute inset-x-0 bottom-0 h-[85vh] bg-card rounded-t-3xl p-6 flex flex-col shadow-2xl animate-[slideUp_0.3s_ease-out]">
-            <div class="flex justify-between items-center mb-6">
-                <h3 class="text-xl font-bold text-white">Filters</h3>
-                <button @click="showMobileFilter = false" class="p-2 bg-slate-800 rounded-full text-slate-400 hover:text-white">
-                    <i class="fa-solid fa-xmark text-lg"></i>
+            <div>
+                <h2 class="text-lg sm:text-xl text-white mb-4">Pertanyaan Umum Seputar Pacer</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <details class="rl-faq-item bg-slate-900 border border-slate-800 rounded-lg p-5">
+                        <summary class="flex items-center justify-between gap-3 cursor-pointer list-none text-sm font-semibold text-white">
+                            <span>Apa tugas pacer saat lomba lari?</span>
+                            <svg class="rl-faq-chevron w-4 h-4 text-slate-400 shrink-0 transition duration-150" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </summary>
+                        <p class="text-xs sm:text-sm text-slate-300 mt-3 leading-relaxed">
+                            Pacer menjaga kecepatan lari secara konsisten sesuai target waktu finis sehingga pelari tidak kehabisan tenaga di awal lomba.
+                        </p>
+                    </details>
+
+                    <details class="rl-faq-item bg-slate-900 border border-slate-800 rounded-lg p-5">
+                        <summary class="flex items-center justify-between gap-3 cursor-pointer list-none text-sm font-semibold text-white">
+                            <span>Bagaimana cara memilih pacer yang tepat?</span>
+                            <svg class="rl-faq-chevron w-4 h-4 text-slate-400 shrink-0 transition duration-150" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </summary>
+                        <p class="text-xs sm:text-sm text-slate-300 mt-3 leading-relaxed">
+                            Cocokkan target pace lomba, kategori jarak (10K, HM 21K, FM 42K), serta riwayat Personal Best pacer pada halaman profil masing-masing.
+                        </p>
+                    </details>
+
+                    <details class="rl-faq-item bg-slate-900 border border-slate-800 rounded-lg p-5">
+                        <summary class="flex items-center justify-between gap-3 cursor-pointer list-none text-sm font-semibold text-white">
+                            <span>Apakah komunitas/EO bisa booking pacer?</span>
+                            <svg class="rl-faq-chevron w-4 h-4 text-slate-400 shrink-0 transition duration-150" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </summary>
+                        <p class="text-xs sm:text-sm text-slate-300 mt-3 leading-relaxed">
+                            Ya. Buka profil pacer pilihan Anda lalu ajukan booking langsung untuk jadwal latihan bersama maupun event resmi.
+                        </p>
+                    </details>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    {{-- Mobile Filter Drawer (Opaque, Clean, No Blur) --}}
+    <div id="mobileFilterDrawer" class="hidden fixed inset-0 z-50 md:hidden" role="dialog" aria-modal="true" aria-label="Filter pacer">
+        <div id="mobileFilterBackdrop" class="absolute inset-0 bg-black/75"></div>
+        <div class="absolute inset-x-0 bottom-0 max-h-[88dvh] bg-slate-900 border-t border-slate-800 rounded-t-lg p-5 flex flex-col">
+            <div class="flex items-center justify-between pb-3.5 mb-4 border-b border-slate-800 shrink-0">
+                <h3 class="text-base text-white">Filter Pacer</h3>
+                <button type="button" id="btnCloseMobileFilter"
+                        class="inline-flex items-center justify-center h-9 px-3 rounded-md bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-200">
+                    Tutup
                 </button>
             </div>
 
-            <div class="overflow-y-auto flex-grow space-y-6 pr-2">
-                <!-- Mobile Category -->
+            <div class="overflow-y-auto flex-1 space-y-4 pr-1">
                 <div>
-                    <label class="block text-xs font-mono text-neon mb-3 uppercase tracking-widest">Category</label>
-                    <div class="flex flex-wrap gap-2">
-                        <button v-for="cat in categories" :key="cat" @click="setCategory(cat)" :class="['px-3 py-2 rounded-lg text-xs font-bold border', filters.category === cat ? 'bg-neon text-dark border-neon' : 'bg-slate-800 text-slate-400 border-slate-700']">
-                            @{{ cat }}
-                        </button>
+                    <span class="block text-xs font-semibold text-slate-300 mb-2">Kategori Jarak</span>
+                    <div class="grid grid-cols-2 gap-2" id="mobileCategoryGroup">
+                        @foreach(['All' => 'Semua', '10K' => '10K', 'HM (21K)' => 'HM (21K)', 'FM (42K)' => 'FM (42K)'] as $catVal => $catLabel)
+                            @php $isActiveCat = request('category', 'All') === $catVal; @endphp
+                            <button type="button"
+                                    data-category="{{ $catVal }}"
+                                    class="kp-cat-btn-mobile h-10 px-3 rounded-md border text-xs font-semibold transition {{ $isActiveCat ? 'bg-neon text-slate-950 border-neon font-bold' : 'bg-slate-950 text-slate-300 border-slate-800' }}">
+                                {{ $catLabel }}
+                            </button>
+                        @endforeach
                     </div>
                 </div>
 
-                <!-- Mobile City -->
                 <div>
-                    <label class="block text-xs font-mono text-neon mb-2 uppercase tracking-widest">City</label>
-                    <select v-model="filters.city_id" @change="fetchPacers" class="w-full bg-slate-900 border border-slate-700 text-white px-4 py-3 rounded-xl">
-                        <option value="">All Cities</option>
-                        <option v-for="city in cities" :key="city.id" :value="city.id">@{{ city.name }}</option>
+                    <label for="pacerCityMobile" class="block text-xs font-semibold text-slate-300 mb-1.5">Kota Domisili</label>
+                    <select id="pacerCityMobile"
+                            class="w-full h-10 px-3 rounded-md bg-slate-950 border border-slate-700 text-sm text-white">
+                        <option value="">Semua Kota</option>
+                        @foreach($cities as $city)
+                            <option value="{{ $city->id }}" @selected((string) request('city_id') === (string) $city->id)>{{ $city->name }}</option>
+                        @endforeach
                     </select>
                 </div>
 
-                <!-- Mobile Pace -->
                 <div>
-                    <label class="block text-xs font-mono text-neon mb-2 uppercase tracking-widest">Target Pace</label>
-                    <input v-model="filters.pace" @input="debouncedSearch" type="text" placeholder="e.g. 5:30" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white text-center">
+                    <label for="pacerPaceMobile" class="block text-xs font-semibold text-slate-300 mb-1.5">Target Pace</label>
+                    <input id="pacerPaceMobile"
+                           type="text"
+                           value="{{ request('pace') }}"
+                           placeholder="Contoh: 5:30"
+                           class="rl-mono w-full h-10 px-3 rounded-md bg-slate-950 border border-slate-700 text-sm text-white placeholder-slate-400">
                 </div>
 
-                <!-- Mobile PBs -->
                 <div>
-                    <label class="block text-xs font-mono text-neon mb-3 uppercase tracking-widest">PB Requirements</label>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div v-for="(label, key) in pbFields" :key="key">
-                            <label class="text-[10px] text-slate-500 uppercase mb-1 block">@{{ label }}</label>
-                            <input v-model="filters[key]" @input="debouncedSearch" type="text" placeholder="00:00:00" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-center text-white">
-                        </div>
+                    <span class="block text-xs font-semibold text-slate-300 mb-2">Batas Maksimal PB (Opsional)</span>
+                    <div class="grid grid-cols-2 gap-2.5">
+                        @foreach(['pb_5k' => '5K PB', 'pb_10k' => '10K PB', 'pb_hm' => 'Half Marathon', 'pb_fm' => 'Full Marathon'] as $pbKey => $pbLabel)
+                            <div>
+                                <label for="mobile_{{ $pbKey }}" class="block text-[11px] text-slate-400 mb-1">{{ $pbLabel }}</label>
+                                <input id="mobile_{{ $pbKey }}"
+                                       data-pb-field="{{ $pbKey }}"
+                                       type="text"
+                                       value="{{ request($pbKey) }}"
+                                       placeholder="00:00:00"
+                                       class="rl-mono kp-pb-input-mobile w-full h-9 px-2.5 rounded-md bg-slate-950 border border-slate-700 text-xs text-white placeholder-slate-500">
+                            </div>
+                        @endforeach
                     </div>
                 </div>
             </div>
 
-            <div class="pt-4 border-t border-slate-800 mt-4 flex gap-3">
-                <button @click="resetFilters" class="flex-1 py-3 bg-slate-800 text-slate-300 font-bold rounded-xl text-sm">Reset</button>
-                <button @click="showMobileFilter = false" class="flex-2 w-2/3 py-3 bg-neon text-dark font-black rounded-xl text-sm shadow-neon-cyan">
-                    Show Results (@{{ pacers.length }})
+            <div class="pt-4 mt-4 border-t border-slate-800 grid grid-cols-2 gap-2.5 shrink-0">
+                <button type="button" id="btnResetMobile"
+                        class="h-10 rounded-md bg-slate-800 border border-slate-700 text-xs font-semibold text-white">
+                    Reset
+                </button>
+                <button type="button" id="btnApplyMobileFilter"
+                        class="h-10 rounded-md bg-neon text-slate-950 text-xs font-bold">
+                    Terapkan Filter
                 </button>
             </div>
         </div>
     </div>
-
 </div>
-
-<script>
-    const { createApp, ref, reactive, watch, computed, onMounted } = Vue;
-
-    createApp({
-        setup() {
-            const pacers = ref(@json($pacers));
-            const cities = ref(@json($cities));
-            const loading = ref(false);
-            const showMobileFilter = ref(false);
-            const showAdvanced = ref(false);
-
-            const categories = ['All', 'HM (21K)', 'FM (42K)', '10K'];
-            const pbFields = {
-                'pb_5k': '5K PB',
-                'pb_10k': '10K PB',
-                'pb_hm': 'Half Marathon',
-                'pb_fm': 'Full Marathon'
-            };
-
-            const filters = reactive({
-                search: '{{ request("search") }}',
-                city_id: '{{ request("city_id") }}',
-                category: '{{ request("category", "All") }}',
-                pace: '{{ request("pace") }}',
-                pb_5k: '{{ request("pb_5k") }}',
-                pb_10k: '{{ request("pb_10k") }}',
-                pb_hm: '{{ request("pb_hm") }}',
-                pb_fm: '{{ request("pb_fm") }}',
-            });
-
-            // Clean up nulls
-            Object.keys(filters).forEach(key => {
-                if(filters[key] === 'null') filters[key] = '';
-            });
-
-            const activeFilterCount = computed(() => {
-                let count = 0;
-                if(filters.search) count++;
-                if(filters.city_id) count++;
-                if(filters.category !== 'All') count++;
-                if(filters.pace) count++;
-                Object.keys(pbFields).forEach(k => { if(filters[k]) count++; });
-                return count;
-            });
-
-            let debounceTimer;
-            const debouncedSearch = () => {
-                clearTimeout(debounceTimer);
-                debounceTimer = setTimeout(() => {
-                    fetchPacers();
-                }, 500);
-            };
-
-            const setCategory = (cat) => {
-                filters.category = cat;
-                fetchPacers();
-            };
-
-            const resetFilters = () => {
-                filters.search = '';
-                filters.city_id = '';
-                filters.category = 'All';
-                filters.pace = '';
-                filters.pb_5k = '';
-                filters.pb_10k = '';
-                filters.pb_hm = '';
-                filters.pb_fm = '';
-                fetchPacers();
-            };
-
-            const fetchPacers = async () => {
-                loading.value = true;
-                try {
-                    // Build query string
-                    const params = new URLSearchParams();
-                    Object.keys(filters).forEach(key => {
-                        if (filters[key]) params.append(key, filters[key]);
-                    });
-
-                    const response = await fetch(`{{ route('pacer.index') }}?` + params.toString(), {
-                        headers: {
-                            'Accept': 'application/json',
-                            'X-Requested-With': 'XMLHttpRequest'
-                        }
-                    });
-                    
-                    if (response.ok) {
-                        const data = await response.json();
-                        pacers.value = data.pacers;
-                        // Update URL without reload
-                        window.history.replaceState({}, '', `{{ route('pacer.index') }}?` + params.toString());
-                    }
-                } catch (error) {
-                    console.error('Error fetching pacers:', error);
-                } finally {
-                    loading.value = false;
-                }
-            };
-
-            const getPacerImage = (pacer) => {
-                if (pacer.user.avatar) {
-                    return `{{ asset('storage') }}/${pacer.user.avatar}`;
-                }
-                return pacer.user.gender === 'female' 
-                    ? `{{ asset('images/default-female.svg') }}` 
-                    : `{{ asset('images/default-male.svg') }}`;
-            };
-
-            return {
-                pacers, cities, filters, loading, 
-                showMobileFilter, showAdvanced,
-                categories, pbFields, activeFilterCount,
-                debouncedSearch, setCategory, resetFilters, fetchPacers, getPacerImage
-            };
-        }
-    }).mount('#pacer-app');
-</script>
-
-<style>
-    @keyframes slideUp {
-        from { transform: translateY(100%); }
-        to { transform: translateY(0); }
-    }
-    /* Custom scrollbar for sidebar */
-    aside::-webkit-scrollbar { width: 4px; }
-    aside::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-</style>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const endpoint = @json(route('pacer.index'));
+    const storageBase = @json(asset('storage'));
+    const defaultMale = @json(asset('images/default-male.svg'));
+    const defaultFemale = @json(asset('images/default-female.svg'));
+
+    const state = {
+        search: @json((string) request('search', '')),
+        city_id: @json((string) request('city_id', '')),
+        category: @json((string) request('category', 'All')),
+        pace: @json((string) request('pace', '')),
+        pb_5k: @json((string) request('pb_5k', '')),
+        pb_10k: @json((string) request('pb_10k', '')),
+        pb_hm: @json((string) request('pb_hm', '')),
+        pb_fm: @json((string) request('pb_fm', '')),
+    };
+
+    const pacerGrid = document.getElementById('pacerGrid');
+    const emptyState = document.getElementById('pacerEmptyState');
+    const countLabel = document.getElementById('pacerResultCount');
+    const loadingNote = document.getElementById('pacerLoadingNote');
+    const btnResetDesktop = document.getElementById('btnResetDesktop');
+    const mobileBadge = document.getElementById('mobileFilterBadge');
+
+    const drawer = document.getElementById('mobileFilterDrawer');
+    const btnOpenDrawer = document.getElementById('btnOpenMobileFilter');
+    const btnCloseDrawer = document.getElementById('btnCloseMobileFilter');
+    const drawerBackdrop = document.getElementById('mobileFilterBackdrop');
+    const btnApplyMobile = document.getElementById('btnApplyMobileFilter');
+
+    function escapeHtml(str) {
+        return String(str || '').replace(/[&<>"']/g, function (m) {
+            return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m];
+        });
+    }
+
+    function resolveAvatar(pacer) {
+        const avatar = pacer && pacer.user ? pacer.user.avatar : null;
+        if (avatar) {
+            if (avatar.startsWith('http')) return avatar;
+            if (avatar.startsWith('/storage')) return avatar;
+            return storageBase + '/' + avatar.replace(/^\/+/, '');
+        }
+        return (pacer && pacer.user && pacer.user.gender === 'female') ? defaultFemale : defaultMale;
+    }
+
+    function activeFilterCount() {
+        let count = 0;
+        if (state.search) count++;
+        if (state.city_id) count++;
+        if (state.category && state.category !== 'All') count++;
+        if (state.pace) count++;
+        ['pb_5k', 'pb_10k', 'pb_hm', 'pb_fm'].forEach(k => { if (state[k]) count++; });
+        return count;
+    }
+
+    function syncInputs() {
+        const sDesk = document.getElementById('pacerSearchDesktop');
+        const sMob = document.getElementById('pacerSearchMobile');
+        const cDesk = document.getElementById('pacerCityDesktop');
+        const cMob = document.getElementById('pacerCityMobile');
+        const pDesk = document.getElementById('pacerPaceDesktop');
+        const pMob = document.getElementById('pacerPaceMobile');
+
+        if (sDesk) sDesk.value = state.search;
+        if (sMob) sMob.value = state.search;
+        if (cDesk) cDesk.value = state.city_id;
+        if (cMob) cMob.value = state.city_id;
+        if (pDesk) pDesk.value = state.pace;
+        if (pMob) pMob.value = state.pace;
+
+        ['pb_5k', 'pb_10k', 'pb_hm', 'pb_fm'].forEach(function (k) {
+            const dEl = document.getElementById('desktop_' + k);
+            const mEl = document.getElementById('mobile_' + k);
+            if (dEl) dEl.value = state[k];
+            if (mEl) mEl.value = state[k];
+        });
+
+        document.querySelectorAll('.kp-cat-btn, .kp-cat-btn-mobile').forEach(function (btn) {
+            const active = btn.getAttribute('data-category') === state.category;
+            btn.classList.toggle('bg-neon', active);
+            btn.classList.toggle('text-slate-950', active);
+            btn.classList.toggle('border-neon', active);
+            btn.classList.toggle('font-bold', active);
+            btn.classList.toggle('bg-slate-950', !active);
+            btn.classList.toggle('text-slate-300', !active);
+            btn.classList.toggle('border-slate-800', !active);
+        });
+
+        const cnt = activeFilterCount();
+        if (btnResetDesktop) btnResetDesktop.classList.toggle('hidden', cnt === 0);
+        if (mobileBadge) {
+            mobileBadge.textContent = String(cnt);
+            mobileBadge.classList.toggle('hidden', cnt === 0);
+        }
+    }
+
+    function renderGrid(pacers) {
+        if (!pacerGrid || !emptyState) return;
+        if (countLabel) countLabel.textContent = String(pacers.length);
+
+        if (!pacers.length) {
+            pacerGrid.innerHTML = '';
+            pacerGrid.classList.add('hidden');
+            emptyState.classList.remove('hidden');
+            return;
+        }
+
+        emptyState.classList.add('hidden');
+        pacerGrid.classList.remove('hidden');
+
+        pacerGrid.innerHTML = pacers.map(function (p) {
+            const name = escapeHtml(p.user && p.user.name ? p.user.name : 'Pacer');
+            const slug = encodeURIComponent(p.seo_slug || '');
+            const city = escapeHtml(p.user && p.user.city && p.user.city.name ? p.user.city.name : 'Indonesia');
+            const category = escapeHtml(p.category || 'Road Run');
+            const pace = escapeHtml(p.pace || '-');
+            const races = parseInt(p.total_races || 0, 10);
+            const verified = !!p.verified;
+            const nickname = p.nickname ? `<div class="text-xs font-medium text-slate-300 mt-0.5 truncate">"${escapeHtml(p.nickname)}"</div>` : '';
+            const avatar = escapeHtml(resolveAvatar(p));
+
+            return `
+                <article class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden flex flex-col justify-between hover:border-slate-700 transition duration-150">
+                    <div>
+                        <div class="px-4 py-2.5 bg-slate-950 border-b border-slate-800 flex items-center justify-between gap-2">
+                            <span class="rl-mono text-[11px] font-bold px-2 py-0.5 rounded ${verified ? 'bg-neon text-slate-950' : 'bg-slate-800 text-slate-300'}">
+                                ${verified ? 'Verified' : 'Pacer'}
+                            </span>
+                            <span class="rl-mono text-[11px] font-semibold text-slate-300">${category}</span>
+                        </div>
+                        <a href="/pacer/${slug}" class="block aspect-[4/3] bg-slate-800 border-b border-slate-800 overflow-hidden">
+                            <img src="${avatar}" alt="Pacer ${name}" loading="lazy" onerror="this.onerror=null; this.src='${defaultMale}';" class="w-full h-full object-cover object-center">
+                        </a>
+                        <div class="p-5 pb-3">
+                            <div class="flex items-end justify-between gap-3 pb-3.5 mb-3.5 border-b border-slate-800">
+                                <div>
+                                    <div class="text-[11px] text-slate-400">Target Pace</div>
+                                    <div class="rl-mono text-2xl font-bold text-white mt-0.5">${pace}</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-[11px] text-slate-400">Pengalaman</div>
+                                    <div class="rl-mono text-sm font-semibold text-slate-200 mt-0.5">${races} Race</div>
+                                </div>
+                            </div>
+                            <h3 class="text-base sm:text-lg text-white truncate">
+                                <a href="/pacer/${slug}" class="hover:text-neon transition duration-150">${name}</a>
+                            </h3>
+                            ${nickname}
+                            <div class="text-xs text-slate-400 mt-2 truncate">${city}</div>
+                        </div>
+                    </div>
+                    <div class="px-5 pb-5 pt-2">
+                        <a href="/pacer/${slug}" class="w-full inline-flex items-center justify-center h-10 px-4 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-white transition duration-150">
+                            Lihat Profil &amp; Booking
+                        </a>
+                    </div>
+                </article>
+            `;
+        }).join('');
+    }
+
+    let fetchTimer = null;
+    async function fetchPacers() {
+        syncInputs();
+        if (loadingNote) loadingNote.classList.remove('hidden');
+
+        const params = new URLSearchParams();
+        Object.keys(state).forEach(function (k) {
+            if (state[k] && !(k === 'category' && state[k] === 'All')) {
+                params.append(k, state[k]);
+            }
+        });
+
+        const qs = params.toString();
+        const url = qs ? `${endpoint}?${qs}` : endpoint;
+
+        try {
+            const res = await fetch(url, {
+                headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest' }
+            });
+            if (res.ok) {
+                const data = await res.json();
+                renderGrid(data.pacers || []);
+                window.history.replaceState({}, '', url);
+            }
+        } catch (err) {
+            console.error('Error loading pacers:', err);
+        } finally {
+            if (loadingNote) loadingNote.classList.add('hidden');
+        }
+    }
+
+    function scheduleFetch() {
+        clearTimeout(fetchTimer);
+        fetchTimer = setTimeout(fetchPacers, 350);
+    }
+
+    function resetAllFilters() {
+        state.search = '';
+        state.city_id = '';
+        state.category = 'All';
+        state.pace = '';
+        state.pb_5k = '';
+        state.pb_10k = '';
+        state.pb_hm = '';
+        state.pb_fm = '';
+        fetchPacers();
+    }
+
+    // Bind Search
+    ['pacerSearchDesktop', 'pacerSearchMobile'].forEach(function (id) {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', function () {
+                state.search = el.value;
+                scheduleFetch();
+            });
+        }
+    });
+
+    // Bind Category
+    document.querySelectorAll('.kp-cat-btn, .kp-cat-btn-mobile').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            state.category = btn.getAttribute('data-category') || 'All';
+            fetchPacers();
+        });
+    });
+
+    // Bind City
+    ['pacerCityDesktop', 'pacerCityMobile'].forEach(function (id) {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('change', function () {
+                state.city_id = el.value;
+                fetchPacers();
+            });
+        }
+    });
+
+    // Bind Pace
+    ['pacerPaceDesktop', 'pacerPaceMobile'].forEach(function (id) {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('input', function () {
+                state.pace = el.value;
+                scheduleFetch();
+            });
+        }
+    });
+
+    // Bind PB inputs
+    document.querySelectorAll('.kp-pb-input, .kp-pb-input-mobile').forEach(function (el) {
+        el.addEventListener('input', function () {
+            const key = el.getAttribute('data-pb-field');
+            if (key) {
+                state[key] = el.value;
+                scheduleFetch();
+            }
+        });
+    });
+
+    // Reset buttons
+    ['btnResetDesktop', 'btnResetMobile', 'btnResetEmpty'].forEach(function (id) {
+        const el = document.getElementById(id);
+        if (el) el.addEventListener('click', resetAllFilters);
+    });
+
+    // Mobile drawer
+    function setDrawer(open) {
+        if (!drawer) return;
+        drawer.classList.toggle('hidden', !open);
+        document.body.style.overflow = open ? 'hidden' : '';
+    }
+    if (btnOpenDrawer) btnOpenDrawer.addEventListener('click', () => setDrawer(true));
+    if (btnCloseDrawer) btnCloseDrawer.addEventListener('click', () => setDrawer(false));
+    if (drawerBackdrop) drawerBackdrop.addEventListener('click', () => setDrawer(false));
+    if (btnApplyMobile) btnApplyMobile.addEventListener('click', () => setDrawer(false));
+
+    syncInputs();
+});
+</script>
+@endpush

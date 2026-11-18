@@ -1,442 +1,510 @@
-@extends('layouts.pacerhub')
+@extends('layouts.pacerhub', ['skipHeavyAssets' => true, 'skipLoader' => true])
 
 @php
-    $pacerName = $pacer->user->name ?? 'Pacer';
-    $pacerCity = $pacer->user && $pacer->user->city ? $pacer->user->city->name : null;
-    $highlightPbLabel = null;
-    $highlightPbValue = null;
+    $pacerName = $pacer->nickname ? $pacer->user->name . ' (' . $pacer->nickname . ')' : $pacer->user->name;
+    $pacerCity = $pacer->user->city ? $pacer->user->city->name : '';
+    $highlightPbLabel = 'PB';
+    $highlightPbValue = '-';
+
     if ($pacer->user) {
-        if ($pacer->category === '5K') {
+        if ($pacer->category === '5K' && $pacer->user->pb_5k) {
             $highlightPbLabel = '5K PB';
             $highlightPbValue = $pacer->user->pb_5k;
-        } elseif ($pacer->category === '10K') {
+        } elseif ($pacer->category === '10K' && $pacer->user->pb_10k) {
             $highlightPbLabel = '10K PB';
             $highlightPbValue = $pacer->user->pb_10k;
-        } elseif ($pacer->category === 'HM (21K)') {
+        } elseif ($pacer->category === 'HM (21K)' && $pacer->user->pb_hm) {
             $highlightPbLabel = 'HM PB';
             $highlightPbValue = $pacer->user->pb_hm;
-        } elseif ($pacer->category === 'FM (42K)') {
+        } elseif ($pacer->category === 'FM (42K)' && $pacer->user->pb_fm) {
             $highlightPbLabel = 'FM PB';
             $highlightPbValue = $pacer->user->pb_fm;
+        } else {
+            foreach (['FM PB' => $pacer->user->pb_fm, 'HM PB' => $pacer->user->pb_hm, '10K PB' => $pacer->user->pb_10k, '5K PB' => $pacer->user->pb_5k] as $lbl => $val) {
+                if ($val) {
+                    $highlightPbLabel = $lbl;
+                    $highlightPbValue = $val;
+                    break;
+                }
+            }
         }
     }
+
+    $avatarUrl = $pacer->user && $pacer->user->avatar
+        ? (str_starts_with($pacer->user->avatar, 'http')
+            ? $pacer->user->avatar
+            : (str_starts_with($pacer->user->avatar, '/storage')
+                ? asset(ltrim($pacer->user->avatar, '/'))
+                : asset('storage/' . $pacer->user->avatar)))
+        : ($pacer->user && $pacer->user->gender === 'female'
+            ? asset('images/default-female.svg')
+            : asset('images/default-male.svg'));
+
+    $bannerUrl = $pacer->user && $pacer->user->banner
+        ? asset('storage/' . $pacer->user->banner)
+        : null;
+
+    $canonicalUrl = route('pacer.show', $pacer->seo_slug);
+
+    $seoTitle = $pacerName . ' - Pacer ' . $pacer->category . ' (' . $pacer->pace . ')' . ($pacerCity ? ' di ' . $pacerCity : '') . ' | RuangLari';
+    $seoDescription = 'Sewa ' . $pacerName . ($pacer->verified ? ' (Verified Pacer)' : '') . ' untuk kategori ' . $pacer->category . ' dengan target pace ' . $pacer->pace
+        . ($pacerCity ? ' berbasis di ' . $pacerCity : '') . '. Pengalaman ' . ($pacer->total_races ?? 0) . ' race resmi.'
+        . ($pacer->bio ? ' ' . \Illuminate\Support\Str::limit(strip_tags($pacer->bio), 95) : '');
+    $seoKeywords = implode(', ', array_filter([
+        'sewa pacer',
+        'jasa pacer lari',
+        'pacer ' . $pacer->category,
+        $pacer->user ? $pacer->user->name : null,
+        $pacer->nickname ?: null,
+        $pacerCity ? 'pacer ' . $pacerCity : null,
+        'RuangLari',
+    ]));
+
+    $sameAsLinks = [];
+    if ($contactUnlocked && $pacer->user) {
+        foreach ([$pacer->user->strava_url, $pacer->user->instagram_url, $pacer->user->facebook_url, $pacer->user->tiktok_url] as $socialLink) {
+            if ($socialLink) {
+                $sameAsLinks[] = $socialLink;
+            }
+        }
+    }
+
+    $knowsAbout = array_values(array_filter(array_merge(
+        [$pacer->category, 'Running Pacer', 'Race Strategy'],
+        is_array($pacer->tags) ? $pacer->tags : []
+    )));
 @endphp
 
-@section('title', $pacerName . ' - Pacer Profile')
-@section('meta_title', $pacerName . ' - Pacer ' . ($pacer->category ?? '') . ' | RuangLari')
-@section('meta_description', 'Hire pacer ' . $pacerName . ($pacerCity ? (' di ' . $pacerCity) : '') . ' untuk race ' . ($pacer->category ?? '') . '. Lihat pace, personal best, portfolio race, dan hubungi untuk booking.')
+@section('title', $seoTitle)
+@section('meta_title', $seoTitle)
+@section('meta_description', $seoDescription)
+@section('meta_keywords', $seoKeywords)
+@section('canonical_url', $canonicalUrl)
+@section('og_image', $avatarUrl)
 
 @push('styles')
 <style>
-    .no-scrollbar::-webkit-scrollbar {
-        display: none;
-    }
-    .no-scrollbar {
-        -ms-overflow-style: none;
-        scrollbar-width: none;
-    }
-    .safe-bottom {
-        padding-bottom: env(safe-area-inset-bottom);
+    .pacer-heading {
+        font-family: 'Inter Tight', 'Sora', sans-serif;
+        font-weight: 800;
+        letter-spacing: -0.03em;
     }
 </style>
 @endpush
 
+@push('structured_data')
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org",
+  "@@graph": [
+    {
+      "@@type": "BreadcrumbList",
+      "itemListElement": [
+        {
+          "@@type": "ListItem",
+          "position": 1,
+          "name": "Beranda",
+          "item": "{{ url('/') }}"
+        },
+        {
+          "@@type": "ListItem",
+          "position": 2,
+          "name": "Direktori Pacer",
+          "item": "{{ route('pacer.index') }}"
+        },
+        {
+          "@@type": "ListItem",
+          "position": 3,
+          "name": @json($pacerName),
+          "item": @json($canonicalUrl)
+        }
+      ]
+    },
+    {
+      "@@type": "Person",
+      "name": @json($pacer->user->name),
+      @if($pacer->nickname)
+      "alternateName": @json($pacer->nickname),
+      @endif
+      "description": @json($seoDescription),
+      "url": @json($canonicalUrl),
+      "image": @json($avatarUrl),
+      "jobTitle": @json('Pacer Lari ' . $pacer->category),
+      @if($pacerCity)
+      "homeLocation": {
+        "@@type": "Place",
+        "name": @json($pacerCity)
+      },
+      @endif
+      @if(count($sameAsLinks) > 0)
+      "sameAs": @json($sameAsLinks),
+      @endif
+      "knowsAbout": @json($knowsAbout)
+    },
+    {
+      "@@type": "Service",
+      "name": @json('Jasa Pacer ' . $pacer->category . ' - ' . $pacerName),
+      "serviceType": "Running Pacer",
+      "description": @json($seoDescription),
+      "url": @json($canonicalUrl),
+      "provider": {
+        "@@type": "Person",
+        "name": @json($pacer->user->name)
+      }@if($pacerCity),
+      "areaServed": {
+        "@@type": "City",
+        "name": @json($pacerCity)
+      }@endif
+    }
+  ]
+}
+</script>
+@endpush
+
 @section('content')
+<div class="bg-slate-950 text-slate-200 pt-0 pb-24 md:pb-16">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-6">
+        <nav aria-label="Breadcrumb" class="mb-4 text-xs text-slate-400">
+            <ol class="flex flex-wrap items-center gap-1.5">
+                <li><a href="{{ url('/') }}" class="hover:text-white transition">Beranda</a></li>
+                <li aria-hidden="true">/</li>
+                <li><a href="{{ route('pacer.index') }}" class="hover:text-white transition">Direktori Pacer</a></li>
+                @if($pacerCity)
+                    <li aria-hidden="true">/</li>
+                    <li><a href="{{ route('pacer.index', ['city' => $pacerCity]) }}" class="hover:text-white transition">{{ $pacerCity }}</a></li>
+                @endif
+                <li aria-hidden="true">/</li>
+                <li class="text-slate-200 font-medium truncate max-w-[200px] sm:max-w-xs">{{ $pacerName }}</li>
+            </ol>
+        </nav>
 
-    <div class="absolute h-72 md:h-96 w-full rounded-b-3xl overflow-hidden group pt-20">
-        <div class="absolute inset-0 bg-slate-900">
-            @if($pacer->user->banner)
-                <img src="{{ asset('storage/' . $pacer->user->banner) }}" alt="Banner" class="w-full h-full object-cover opacity-80 group-hover:scale-105 transition-transform duration-700">
-            @else
-                <div class="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900"></div>
-            @endif
-            <div class="absolute inset-0 bg-gradient-to-t from-dark to-transparent"></div>
-        </div>
-        <div class="absolute top-5 left-4 right-4 md:left-10 md:right-10 z-10 flex items-center justify-between">
-            <a href="{{ route('pacer.index') }}" class="inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-slate-900/60 border border-slate-700 text-slate-200 hover:border-neon/40 hover:text-neon transition backdrop-blur-md">
-                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
-                </svg>
-                <span class="text-sm font-bold">Pacers</span>
-            </a>
-            <div class="hidden md:flex items-center gap-2 text-sm font-medium text-slate-300">
-                <span class="text-slate-500">PacerHub</span>
-                <span class="text-slate-700">•</span>
-                <span class="text-neon font-bold">Profile</span>
-            </div>
-        </div>
-    </div>
-
-    <main class="relative z-10 pt-28 pb-28 md:pb-10 px-4 max-w-4xl mx-auto">
-        <div class="bg-card border border-slate-700 rounded-3xl overflow-hidden shadow-2xl mb-6 relative group">
-            <div class="h-36 w-full bg-slate-800 absolute overflow-hidden">
-                <div class="absolute inset-0 opacity-30 bg-[url('https://upload.wikimedia.org/wikipedia/commons/e/ec/World_map_blank_without_borders.svg')] bg-cover bg-center"></div>
-                <div class="absolute inset-0 bg-gradient-to-t from-card to-transparent"></div>
-            </div>
-            <div class="px-6 pb-6 pt-6 relative flex flex-col md:flex-row items-center md:items-end gap-6">
-                <div class="relative">
-                    <div class="w-32 h-32 md:w-40 md:h-40 rounded-2xl overflow-hidden border-4 border-card shadow-xl bg-slate-700">
-                        <img loading="lazy" decoding="async" src="{{ $pacer->user->avatar ? (str_starts_with($pacer->user->avatar, 'http') ? $pacer->user->avatar : (str_starts_with($pacer->user->avatar, '/storage') ? asset(ltrim($pacer->user->avatar, '/')) : asset('storage/' . $pacer->user->avatar))) : ($pacer->user->gender === 'female' ? asset('images/default-female.svg') : asset('images/default-male.svg')) }}" class="w-full h-full object-cover">
-                    </div>
+        <section class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
+            @if($bannerUrl)
+                <div class="h-36 sm:h-48 w-full bg-slate-800 overflow-hidden border-b border-slate-800">
+                    <img src="{{ $bannerUrl }}" alt="Banner {{ $pacerName }}" class="w-full h-full object-cover" loading="eager" decoding="async">
                 </div>
+            @else
+                <div class="h-20 sm:h-24 w-full bg-slate-800 border-b border-slate-800"></div>
+            @endif
 
-                <div class="flex-grow pt-2 md:pt-0">
-                    <div class="flex flex-col md:flex-row md:justify-between md:items-end gap-4">
-                        <div>
-                            <div class="flex items-center gap-2 mb-1">
-                                <span class="bg-neon/10 text-neon border border-neon/20 px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider">{{ $pacer->category }} Specialist</span>
+            <div class="p-5 sm:p-6">
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-5">
+                    <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+                        <div class="w-24 h-24 sm:w-28 sm:h-28 rounded-full overflow-hidden border-2 border-slate-800 bg-slate-950 flex-shrink-0 {{ $bannerUrl ? '-mt-14 sm:-mt-16' : '-mt-12' }}">
+                            <img src="{{ $avatarUrl }}" alt="{{ $pacerName }}" class="w-full h-full object-cover" loading="eager" decoding="async">
+                        </div>
+
+                        <div class="min-w-0">
+                            <h1 class="pacer-heading text-2xl sm:text-3xl text-white leading-tight break-words">
+                                {{ $pacerName }}
+                            </h1>
+
+                            <div class="mt-2 flex flex-wrap items-center gap-2 text-xs">
+                                <span class="px-2.5 py-1 rounded bg-slate-800 text-lime-300 font-semibold">
+                                    {{ $pacer->category }}
+                                </span>
                                 @if($pacer->verified)
-                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/10 border border-blue-500/20 text-[10px] font-bold text-blue-300 uppercase tracking-wider">
-                                        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41L9 16.17z"/></svg>
-                                        Verified
+                                    <span class="px-2.5 py-1 rounded bg-emerald-950 text-emerald-300 font-semibold">
+                                        Terverifikasi
                                     </span>
                                 @endif
-                            </div>
-                            <h1 class="text-3xl md:text-4xl font-black text-white leading-tight">{{ $pacerName }}</h1>
-                            <div class="flex flex-wrap items-center gap-2 text-sm text-slate-400 mt-1">
-                                @if($pacer->nickname)
-                                    <span class="font-mono">"{{ $pacer->nickname }}"</span>
-                                @endif
                                 @if($pacerCity)
-                                    <span class="w-1 h-1 rounded-full bg-slate-600"></span>
-                                    <span>{{ $pacerCity }}</span>
+                                    <span class="px-2.5 py-1 rounded bg-slate-800 text-slate-200">
+                                        {{ $pacerCity }}
+                                    </span>
                                 @endif
-                            </div>
-                            <div class="mt-4 grid grid-cols-3 gap-2">
-                                <div class="rounded-2xl bg-slate-900/40 border border-slate-700/70 p-3">
-                                    <div class="text-[10px] text-slate-500 uppercase font-bold">Pace</div>
-                                    <div class="text-white font-mono font-black text-base mt-0.5">{{ $pacer->pace }}</div>
-                                </div>
-                                <div class="rounded-2xl bg-slate-900/40 border border-slate-700/70 p-3">
-                                    <div class="text-[10px] text-slate-500 uppercase font-bold">{{ $highlightPbLabel ?? 'PB' }}</div>
-                                    <div class="text-white font-mono font-black text-base mt-0.5">{{ $highlightPbValue ?? '-' }}</div>
-                                </div>
-                                <div class="rounded-2xl bg-slate-900/40 border border-slate-700/70 p-3">
-                                    <div class="text-[10px] text-slate-500 uppercase font-bold">Races</div>
-                                    <div class="text-white font-mono font-black text-base mt-0.5">{{ $pacer->total_races }}</div>
-                                </div>
+                                <span class="px-2.5 py-1 rounded bg-slate-800 text-slate-300 font-mono tabular-nums">
+                                    Pace {{ $pacer->pace }}
+                                </span>
                             </div>
                         </div>
-                        <div class="w-full md:w-auto flex flex-col gap-2 mt-2 md:mt-0">
-                            <button id="btnHirePacerTop" class="w-full md:w-auto px-5 py-3 rounded-2xl bg-neon text-dark font-black text-sm hover:bg-neon/90 transition shadow-lg shadow-neon/20 flex items-center justify-center gap-2">
-                                <span>Hire Pacer</span>
-                                <span class="text-[10px] bg-dark/10 px-2 py-0.5 rounded-full">Fast</span>
-                            </button>
-                            <div class="grid grid-cols-2 gap-2">
-                            <button id="btnChatWhatsAppTop" class="px-4 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-sm font-bold transition flex items-center justify-center gap-2 text-white">
-                                <span>{{ $contactUnlocked ? 'Chat' : 'Unlock' }}</span>
-                                <span class="text-[10px] text-slate-400">{{ $contactUnlocked ? 'WA' : 'Pay' }}</span>
-                            </button>
-                                <button id="btnShareProfile" class="px-4 py-2.5 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-sm font-bold transition flex items-center justify-center gap-2 text-white">
-                                    <i class="fas fa-share-alt"></i>
-                                    <span>Share</span>
-                                </button>
-                            </div>
-                            <button id="btnSaveContact" class="hidden md:flex px-4 py-2 rounded-2xl bg-slate-900/40 hover:bg-slate-800 border border-slate-700 text-sm font-bold transition items-center justify-center gap-2 text-slate-200">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
-                                </svg>
-                                <span>Save Contact</span>
-                            </button>
-                        </div>
+                    </div>
 
+                    <div class="flex flex-wrap items-center gap-2">
+                        <button id="btnHirePacerTop" type="button" class="px-4 py-2.5 rounded-md bg-lime-400 hover:bg-lime-300 text-slate-950 font-bold text-sm transition cursor-pointer">
+                            Sewa Pacer
+                        </button>
+                        <button id="btnChatWhatsAppTop" type="button" class="px-4 py-2.5 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-semibold text-sm transition cursor-pointer">
+                            Chat WhatsApp
+                        </button>
+                        <button id="btnShareProfile" type="button" class="px-3.5 py-2.5 rounded-md bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-200 font-medium text-sm transition cursor-pointer">
+                            Bagikan
+                        </button>
+                        <button id="btnSaveContact" type="button" class="px-3.5 py-2.5 rounded-md bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-200 font-medium text-sm transition cursor-pointer">
+                            Simpan Kontak
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-6 pt-5 border-t border-slate-800 grid grid-cols-3 gap-3 sm:gap-4">
+                    <div class="bg-slate-950 border border-slate-800 rounded-lg p-3.5">
+                        <div class="text-xs text-slate-400">Target Pace</div>
+                        <div class="text-base sm:text-lg font-mono tabular-nums font-bold text-lime-300 mt-1">{{ $pacer->pace }}</div>
+                    </div>
+                    <div class="bg-slate-950 border border-slate-800 rounded-lg p-3.5">
+                        <div class="text-xs text-slate-400">Total Race</div>
+                        <div class="text-base sm:text-lg font-mono tabular-nums font-bold text-white mt-1">{{ $pacer->total_races ?? 0 }}</div>
+                    </div>
+                    <div class="bg-slate-950 border border-slate-800 rounded-lg p-3.5">
+                        <div class="text-xs text-slate-400">{{ $highlightPbLabel }}</div>
+                        <div class="text-base sm:text-lg font-mono tabular-nums font-bold text-white mt-1">{{ $highlightPbValue }}</div>
                     </div>
                 </div>
             </div>
-        </div>
+        </section>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div class="md:col-span-2 space-y-6">
-                <div x-data="{open:true}" class="bg-card border border-slate-700 rounded-3xl overflow-hidden">
-                    <button @click="open = !open" class="w-full px-6 py-5 flex items-center justify-between">
-                        <div class="text-left">
-                            <div class="text-sm font-black text-white">About</div>
-                            <div class="text-[11px] text-slate-400 mt-0.5">Kenal pacer ini dalam 30 detik</div>
-                        </div>
-                        <div class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300">
-                            <span x-text="open ? '−' : '+'"></span>
-                        </div>
-                    </button>
-                    <div x-show="open" x-transition class="px-6 pb-6">
-                        <p class="text-slate-200 leading-relaxed text-sm md:text-base">{{ $pacer->bio }}</p>
-                        @if($pacer->tags)
-                            <div class="mt-5 flex flex-wrap gap-2">
+        <div class="mt-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div class="lg:col-span-2 space-y-6">
+                @if($pacer->bio || ($pacer->tags && is_array($pacer->tags) && count($pacer->tags) > 0))
+                <section x-data="{ open: true }" class="bg-slate-900 border border-slate-800 rounded-lg p-5 sm:p-6">
+                    <div class="flex items-center justify-between gap-4">
+                        <h2 class="pacer-heading text-lg text-white">Tentang Pacer</h2>
+                        <button type="button" x-on:click="open = !open" class="text-xs text-slate-300 hover:text-white px-2.5 py-1 rounded bg-slate-800 cursor-pointer" x-text="open ? 'Tutup' : 'Buka'"></button>
+                    </div>
+                    <div x-show="open" class="mt-4 space-y-4">
+                        @if($pacer->bio)
+                            <p class="text-sm text-slate-200 leading-relaxed whitespace-pre-line">{{ $pacer->bio }}</p>
+                        @endif
+                        @if($pacer->tags && is_array($pacer->tags) && count($pacer->tags) > 0)
+                            <div class="flex flex-wrap gap-2">
                                 @foreach($pacer->tags as $tag)
-                                    <span class="px-3 py-1 bg-slate-800 rounded-full text-xs text-slate-300 border border-slate-700">#{{ $tag }}</span>
+                                    <span class="px-2.5 py-1 rounded bg-slate-800 text-slate-200 text-xs font-medium">{{ $tag }}</span>
                                 @endforeach
                             </div>
                         @endif
-                        <div class="mt-5 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                            <div class="rounded-2xl bg-slate-900/40 border border-slate-700 p-4">
-                                <div class="text-[11px] text-slate-400 font-bold uppercase">What you get</div>
-                                <div class="mt-2 space-y-2 text-sm text-slate-200">
-                                    <div class="flex items-start gap-2"><span class="text-neon font-black">•</span><span>Pace guidance + race strategy</span></div>
-                                    <div class="flex items-start gap-2"><span class="text-neon font-black">•</span><span>Warmup, fueling, dan reminders</span></div>
-                                    <div class="flex items-start gap-2"><span class="text-neon font-black">•</span><span>Support sampai finish</span></div>
-                                </div>
-                            </div>
-                            <div class="rounded-2xl bg-slate-900/40 border border-slate-700 p-4">
-                                <div class="text-[11px] text-slate-400 font-bold uppercase">Availability</div>
-                                <div class="mt-2 text-sm text-slate-200">
-                                    <div class="font-bold text-white">By request</div>
-                                    <div class="text-xs text-slate-400 mt-1">Klik Hire Pacer untuk cek slot dan detail kebutuhanmu.</div>
-                                </div>
-                            </div>
-                        </div>
                     </div>
-                </div>
-
-                @if($pacer->user && ($pacer->user->pb_5k || $pacer->user->pb_10k || $pacer->user->pb_hm || $pacer->user->pb_fm))
-                <div x-data="{open:true}" class="bg-card border border-slate-700 rounded-3xl overflow-hidden">
-                    <button @click="open = !open" class="w-full px-6 py-5 flex items-center justify-between">
-                        <div class="text-left">
-                            <div class="text-sm font-black text-white">Personal Best</div>
-                            <div class="text-[11px] text-slate-400 mt-0.5">Performance highlights</div>
-                        </div>
-                        <div class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300">
-                            <span x-text="open ? '−' : '+'"></span>
-                        </div>
-                    </button>
-                    <div x-show="open" x-transition class="px-6 pb-6">
-                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-                        <div class="bg-slate-800/50 rounded-2xl p-4 border border-slate-700 text-center">
-                            <p class="text-[10px] text-slate-500 uppercase font-bold mb-1">5K PB</p>
-                            <p class="text-xl font-mono font-bold {{ $pacer->category === '5K' ? 'text-neon' : 'text-white' }}">{{ $pacer->user->pb_5k ?? '-' }}</p>
-                        </div>
-                        <div class="bg-slate-800/50 rounded-2xl p-4 border border-slate-700 text-center">
-                            <p class="text-[10px] text-slate-500 uppercase font-bold mb-1">10K PB</p>
-                            <p class="text-xl font-mono font-bold {{ $pacer->category === '10K' ? 'text-neon' : 'text-white' }}">{{ $pacer->user->pb_10k ?? '-' }}</p>
-                        </div>
-                        <div class="bg-slate-800/50 rounded-2xl p-4 border border-slate-700 text-center">
-                            <p class="text-[10px] text-slate-500 uppercase font-bold mb-1">HM PB</p>
-                            <p class="text-xl font-mono font-bold {{ $pacer->category === 'HM (21K)' ? 'text-neon' : 'text-white' }}">{{ $pacer->user->pb_hm ?? '-' }}</p>
-                        </div>
-                        <div class="bg-slate-800/50 rounded-2xl p-4 border border-slate-700 text-center">
-                            <p class="text-[10px] text-slate-500 uppercase font-bold mb-1">FM PB</p>
-                            <p class="text-xl font-mono font-bold {{ $pacer->category === 'FM (42K)' ? 'text-neon' : 'text-white' }}">{{ $pacer->user->pb_fm ?? '-' }}</p>
-                        </div>
-                    </div>
-                    </div>
-                </div>
+                </section>
                 @endif
 
-                @if($pacer->user->profile_images && count($pacer->user->profile_images) > 0)
-                <div x-data="{open:true}" class="bg-card border border-slate-700 rounded-3xl overflow-hidden">
-                    <button @click="open = !open" class="w-full px-6 py-5 flex items-center justify-between">
-                        <div class="text-left">
-                            <div class="text-sm font-black text-white">Gallery</div>
-                            <div class="text-[11px] text-slate-400 mt-0.5">Swipe untuk lihat foto</div>
+                @if($pacer->user && ($pacer->user->pb_5k || $pacer->user->pb_10k || $pacer->user->pb_hm || $pacer->user->pb_fm))
+                <section x-data="{ open: true }" class="bg-slate-900 border border-slate-800 rounded-lg p-5 sm:p-6">
+                    <div class="flex items-center justify-between gap-4">
+                        <h2 class="pacer-heading text-lg text-white">Personal Best</h2>
+                        <button type="button" x-on:click="open = !open" class="text-xs text-slate-300 hover:text-white px-2.5 py-1 rounded bg-slate-800 cursor-pointer" x-text="open ? 'Tutup' : 'Buka'"></button>
+                    </div>
+                    <div x-show="open" class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        <div class="bg-slate-950 border border-slate-800 rounded-lg p-3.5">
+                            <div class="text-xs text-slate-400">5K</div>
+                            <p class="mt-1 text-lg font-mono tabular-nums font-bold {{ $pacer->category === '5K' ? 'text-lime-300' : 'text-white' }}">{{ $pacer->user->pb_5k ?? '-' }}</p>
                         </div>
-                        <div class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-300">
-                            <span x-text="open ? '−' : '+'"></span>
+                        <div class="bg-slate-950 border border-slate-800 rounded-lg p-3.5">
+                            <div class="text-xs text-slate-400">10K</div>
+                            <p class="mt-1 text-lg font-mono tabular-nums font-bold {{ $pacer->category === '10K' ? 'text-lime-300' : 'text-white' }}">{{ $pacer->user->pb_10k ?? '-' }}</p>
                         </div>
-                    </button>
-                    <div x-show="open" x-transition class="px-6 pb-6">
-                    <div class="flex overflow-x-auto gap-4 no-scrollbar snap-x snap-mandatory pb-2">
+                        <div class="bg-slate-950 border border-slate-800 rounded-lg p-3.5">
+                            <div class="text-xs text-slate-400">Half Marathon</div>
+                            <p class="mt-1 text-lg font-mono tabular-nums font-bold {{ $pacer->category === 'HM (21K)' ? 'text-lime-300' : 'text-white' }}">{{ $pacer->user->pb_hm ?? '-' }}</p>
+                        </div>
+                        <div class="bg-slate-950 border border-slate-800 rounded-lg p-3.5">
+                            <div class="text-xs text-slate-400">Full Marathon</div>
+                            <p class="mt-1 text-lg font-mono tabular-nums font-bold {{ $pacer->category === 'FM (42K)' ? 'text-lime-300' : 'text-white' }}">{{ $pacer->user->pb_fm ?? '-' }}</p>
+                        </div>
+                    </div>
+                </section>
+                @endif
+
+                @if($pacer->user && $pacer->user->profile_images && count($pacer->user->profile_images) > 0)
+                <section x-data="{ open: true }" class="bg-slate-900 border border-slate-800 rounded-lg p-5 sm:p-6">
+                    <div class="flex items-center justify-between gap-4">
+                        <h2 class="pacer-heading text-lg text-white">Galeri</h2>
+                        <button type="button" x-on:click="open = !open" class="text-xs text-slate-300 hover:text-white px-2.5 py-1 rounded bg-slate-800 cursor-pointer" x-text="open ? 'Tutup' : 'Buka'"></button>
+                    </div>
+                    <div x-show="open" class="mt-4 grid grid-cols-2 sm:grid-cols-3 gap-3">
                         @foreach($pacer->user->profile_images as $image)
-                            <button type="button" class="flex-none w-44 h-44 rounded-2xl overflow-hidden border border-slate-700 snap-center bg-slate-900/30" data-gallery-src="{{ asset('storage/' . $image) }}">
-                                <img loading="lazy" src="{{ asset('storage/' . $image) }}" class="w-full h-full object-cover hover:scale-110 transition-transform duration-500">
+                            @php
+                                $imgSrc = str_starts_with($image, 'http')
+                                    ? $image
+                                    : (str_starts_with($image, '/storage') ? asset(ltrim($image, '/')) : asset('storage/' . $image));
+                            @endphp
+                            <button type="button" data-gallery-src="{{ $imgSrc }}" class="group block aspect-square bg-slate-950 border border-slate-800 rounded-lg overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-lime-400">
+                                <img src="{{ $imgSrc }}" alt="Galeri {{ $pacerName }}" loading="lazy" decoding="async" class="w-full h-full object-cover group-hover:opacity-90 transition">
                             </button>
                         @endforeach
                     </div>
-                    </div>
-                </div>
+                </section>
                 @endif
             </div>
 
-            <div class="space-y-6">
-                <div class="bg-card border border-slate-700 rounded-3xl p-6">
-                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Hire This Pacer</h3>
-                    <div class="rounded-2xl bg-slate-900/40 border border-slate-700 p-4">
-                        <div class="text-white font-black text-lg">Ready for race day?</div>
-                        <div class="text-xs text-slate-400 mt-1">Isi kebutuhanmu, lanjut bayar di platform, lalu chat pacer akan terbuka.</div>
-                        <button id="btnHirePacerSide" class="mt-4 w-full py-3 rounded-2xl bg-neon text-dark font-black text-sm hover:bg-neon/90 transition shadow-lg shadow-neon/20">Hire Pacer</button>
-                        <button id="btnChatWhatsAppSide" class="mt-2 w-full py-3 rounded-2xl bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-black text-sm transition">Chat WhatsApp</button>
-                        <div class="mt-3 text-[11px] text-slate-500">Tips: tambah tanggal race + target pace biar cepat deal.</div>
+            <aside class="lg:col-span-1 space-y-6">
+                <div class="bg-slate-900 border border-slate-800 rounded-lg p-5 sm:p-6">
+                    <h2 class="pacer-heading text-lg text-white">Siap untuk Race Day?</h2>
+                    <p class="text-sm text-slate-300 mt-1.5 leading-relaxed">
+                        Isi kebutuhan race dan target pace kamu, selesaikan pembayaran di platform, lalu akses kontak pacer akan langsung terbuka.
+                    </p>
+                    <div class="mt-4 space-y-2.5">
+                        <button id="btnHirePacerSide" type="button" class="w-full py-2.5 px-4 rounded-md bg-lime-400 hover:bg-lime-300 text-slate-950 font-bold text-sm transition cursor-pointer">
+                            Sewa Pacer
+                        </button>
+                        <button id="btnChatWhatsAppSide" type="button" class="w-full py-2.5 px-4 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-semibold text-sm transition cursor-pointer">
+                            Chat WhatsApp
+                        </button>
                     </div>
+                    <p class="mt-3 text-xs text-slate-400">
+                        Sertakan nama race, tanggal, dan target pace agar konfirmasi lebih cepat.
+                    </p>
                 </div>
+
                 @if($pacer->race_portfolio && is_array($pacer->race_portfolio) && count($pacer->race_portfolio) > 0)
-                <div class="bg-card border border-slate-700 rounded-3xl p-6">
-                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Race Portfolio</h3>
-                    @php($neonColors = ['#ccff00','#22d3ee','#a78bfa','#f472b6','#f59e0b','#10b981','#ef4444','#14b8a6'])
+                <div class="bg-slate-900 border border-slate-800 rounded-lg p-5 sm:p-6">
+                    <h3 class="pacer-heading text-base text-white mb-3">Portofolio Race</h3>
                     <div class="flex flex-wrap gap-2">
                         @foreach($pacer->race_portfolio as $race)
-                            @php($c = $neonColors[crc32($race) % count($neonColors)])
-                            <span class="relative inline-flex items-center px-3 py-1 rounded-full border text-xs font-bold transition-all duration-300 bg-slate-900/60 group hover:scale-[1.03] hover:shadow-lg group-hover:bg-white group-hover:text-dark" style="--c: {{ $c }}; border-color: var(--c); color: var(--c);">
-                                <span class="absolute inset-0 rounded-full blur-md opacity-0 group-hover:opacity-100" style="background: var(--c);"></span>
-                                <span class="relative z-10">{{ $race }}</span>
+                            <span class="px-2.5 py-1 rounded bg-slate-800 text-slate-200 text-xs font-medium">
+                                {{ $race }}
                             </span>
                         @endforeach
                     </div>
                 </div>
                 @endif
-                <div class="bg-card border border-slate-700 rounded-3xl p-6">
-                    <h3 class="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Connect</h3>
+
+                <div class="bg-slate-900 border border-slate-800 rounded-lg p-5 sm:p-6">
+                    <h3 class="pacer-heading text-base text-white mb-3">Kontak &amp; Sosial Media</h3>
+
                     @if($contactUnlocked)
-                        <div class="space-y-3">
-                            @if($pacer->user->strava_url)
-                            <a href="{{ $pacer->user->strava_url }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between p-3 bg-[#FC4C02]/10 border border-[#FC4C02]/30 rounded-xl text-[#FC4C02] hover:bg-[#FC4C02] hover:text-white transition">
-                                <span class="font-bold text-sm flex items-center gap-2">
-                                    <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
-                                    Strava
-                                </span>
-                                <span class="text-xs opacity-70">Follow ↗</span>
+                        <div class="space-y-2.5">
+                            @if($pacer->user && $pacer->user->strava_url)
+                            <a href="{{ $pacer->user->strava_url }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between px-3.5 py-2.5 bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-md text-slate-200 hover:text-white transition text-sm">
+                                <span class="font-semibold">Strava</span>
+                                <span class="text-xs text-slate-400">Buka</span>
                             </a>
                             @endif
-                            @if($pacer->user->instagram_url)
-                            <a href="{{ $pacer->user->instagram_url }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between p-3 bg-pink-500/10 border border-pink-500/30 rounded-xl text-pink-500 hover:bg-pink-600 hover:text-white transition">
-                                <span class="font-bold text-sm flex items-center gap-2">Instagram</span>
-                                <span class="text-xs opacity-70">Follow ↗</span>
+                            @if($pacer->user && $pacer->user->instagram_url)
+                            <a href="{{ $pacer->user->instagram_url }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between px-3.5 py-2.5 bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-md text-slate-200 hover:text-white transition text-sm">
+                                <span class="font-semibold">Instagram</span>
+                                <span class="text-xs text-slate-400">Buka</span>
                             </a>
                             @endif
-                            @if($pacer->user->facebook_url)
-                            <a href="{{ $pacer->user->facebook_url }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between p-3 bg-blue-500/10 border border-blue-500/30 rounded-xl text-blue-500 hover:bg-blue-600 hover:text-white transition">
-                                <span class="font-bold text-sm flex items-center gap-2">Facebook</span>
-                                <span class="text-xs opacity-70">Follow ↗</span>
+                            @if($pacer->user && $pacer->user->facebook_url)
+                            <a href="{{ $pacer->user->facebook_url }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between px-3.5 py-2.5 bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-md text-slate-200 hover:text-white transition text-sm">
+                                <span class="font-semibold">Facebook</span>
+                                <span class="text-xs text-slate-400">Buka</span>
                             </a>
                             @endif
-                            @if($pacer->user->tiktok_url)
-                            <a href="{{ $pacer->user->tiktok_url }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between p-3 bg-gray-500/10 border border-gray-500/30 rounded-xl text-white hover:bg-gray-600 transition">
-                                <span class="font-bold text-sm flex items-center gap-2">TikTok</span>
-                                <span class="text-xs opacity-70">Follow ↗</span>
+                            @if($pacer->user && $pacer->user->tiktok_url)
+                            <a href="{{ $pacer->user->tiktok_url }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between px-3.5 py-2.5 bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-md text-slate-200 hover:text-white transition text-sm">
+                                <span class="font-semibold">TikTok</span>
+                                <span class="text-xs text-slate-400">Buka</span>
                             </a>
                             @endif
                             @if($pacer->whatsapp)
-                            <a href="https://wa.me/{{ $pacer->whatsapp }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between p-3 bg-green-500/10 border border-green-500/30 rounded-xl text-green-500 hover:bg-green-600 hover:text-white transition">
-                                <span class="font-bold text-sm flex items-center gap-2">WhatsApp</span>
-                                <span class="text-xs opacity-70">Chat ↗</span>
+                            <a href="https://wa.me/{{ preg_replace('/\D/', '', $pacer->whatsapp) }}" target="_blank" rel="noopener noreferrer" class="flex items-center justify-between px-3.5 py-2.5 bg-slate-950 border border-slate-800 hover:border-slate-700 rounded-md text-emerald-300 hover:text-emerald-200 transition text-sm">
+                                <span class="font-semibold">WhatsApp</span>
+                                <span class="text-xs text-emerald-400">Chat</span>
                             </a>
                             @endif
                         </div>
                     @else
-                        <div class="space-y-3">
-                        <div class="flex items-center justify-between p-3 bg-[#FC4C02]/10 border border-[#FC4C02]/30 rounded-xl text-[#FC4C02] opacity-70 filter blur-[2px] pointer-events-none">
-                            <span class="font-bold text-sm flex items-center gap-2">
-                                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M15.387 17.944l-2.089-4.116h-3.065L15.387 24l5.15-10.172h-3.066m-7.008-5.599l2.836 5.598h4.172L10.463 0l-7 13.828h4.169"/></svg>
-                                Strava
-                            </span>
-                            <span class="text-xs opacity-70">Follow ↗</span>
-                        </div>
-                        <div class="flex items-center justify-between p-3 bg-pink-500/10 border border-pink-500/30 rounded-xl text-pink-500 opacity-70 filter blur-[2px] pointer-events-none">
-                            <span class="font-bold text-sm flex items-center gap-2">Instagram</span>
-                            <span class="text-xs opacity-70">Follow ↗</span>
-                        </div>
-                        <div class="flex items-center justify-between p-3 bg-blue-500/10 border border-blue-500/30 rounded-xl text-blue-500 opacity-70 filter blur-[2px] pointer-events-none">
-                            <span class="font-bold text-sm flex items-center gap-2">Facebook</span>
-                            <span class="text-xs opacity-70">Follow ↗</span>
-                        </div>
-                        <div class="flex items-center justify-between p-3 bg-gray-500/10 border border-gray-500/30 rounded-xl text-white opacity-70 filter blur-[2px] pointer-events-none">
-                            <span class="font-bold text-sm flex items-center gap-2">TikTok</span>
-                            <span class="text-xs opacity-70">Follow ↗</span>
-                        </div>
-                        <div class="flex items-center justify-between p-3 bg-green-500/10 border border-green-500/30 rounded-xl text-green-500 opacity-70 filter blur-[2px] pointer-events-none">
-                            <span class="font-bold text-sm flex items-center gap-2">WhatsApp</span>
-                            <span class="text-xs opacity-70">Chat ↗</span>
-                        </div>
-                        <div class="mt-3 text-center">
-                            @auth
-                                <button id="btnUnlockContacts" class="text-xs text-neon hover:underline">Bayar booking untuk membuka kontak</button>
-                            @endauth
-                            @guest
-                                <a href="{{ route('login') }}" class="text-xs text-neon hover:underline">Login untuk booking</a>
-                            @endguest
-                        </div>
-                    </div>
-                    @endif
-                    <div class="mt-6">
-                        <h4 class="text-xs font-bold text-slate-400 uppercase tracking-widest mb-2">Share QR</h4>
-                        <div class="flex items-center justify-center">
-                            <div class="rounded-2xl p-3 border border-neon/30 bg-slate-900 relative">
-                                <div class="absolute inset-0 rounded-2xl pointer-events-none" style="box-shadow: 0 0 40px rgba(204,255,0,0.15);"></div>
-                                <div id="pacer-profile-qr-inner" class="bg-white rounded-xl"></div>
+                        <div class="bg-slate-950 border border-slate-800 rounded-lg p-4">
+                            <p class="text-xs text-slate-300 leading-relaxed">
+                                Tautan WhatsApp dan media sosial pacer terlindungi. Selesaikan booking untuk membuka kontak langsung.
+                            </p>
+                            <div class="mt-3">
+                                @auth
+                                    <button id="btnUnlockContacts" type="button" class="w-full py-2 px-3 rounded-md bg-slate-800 hover:bg-slate-700 text-lime-300 font-semibold text-xs transition cursor-pointer">
+                                        Booking untuk Buka Kontak
+                                    </button>
+                                @endauth
+                                @guest
+                                    <a href="{{ route('login') }}" class="block text-center w-full py-2 px-3 rounded-md bg-slate-800 hover:bg-slate-700 text-lime-300 font-semibold text-xs transition">
+                                        Login untuk Booking
+                                    </a>
+                                @endguest
                             </div>
                         </div>
-                        <p class="text-[10px] text-slate-500 text-center mt-2">Scan untuk membuka profil</p>
+                    @endif
+
+                    <div class="mt-5 pt-5 border-t border-slate-800">
+                        <h4 class="text-xs font-semibold text-slate-300 mb-3">QR Profil Pacer</h4>
+                        <div class="flex items-center justify-center">
+                            <div class="p-2.5 rounded-lg border border-slate-800 bg-white">
+                                <div id="pacer-profile-qr-inner"></div>
+                            </div>
+                        </div>
+                        <p class="text-xs text-slate-400 text-center mt-2">Pindai untuk membuka profil ini</p>
                     </div>
                 </div>
-            </div>
+            </aside>
         </div>
-    </main>
+    </div>
+</div>
 
-    <div class="fixed bottom-0 left-0 right-0 z-40 md:hidden safe-bottom">
-        <div class="mx-auto max-w-4xl px-4 pb-4">
-            <div class="rounded-3xl bg-slate-900/80 border border-slate-700 backdrop-blur-md shadow-2xl p-3">
-                <div class="grid grid-cols-3 gap-2">
-                    <button id="btnHirePacerSticky" class="py-3 rounded-2xl bg-neon text-dark font-black text-sm">Hire</button>
-                    <button id="btnChatWhatsAppSticky" class="py-3 rounded-2xl bg-slate-800 border border-slate-700 text-white font-black text-sm">Chat WA</button>
-                    <button id="btnSaveContactSticky" class="py-3 rounded-2xl bg-slate-800 border border-slate-700 text-white font-black text-sm">Save</button>
+<div class="fixed bottom-0 left-0 right-0 z-40 md:hidden bg-slate-900 border-t border-slate-800">
+    <div class="mx-auto max-w-4xl px-4 py-3">
+        <div class="grid grid-cols-3 gap-2">
+            <button id="btnHirePacerSticky" type="button" class="py-2.5 rounded-md bg-lime-400 text-slate-950 font-bold text-sm cursor-pointer">Sewa</button>
+            <button id="btnChatWhatsAppSticky" type="button" class="py-2.5 rounded-md bg-slate-800 border border-slate-700 text-white font-semibold text-sm cursor-pointer">Chat WA</button>
+            <button id="btnSaveContactSticky" type="button" class="py-2.5 rounded-md bg-slate-800 border border-slate-700 text-white font-semibold text-sm cursor-pointer">Simpan</button>
+        </div>
+    </div>
+</div>
+
+<div id="hire-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="hire-modal-title">
+    <div id="hire-modal-overlay" class="absolute inset-0 bg-slate-950/90"></div>
+    <div class="relative z-10 w-full max-w-lg max-h-[90vh] flex flex-col">
+        <div class="bg-slate-900 border border-slate-800 rounded-lg shadow-sm flex flex-col overflow-hidden max-h-full">
+            <div class="p-5 sm:p-6 border-b border-slate-800 flex items-start justify-between gap-4 flex-shrink-0">
+                <div>
+                    <div class="text-xs text-slate-400 font-semibold">Sewa Pacer</div>
+                    <div id="hire-modal-title" class="pacer-heading text-white text-xl mt-1">{{ $pacerName }}</div>
+                    <p class="text-xs text-slate-300 mt-1">Isi detail race, lanjutkan pembayaran di platform. Kontak pacer terbuka setelah status paid.</p>
                 </div>
+                <button id="btnCloseHireModal" type="button" aria-label="Tutup modal" class="w-9 h-9 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white flex items-center justify-center cursor-pointer">✕</button>
+            </div>
+            <form id="hireBookingForm" method="POST" action="{{ route('pacer.bookings.store', $pacer->seo_slug) }}" class="p-5 sm:p-6 space-y-4 overflow-y-auto flex-1 overscroll-contain">
+                @csrf
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label for="hireRaceName" class="text-xs text-slate-300 font-medium">Nama Race</label>
+                        <input id="hireRaceName" name="event_name" type="text" class="mt-1.5 w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-white text-sm focus:outline-none focus:border-lime-400" placeholder="Contoh: Borobudur Marathon">
+                    </div>
+                    <div>
+                        <label for="hireRaceDate" class="text-xs text-slate-300 font-medium">Tanggal Race</label>
+                        <input id="hireRaceDate" name="race_date" type="date" class="mt-1.5 w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-white text-sm focus:outline-none focus:border-lime-400">
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label for="hireDistance" class="text-xs text-slate-300 font-medium">Jarak</label>
+                        <input id="hireDistance" name="distance" type="text" class="mt-1.5 w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-white text-sm focus:outline-none focus:border-lime-400" placeholder="Contoh: 10K / HM / FM">
+                    </div>
+                    <div>
+                        <label for="hireTargetPace" class="text-xs text-slate-300 font-medium">Target Pace</label>
+                        <input id="hireTargetPace" name="target_pace" type="text" class="mt-1.5 w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-white text-sm font-mono focus:outline-none focus:border-lime-400" placeholder="Contoh: 6:00/km">
+                    </div>
+                </div>
+                <div>
+                    <label for="hireMeetPoint" class="text-xs text-slate-300 font-medium">Titik Kumpul</label>
+                    <input id="hireMeetPoint" name="meeting_point" type="text" class="mt-1.5 w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-white text-sm focus:outline-none focus:border-lime-400" placeholder="Contoh: Gate start line / area pacer">
+                </div>
+                <div>
+                    <label for="hireNotes" class="text-xs text-slate-300 font-medium">Catatan</label>
+                    <textarea id="hireNotes" name="notes" rows="3" class="mt-1.5 w-full bg-slate-950 border border-slate-800 rounded-md px-3 py-2 text-white text-sm focus:outline-none focus:border-lime-400" placeholder="Contoh: butuh strategi negative split dan pengaturan hidrasi"></textarea>
+                </div>
+                <div class="rounded-lg bg-slate-950 border border-slate-800 p-4">
+                    <div class="text-xs text-slate-400 font-semibold">Pratinjau Pesan</div>
+                    <pre id="hirePreview" class="mt-2 whitespace-pre-wrap text-xs sm:text-sm text-slate-200 font-mono"></pre>
+                </div>
+            </form>
+            <div class="p-5 sm:p-6 border-t border-slate-800 space-y-2 flex-shrink-0">
+                <button id="btnProceedPayment" type="button" class="w-full py-3 rounded-md bg-lime-400 hover:bg-lime-300 text-slate-950 font-bold text-sm transition cursor-pointer">Lanjutkan Pembayaran</button>
+                <div class="text-xs text-slate-400 text-center">Pembayaran aman melalui Midtrans. Kontak pacer terbuka setelah lunas.</div>
             </div>
         </div>
     </div>
+</div>
 
-    <div id="hire-modal" class="fixed inset-0 z-50 hidden flex items-center justify-center p-4">
-        <div id="hire-modal-overlay" class="absolute inset-0 bg-black/80 backdrop-blur-sm"></div>
-        <div class="relative z-10 w-full max-w-lg max-h-[90vh] flex flex-col">
-            <div class="bg-card border border-slate-700 rounded-3xl shadow-2xl flex flex-col overflow-hidden max-h-full">
-                <div class="p-6 border-b border-slate-800 flex items-start justify-between gap-4 flex-shrink-0">
-                    <div>
-                        <div class="text-xs text-slate-400 uppercase tracking-widest font-bold">Hire Pacer</div>
-                        <div class="text-white font-black text-xl mt-1">{{ $pacerName }}</div>
-                        <div class="text-xs text-slate-400 mt-1">Isi detail, lanjut bayar di platform. Kontak pacer akan terbuka setelah paid.</div>
-                    </div>
-                    <button id="btnCloseHireModal" class="w-10 h-10 rounded-full bg-slate-800 border border-slate-700 text-white flex items-center justify-center">✕</button>
-                </div>
-                <form id="hireBookingForm" method="POST" action="{{ route('pacer.bookings.store', $pacer->seo_slug) }}" class="p-6 space-y-4 overflow-y-auto flex-1 overscroll-contain">
-                    @csrf
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="text-xs text-slate-400 font-bold uppercase">Race Name</label>
-                            <input id="hireRaceName" name="event_name" type="text" class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm" placeholder="CTH: Borobudur Marathon">
-                        </div>
-                        <div>
-                            <label class="text-xs text-slate-400 font-bold uppercase">Race Date</label>
-                            <input id="hireRaceDate" name="race_date" type="date" class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm">
-                        </div>
-                    </div>
-                    <div class="grid grid-cols-2 gap-3">
-                        <div>
-                            <label class="text-xs text-slate-400 font-bold uppercase">Distance</label>
-                            <input id="hireDistance" name="distance" type="text" class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm" placeholder="CTH: 10K / HM / FM">
-                        </div>
-                        <div>
-                            <label class="text-xs text-slate-400 font-bold uppercase">Target Pace</label>
-                            <input id="hireTargetPace" name="target_pace" type="text" class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm" placeholder="CTH: 6:00/km">
-                        </div>
-                    </div>
-                    <div>
-                        <label class="text-xs text-slate-400 font-bold uppercase">Meeting Point</label>
-                        <input id="hireMeetPoint" name="meeting_point" type="text" class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm" placeholder="CTH: Gate start line / area pacer">
-                    </div>
-                    <div>
-                        <label class="text-xs text-slate-400 font-bold uppercase">Notes</label>
-                        <textarea id="hireNotes" name="notes" rows="3" class="mt-1 w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-white text-sm" placeholder="CTH: butuh bantuan strategi negative split, fueling, dsb"></textarea>
-                    </div>
-                    <div class="rounded-2xl bg-slate-900/40 border border-slate-700 p-4">
-                        <div class="text-xs text-slate-400 font-bold uppercase">Preview Message</div>
-                        <pre id="hirePreview" class="mt-2 whitespace-pre-wrap text-sm text-slate-200 font-mono"></pre>
-                    </div>
-                </form>
-                <div class="p-6 border-t border-slate-800 space-y-2 flex-shrink-0">
-                    <button id="btnProceedPayment" class="w-full py-4 rounded-2xl bg-neon text-dark font-black text-base hover:bg-neon/90 transition">Proceed to Payment</button>
-                    <div class="text-xs text-slate-500 text-center">Pembayaran aman via Midtrans. Kontak pacer terbuka setelah paid.</div>
-                </div>
-            </div>
-        </div>
+<div id="gallery-modal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true" aria-label="Pratinjau galeri">
+    <div id="gallery-modal-overlay" class="absolute inset-0 bg-slate-950/95"></div>
+    <div class="relative z-10 h-full w-full flex items-center justify-center p-4">
+        <button id="btnCloseGallery" type="button" aria-label="Tutup galeri" class="absolute top-4 right-4 w-10 h-10 rounded-md bg-slate-900 border border-slate-800 text-white flex items-center justify-center cursor-pointer">✕</button>
+        <button id="btnPrevGallery" type="button" aria-label="Foto sebelumnya" class="absolute left-3 md:left-8 w-10 h-10 rounded-md bg-slate-900 border border-slate-800 text-white flex items-center justify-center cursor-pointer">‹</button>
+        <button id="btnNextGallery" type="button" aria-label="Foto berikutnya" class="absolute right-3 md:right-8 w-10 h-10 rounded-md bg-slate-900 border border-slate-800 text-white flex items-center justify-center cursor-pointer">›</button>
+        <img id="gallery-image" src="" alt="Foto galeri pacer" class="max-h-[85vh] max-w-[92vw] rounded-lg border border-slate-800 object-contain">
     </div>
-
-    <div id="gallery-modal" class="fixed inset-0 z-50 hidden">
-        <div id="gallery-modal-overlay" class="absolute inset-0 bg-black/90"></div>
-        <div class="relative z-10 h-full w-full flex items-center justify-center p-4">
-            <button id="btnCloseGallery" class="absolute top-4 right-4 w-10 h-10 rounded-full bg-slate-900/70 border border-slate-700 text-white flex items-center justify-center">✕</button>
-            <button id="btnPrevGallery" class="absolute left-3 md:left-8 w-11 h-11 rounded-full bg-slate-900/70 border border-slate-700 text-white flex items-center justify-center">◀</button>
-            <button id="btnNextGallery" class="absolute right-3 md:right-8 w-11 h-11 rounded-full bg-slate-900/70 border border-slate-700 text-white flex items-center justify-center">▶</button>
-            <img id="gallery-image" src="" class="max-h-[85vh] max-w-[92vw] rounded-2xl border border-slate-700 object-contain">
-        </div>
-    </div>
+</div>
 
 @push('scripts')
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js" defer></script>
 <script>
 document.addEventListener('DOMContentLoaded', function(){
     var btnSave = document.getElementById('btnSaveContact');
@@ -474,57 +542,63 @@ document.addEventListener('DOMContentLoaded', function(){
         var name = @json($pacer->user->name);
         var nickname = @json($pacer->nickname ?? '');
         var category = @json($pacer->category);
-        var whatsapp = @json($pacer->whatsapp ?? '');
+        var whatsapp = contactUnlocked ? @json($pacer->whatsapp ?? '') : '';
         var bio = @json($pacer->bio ?? '');
         var url = window.location.href;
         var parts = String(name).split(' ');
         var nField = parts.length > 1 ? (parts.slice(1).join(';') + ';' + parts[0]) : name + ';;;;';
-        var vCardData = 'BEGIN:VCARD\\n'
-            + 'VERSION:3.0\\n'
-            + 'FN:' + name + '\\n'
-            + 'N:' + nField + '\\n'
-            + (nickname ? ('NICKNAME:' + nickname + '\\n') : '')
-            + 'ORG:Ruang Lari Indonesia\\n'
-            + 'TITLE:Professional Pacer (' + category + ')\\n'
-            + (whatsapp ? ('TEL;TYPE=CELL:' + whatsapp + '\\n') : '')
-            + 'URL:' + url + '\\n'
-            + (bio ? ('NOTE:' + bio + '\\n') : '')
+        var vCardData = 'BEGIN:VCARD\n'
+            + 'VERSION:3.0\n'
+            + 'FN:' + name + '\n'
+            + 'N:' + nField + '\n'
+            + (nickname ? ('NICKNAME:' + nickname + '\n') : '')
+            + 'ORG:Ruang Lari Indonesia\n'
+            + 'TITLE:Professional Pacer (' + category + ')\n'
+            + (whatsapp ? ('TEL;TYPE=CELL:' + whatsapp + '\n') : '')
+            + 'URL:' + url + '\n'
+            + (bio ? ('NOTE:' + bio + '\n') : '')
             + 'END:VCARD';
         var blob = new Blob([vCardData], { type: 'text/vcard' });
         var link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = String(name).replace(/\\s+/g, '_') + '.vcf';
+        link.download = String(name).replace(/\s+/g, '_') + '.vcf';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
     }
+
     async function shareProfile(){
         var shareData = {
-            title: @json($pacer->user->name) + ' - Pacer Profile',
-            text: 'Lihat profil pacer ini di RuangLari dan hire untuk race day.',
+            title: @json($pacer->user->name) + ' - Profil Pacer RuangLari',
+            text: 'Lihat profil pacer ini di RuangLari dan sewa untuk race day.',
             url: window.location.href
         };
         if (navigator.share) {
             try { await navigator.share(shareData); } catch(e){}
         } else {
-            try { await navigator.clipboard.writeText(window.location.href); alert('Link copied to clipboard!'); } catch(e){}
+            try { await navigator.clipboard.writeText(window.location.href); alert('Link profil disalin ke clipboard.'); } catch(e){}
         }
     }
-    if(btnSave) btnSave.addEventListener('click', downloadVCard);
-    if(btnSaveSticky) btnSaveSticky.addEventListener('click', downloadVCard);
-    if(btnShare) btnShare.addEventListener('click', shareProfile);
+
+    if (btnSave) btnSave.addEventListener('click', downloadVCard);
+    if (btnSaveSticky) btnSaveSticky.addEventListener('click', downloadVCard);
+    if (btnShare) btnShare.addEventListener('click', shareProfile);
+
     var qrContainer = document.getElementById('pacer-profile-qr-inner');
-    if (qrContainer && typeof QRCode !== 'undefined') {
-        var profileUrl = window.location.href;
-        new QRCode(qrContainer, {
-            text: profileUrl,
-            width: 180,
-            height: 180,
-            colorDark: "#1f2937",
-            colorLight: "#ffffff",
-            correctLevel: QRCode.CorrectLevel.M
-        });
+    function initQr(){
+        if (qrContainer && typeof QRCode !== 'undefined' && !qrContainer.hasChildNodes()) {
+            new QRCode(qrContainer, {
+                text: window.location.href,
+                width: 164,
+                height: 164,
+                colorDark: '#0f172a',
+                colorLight: '#ffffff',
+                correctLevel: QRCode.CorrectLevel.M
+            });
+        }
     }
+    initQr();
+    window.addEventListener('load', initQr);
 
     function buildHireMessage(){
         var raceName = (hireRaceName && hireRaceName.value || '').trim();
@@ -535,7 +609,7 @@ document.addEventListener('DOMContentLoaded', function(){
         var notes = (hireNotes && hireNotes.value || '').trim();
 
         var lines = [];
-        lines.push('Hi ' + pacerName + ', saya mau hire pacer 🙏');
+        lines.push('Halo ' + pacerName + ', saya ingin menyewa jasa pacer.');
         if (pacerCategory) lines.push('Kategori pacer: ' + pacerCategory);
         if (pacerPace) lines.push('Pace pacer: ' + pacerPace);
         lines.push('');
@@ -543,7 +617,7 @@ document.addEventListener('DOMContentLoaded', function(){
         if (raceDate) lines.push('Tanggal: ' + raceDate);
         if (distance) lines.push('Jarak: ' + distance);
         if (targetPace) lines.push('Target pace: ' + targetPace);
-        if (meetPoint) lines.push('Meeting point: ' + meetPoint);
+        if (meetPoint) lines.push('Titik kumpul: ' + meetPoint);
         if (notes) lines.push('Catatan: ' + notes);
         lines.push('');
         lines.push('Link profil: ' + window.location.href);
@@ -574,29 +648,29 @@ document.addEventListener('DOMContentLoaded', function(){
             return;
         }
         if (!waNumber) {
-            alert('Pacer belum menambahkan WhatsApp.');
+            alert('Pacer belum menambahkan nomor WhatsApp.');
             return;
         }
-        var msg = encodeURIComponent('Hi ' + pacerName + ', saya tertarik hire pacer untuk race day. Boleh info availability?\\n\\nLink profil: ' + window.location.href);
+        var msg = encodeURIComponent('Halo ' + pacerName + ', saya tertarik menyewa pacer untuk race day. Boleh info ketersediaannya?\n\nLink profil: ' + window.location.href);
         window.open('https://wa.me/' + waNumber + '?text=' + msg, '_blank', 'noopener');
     }
 
-    if(btnHireTop) btnHireTop.addEventListener('click', openHireModal);
-    if(btnHireSide) btnHireSide.addEventListener('click', openHireModal);
-    if(btnHireSticky) btnHireSticky.addEventListener('click', openHireModal);
-    if(btnUnlockContacts) btnUnlockContacts.addEventListener('click', openHireModal);
-    if(btnCloseHireModal) btnCloseHireModal.addEventListener('click', closeHireModal);
-    if(hireOverlay) hireOverlay.addEventListener('click', closeHireModal);
+    if (btnHireTop) btnHireTop.addEventListener('click', openHireModal);
+    if (btnHireSide) btnHireSide.addEventListener('click', openHireModal);
+    if (btnHireSticky) btnHireSticky.addEventListener('click', openHireModal);
+    if (btnUnlockContacts) btnUnlockContacts.addEventListener('click', openHireModal);
+    if (btnCloseHireModal) btnCloseHireModal.addEventListener('click', closeHireModal);
+    if (hireOverlay) hireOverlay.addEventListener('click', closeHireModal);
 
-    if(btnChatTop) btnChatTop.addEventListener('click', chatWhatsAppQuick);
-    if(btnChatSide) btnChatSide.addEventListener('click', chatWhatsAppQuick);
-    if(btnChatSticky) btnChatSticky.addEventListener('click', chatWhatsAppQuick);
+    if (btnChatTop) btnChatTop.addEventListener('click', chatWhatsAppQuick);
+    if (btnChatSide) btnChatSide.addEventListener('click', chatWhatsAppQuick);
+    if (btnChatSticky) btnChatSticky.addEventListener('click', chatWhatsAppQuick);
 
     [hireRaceName, hireRaceDate, hireDistance, hireTargetPace, hireMeetPoint, hireNotes].forEach(function(el){
-        if(el) el.addEventListener('input', updateHirePreview);
+        if (el) el.addEventListener('input', updateHirePreview);
     });
 
-    if(btnProceedPayment) btnProceedPayment.addEventListener('click', function(){
+    if (btnProceedPayment) btnProceedPayment.addEventListener('click', function(){
         if (!hireBookingForm) return;
         hireBookingForm.submit();
     });
@@ -632,10 +706,10 @@ document.addEventListener('DOMContentLoaded', function(){
     galleryButtons.forEach(function(btn, idx){
         btn.addEventListener('click', function(){ openGalleryAt(idx); });
     });
-    if(btnCloseGallery) btnCloseGallery.addEventListener('click', closeGallery);
-    if(btnPrevGallery) btnPrevGallery.addEventListener('click', prevGallery);
-    if(btnNextGallery) btnNextGallery.addEventListener('click', nextGallery);
-    if(galleryOverlay) galleryOverlay.addEventListener('click', closeGallery);
+    if (btnCloseGallery) btnCloseGallery.addEventListener('click', closeGallery);
+    if (btnPrevGallery) btnPrevGallery.addEventListener('click', prevGallery);
+    if (btnNextGallery) btnNextGallery.addEventListener('click', nextGallery);
+    if (galleryOverlay) galleryOverlay.addEventListener('click', closeGallery);
 });
 </script>
 @endpush

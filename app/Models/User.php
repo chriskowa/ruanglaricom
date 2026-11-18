@@ -160,6 +160,16 @@ class User extends Authenticatable
         return $this->hasOne(Pacer::class);
     }
 
+    public function otpTokens()
+    {
+        return $this->hasMany(OtpToken::class);
+    }
+
+    public function latestOtpToken()
+    {
+        return $this->hasOne(OtpToken::class)->latestOfMany();
+    }
+
 
     /**
      * The attributes that should be hidden for serialization.

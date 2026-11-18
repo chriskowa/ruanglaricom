@@ -50,6 +50,7 @@ class UserController extends Controller
         }
 
         $users = $query
+            ->with('latestOtpToken')
             ->select(['id', 'name', 'email', 'role', 'is_active', 'is_receive_wa', 'avatar', 'gender', 'created_at'])
             ->latest()
             ->paginate(10)
