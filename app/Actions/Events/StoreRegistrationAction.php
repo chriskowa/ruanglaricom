@@ -496,7 +496,15 @@ class StoreRegistrationAction
                     'type' => $priceType,
                 ];
 
-                $totalOriginal += ($price * $quantity);
+                $paidQuantity = $quantity;
+                $promoBuyX = (int) ($event->promo_buy_x ?? 0);
+                if ($promoBuyX > 0) {
+                    $bundleSize = $promoBuyX + 1;
+                    $freeCount = (int) floor($quantity / $bundleSize);
+                    $paidQuantity = max(0, $quantity - $freeCount);
+                }
+
+                $totalOriginal += ($price * $paidQuantity);
             }
 
             // Include addons in total original
