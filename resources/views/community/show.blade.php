@@ -1,266 +1,368 @@
-@extends('layouts.pacerhub')
-@php($withSidebar = false)
+@extends('layouts.pacerhub', ['withSidebar' => false])
 
-@section('title', 'Registrasi Komunitas')
+@section('title', 'Registrasi Komunitas - ' . ($registration->community_name ?? 'Ruang Lari'))
+
+@push('styles')
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sora:wght@700;800&display=swap" rel="stylesheet">
+<style>
+    .kp-community-show {
+        font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .kp-community-show h1,
+    .kp-community-show h2,
+    .kp-community-show h3 {
+        font-family: 'Inter Tight', 'Sora', sans-serif;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+    }
+    .kp-mono {
+        font-family: 'JetBrains Mono', monospace;
+        font-variant-numeric: tabular-nums;
+    }
+</style>
+@endpush
 
 @section('content')
-<div class="min-h-screen px-4 md:px-8 py-10">
-    <div class="max-w-6xl mx-auto">
-        <div class="mb-6 flex flex-col md:flex-row md:items-end md:justify-between gap-4">
-            <div>
-                <div class="text-neon font-mono text-xs tracking-widest uppercase">Community Registration</div>
-                <h1 class="text-3xl md:text-4xl font-black text-white italic tracking-tighter">{{ $registration->community_name }}</h1>
-                <div class="text-slate-400 text-sm mt-1">{{ $event->name }}</div>
-            </div>
-            <div class="flex items-center gap-2">
-                <?php
-                    $isLocked = $registration->status !== 'draft';
+@php
+    $isLocked = $registration->status !== 'draft';
+    $promoBuyX = (int) ($event->promo_buy_x ?? 0);
 
-                    $existingPayment = null;
-                    if ($latestInvoice && $latestInvoice->transaction) {
-                        $existingPayment = [
-                            'transaction_id' => $latestInvoice->transaction->id,
-                            'registration_id' => $latestInvoice->transaction->public_ref,
-                            'final_amount' => (float) $latestInvoice->transaction->final_amount,
-                            'unique_code' => (int) $latestInvoice->transaction->unique_code,
-                            'payment_channel' => (string) ($latestInvoice->transaction->payment_channel ?? 'bank_transfer'),
-                            'qris_payload' => $latestInvoice->qris_payload,
-                        ];
-                    }
-                ?>
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-black border {{ $isLocked ? 'bg-yellow-500/15 text-yellow-200 border-yellow-500/30' : 'bg-green-500/15 text-green-200 border-green-500/30' }}">
-                    {{ $isLocked ? strtoupper($registration->status) : 'DRAFT' }}
-                </span>
-                <a href="{{ route('community.register.index') }}" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white font-bold hover:bg-slate-700 transition">Ganti Event</a>
+    $existingPayment = null;
+    if ($latestInvoice && $latestInvoice->transaction) {
+        $existingPayment = [
+            'transaction_id' => $latestInvoice->transaction->id,
+            'registration_id' => $latestInvoice->transaction->public_ref,
+            'final_amount' => (float) $latestInvoice->transaction->final_amount,
+            'unique_code' => (int) $latestInvoice->transaction->unique_code,
+            'payment_channel' => (string) ($latestInvoice->transaction->payment_channel ?? 'bank_transfer'),
+            'qris_payload' => $latestInvoice->qris_payload,
+        ];
+    }
+
+    $statusBadgeClass = $isLocked ? 'bg-amber-400 text-slate-950' : 'bg-neon text-slate-950';
+    $statusLabel = $isLocked ? strtoupper($registration->status) : 'DRAFT';
+@endphp
+
+<div class="kp-community-show min-h-screen bg-slate-950 text-slate-100 pt-10 sm:pt-12 pb-20">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6">
+        {{-- Breadcrumb & Header --}}
+        <div class="mb-6">
+            <nav aria-label="Breadcrumb" class="flex items-center gap-2 text-xs text-slate-400 mb-3">
+                <a href="{{ route('community.register.index') }}" class="hover:text-white transition duration-150">Registrasi Komunitas</a>
+                <span aria-hidden="true">/</span>
+                <span class="text-slate-200 truncate">{{ $event->name }}</span>
+            </nav>
+
+            <div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+                <div class="min-w-0">
+                    <h1 class="text-2xl sm:text-3xl text-white truncate">{{ $registration->community_name }}</h1>
+                    <p class="text-sm text-slate-300 mt-1">{{ $event->name }}</p>
+                </div>
+                <div class="flex items-center gap-2.5 shrink-0">
+                    <span class="kp-mono inline-flex items-center h-9 px-3 rounded-md text-xs font-bold {{ $statusBadgeClass }}">
+                        {{ $statusLabel }}
+                    </span>
+                    <a href="{{ route('community.register.index') }}"
+                       class="inline-flex items-center justify-center h-9 px-4 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs sm:text-sm font-semibold text-white transition duration-150 whitespace-nowrap">
+                        Ganti Event
+                    </a>
+                </div>
             </div>
         </div>
 
-        <div id="communityApp" class="space-y-8" data-locked="{{ $isLocked ? 1 : 0 }}">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                <!-- Left Column: Info & Actions -->
-                <div class="lg:col-span-5 space-y-6">
-                    <!-- Data PIC -->
-                    <div class="bg-card/80 backdrop-blur border border-slate-700/60 rounded-3xl p-6">
-                        <div class="flex items-center justify-between gap-3">
+        <div id="communityApp" class="space-y-6" data-locked="{{ $isLocked ? 1 : 0 }}">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+                {{-- Right on Desktop, First on Mobile: Participant Form --}}
+                <div class="lg:col-span-7 lg:order-2">
+                    <section id="participantFormCard" class="bg-slate-900 border border-slate-800 rounded-lg p-5 sm:p-6">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 mb-5 border-b border-slate-800">
                             <div>
-                                <div class="text-sm font-black text-white">Data PIC</div>
-                                <div class="text-xs text-slate-400">PIC bisa diubah selama masih draft.</div>
+                                <h2 id="participantFormTitle" class="text-base sm:text-lg text-white">Tambah Peserta</h2>
+                                <p class="text-xs text-slate-400 mt-0.5">
+                                    Lengkapi data pelari untuk dimasukkan ke daftar komunitas{{ $promoBuyX > 0 ? " (Promo Beli {$promoBuyX} Gratis 1)" : '' }}.
+                                </p>
                             </div>
-                            <button type="button" id="btnSavePic" class="px-4 py-2 rounded-xl bg-neon text-dark font-black hover:bg-neon/90 transition">
-                                Simpan
-                            </button>
+                            <span class="kp-mono text-xs text-slate-400 shrink-0">Step 01 · Input Anggota</span>
                         </div>
 
-                        <div class="mt-4 space-y-3">
-                            <div>
-                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Nama Komunitas</label>
-                                <input type="text" id="community_name" value="{{ $registration->community_name }}" class="w-full px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-neon">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div class="sm:col-span-2">
+                                <label for="p_name" class="block text-xs font-semibold text-slate-300 mb-1.5">Nama Peserta (BIB Name)</label>
+                                <input type="text" id="p_name"
+                                       class="w-full h-10 px-3.5 rounded-md bg-slate-950 border border-slate-700 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-neon"
+                                       placeholder="Nama lengkap peserta">
                             </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Nama PIC</label>
-                                <input type="text" id="pic_name" value="{{ $registration->pic_name }}" class="w-full px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-neon">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Email PIC</label>
-                                <input type="email" id="pic_email" value="{{ $registration->pic_email }}" class="w-full px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-neon">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">WhatsApp PIC</label>
-                                <input type="text" id="pic_phone" value="{{ $registration->pic_phone }}" class="w-full px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-neon">
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- Invoice / Payment Action -->
-                    <div class="bg-card/80 backdrop-blur border border-slate-700/60 rounded-3xl p-6">
-                        <div class="flex flex-col gap-4">
                             <div>
-                                <div class="text-sm font-black text-white">Selesai &amp; Generate Invoice</div>
-                                <div class="text-xs text-slate-400">Metode pembayaran: Moota atau QRIS dinamis.</div>
-                            </div>
-                            <div class="space-y-3">
-                                <select id="paymentMethod" class="w-full px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-neon">
-                                    <option value="moota">Transfer Bank (Moota)</option>
-                                    <option value="qris">QRIS Dinamis</option>
-                                </select>
-                                <button type="button" id="btnGenerateInvoice" class="w-full px-6 py-3 rounded-2xl bg-neon text-dark font-black hover:bg-neon/90 transition">
-                                    Generate Invoice
-                                </button>
-                            </div>
-                        </div>
-                        <div class="mt-4 text-xs text-red-300 font-bold hidden" id="invoiceError"></div>
-
-                        @if($latestInvoice && $latestInvoice->transaction)
-                            <div class="mt-4 bg-slate-950/40 border border-slate-700 rounded-2xl p-4">
-                                <div class="flex items-center justify-between gap-3">
-                                    <div class="text-sm text-slate-200 font-bold">Invoice terakhir: {{ strtoupper($latestInvoice->payment_method) }}</div>
-                                    <div class="flex items-center gap-2">
-                                        @if($latestInvoice->status === 'pending' && $latestInvoice->transaction->payment_status === 'pending' && $isLocked)
-                                            <button type="button" id="btnCancelInvoice" class="px-4 py-2 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 font-bold hover:bg-red-500/20 transition">Batalkan</button>
-                                        @endif
-                                        <button type="button" id="btnOpenExistingInvoice" class="px-4 py-2 rounded-xl bg-slate-800 border border-slate-700 text-white font-bold hover:bg-slate-700 transition">Buka</button>
-                                    </div>
-                                </div>
-                                <div class="mt-1 text-xs text-slate-400">ID: <span class="font-mono">{{ $latestInvoice->transaction->public_ref }}</span></div>
-                            </div>
-                        @endif
-                    </div>
-                </div>
-
-                <!-- Right Column: Add Participant Form -->
-                <div class="lg:col-span-7 space-y-6">
-                    <div class="bg-card/80 backdrop-blur border border-slate-700/60 rounded-3xl p-6 h-full">
-                        <div class="flex items-center justify-between gap-3 mb-6">
-                            <div>
-                                <div id="participantFormTitle" class="text-lg font-black text-white">Tambah Peserta</div>
-                                <div class="text-sm text-slate-400">Isi data peserta komunitas (Beli 10 gratis 1).</div>
-                            </div>
-                            <div class="flex items-center gap-2">
-                                <button type="button" id="btnCancelEditParticipant" class="hidden px-4 py-3 rounded-xl bg-slate-900 border border-slate-700 text-white font-bold hover:bg-slate-800 transition shadow-lg">
-                                    Batal
-                                </button>
-                                <button type="button" id="btnAddParticipant" class="px-6 py-3 rounded-xl bg-slate-800 border border-slate-700 text-white font-bold hover:bg-slate-700 transition shadow-lg">
-                                    <span class="mr-2">+</span> Tambah
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div class="md:col-span-2">
-                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Nama Peserta</label>
-                                <input type="text" id="p_name" class="w-full px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-neon placeholder-slate-600" placeholder="Nama Lengkap">
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Gender</label>
-                                <select id="p_gender" class="w-full px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-neon">
-                                    <option value="">- Pilih Gender -</option>
-                                    <option value="male">Laki-laki (Male)</option>
-                                    <option value="female">Perempuan (Female)</option>
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Ukuran Jersey</label>
-                                <select id="p_jersey_size" class="w-full px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-neon">
-                                    <option value="">- Pilih Size -</option>
-                                    @foreach(($event->jersey_sizes ?? ['XS','S','M','L','XL','XXL','3XL']) as $size)
-                                        <option value="{{ $size }}">{{ $size }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Kategori Lari</label>
-                                <select id="p_category" class="w-full px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-neon">
-                                    <option value="">- Pilih Kategori -</option>
+                                <label for="p_category" class="block text-xs font-semibold text-slate-300 mb-1.5">Kategori Lari</label>
+                                <select id="p_category"
+                                        class="w-full h-10 px-3 rounded-md bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-neon">
+                                    <option value="">-- Pilih Kategori --</option>
                                     @foreach($categories as $c)
                                         <option value="{{ $c->id }}">{{ $c->name }}</option>
                                     @endforeach
                                 </select>
                             </div>
+
                             <div>
-                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Email</label>
-                                <input type="email" id="p_email" class="w-full px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-neon placeholder-slate-600" placeholder="email@address.com">
+                                <label for="p_gender" class="block text-xs font-semibold text-slate-300 mb-1.5">Jenis Kelamin</label>
+                                <select id="p_gender"
+                                        class="w-full h-10 px-3 rounded-md bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-neon">
+                                    <option value="">-- Pilih Gender --</option>
+                                    <option value="male">Laki-laki (Male)</option>
+                                    <option value="female">Perempuan (Female)</option>
+                                </select>
                             </div>
+
                             <div>
-                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">WhatsApp</label>
-                                <input type="text" id="p_phone" class="w-full px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-neon placeholder-slate-600" placeholder="08xxxxxxxxxx">
+                                <label for="p_jersey_size" class="block text-xs font-semibold text-slate-300 mb-1.5">Ukuran Jersey</label>
+                                <select id="p_jersey_size"
+                                        class="w-full h-10 px-3 rounded-md bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-neon">
+                                    <option value="">-- Pilih Size --</option>
+                                    @foreach(($event->jersey_sizes ?? ['XS','S','M','L','XL','XXL','3XL']) as $size)
+                                        <option value="{{ $size }}">{{ $size }}</option>
+                                    @endforeach
+                                </select>
                             </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Nomor Identitas (KTP/SIM/Passport)</label>
-                                <input type="text" id="p_id_card" class="w-full px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-neon placeholder-slate-600" placeholder="Nomor ID">
+
+                            <div>
+                                <label for="p_id_card" class="block text-xs font-semibold text-slate-300 mb-1.5">No. Identitas (KTP/SIM)</label>
+                                <input type="text" id="p_id_card"
+                                       class="w-full h-10 px-3.5 rounded-md bg-slate-950 border border-slate-700 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-neon"
+                                       placeholder="Nomor KTP / SIM / Passport">
                             </div>
-                            <div class="md:col-span-2">
-                                <label class="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Alamat Lengkap</label>
-                                <textarea id="p_address" rows="2" class="w-full px-4 py-3 rounded-2xl bg-slate-900 border border-slate-700 text-white focus:outline-none focus:border-neon placeholder-slate-600" placeholder="Alamat domisili peserta"></textarea>
+
+                            <div>
+                                <label for="p_email" class="block text-xs font-semibold text-slate-300 mb-1.5">Email Peserta</label>
+                                <input type="email" id="p_email"
+                                       class="w-full h-10 px-3.5 rounded-md bg-slate-950 border border-slate-700 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-neon"
+                                       placeholder="email@peserta.com">
+                            </div>
+
+                            <div>
+                                <label for="p_phone" class="block text-xs font-semibold text-slate-300 mb-1.5">No. WhatsApp</label>
+                                <input type="text" id="p_phone" inputmode="numeric"
+                                       oninput="this.value = this.value.replace(/[^0-9]/g, '')"
+                                       class="w-full h-10 px-3.5 rounded-md bg-slate-950 border border-slate-700 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-neon"
+                                       placeholder="08xxxxxxxxxx">
+                            </div>
+
+                            <div class="sm:col-span-2">
+                                <label for="p_address" class="block text-xs font-semibold text-slate-300 mb-1.5">Alamat Lengkap</label>
+                                <textarea id="p_address" rows="2"
+                                          class="w-full px-3.5 py-2.5 rounded-md bg-slate-950 border border-slate-700 text-sm text-white placeholder-slate-400 focus:outline-none focus:border-neon"
+                                          placeholder="Alamat domisili peserta"></textarea>
                             </div>
                         </div>
 
-                        <div class="mt-4 text-xs text-red-300 font-bold hidden" id="participantError"></div>
-                    </div>
+                        <div class="mt-4 text-xs text-red-200 bg-slate-950 border border-red-800 rounded-md px-3.5 py-2.5 hidden" id="participantError"></div>
+                        <div class="mt-4 text-xs text-slate-100 bg-slate-950 border border-slate-700 rounded-md px-3.5 py-2.5 hidden" id="participantSuccess"></div>
+
+                        {{-- Bottom Form Action Bar (Ergonomic for Mobile & Desktop) --}}
+                        <div class="mt-5 pt-4 border-t border-slate-800 flex flex-col-reverse sm:flex-row sm:items-center justify-end gap-2.5">
+                            <button type="button" id="btnCancelEditParticipant"
+                                    class="hidden w-full sm:w-auto inline-flex items-center justify-center h-10 px-4 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold text-white transition duration-150">
+                                Batal Edit
+                            </button>
+                            <button type="button" id="btnAddParticipant"
+                                    class="w-full sm:w-auto inline-flex items-center justify-center h-10 px-5 rounded-md bg-neon hover:bg-lime-300 text-slate-950 text-sm font-bold transition duration-150">
+                                + Tambah Peserta
+                            </button>
+                        </div>
+                    </section>
+                </div>
+
+                {{-- Left on Desktop, Second on Mobile: PIC & Checkout Invoice --}}
+                <div class="lg:col-span-5 lg:order-1 space-y-5">
+                    {{-- Data PIC --}}
+                    <section class="bg-slate-900 border border-slate-800 rounded-lg p-5 sm:p-6">
+                        <div class="flex items-center justify-between gap-3 pb-3.5 mb-4 border-b border-slate-800">
+                            <div>
+                                <h2 class="text-base text-white">Data PIC Komunitas</h2>
+                                <p class="text-xs text-slate-400 mt-0.5">Dapat diubah selama status masih draft.</p>
+                            </div>
+                            <button type="button" id="btnSavePic"
+                                    class="inline-flex items-center justify-center h-9 px-3.5 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-white transition duration-150 whitespace-nowrap">
+                                Simpan PIC
+                            </button>
+                        </div>
+
+                        <div class="space-y-3.5">
+                            <div>
+                                <label for="community_name" class="block text-xs font-semibold text-slate-300 mb-1.5">Nama Komunitas</label>
+                                <input type="text" id="community_name" value="{{ $registration->community_name }}"
+                                       class="w-full h-10 px-3.5 rounded-md bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-neon">
+                            </div>
+                            <div>
+                                <label for="pic_name" class="block text-xs font-semibold text-slate-300 mb-1.5">Nama PIC</label>
+                                <input type="text" id="pic_name" value="{{ $registration->pic_name }}"
+                                       class="w-full h-10 px-3.5 rounded-md bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-neon">
+                            </div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                <div>
+                                    <label for="pic_email" class="block text-xs font-semibold text-slate-300 mb-1.5">Email PIC</label>
+                                    <input type="email" id="pic_email" value="{{ $registration->pic_email }}"
+                                           class="w-full h-10 px-3.5 rounded-md bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-neon">
+                                </div>
+                                <div>
+                                    <label for="pic_phone" class="block text-xs font-semibold text-slate-300 mb-1.5">WhatsApp PIC</label>
+                                    <input type="text" id="pic_phone" value="{{ $registration->pic_phone }}" inputmode="numeric"
+                                           class="w-full h-10 px-3.5 rounded-md bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-neon">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mt-3 text-xs text-slate-100 bg-slate-950 border border-slate-700 rounded-md px-3 py-2 hidden" id="picSuccess"></div>
+                    </section>
+
+                    {{-- Generate Invoice --}}
+                    <section class="bg-slate-900 border border-slate-800 rounded-lg p-5 sm:p-6">
+                        <div class="pb-3.5 mb-4 border-b border-slate-800">
+                            <h2 class="text-base text-white">Finalisasi &amp; Pembayaran Kolektif</h2>
+                            <p class="text-xs text-slate-400 mt-0.5">Buat 1 tagihan untuk seluruh peserta di daftar bawah.</p>
+                        </div>
+
+                        <div class="space-y-3">
+                            <div>
+                                <label for="paymentMethod" class="block text-xs font-semibold text-slate-300 mb-1.5">Metode Pembayaran</label>
+                                <select id="paymentMethod"
+                                        class="w-full h-10 px-3 rounded-md bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-neon">
+                                    <option value="moota">Transfer Bank (Moota)</option>
+                                    <option value="qris">QRIS Dinamis</option>
+                                </select>
+                            </div>
+                            <button type="button" id="btnGenerateInvoice"
+                                    class="w-full inline-flex items-center justify-center h-11 px-5 rounded-md bg-neon hover:bg-lime-300 text-slate-950 text-sm font-bold transition duration-150">
+                                Generate Invoice
+                            </button>
+                        </div>
+
+                        <div class="mt-3 text-xs text-red-200 bg-slate-950 border border-red-800 rounded-md px-3.5 py-2.5 hidden" id="invoiceError"></div>
+
+                        @if($latestInvoice && $latestInvoice->transaction)
+                            <div class="mt-4 bg-slate-950 border border-slate-800 rounded-md p-3.5">
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                                    <div>
+                                        <div class="text-xs font-semibold text-white">Invoice Terakhir ({{ strtoupper($latestInvoice->payment_method) }})</div>
+                                        <div class="kp-mono text-[11px] text-slate-400 mt-0.5">{{ $latestInvoice->transaction->public_ref }}</div>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        @if($latestInvoice->status === 'pending' && $latestInvoice->transaction->payment_status === 'pending' && $isLocked)
+                                            <button type="button" id="btnCancelInvoice"
+                                                    class="inline-flex items-center justify-center h-9 px-3 rounded-md bg-slate-900 hover:bg-red-950 border border-slate-700 hover:border-red-900 text-xs font-semibold text-red-300 transition duration-150">
+                                                Batalkan
+                                            </button>
+                                        @endif
+                                        <button type="button" id="btnOpenExistingInvoice"
+                                                class="inline-flex items-center justify-center h-9 px-3.5 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-white transition duration-150">
+                                            Lihat Tagihan
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                    </section>
                 </div>
             </div>
 
-            <!-- Bottom Section: Participant List -->
-            <div class="w-full">
-                <div class="bg-card/80 backdrop-blur border border-slate-700/60 rounded-3xl overflow-hidden">
-                    <div class="px-6 py-5 border-b border-slate-700/60 flex items-center justify-between bg-slate-900/30">
-                        <div class="flex items-center gap-3">
-                            <div class="w-10 h-10 rounded-xl bg-slate-800 flex items-center justify-center text-slate-400">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                                </svg>
-                            </div>
-                            <div>
-                                <div class="text-base font-black text-white">Daftar Peserta Terdaftar</div>
-                                <div class="text-xs text-slate-400">Total: <span id="participantCount" class="text-neon font-bold">{{ $participants->count() }} peserta</span></div>
-                            </div>
-                        </div>
-                        <!-- Export/Import buttons could go here -->
+            {{-- Bottom Section: Participant List (Desktop Table + Mobile Cards) --}}
+            <section class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
+                <div class="px-5 py-4 border-b border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div>
+                        <h2 class="text-base sm:text-lg text-white">Daftar Peserta Komunitas</h2>
+                        <p class="text-xs text-slate-400 mt-0.5">Periksa kembali data sebelum membuat invoice.</p>
                     </div>
-                    <div class="overflow-x-auto">
-                        <table class="min-w-full">
-                            <thead class="bg-slate-950/60 border-b border-slate-800">
-                                <tr>
-                                    <th class="px-6 py-4 text-left text-xs font-black text-slate-400 uppercase tracking-wider">Nama Peserta</th>
-                                    <th class="px-6 py-4 text-left text-xs font-black text-slate-400 uppercase tracking-wider">Kategori & Gender</th>
-                                    <th class="px-6 py-4 text-left text-xs font-black text-slate-400 uppercase tracking-wider">Kontak</th>
-                                    <th class="px-6 py-4 text-right text-xs font-black text-slate-400 uppercase tracking-wider">Aksi</th>
+                    <span id="participantCount" class="kp-mono inline-flex items-center h-8 px-3 rounded-md bg-slate-950 border border-slate-800 text-xs font-bold text-neon self-start sm:self-auto">
+                        {{ $participants->count() }} peserta
+                    </span>
+                </div>
+
+                {{-- Desktop Table --}}
+                <div class="hidden sm:block overflow-x-auto">
+                    <table class="min-w-full">
+                        <thead class="bg-slate-950 border-b border-slate-800">
+                            <tr>
+                                <th class="px-5 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Peserta</th>
+                                <th class="px-5 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Kategori &amp; Jersey</th>
+                                <th class="px-5 py-3 text-left text-xs font-semibold text-slate-400 uppercase tracking-wider">Kontak</th>
+                                <th class="px-5 py-3 text-right text-xs font-semibold text-slate-400 uppercase tracking-wider">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="participantsBody" class="divide-y divide-slate-800">
+                            @forelse($participants as $p)
+                                <tr data-id="{{ $p->id }}" class="hover:bg-slate-800/50 transition">
+                                    <td class="px-5 py-3.5">
+                                        <div class="text-sm font-semibold text-white">{{ $p->name }}</div>
+                                        <div class="kp-mono text-xs text-slate-400 mt-0.5">{{ $p->id_card ?? '-' }}</div>
+                                    </td>
+                                    <td class="px-5 py-3.5">
+                                        <div class="text-sm text-slate-200">{{ $p->category?->name ?? '-' }}</div>
+                                        <div class="text-xs text-slate-400 capitalize mt-0.5">
+                                            {{ $p->gender ?? '-' }} · Size <span class="kp-mono text-slate-200">{{ $p->jersey_size ?? '-' }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-5 py-3.5">
+                                        <div class="text-sm text-slate-200">{{ $p->email ?? '-' }}</div>
+                                        <div class="kp-mono text-xs text-slate-400 mt-0.5">{{ $p->phone ?? '-' }}</div>
+                                    </td>
+                                    <td class="px-5 py-3.5 text-right">
+                                        <div class="inline-flex items-center gap-2">
+                                            <button type="button" class="btnEditParticipant h-8 px-3 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-white transition" data-id="{{ $p->id }}">
+                                                Edit
+                                            </button>
+                                            <button type="button" class="btnDeleteParticipant h-8 px-3 rounded-md bg-slate-950 hover:bg-red-950 border border-slate-800 hover:border-red-900 text-xs font-medium text-red-300 transition" data-id="{{ $p->id }}">
+                                                Hapus
+                                            </button>
+                                        </div>
+                                    </td>
                                 </tr>
-                            </thead>
-                            <tbody id="participantsBody" class="divide-y divide-slate-800 bg-slate-900/20">
-                                @foreach($participants as $p)
-                                    <tr data-id="{{ $p->id }}" class="hover:bg-slate-800/50 transition">
-                                        <td class="px-6 py-4">
-                                            <div class="font-bold text-white">{{ $p->name }}</div>
-                                            <div class="text-xs text-slate-500 font-mono mt-1">{{ $p->id_card ?? '-' }}</div>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <div class="text-sm text-slate-200">{{ $p->category?->name ?? '-' }}</div>
-                                            <div class="text-xs text-slate-500 capitalize">
-                                                {{ $p->gender ?? '-' }}
-                                                <span class="mx-1 text-slate-600">•</span>
-                                                Size: <span class="font-mono text-slate-300">{{ $p->jersey_size ?? '-' }}</span>
-                                            </div>
-                                        </td>
-                                        <td class="px-6 py-4">
-                                            <div class="text-sm text-slate-300">{{ $p->email ?? '-' }}</div>
-                                            <div class="text-xs text-slate-500">{{ $p->phone ?? '-' }}</div>
-                                        </td>
-                                        <td class="px-6 py-4 text-right">
-                                            <div class="flex justify-end gap-2">
-                                                <button type="button" class="btnEditParticipant px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-white font-bold text-xs hover:bg-slate-700 transition flex items-center gap-1" data-id="{{ $p->id }}">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                                    </svg>
-                                                    Edit
-                                                </button>
-                                                <button type="button" class="btnDeleteParticipant px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 font-bold text-xs hover:bg-red-500/20 transition flex items-center gap-1" data-id="{{ $p->id }}">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                    Hapus
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                                @if($participants->isEmpty())
-                                    <tr id="emptyRow">
-                                        <td colspan="4" class="px-6 py-12 text-center">
-                                            <div class="flex flex-col items-center justify-center text-slate-500">
-                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mb-3 opacity-20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
-                                                </svg>
-                                                <div class="text-sm font-medium">Belum ada peserta yang didaftarkan.</div>
-                                                <div class="text-xs mt-1">Silakan isi formulir di atas untuk menambah peserta.</div>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endif
-                            </tbody>
-                        </table>
-                    </div>
+                            @empty
+                                <tr id="emptyRow">
+                                    <td colspan="4" class="px-5 py-10 text-center text-sm text-slate-400">
+                                        Belum ada peserta yang didaftarkan. Isi formulir di atas untuk menambah peserta pertama.
+                                    </td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
-            </div>
+
+                {{-- Mobile Cards --}}
+                <div id="participantsMobileList" class="sm:hidden divide-y divide-slate-800">
+                    @forelse($participants as $p)
+                        <div data-id="{{ $p->id }}" class="p-4 space-y-2.5">
+                            <div class="flex items-start justify-between gap-3">
+                                <div class="min-w-0">
+                                    <div class="text-sm font-semibold text-white truncate">{{ $p->name }}</div>
+                                    <div class="kp-mono text-xs text-slate-400 mt-0.5">{{ $p->id_card ?? '-' }}</div>
+                                </div>
+                                <span class="kp-mono text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-200 shrink-0">{{ $p->jersey_size ?? '-' }}</span>
+                            </div>
+                            <div class="text-xs text-slate-300">
+                                {{ $p->category?->name ?? '-' }} · <span class="capitalize">{{ $p->gender ?? '-' }}</span>
+                            </div>
+                            <div class="text-xs text-slate-400">
+                                {{ $p->email ?? '-' }} · <span class="kp-mono">{{ $p->phone ?? '-' }}</span>
+                            </div>
+                            <div class="grid grid-cols-2 gap-2 pt-1">
+                                <button type="button" class="btnEditParticipant h-9 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-white transition" data-id="{{ $p->id }}">
+                                    Edit
+                                </button>
+                                <button type="button" class="btnDeleteParticipant h-9 rounded-md bg-slate-950 hover:bg-red-950 border border-slate-800 hover:border-red-900 text-xs font-medium text-red-300 transition" data-id="{{ $p->id }}">
+                                    Hapus
+                                </button>
+                            </div>
+                        </div>
+                    @empty
+                        <div class="p-8 text-center text-sm text-slate-400">
+                            Belum ada peserta yang didaftarkan.
+                        </div>
+                    @endforelse
+                </div>
+            </section>
         </div>
     </div>
 </div>
@@ -297,22 +399,17 @@
             btnCancelInvoice: document.getElementById('btnCancelInvoice'),
             btnOpenExisting: document.getElementById('btnOpenExistingInvoice'),
             participantError: document.getElementById('participantError'),
+            participantSuccess: document.getElementById('participantSuccess'),
+            picSuccess: document.getElementById('picSuccess'),
             invoiceError: document.getElementById('invoiceError'),
             participantsBody: document.getElementById('participantsBody'),
+            participantsMobileList: document.getElementById('participantsMobileList'),
             participantCount: document.getElementById('participantCount'),
             participantFormTitle: document.getElementById('participantFormTitle'),
+            participantFormCard: document.getElementById('participantFormCard'),
         };
 
         function setDisabled(state) {
-            const inputs = app.querySelectorAll('input, select, button');
-            inputs.forEach(function (el) {
-                if (el.id === 'btnOpenExistingInvoice') return;
-                if (el.closest('#rl-community-payment-modal')) return;
-                if (el.type === 'button' || el.tagName === 'BUTTON' || el.tagName === 'INPUT' || el.tagName === 'SELECT') {
-                    if (el.id === 'btnOpenExistingInvoice') return;
-                }
-            });
-
             const fields = [
                 'community_name','pic_name','pic_email','pic_phone',
                 'p_name','p_gender','p_jersey_size','p_category','p_email','p_phone','p_id_card','p_address',
@@ -326,37 +423,50 @@
                 else el.classList.remove('opacity-60');
             });
 
-            const rowButtons = document.querySelectorAll('.btnDeleteParticipant, .btnEditParticipant');
-            rowButtons.forEach(function (b) {
+            document.querySelectorAll('.btnDeleteParticipant, .btnEditParticipant').forEach(function (b) {
                 if (state) {
-                    b.classList.add('opacity-60');
-                    b.classList.add('cursor-not-allowed');
+                    b.classList.add('opacity-60', 'cursor-not-allowed');
                 } else {
-                    b.classList.remove('opacity-60');
-                    b.classList.remove('cursor-not-allowed');
+                    b.classList.remove('opacity-60', 'cursor-not-allowed');
                 }
             });
         }
 
-        function showError(el, msg) {
+        function showMsg(el, msg, autoHideMs) {
+            if (!el) return;
             el.textContent = msg;
             el.classList.remove('hidden');
+            if (autoHideMs) {
+                setTimeout(function () { el.classList.add('hidden'); }, autoHideMs);
+            }
         }
 
-        function hideError(el) {
+        function hideMsg(el) {
+            if (!el) return;
             el.textContent = '';
             el.classList.add('hidden');
         }
 
+        function escapeHtml(str) {
+            return String(str || '').replace(/[&<>"']/g, function (m) {
+                return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m];
+            });
+        }
+
         function renderParticipants(items) {
             els.participantsBody.innerHTML = '';
+            if (els.participantsMobileList) els.participantsMobileList.innerHTML = '';
             participantsById = {};
 
             if (!items || !items.length) {
                 const tr = document.createElement('tr');
                 tr.id = 'emptyRow';
-                tr.innerHTML = '<td colspan="4" class="px-6 py-10 text-center text-slate-500">Belum ada peserta.</td>';
+                tr.innerHTML = '<td colspan="4" class="px-5 py-10 text-center text-sm text-slate-400">Belum ada peserta yang didaftarkan. Isi formulir di atas untuk menambah peserta pertama.</td>';
                 els.participantsBody.appendChild(tr);
+
+                if (els.participantsMobileList) {
+                    els.participantsMobileList.innerHTML = '<div class="p-8 text-center text-sm text-slate-400">Belum ada peserta yang didaftarkan.</div>';
+                }
                 els.participantCount.textContent = '0 peserta';
                 return;
             }
@@ -365,53 +475,58 @@
 
             items.forEach(function (p) {
                 participantsById[String(p.id)] = p;
+
                 const tr = document.createElement('tr');
                 tr.dataset.id = p.id;
                 tr.className = 'hover:bg-slate-800/50 transition';
                 tr.innerHTML = `
-                    <td class="px-6 py-4">
-                        <div class="font-bold text-white">${escapeHtml(p.name || '-')}</div>
-                        <div class="text-xs text-slate-500 font-mono mt-1">${escapeHtml(p.id_card || '-')}</div>
+                    <td class="px-5 py-3.5">
+                        <div class="text-sm font-semibold text-white">${escapeHtml(p.name || '-')}</div>
+                        <div class="kp-mono text-xs text-slate-400 mt-0.5">${escapeHtml(p.id_card || '-')}</div>
                     </td>
-                    <td class="px-6 py-4">
+                    <td class="px-5 py-3.5">
                         <div class="text-sm text-slate-200">${escapeHtml(p.category_name || '-')}</div>
-                        <div class="text-xs text-slate-500 capitalize">
-                            ${escapeHtml(p.gender || '-')}
-                            <span class="mx-1 text-slate-600">•</span>
-                            Size: <span class="font-mono text-slate-300">${escapeHtml(p.jersey_size || '-')}</span>
+                        <div class="text-xs text-slate-400 capitalize mt-0.5">
+                            ${escapeHtml(p.gender || '-')} · Size <span class="kp-mono text-slate-200">${escapeHtml(p.jersey_size || '-')}</span>
                         </div>
                     </td>
-                    <td class="px-6 py-4">
-                        <div class="text-sm text-slate-300">${escapeHtml(p.email || '-')}</div>
-                        <div class="text-xs text-slate-500">${escapeHtml(p.phone || '-')}</div>
+                    <td class="px-5 py-3.5">
+                        <div class="text-sm text-slate-200">${escapeHtml(p.email || '-')}</div>
+                        <div class="kp-mono text-xs text-slate-400 mt-0.5">${escapeHtml(p.phone || '-')}</div>
                     </td>
-                    <td class="px-6 py-4 text-right">
-                        <div class="flex justify-end gap-2">
-                            <button type="button" class="btnEditParticipant px-3 py-1.5 rounded-lg bg-slate-800 border border-slate-700 text-white font-bold text-xs hover:bg-slate-700 transition flex items-center gap-1" data-id="${p.id}">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                </svg>
-                                Edit
-                            </button>
-                            <button type="button" class="btnDeleteParticipant px-3 py-1.5 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 font-bold text-xs hover:bg-red-500/20 transition flex items-center gap-1" data-id="${p.id}">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                </svg>
-                                Hapus
-                            </button>
+                    <td class="px-5 py-3.5 text-right">
+                        <div class="inline-flex items-center gap-2">
+                            <button type="button" class="btnEditParticipant h-8 px-3 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-white transition" data-id="${p.id}">Edit</button>
+                            <button type="button" class="btnDeleteParticipant h-8 px-3 rounded-md bg-slate-950 hover:bg-red-950 border border-slate-800 hover:border-red-900 text-xs font-medium text-red-300 transition" data-id="${p.id}">Hapus</button>
                         </div>
                     </td>
                 `;
                 els.participantsBody.appendChild(tr);
+
+                if (els.participantsMobileList) {
+                    const card = document.createElement('div');
+                    card.dataset.id = p.id;
+                    card.className = 'p-4 space-y-2.5';
+                    card.innerHTML = `
+                        <div class="flex items-start justify-between gap-3">
+                            <div class="min-w-0">
+                                <div class="text-sm font-semibold text-white truncate">${escapeHtml(p.name || '-')}</div>
+                                <div class="kp-mono text-xs text-slate-400 mt-0.5">${escapeHtml(p.id_card || '-')}</div>
+                            </div>
+                            <span class="kp-mono text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-200 shrink-0">${escapeHtml(p.jersey_size || '-')}</span>
+                        </div>
+                        <div class="text-xs text-slate-300">${escapeHtml(p.category_name || '-')} · <span class="capitalize">${escapeHtml(p.gender || '-')}</span></div>
+                        <div class="text-xs text-slate-400">${escapeHtml(p.email || '-')} · <span class="kp-mono">${escapeHtml(p.phone || '-')}</span></div>
+                        <div class="grid grid-cols-2 gap-2 pt-1">
+                            <button type="button" class="btnEditParticipant h-9 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-white transition" data-id="${p.id}">Edit</button>
+                            <button type="button" class="btnDeleteParticipant h-9 rounded-md bg-slate-950 hover:bg-red-950 border border-slate-800 hover:border-red-900 text-xs font-medium text-red-300 transition" data-id="${p.id}">Hapus</button>
+                        </div>
+                    `;
+                    els.participantsMobileList.appendChild(card);
+                }
             });
 
             setDisabled(locked);
-        }
-
-        function escapeHtml(str) {
-            return String(str || '').replace(/[&<>"']/g, function (m) {
-                return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[m];
-            });
         }
 
         function refreshParticipants() {
@@ -429,11 +544,11 @@
         function setFormMode(mode) {
             if (mode === 'edit') {
                 els.participantFormTitle.textContent = 'Edit Peserta';
-                els.btnAdd.innerHTML = 'Simpan Perubahan';
+                els.btnAdd.textContent = 'Simpan Perubahan';
                 els.btnCancelEdit.classList.remove('hidden');
             } else {
                 els.participantFormTitle.textContent = 'Tambah Peserta';
-                els.btnAdd.innerHTML = '<span class="mr-2">+</span> Tambah';
+                els.btnAdd.textContent = '+ Tambah Peserta';
                 els.btnCancelEdit.classList.add('hidden');
             }
         }
@@ -457,6 +572,9 @@
             document.getElementById('p_address').value = p.address || '';
             editingParticipantId = String(id);
             setFormMode('edit');
+            if (els.participantFormCard) {
+                els.participantFormCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         }
 
         function stopEditParticipant() {
@@ -465,12 +583,12 @@
             setFormMode('add');
         }
 
-        els.participantsBody.addEventListener('click', function (e) {
+        function handleListClick(e) {
             const btnEdit = e.target.closest('.btnEditParticipant');
             if (btnEdit) {
-                hideError(els.participantError);
+                hideMsg(els.participantError);
                 if (locked) {
-                    showError(els.participantError, 'Registrasi sudah dikunci (invoice sudah dibuat).');
+                    showMsg(els.participantError, 'Registrasi sudah dikunci (invoice sudah dibuat).');
                     return;
                 }
                 const id = btnEdit.dataset.id;
@@ -486,9 +604,9 @@
             const btnDelete = e.target.closest('.btnDeleteParticipant');
             if (!btnDelete) return;
 
-            hideError(els.participantError);
+            hideMsg(els.participantError);
             if (locked) {
-                showError(els.participantError, 'Registrasi sudah dikunci (invoice sudah dibuat).');
+                showMsg(els.participantError, 'Registrasi sudah dikunci (invoice sudah dibuat).');
                 return;
             }
 
@@ -504,7 +622,7 @@
                 .then(r => r.json())
                 .then(data => {
                     if (!data || !data.success) {
-                        showError(els.participantError, (data && data.message) ? data.message : 'Gagal menghapus peserta.');
+                        showMsg(els.participantError, (data && data.message) ? data.message : 'Gagal menghapus peserta.');
                         return;
                     }
                     if (editingParticipantId && String(editingParticipantId) === String(id)) {
@@ -512,8 +630,13 @@
                     }
                     refreshParticipants();
                 })
-                .catch(() => showError(els.participantError, 'Gagal menghubungi server.'));
-        });
+                .catch(() => showMsg(els.participantError, 'Gagal menghubungi server.'));
+        }
+
+        els.participantsBody.addEventListener('click', handleListClick);
+        if (els.participantsMobileList) {
+            els.participantsMobileList.addEventListener('click', handleListClick);
+        }
 
         function getPicPayload() {
             return {
@@ -540,20 +663,19 @@
         function clearParticipantForm() {
             ['p_name','p_gender','p_jersey_size','p_category','p_email','p_phone','p_id_card','p_address'].forEach(function (id) {
                 const el = document.getElementById(id);
-                if (!el) return;
-                if (el.tagName === 'SELECT') el.value = '';
-                else el.value = '';
+                if (el) el.value = '';
             });
         }
 
         els.btnCancelEdit.addEventListener('click', function () {
-            hideError(els.participantError);
+            hideMsg(els.participantError);
             stopEditParticipant();
         });
 
         els.btnSavePic.addEventListener('click', function () {
             if (locked) return;
-            hideError(els.invoiceError);
+            hideMsg(els.invoiceError);
+            hideMsg(els.picSuccess);
             fetch(urls.savePic, {
                 method: 'POST',
                 headers: {
@@ -566,16 +688,19 @@
             .then(r => r.json())
             .then(data => {
                 if (!data || !data.success) {
-                    showError(els.invoiceError, (data && data.message) ? data.message : 'Gagal menyimpan PIC.');
+                    showMsg(els.invoiceError, (data && data.message) ? data.message : 'Gagal menyimpan PIC.');
+                    return;
                 }
+                showMsg(els.picSuccess, 'Data PIC berhasil disimpan.', 3000);
             })
-            .catch(() => showError(els.invoiceError, 'Gagal menghubungi server.'));
+            .catch(() => showMsg(els.invoiceError, 'Gagal menghubungi server.'));
         });
 
         els.btnAdd.addEventListener('click', function () {
-            hideError(els.participantError);
+            hideMsg(els.participantError);
+            hideMsg(els.participantSuccess);
             if (locked) {
-                showError(els.participantError, 'Registrasi sudah dikunci (invoice sudah dibuat).');
+                showMsg(els.participantError, 'Registrasi sudah dikunci (invoice sudah dibuat).');
                 return;
             }
 
@@ -595,7 +720,7 @@
                 .then(r => r.json())
                 .then(data => {
                     if (!data || !data.success) {
-                        showError(
+                        showMsg(
                             els.participantError,
                             (data && data.message) ? data.message : (isEditing ? 'Gagal mengubah peserta.' : 'Gagal menambah peserta.')
                         );
@@ -603,15 +728,15 @@
                     }
                     stopEditParticipant();
                     refreshParticipants();
+                    showMsg(els.participantSuccess, isEditing ? 'Data peserta diperbarui.' : 'Peserta ditambahkan ke daftar.', 3000);
                 })
-                .catch(() => showError(els.participantError, 'Gagal menghubungi server.'));
+                .catch(() => showMsg(els.participantError, 'Gagal menghubungi server.'));
         });
 
         els.btnInvoice.addEventListener('click', function () {
             if (locked) return;
-            hideError(els.invoiceError);
+            hideMsg(els.invoiceError);
             const method = document.getElementById('paymentMethod').value || 'moota';
-            const payload = { payment_method: method };
             fetch(urls.invoice, {
                 method: 'POST',
                 headers: {
@@ -619,12 +744,12 @@
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({ payment_method: method })
             })
             .then(r => r.json())
             .then(data => {
                 if (!data || !data.success) {
-                    showError(els.invoiceError, (data && data.message) ? data.message : 'Gagal membuat invoice.');
+                    showMsg(els.invoiceError, (data && data.message) ? data.message : 'Gagal membuat invoice.');
                     return;
                 }
                 locked = true;
@@ -641,13 +766,13 @@
                     phone: document.getElementById('pic_phone').value || '',
                 });
             })
-            .catch(() => showError(els.invoiceError, 'Gagal menghubungi server.'));
+            .catch(() => showMsg(els.invoiceError, 'Gagal menghubungi server.'));
         });
 
         if (els.btnCancelInvoice) {
             els.btnCancelInvoice.addEventListener('click', function () {
-                hideError(els.invoiceError);
-                hideError(els.participantError);
+                hideMsg(els.invoiceError);
+                hideMsg(els.participantError);
                 if (!confirm('Batalkan invoice dan buka kembali registrasi ke DRAFT?')) return;
 
                 fetch(urls.cancelInvoice, {
@@ -657,7 +782,7 @@
                     .then(r => r.json())
                     .then(data => {
                         if (!data || !data.success) {
-                            showError(els.invoiceError, (data && data.message) ? data.message : 'Gagal membatalkan invoice.');
+                            showMsg(els.invoiceError, (data && data.message) ? data.message : 'Gagal membatalkan invoice.');
                             return;
                         }
                         locked = false;
@@ -667,7 +792,7 @@
                         refreshParticipants();
                         window.location.reload();
                     })
-                    .catch(() => showError(els.invoiceError, 'Gagal menghubungi server.'));
+                    .catch(() => showMsg(els.invoiceError, 'Gagal menghubungi server.'));
             });
         }
 
