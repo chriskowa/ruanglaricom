@@ -1,5 +1,4 @@
-@extends('layouts.pacerhub')
-@php($withSidebar = false)
+@extends('layouts.pacerhub', ['withSidebar' => false])
 
 @section('title', 'Pendaftaran Komunitas - Ruang Lari')
 
@@ -48,7 +47,7 @@
             </p>
         </div>
 
-        @if($errors->any())
+        @if(isset($errors) && $errors->any())
             <div class="mb-6 bg-slate-900 border border-red-800 text-red-200 rounded-lg p-4 text-sm">
                 <div class="font-semibold text-white mb-1">Periksa kembali isian formulir:</div>
                 <ul class="list-disc pl-5 space-y-1 text-xs sm:text-sm">
