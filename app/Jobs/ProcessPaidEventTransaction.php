@@ -43,6 +43,9 @@ class ProcessPaidEventTransaction implements ShouldQueue
                 return;
             }
 
+            // 0. Sync community registration participants if applicable (idempotent)
+            $this->syncCommunityParticipants();
+
             // 1. Generate BIB Numbers (sort by target_time)
             $this->generateBibNumbers();
 
@@ -99,6 +102,83 @@ class ProcessPaidEventTransaction implements ShouldQueue
 
             throw $e;
         }
+    }
+
+    /**
+     * Sync staging community participants into main event participants table on payment confirmation.
+     */
+    protected function syncCommunityParticipants(): void
+    {
+        $picData = is_array($this->transaction->pic_data) ? $this->transaction->pic_data : [];
+        $communityRegId = $picData['community_registration_id'] ?? null;
+        if (! $communityRegId) {
+            return;
+        }
+
+        \App\Models\CommunityRegistration::query()
+            ->whereKey($communityRegId)
+            ->update([
+                'status' => 'paid',
+                'paid_at' => $this->transaction->paid_at ?? now(),
+            ]);
+
+        \App\Models\CommunityInvoice::query()
+            ->where('transaction_id', $this->transaction->id)
+            ->update([
+                'status' => 'paid',
+            ]);
+
+        $registration = \App\Models\CommunityRegistration::with('participants')->find($communityRegId);
+        if (! $registration || $registration->imported_at || $this->transaction->participants()->exists()) {
+            return;
+        }
+
+        $communityParticipants = $registration->participants;
+        if ($communityParticipants->isEmpty()) {
+            return;
+        }
+
+        $categoryIds = $communityParticipants->pluck('race_category_id')->filter()->unique()->values()->all();
+        $categories = \App\Models\RaceCategory::query()->whereIn('id', $categoryIds)->get()->keyBy('id');
+        $pricingService = app(\App\Services\CommunityPricingService::class);
+
+        DB::transaction(function () use ($registration, $communityParticipants, $categories, $pricingService) {
+            foreach ($communityParticipants as $p) {
+                $category = $p->race_category_id ? ($categories[$p->race_category_id] ?? null) : null;
+                $priceType = 'regular';
+                if ($category) {
+                    $info = $pricingService->getCategoryPrice($category);
+                    $priceType = (string) ($info['type'] ?? 'regular');
+                }
+
+                \App\Models\Participant::create([
+                    'transaction_id' => $this->transaction->id,
+                    'event_package_id' => null,
+                    'race_category_id' => $p->race_category_id,
+                    'name' => $p->name,
+                    'gender' => $p->gender,
+                    'phone' => $p->phone,
+                    'email' => strtolower(trim((string) $p->email)),
+                    'id_card' => $p->id_card,
+                    'address' => $p->address,
+                    'emergency_contact_name' => $p->emergency_contact_name,
+                    'emergency_contact_number' => $p->emergency_contact_number,
+                    'date_of_birth' => $p->date_of_birth,
+                    'target_time' => null,
+                    'jersey_size' => $p->jersey_size,
+                    'addons' => [],
+                    'status' => 'pending',
+                    'is_picked_up' => false,
+                    'price_type' => $priceType,
+                ]);
+            }
+
+            $registration->update([
+                'imported_at' => now(),
+            ]);
+        });
+
+        $this->transaction->load('participants.category');
     }
 
     /**

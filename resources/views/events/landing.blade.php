@@ -12,7 +12,7 @@
     $heroFallbackImg = asset('images/hero/jadwal-lari.webp');
 @endphp
 
-@extends('layouts.pacerhub')
+@extends('layouts.pacerhub', ['skipHeavyAssets' => true, 'skipLoader' => true])
 
 @section('title', $title)
 @section('meta_title', $title)
@@ -22,8 +22,9 @@
 @section('og_image', 'https://ruanglari.com/storage/blog/media/012cce42-9e25-41b8-9e03-dc3a177fd595.webp')
 
 @push('styles')
-<link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+<link rel="preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" media="print" onload="this.media='all'">
+<noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer"></noscript>
 
 <style>
     #events-page {
@@ -1052,21 +1053,15 @@
         <!-- Subtle top edge rule -->
         <div class="absolute top-0 left-0 right-0 h-px bg-slate-900/80 pointer-events-none"></div>
 
-        <div class="relative max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-16 lg:py-24">
-            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-16 items-start lg:items-center">
+        <div class="relative max-w-7xl mx-auto px-5 sm:px-6 lg:px-8 py-8 sm:py-10 lg:py-12">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-start lg:items-center">
 
                 <!-- Left Column: Hero Copy -->
                 <div class="lg:col-span-7 max-w-2xl">
-                    <!-- Kicker Badge -->
-                    <span class="inline-flex items-center gap-2 rounded bg-slate-900 border border-slate-800 px-2.5 py-1 text-xs font-semibold text-lime-400">
-                        <span class="inline-block w-1.5 h-1.5 rounded-full bg-lime-400"></span>
-                        Update Terbaru 2026
-                    </span>
-
                     <!-- Headline (pakem Inter Tight 800, title case, tracking tight) -->
-                    <h1 class="mt-6 text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-[1.05] tracking-tight">
+                    <h1 class="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white leading-[1.08] tracking-tight">
                         Jadwal Lari Indonesia
-                        <span class="block text-lime-400 mt-2">Terlengkap & Terpercaya</span>
+                        <span class="block text-lime-400 mt-1.5">Terlengkap & Terpercaya</span>
                     </h1>
 
                     <!-- Subheadline: benefit spesifik, nyaman dibaca -->
@@ -1308,81 +1303,6 @@
     </section>
 
     <section class="ep-section ep-shell">
-        <div class="ep-section-head">
-            <div>
-                <h2 class="text-lg font-semibold text-white">Peta Sebaran Event Lari Indonesia</h2>
-                <p class="ep-section-copy">Eksplorasi lokasi event berdasarkan kota dan kategori lomba.</p>
-            </div>
-            <div id="events-map-count" class="text-xs font-semibold text-[#ccff00]">
-                {{ count($mapEvents ?? []) }} EVENT
-            </div>
-        </div>
-
-        <div id="events-explorer-map-section" class="ep-map-shell">
-            <div class="ep-map-toolbar" id="btn-toggle-events-map">
-                <div class="ep-map-tools">
-                    <div id="events-map-layer-dropdown-wrap" class="relative inline-block">
-                        <button type="button" id="btn-toggle-events-map-layer" class="ep-tool-btn" onclick="toggleEventsMapLayerMenu()">
-                            <i class="fas fa-layer-group text-[#ccff00]"></i>
-                            <span id="label-events-active-layer">Streets</span>
-                            <i class="fas fa-chevron-down text-[8px] opacity-60 ml-0.5"></i>
-                        </button>
-
-                        <div id="events-map-layer-menu" class="hidden absolute left-0 top-full mt-1.5 z-[9999] min-w-[170px] border border-[#232B3B] bg-[#12161F] rounded-md shadow-2xl overflow-hidden divide-y divide-[#232B3B]">
-                            @foreach([
-                                'streets' => 'Streets (Default)',
-                                'outdoors' => 'Outdoors Terrain',
-                                'dark' => 'Dark Tactical',
-                                'satellite' => 'Satelit Mapbox',
-                            ] as $layerKey => $layerLabel)
-                                <button type="button"
-                                        onclick="setEventsMapLayer('{{ $layerKey }}')"
-                                        class="w-full px-3.5 py-2.5 text-left text-[11px] font-semibold text-slate-200 hover:text-white hover:bg-[#1A202C] transition flex items-center justify-between">
-                                    <span>{{ $layerLabel }}</span>
-                                    <i class="fas fa-check text-[#ccff00] text-[10px] layer-check-icon {{ $layerKey === 'streets' ? '' : 'hidden' }}" data-layer="{{ $layerKey }}"></i>
-                                </button>
-                            @endforeach
-                        </div>
-                    </div>
-
-                    <button type="button" id="btn-events-map-locate-me" class="ep-tool-btn">
-                        <i class="fas fa-location-crosshairs text-[#ccff00]"></i>
-                        Lokasi Saya
-                    </button>
-                    <button type="button" id="btn-events-map-recenter" class="ep-tool-btn">
-                        Pusatkan
-                    </button>
-                </div>
-
-                <button type="button" id="btn-events-map-minimize-toggle" class="ep-tool-btn">
-                    <span id="label-events-map-toggle">Sembunyikan</span>
-                    <i id="icon-events-map-toggle" class="fas fa-chevron-up text-[8px]"></i>
-                </button>
-            </div>
-
-            <div id="events-map-collapse-wrap">
-                <div id="events-explorer-map"></div>
-
-                <div class="ep-map-filter">
-                    <button type="button"
-                            onclick="setEventsMapTypeFilter('')"
-                            class="btn-event-map-pill is-active"
-                            data-map-type="">
-                        Semua
-                    </button>
-
-                    @foreach($raceTypes as $rType)
-                        <button type="button"
-                                onclick="setEventsMapTypeFilter('{{ $rType->id }}')"
-                                class="btn-event-map-pill"
-                                data-map-type="{{ $rType->id }}">
-                            {{ $rType->name }}
-                        </button>
-                    @endforeach
-                </div>
-            </div>
-        </div>
-
         <div class="ep-filter-shell">
             <form id="filter-form">
                 @if(request('city'))
@@ -1446,7 +1366,7 @@
                     <button type="button" class="quick-filter-btn" data-filter-type="distance" data-value="{{ $distance->id }}">{{ $distance->name }}</button>
                 @endforeach
 
-                <span class="w-px h-5 bg-white/10 mx-1 shrink-0"></span>
+                <span class="w-px h-5 bg-slate-800 mx-1 shrink-0"></span>
 
                 <button type="button" class="quick-filter-btn" data-filter-type="type" data-value="">Semua Jenis</button>
                 @foreach($raceTypes as $type)
@@ -1460,19 +1380,94 @@
                 <h2 class="text-lg font-semibold text-white">Kalender Event Lari Terbaru</h2>
                 <p class="text-xs text-slate-400 mt-0.5">Daftar jadwal perlombaan lari yang telah terverifikasi di Indonesia.</p>
             </div>
-            <div class="ep-view-switcher self-start sm:self-auto" role="group" aria-label="Pilihan tampilan jadwal">
-                <button type="button" id="btn-view-list" class="ep-view-btn is-active" onclick="setEventsView('list')" title="Tampilan List" aria-pressed="true">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                    </svg>
-                    <span>List</span>
+            <div class="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                <button type="button" id="btn-toggle-explorer-map"
+                        class="inline-flex items-center gap-2 h-9 px-3.5 rounded-md bg-slate-900 border border-slate-700 hover:border-lime-400 text-xs font-semibold text-slate-200 hover:text-white transition">
+                    <span id="label-toggle-explorer-map">Lihat Peta</span>
+                    <span id="events-map-count" class="font-mono text-[11px] text-[#ccff00]">({{ count($mapEvents ?? []) }})</span>
                 </button>
-                <button type="button" id="btn-view-card" class="ep-view-btn" onclick="setEventsView('card')" title="Tampilan Card" aria-pressed="false">
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
-                    </svg>
-                    <span>Card</span>
-                </button>
+                <div class="ep-view-switcher" role="group" aria-label="Pilihan tampilan jadwal">
+                    <button type="button" id="btn-view-list" class="ep-view-btn is-active" onclick="setEventsView('list')" title="Tampilan List" aria-pressed="true">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                        <span>List</span>
+                    </button>
+                    <button type="button" id="btn-view-card" class="ep-view-btn" onclick="setEventsView('card')" title="Tampilan Card" aria-pressed="false">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                        </svg>
+                        <span>Card</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        {{-- Lazy-loaded Map Explorer (Hidden by default until user clicks "Lihat Peta") --}}
+        <div id="events-explorer-map-wrap" class="hidden mb-6">
+            <div id="events-explorer-map-section" class="ep-map-shell">
+                <div class="ep-map-toolbar" id="btn-toggle-events-map">
+                    <div class="ep-map-tools">
+                        <div id="events-map-layer-dropdown-wrap" class="relative inline-block">
+                            <button type="button" id="btn-toggle-events-map-layer" class="ep-tool-btn" onclick="toggleEventsMapLayerMenu()">
+                                <i class="fas fa-layer-group text-[#ccff00]"></i>
+                                <span id="label-events-active-layer">Streets</span>
+                                <i class="fas fa-chevron-down text-[8px] opacity-60 ml-0.5"></i>
+                            </button>
+
+                            <div id="events-map-layer-menu" class="hidden absolute left-0 top-full mt-1.5 z-[9999] min-w-[170px] border border-[#232B3B] bg-[#12161F] rounded-md shadow-2xl overflow-hidden divide-y divide-[#232B3B]">
+                                @foreach([
+                                    'streets' => 'Streets (Default)',
+                                    'outdoors' => 'Outdoors Terrain',
+                                    'dark' => 'Dark Tactical',
+                                    'satellite' => 'Satelit Mapbox',
+                                ] as $layerKey => $layerLabel)
+                                    <button type="button"
+                                            onclick="setEventsMapLayer('{{ $layerKey }}')"
+                                            class="w-full px-3.5 py-2.5 text-left text-[11px] font-semibold text-slate-200 hover:text-white hover:bg-[#1A202C] transition flex items-center justify-between">
+                                        <span>{{ $layerLabel }}</span>
+                                        <i class="fas fa-check text-[#ccff00] text-[10px] layer-check-icon {{ $layerKey === 'streets' ? '' : 'hidden' }}" data-layer="{{ $layerKey }}"></i>
+                                    </button>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        <button type="button" id="btn-events-map-locate-me" class="ep-tool-btn">
+                            <i class="fas fa-location-crosshairs text-[#ccff00]"></i>
+                            Lokasi Saya
+                        </button>
+                        <button type="button" id="btn-events-map-recenter" class="ep-tool-btn">
+                            Pusatkan
+                        </button>
+                    </div>
+
+                    <button type="button" id="btn-events-map-minimize-toggle" class="ep-tool-btn">
+                        <span id="label-events-map-toggle">Sembunyikan</span>
+                        <i id="icon-events-map-toggle" class="fas fa-chevron-up text-[8px]"></i>
+                    </button>
+                </div>
+
+                <div id="events-map-collapse-wrap">
+                    <div id="events-explorer-map"></div>
+
+                    <div class="ep-map-filter">
+                        <button type="button"
+                                onclick="setEventsMapTypeFilter('')"
+                                class="btn-event-map-pill is-active"
+                                data-map-type="">
+                            Semua
+                        </button>
+
+                        @foreach($raceTypes as $rType)
+                            <button type="button"
+                                    onclick="setEventsMapTypeFilter('{{ $rType->id }}')"
+                                    class="btn-event-map-pill"
+                                    data-map-type="{{ $rType->id }}">
+                                {{ $rType->name }}
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -1623,7 +1618,7 @@
                                     <input type="text" name="event_name" id="submit_event_name" placeholder="Contoh: Jakarta City Run 2026" required>
                                 </div>
 
-                                <div class="grid grid-cols-2 gap-3">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div>
                                         <label for="submit_event_date">Tanggal Event *</label>
                                         <input type="date" name="event_date" id="submit_event_date" required>
@@ -1685,22 +1680,29 @@
 
                     <div class="space-y-4">
                         <section class="ep-form-section">
-                            <div class="ep-form-section-title">04 / Lokasi Event</div>
-
-                            <div class="flex gap-2 mb-3">
-                                <input type="text" id="submit_map_search_input" placeholder="Cari venue atau alamat di peta..." autocomplete="off">
-                                <button type="button" id="btn-geolocation" class="ep-btn !min-h-[38px] shrink-0" title="Gunakan Lokasi Saya">
-                                    <i class="fas fa-crosshairs text-[#ccff00]"></i>
+                            <div class="flex items-center justify-between gap-2 pb-2 mb-3 border-b border-slate-800">
+                                <div class="ep-form-section-title !mb-0 !pb-0 !border-0">04 / Lokasi Event</div>
+                                <button type="button" id="btn-toggle-modal-map" class="h-8 px-3 rounded bg-slate-900 border border-slate-700 hover:border-lime-400 text-[11px] font-semibold text-slate-200 transition">
+                                    Tandai di Peta (Opsional)
                                 </button>
                             </div>
 
-                            <button type="button" id="btn-clear-map-search" class="hidden"></button>
-                            <i id="map-search-icon" class="hidden"></i>
-                            <div id="map-search-results" class="hidden"></div>
+                            <div id="modal-map-collapse" class="hidden mb-3">
+                                <div class="flex gap-2 mb-2.5">
+                                    <input type="text" id="submit_map_search_input" placeholder="Cari venue atau alamat di peta..." autocomplete="off">
+                                    <button type="button" id="btn-geolocation" class="ep-btn !min-h-[38px] shrink-0" title="Gunakan Lokasi Saya">
+                                        <i class="fas fa-crosshairs text-[#ccff00]"></i>
+                                    </button>
+                                </div>
 
-                            <div class="relative mb-3">
-                                <div id="event-map" class="w-full h-44 bg-[#080A0D]"></div>
-                                <div id="map-geocoding-status" class="absolute left-2 bottom-2 text-[10px] px-1.5 py-0.5 rounded bg-[#080A0D]/90 text-[#ccff00]"></div>
+                                <button type="button" id="btn-clear-map-search" class="hidden"></button>
+                                <i id="map-search-icon" class="hidden"></i>
+                                <div id="map-search-results" class="hidden"></div>
+
+                                <div class="relative">
+                                    <div id="event-map" class="w-full h-44 bg-[#080A0D]"></div>
+                                    <div id="map-geocoding-status" class="absolute left-2 bottom-2 text-[10px] px-1.5 py-0.5 rounded bg-[#080A0D]/90 text-[#ccff00]"></div>
+                                </div>
                             </div>
 
                             <div class="space-y-3">
@@ -1735,7 +1737,7 @@
                                     <label for="submit_event_social_media_link">Instagram / Media Sosial Event</label>
                                     <input type="text" name="social_media_link" id="submit_event_social_media_link" placeholder="@jakartarun / https://instagram.com/...">
                                 </div>
-                                <div class="grid grid-cols-2 gap-3">
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                     <div>
                                         <label for="submit_event_organizer_name">Penyelenggara / EO</label>
                                         <input type="text" name="organizer_name" id="submit_event_organizer_name" placeholder="Nama EO / Komunitas">
@@ -1750,7 +1752,7 @@
 
                         <section class="ep-form-section">
                             <div class="ep-form-section-title">06 / Verifikasi Kontributor</div>
-                            <div class="grid grid-cols-2 gap-3">
+                            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
                                     <label for="submit_event_contributor_name">Nama Pengirim</label>
                                     <input type="text" name="contributor_name" id="submit_event_contributor_name" placeholder="Nama Anda">
@@ -1778,11 +1780,11 @@
                 </div>
             </form>
 
-            <div class="ep-modal-foot">
+            <div class="ep-modal-foot flex-col sm:flex-row !items-stretch sm:!items-center">
                 <div class="text-xs text-slate-400">Kode OTP dikirim ke email untuk verifikasi keabsahan data.</div>
-                <div class="flex gap-2">
-                    <button type="button" id="btn-submit-event-cancel" class="ep-btn">Batal</button>
-                    <button type="button" id="btn-submit-event-submit" class="ep-btn ep-btn--primary">Submit Event</button>
+                <div class="grid grid-cols-2 sm:flex gap-2">
+                    <button type="button" id="btn-submit-event-cancel" class="ep-btn !h-10">Batal</button>
+                    <button type="button" id="btn-submit-event-submit" class="ep-btn ep-btn--primary !h-10">Submit Event</button>
                 </div>
             </div>
         </div>
@@ -1790,13 +1792,39 @@
 </div>
 
 @push('scripts')
-<script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
-
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const mapboxToken = '{{ config("services.mapbox.token") }}';
-    if (typeof mapboxgl !== 'undefined' && mapboxToken) {
-        mapboxgl.accessToken = mapboxToken;
+    let mapboxLoadPromise = null;
+
+    function loadMapboxAssets() {
+        if (typeof mapboxgl !== 'undefined') {
+            if (mapboxToken) mapboxgl.accessToken = mapboxToken;
+            return Promise.resolve();
+        }
+        if (mapboxLoadPromise) return mapboxLoadPromise;
+
+        mapboxLoadPromise = new Promise(function (resolve, reject) {
+            if (!document.querySelector('link[href*="mapbox-gl.css"]')) {
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css';
+                document.head.appendChild(link);
+            }
+            const script = document.createElement('script');
+            script.src = 'https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js';
+            script.async = true;
+            script.onload = function () {
+                if (typeof mapboxgl !== 'undefined' && mapboxToken) {
+                    mapboxgl.accessToken = mapboxToken;
+                }
+                resolve();
+            };
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
+
+        return mapboxLoadPromise;
     }
 
     // ----------------------------------------------------
@@ -2387,8 +2415,28 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // Initialize the Explorer Map immediately
-    initEventsExplorerMap();
+    // Lazy-Load Explorer Map only when user clicks "Lihat Peta"
+    const btnToggleExplorerMap = document.getElementById('btn-toggle-explorer-map');
+    const labelToggleExplorerMap = document.getElementById('label-toggle-explorer-map');
+    const explorerMapWrap = document.getElementById('events-explorer-map-wrap');
+
+    if (btnToggleExplorerMap && explorerMapWrap) {
+        btnToggleExplorerMap.addEventListener('click', function () {
+            const willShow = explorerMapWrap.classList.contains('hidden');
+            explorerMapWrap.classList.toggle('hidden', !willShow);
+            if (labelToggleExplorerMap) {
+                labelToggleExplorerMap.textContent = willShow ? 'Tutup Peta' : 'Lihat Peta';
+            }
+            if (willShow) {
+                loadMapboxAssets().then(function () {
+                    initEventsExplorerMap();
+                    if (eventsExplorerMap) {
+                        setTimeout(function () { eventsExplorerMap.resize(); }, 80);
+                    }
+                });
+            }
+        });
+    }
 
     // ----------------------------------------------------
     // 2. LIVE AJAX FILTERING ENGINE
@@ -2579,10 +2627,21 @@ document.addEventListener('DOMContentLoaded', function () {
         if (!submitModal) return;
         submitModal.classList.remove('hidden');
         document.body.style.overflow = 'hidden';
+    }
 
-        setTimeout(() => {
-            initSubmitModalMap();
-        }, 200);
+    const btnToggleModalMap = document.getElementById('btn-toggle-modal-map');
+    const modalMapCollapse = document.getElementById('modal-map-collapse');
+    if (btnToggleModalMap && modalMapCollapse) {
+        btnToggleModalMap.addEventListener('click', function () {
+            const willShow = modalMapCollapse.classList.contains('hidden');
+            modalMapCollapse.classList.toggle('hidden', !willShow);
+            btnToggleModalMap.textContent = willShow ? 'Sembunyikan Peta' : 'Tandai di Peta (Opsional)';
+            if (willShow) {
+                loadMapboxAssets().then(function () {
+                    setTimeout(function () { initSubmitModalMap(); }, 80);
+                });
+            }
+        });
     }
 
     function closeSubmitModal() {

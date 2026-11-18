@@ -104,6 +104,8 @@ class MootaWebhookController extends Controller
                         // Log success
                         Log::info("Transaction {$transaction->id} marked as paid via Moota. Amount: {$mutation['amount']}");
                     });
+
+                    \App\Jobs\ProcessPaidEventTransaction::dispatch($transaction->fresh());
                 } catch (\Exception $e) {
                     Log::error("Failed to update transaction {$transaction->id}: ".$e->getMessage());
                 }

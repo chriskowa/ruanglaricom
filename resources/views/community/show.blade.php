@@ -22,18 +22,31 @@
         font-variant-numeric: tabular-nums;
     }
 </style>
+@if(in_array('midtrans', ($allowedPaymentMethods ?? ['midtrans']), true) && !empty($midtransClientKey))
+<script type="text/javascript" src="{{ $midtransUrl }}/snap/snap.js" data-client-key="{{ $midtransClientKey }}" defer></script>
+@endif
 @endpush
 
 @section('content')
 @php
     $isLocked = $registration->status !== 'draft';
     $promoBuyX = (int) ($event->promo_buy_x ?? 0);
+    $allowedMethods = $allowedPaymentMethods ?? ['midtrans'];
+    $paymentLabels = [
+        'midtrans' => 'Midtrans (VA / QRIS / E-Wallet / Kartu)',
+        'moota' => 'Transfer Bank Otomatis (Moota)',
+        'manual_transfer' => 'Transfer Bank Manual (Upload Bukti)',
+        'cod' => 'Bayar di Tempat (COD)',
+    ];
 
     $existingPayment = null;
     if ($latestInvoice && $latestInvoice->transaction) {
         $existingPayment = [
             'transaction_id' => $latestInvoice->transaction->id,
             'registration_id' => $latestInvoice->transaction->public_ref,
+            'payment_gateway' => $latestInvoice->transaction->payment_gateway,
+            'snap_token' => $latestInvoice->transaction->snap_token,
+            'redirect_url' => route('events.payment', ['slug' => $event->slug, 'transaction' => $latestInvoice->transaction->id]),
             'final_amount' => (float) $latestInvoice->transaction->final_amount,
             'unique_code' => (int) $latestInvoice->transaction->unique_code,
             'payment_channel' => (string) ($latestInvoice->transaction->payment_channel ?? 'bank_transfer'),
@@ -230,8 +243,9 @@
                                 <label for="paymentMethod" class="block text-xs font-semibold text-slate-300 mb-1.5">Metode Pembayaran</label>
                                 <select id="paymentMethod"
                                         class="w-full h-10 px-3 rounded-md bg-slate-950 border border-slate-700 text-sm text-white focus:outline-none focus:border-neon">
-                                    <option value="moota">Transfer Bank (Moota)</option>
-                                    <option value="qris">QRIS Dinamis</option>
+                                    @foreach($allowedMethods as $m)
+                                        <option value="{{ $m }}">{{ $paymentLabels[$m] ?? strtoupper($m) }}</option>
+                                    @endforeach
                                 </select>
                             </div>
                             <button type="button" id="btnGenerateInvoice"
@@ -733,10 +747,38 @@
                 .catch(() => showMsg(els.participantError, 'Gagal menghubungi server.'));
         });
 
+        function openInvoicePayment(payload) {
+            if (!payload) return;
+            if (payload.payment_gateway === 'midtrans' && payload.snap_token && typeof window.snap !== 'undefined') {
+                window.snap.pay(payload.snap_token, {
+                    onSuccess: function () { window.location.reload(); },
+                    onPending: function () { window.location.reload(); },
+                    onError: function () { window.location.reload(); },
+                    onClose: function () { window.location.reload(); },
+                });
+                return;
+            }
+            if (payload.payment_gateway === 'moota' && window.RuangLariCommunityPayment) {
+                window.RuangLariCommunityPayment.open({
+                    transaction_id: payload.transaction_id,
+                    registration_id: payload.registration_id,
+                    final_amount: payload.final_amount,
+                    unique_code: payload.unique_code,
+                    payment_channel: payload.payment_channel,
+                    qris_payload: payload.qris_payload,
+                    phone: document.getElementById('pic_phone').value || '',
+                });
+                return;
+            }
+            if (payload.redirect_url) {
+                window.location.href = payload.redirect_url;
+            }
+        }
+
         els.btnInvoice.addEventListener('click', function () {
             if (locked) return;
             hideMsg(els.invoiceError);
-            const method = document.getElementById('paymentMethod').value || 'moota';
+            const method = document.getElementById('paymentMethod').value || @json($allowedMethods[0] ?? 'midtrans');
             fetch(urls.invoice, {
                 method: 'POST',
                 headers: {
@@ -755,16 +797,7 @@
                 locked = true;
                 app.setAttribute('data-locked', '1');
                 setDisabled(true);
-
-                window.RuangLariCommunityPayment.open({
-                    transaction_id: data.transaction_id,
-                    registration_id: data.registration_id,
-                    final_amount: data.final_amount,
-                    unique_code: data.unique_code,
-                    payment_channel: data.payment_channel,
-                    qris_payload: data.qris_payload,
-                    phone: document.getElementById('pic_phone').value || '',
-                });
+                openInvoicePayment(data);
             })
             .catch(() => showMsg(els.invoiceError, 'Gagal menghubungi server.'));
         });
@@ -804,15 +837,7 @@
                 locked = true;
                 app.setAttribute('data-locked', '1');
                 setDisabled(true);
-                window.RuangLariCommunityPayment.open({
-                    transaction_id: existing.transaction_id,
-                    registration_id: existing.registration_id,
-                    final_amount: existing.final_amount,
-                    unique_code: existing.unique_code,
-                    payment_channel: existing.payment_channel,
-                    qris_payload: existing.qris_payload,
-                    phone: document.getElementById('pic_phone').value || '',
-                });
+                openInvoicePayment(existing);
             });
         }
 

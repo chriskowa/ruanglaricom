@@ -365,6 +365,15 @@ class MidtransService
             ];
         }
 
+        if (empty($itemDetails) || (! empty($picData['community_registration_id']) && $transaction->participants->isEmpty())) {
+            $itemDetails = [[
+                'id' => 'COMMUNITY-'.($picData['community_registration_id'] ?? $transaction->id),
+                'price' => (float) $transaction->final_amount,
+                'quantity' => 1,
+                'name' => substr('Registrasi Komunitas: '.($picData['community_name'] ?? 'Komunitas'), 0, 50),
+            ]];
+        }
+
         $mode = $this->resolveEventMode($transaction);
         $orderPrefix = $mode === 'sandbox' ? 'EVENT-SBX-' : 'EVENT-PRD-';
 

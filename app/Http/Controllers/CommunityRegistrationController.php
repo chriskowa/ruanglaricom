@@ -161,6 +161,8 @@ class CommunityRegistrationController extends Controller
             ->orderBy('id')
             ->get();
 
+        $paymentCfg = $this->resolveEventPaymentConfig($event);
+
         return view('community.show', [
             'event' => $event,
             'registration' => $registration,
@@ -168,6 +170,9 @@ class CommunityRegistrationController extends Controller
             'participants' => $participants,
             'latestInvoice' => $registration->invoices()->latest()->first(),
             'community' => $community,
+            'allowedPaymentMethods' => $paymentCfg['methods'],
+            'midtransUrl' => $paymentCfg['midtrans_url'],
+            'midtransClientKey' => $paymentCfg['midtrans_client_key'],
         ]);
     }
 
@@ -500,8 +505,11 @@ class CommunityRegistrationController extends Controller
             ], 409);
         }
 
+        $paymentCfg = $this->resolveEventPaymentConfig($event);
+        $allowedMethods = $paymentCfg['methods'];
+
         $validated = $request->validate([
-            'payment_method' => 'required|in:moota,qris',
+            'payment_method' => ['required', 'string', \Illuminate\Validation\Rule::in($allowedMethods)],
         ]);
 
         $participants = $registration->participants()->get();
@@ -571,10 +579,39 @@ class CommunityRegistrationController extends Controller
             }
         }, 3);
 
+        $paymentMethod = $validated['payment_method'];
         $adminFee = 0;
         $subtotal = max(0, (int) round($totalOriginal - $discount));
-        $uniqueCode = $mootaService->generateUniqueCode($subtotal);
+        $uniqueCode = 0;
+
+        if ($paymentMethod === 'moota') {
+            $uniqueCode = $mootaService->generateUniqueCode($subtotal);
+        } elseif ($paymentMethod === 'manual_transfer') {
+            $usedCodes = Transaction::where('event_id', $event->id)
+                ->where('payment_status', 'pending')
+                ->where('unique_code', '>', 0)
+                ->pluck('unique_code')
+                ->toArray();
+            $attempts = 0;
+            do {
+                $uniqueCode = rand(100, 999);
+                $attempts++;
+            } while (in_array($uniqueCode, $usedCodes) && $attempts < 200);
+        }
+
         $finalAmount = $subtotal + $uniqueCode;
+        $paymentGateway = match ($paymentMethod) {
+            'midtrans' => 'midtrans',
+            'manual_transfer' => 'manual_transfer',
+            'cod' => 'cod',
+            default => 'moota',
+        };
+        $paymentChannel = match ($paymentMethod) {
+            'midtrans' => 'snap',
+            'manual_transfer' => 'manual_transfer',
+            'cod' => 'cod',
+            default => 'bank_transfer',
+        };
 
         $transaction = Transaction::create([
             'event_id' => $event->id,
@@ -591,37 +628,41 @@ class CommunityRegistrationController extends Controller
             'discount_amount' => $discount,
             'admin_fee' => $adminFee,
             'final_amount' => $finalAmount,
-            'payment_status' => 'pending',
-            'payment_gateway' => 'moota',
-            'payment_channel' => $validated['payment_method'] === 'qris' ? 'qris' : 'bank_transfer',
+            'payment_status' => $paymentMethod === 'cod' ? 'cod' : 'pending',
+            'payment_gateway' => $paymentGateway,
+            'payment_channel' => $paymentChannel,
             'unique_code' => $uniqueCode,
         ]);
 
-        $qrisPayload = null;
-        if ($validated['payment_method'] === 'qris') {
-            try {
-                $static = (string) (config('qris.static') ?? '');
-                $nmid = (string) (config('qris.nmid') ?? '');
-                $qrisPayload = $qrisService->generate($static, (int) $finalAmount, $nmid !== '' ? $nmid : null);
-            } catch (\Throwable $e) {
+        if ($paymentMethod === 'midtrans') {
+            $snapResult = app(\App\Services\MidtransService::class)->createEventTransaction($transaction);
+            if (empty($snapResult['success'])) {
+                $transaction->delete();
+
                 return response()->json([
                     'success' => false,
-                    'message' => $e->getMessage(),
+                    'message' => $snapResult['message'] ?? $snapResult['error'] ?? 'Gagal membuat transaksi Midtrans.',
                 ], 422);
             }
+
+            $transaction->update([
+                'snap_token' => $snapResult['snap_token'] ?? null,
+                'midtrans_order_id' => $snapResult['order_id'] ?? null,
+                'midtrans_mode' => $snapResult['midtrans_mode'] ?? 'production',
+            ]);
         }
 
         $invoice = CommunityInvoice::create([
             'community_registration_id' => $registration->id,
             'transaction_id' => $transaction->id,
-            'payment_method' => $validated['payment_method'],
-            'status' => 'pending',
+            'payment_method' => $paymentMethod,
+            'status' => $paymentMethod === 'cod' ? 'cod' : 'pending',
             'total_original' => $totalOriginal,
             'discount_amount' => $discount,
             'admin_fee' => $adminFee,
             'unique_code' => $uniqueCode,
             'final_amount' => $finalAmount,
-            'qris_payload' => $qrisPayload,
+            'qris_payload' => null,
         ]);
 
         $registration->update([
@@ -629,17 +670,92 @@ class CommunityRegistrationController extends Controller
             'invoiced_at' => now(),
         ]);
 
+        if ($paymentMethod === 'cod' && ! $registration->imported_at) {
+            DB::transaction(function () use ($registration, $transaction, $participants, $categories, $pricingService) {
+                foreach ($participants as $p) {
+                    $category = $p->race_category_id ? ($categories[$p->race_category_id] ?? null) : null;
+                    $priceType = $category ? (string) ($pricingService->getCategoryPrice($category)['type'] ?? 'regular') : 'regular';
+                    \App\Models\Participant::create([
+                        'transaction_id' => $transaction->id,
+                        'event_package_id' => null,
+                        'race_category_id' => $p->race_category_id,
+                        'name' => $p->name,
+                        'gender' => $p->gender,
+                        'phone' => $p->phone,
+                        'email' => strtolower(trim((string) $p->email)),
+                        'id_card' => $p->id_card,
+                        'address' => $p->address,
+                        'emergency_contact_name' => $p->emergency_contact_name,
+                        'emergency_contact_number' => $p->emergency_contact_number,
+                        'date_of_birth' => $p->date_of_birth,
+                        'target_time' => null,
+                        'jersey_size' => $p->jersey_size,
+                        'addons' => [],
+                        'status' => 'pending',
+                        'is_picked_up' => false,
+                        'price_type' => $priceType,
+                    ]);
+                }
+                $registration->update(['imported_at' => now()]);
+            });
+            app(\App\Services\EventRegistrationEmailDispatcher::class)->dispatch($transaction);
+        }
+
         return response()->json([
             'success' => true,
             'transaction_id' => $transaction->id,
             'registration_id' => $transaction->public_ref,
-            'payment_gateway' => 'moota',
+            'payment_gateway' => $transaction->payment_gateway,
             'payment_channel' => $transaction->payment_channel,
             'payment_status' => $transaction->payment_status,
             'final_amount' => (float) $transaction->final_amount,
             'unique_code' => (int) $transaction->unique_code,
+            'snap_token' => $transaction->snap_token,
+            'redirect_url' => route('events.payment', ['slug' => $event->slug, 'transaction' => $transaction->id]),
             'qris_payload' => $invoice->qris_payload,
         ]);
+    }
+
+    private function resolveEventPaymentConfig(Event $event): array
+    {
+        $paymentConfig = is_array($event->payment_config) ? $event->payment_config : [];
+        if (isset($paymentConfig['allowed_methods']) && is_array($paymentConfig['allowed_methods'])) {
+            $allowed = $paymentConfig['allowed_methods'];
+            $showMidtrans = in_array('midtrans', $allowed, true) || in_array('all', $allowed, true);
+            $showMoota = in_array('moota', $allowed, true) || in_array('all', $allowed, true);
+            $showCOD = in_array('cod', $allowed, true) || in_array('all', $allowed, true);
+            $showManualTransfer = in_array('manual_transfer', $allowed, true) || in_array('all', $allowed, true);
+        } else {
+            $showMidtrans = $paymentConfig['midtrans'] ?? true;
+            $showMoota = $paymentConfig['moota'] ?? false;
+            $showCOD = $paymentConfig['cod'] ?? false;
+            $showManualTransfer = $paymentConfig['manual_transfer'] ?? false;
+        }
+
+        $methods = [];
+        if ($showMidtrans) {
+            $methods[] = 'midtrans';
+        }
+        if ($showMoota) {
+            $methods[] = 'moota';
+        }
+        if ($showManualTransfer) {
+            $methods[] = 'manual_transfer';
+        }
+        if ($showCOD) {
+            $methods[] = 'cod';
+        }
+        if (empty($methods)) {
+            $methods = ['midtrans'];
+        }
+
+        $midtransDemoMode = filter_var($paymentConfig['midtrans_demo_mode'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+
+        return [
+            'methods' => $methods,
+            'midtrans_url' => $midtransDemoMode ? config('midtrans.base_url_sandbox') : 'https://app.midtrans.com',
+            'midtrans_client_key' => $midtransDemoMode ? config('midtrans.client_key_sandbox') : config('midtrans.client_key'),
+        ];
     }
 
     private function getRegistration(Event $event, Community $community): CommunityRegistration

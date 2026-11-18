@@ -183,39 +183,56 @@ class PublicRunningEventController extends Controller
             ]);
         }
 
-        $cities = City::whereHas('events', fn ($q) => $q->directory())->orderBy('name')->get();
-        $raceTypes = RaceType::whereHas('events', fn ($q) => $q->directory())->get();
-        $raceDistances = RaceDistance::whereHas('events', fn ($q) => $q->directory())->get();
+        $cities = \Illuminate\Support\Facades\Cache::remember('events.landing.cities', 300, function () {
+            return City::whereHas('events', fn ($q) => $q->directory())->orderBy('name')->get();
+        });
+        $raceTypes = \Illuminate\Support\Facades\Cache::remember('events.landing.race_types', 300, function () {
+            return RaceType::whereHas('events', fn ($q) => $q->directory())->get();
+        });
+        $raceDistances = \Illuminate\Support\Facades\Cache::remember('events.landing.race_distances', 300, function () {
+            return RaceDistance::whereHas('events', fn ($q) => $q->directory())->get();
+        });
 
-        $featuredEvents = Event::whereIn('event_kind', ['directory', 'managed'])
-            ->published()
-            ->upcoming()
-            ->where('is_featured', true)
-            ->with(['city', 'raceType', 'raceDistances', 'categories'])
-            ->orderBy('start_at', 'asc')
-            ->get();
-
-        if ($featuredEvents->isEmpty()) {
-            $featuredEvents = Event::whereIn('event_kind', ['directory', 'managed'])
+        $featuredEvents = \Illuminate\Support\Facades\Cache::remember('events.landing.featured', 300, function () {
+            $featured = Event::whereIn('event_kind', ['directory', 'managed'])
                 ->published()
                 ->upcoming()
+                ->where('is_featured', true)
                 ->with(['city', 'raceType', 'raceDistances', 'categories'])
                 ->orderBy('start_at', 'asc')
-                ->limit(3)
                 ->get();
-        }
+
+            if ($featured->isEmpty()) {
+                $featured = Event::whereIn('event_kind', ['directory', 'managed'])
+                    ->published()
+                    ->upcoming()
+                    ->with(['city', 'raceType', 'raceDistances', 'categories'])
+                    ->orderBy('start_at', 'asc')
+                    ->limit(3)
+                    ->get();
+            }
+
+            return $featured;
+        });
 
         $events = $query->paginate(10);
 
-        // Trust statistics (DATA ASLI DB query count, TIDAK hardcoded) - sesuai antislop R-17 / C-5
+        // Trust statistics (DATA ASLI DB query count, cached 5 menit)
         $statsTotalEvents = (clone $query)->reorder()->count();
-        $statsTotalEventsAll = Event::whereIn('event_kind', ['directory', 'managed'])->published()->count();
-        $statsTotalCities = Event::whereIn('event_kind', ['directory', 'managed'])
-            ->published()
-            ->whereNotNull('city_id')
-            ->distinct('city_id')
-            ->count('city_id');
-        $statsTotalEventSubmissions = \App\Models\EventSubmission::count();
+        $statsData = \Illuminate\Support\Facades\Cache::remember('events.landing.stats', 300, function () {
+            return [
+                'all' => Event::whereIn('event_kind', ['directory', 'managed'])->published()->count(),
+                'cities' => Event::whereIn('event_kind', ['directory', 'managed'])
+                    ->published()
+                    ->whereNotNull('city_id')
+                    ->distinct('city_id')
+                    ->count('city_id'),
+                'submissions' => \App\Models\EventSubmission::count(),
+            ];
+        });
+        $statsTotalEventsAll = $statsData['all'];
+        $statsTotalCities = $statsData['cities'];
+        $statsTotalEventSubmissions = $statsData['submissions'];
 
         return view('events.landing', compact(
             'events', 'cities', 'raceTypes', 'raceDistances', 'featuredEvents', 'mapEvents',
