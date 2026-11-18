@@ -170,7 +170,7 @@
     </section>
 
     {{-- Main Directory Section --}}
-    <section id="daftar-pacer" class="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-10">
+    <section id="daftar-pacer" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
 
         {{-- Mobile Search & Filter Trigger --}}
         <div class="md:hidden mb-5 flex items-center gap-2.5">
@@ -187,7 +187,7 @@
             </button>
         </div>
 
-        <div class="flex flex-col md:flex-row gap-7 items-start">
+        <div class="flex flex-col md:flex-row gap-6 md:gap-8 lg:gap-10 items-start">
 
             {{-- Desktop Sidebar Filters --}}
             <aside aria-label="Filter direktori pacer" class="hidden md:block w-72 shrink-0 bg-slate-900 border border-slate-800 rounded-lg p-5 space-y-5 sticky top-24">
@@ -264,7 +264,7 @@
 
             {{-- Results Column --}}
             <div class="flex-1 w-full min-w-0">
-                <div class="flex items-center justify-between gap-3 pb-4 mb-5 border-b border-slate-800">
+                <div class="flex items-center justify-between gap-3 pb-4 mb-6 border-b border-slate-800">
                     <p class="text-sm text-slate-300">
                         Menampilkan <span id="pacerResultCount" class="rl-mono font-bold text-white">{{ $pacers->count() }}</span> pacer
                     </p>
@@ -272,7 +272,7 @@
                 </div>
 
                 {{-- SSR Pacer Grid (Crawlable by Googlebot immediately) --}}
-                <div id="pacerGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 {{ $pacers->isEmpty() ? 'hidden' : '' }}">
+                <div id="pacerGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 {{ $pacers->isEmpty() ? 'hidden' : '' }}">
                     @foreach($pacers as $pacer)
                         <article class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden flex flex-col justify-between hover:border-slate-700 transition duration-150">
                             <div>
