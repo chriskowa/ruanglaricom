@@ -28,22 +28,35 @@ const defaultBgFilenames = [
 
 const defaultBgSources = defaultBgFilenames.map(file => bgBaseUrl + file);
 
-let defaults = defaultBgSources.map(src => {
+// Lazy-load default background images: only load cover (0) and Jan (1) eagerly on boot
+let defaults = defaultBgSources.map((src, idx) => {
   const img = new Image();
-  img.onload = () => { if (typeof render === 'function') render(); };
-  img.src = src;
+  img.dataset.src = src;
+  if (idx <= 1) {
+    img.onload = () => { if (typeof render === 'function') render(); };
+    img.src = src;
+  }
   return img;
 });
+
+function ensureDefaultBgLoaded(img) {
+  if (!img) return null;
+  if (!img.getAttribute('src') && img.dataset && img.dataset.src) {
+    img.onload = () => { if (typeof render === 'function') render(); };
+    img.src = img.dataset.src;
+  }
+  return img;
+}
 
 function getDefaultBg(p) {
   if (!defaults.length) return null;
   const mpp = typeof monthsPerPage !== 'undefined' ? monthsPerPage.value : '1';
-  if (p === -1) return defaults[0];
+  if (p === -1) return ensureDefaultBgLoaded(defaults[0]);
   let idx = p + 1;
   if (mpp === '2') idx = p * 2 + 1;
   else if (mpp === '4') idx = p * 4 + 1;
   else if (mpp === '12') idx = 0;
-  return defaults[idx % defaults.length];
+  return ensureDefaultBgLoaded(defaults[idx % defaults.length]);
 }
 
 function updateAthleteDefaults(photoUrls) {

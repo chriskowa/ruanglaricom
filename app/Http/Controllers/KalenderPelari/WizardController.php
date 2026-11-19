@@ -92,7 +92,17 @@ class WizardController extends Controller
             'template_family' => $template,
         ], $user);
 
-        return redirect()->to($project->routeEditor());
+        $query = array_filter([
+            'template' => $request->query('template'),
+            'layout' => $request->query('layout'),
+        ]);
+
+        $editorUrl = $project->routeEditor();
+        if (! empty($query)) {
+            $editorUrl .= (str_contains($editorUrl, '?') ? '&' : '?') . http_build_query($query);
+        }
+
+        return redirect()->to($editorUrl);
     }
 
     public function index(Request $request)

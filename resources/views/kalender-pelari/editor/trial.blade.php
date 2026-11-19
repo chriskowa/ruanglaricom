@@ -12,6 +12,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sora:wght@700;800&display=swap" rel="stylesheet">
+<link rel="preload" as="image" href="{{ asset('images/kalender-pelari/bg/815920233_18619567672013478_7707120302547332417_n.jpg') }}">
+<link rel="preload" as="image" href="{{ asset('images/kalender-pelari/bg/819207920_18620464486013478_340093240344695805_n.jpg') }}">
 <link rel="stylesheet" href="{{ asset('css/kalender-pelari/style.css') }}">
 @endpush
 
@@ -29,48 +31,54 @@
             } catch (e) {}
         })();
     </script>
-    <header class="flex items-center justify-between border-b border-slate-800 bg-slate-900 px-4 sm:px-6 shrink-0 h-14 z-30 w-full gap-3">
+    <header class="kp-studio-header grid grid-cols-[1fr_auto_1fr] items-center border-b border-slate-800 bg-slate-950 px-3 sm:px-5 shrink-0 h-14 z-30 w-full gap-3">
+        {{-- Kiri: Brand + Nama Proyek + Status Simpan --}}
         <div class="flex items-center gap-3 min-w-0">
-            <a href="{{ route('kalender-pelari.landing') }}" class="brand-title flex items-center gap-2 text-white hover:text-slate-200 whitespace-nowrap shrink-0">
-                <img src="{{ asset('images/logo saja ruang lari.png') }}" alt="Ruang Lari" class="w-5 h-5 object-contain shrink-0">
-                <span class="font-bold tracking-tight text-sm font-['Inter_Tight','Sora',sans-serif]">RUANG LARI / STUDIO</span>
+            <a href="{{ route('kalender-pelari.landing') }}" class="brand-title flex items-center gap-2 text-white hover:text-slate-200 shrink-0" title="Kembali ke Kalender Pelari">
+                <img src="{{ asset('images/logo saja ruang lari.png') }}" alt="Ruang Lari" class="w-6 h-6 object-contain shrink-0">
+                <span class="hidden lg:inline text-sm font-bold" style="font-family:'Inter Tight','Sora',sans-serif;letter-spacing:-0.02em;">Studio</span>
             </a>
-            <span class="hidden md:inline text-slate-600">|</span>
-            <div class="hidden sm:flex items-center gap-2 min-w-0">
-                <span id="kpProjectNameDisplay" class="truncate text-xs font-semibold text-slate-300 max-w-[180px]">{{ $project->name ?? 'Kalender Pelari' }}</span>
-                <span id="kpSaveIndicator" class="text-xs font-mono text-emerald-400 whitespace-nowrap">Tersimpan</span>
+            <span class="hidden sm:block w-px h-6 bg-slate-800"></span>
+            <div class="hidden sm:flex flex-col min-w-0 leading-tight">
+                <span id="kpProjectNameDisplay" class="truncate text-sm font-semibold text-white max-w-[220px]">{{ $project->name ?? 'Kalender Pelari' }}</span>
+                <span id="kpSaveIndicator" class="text-[11px] font-mono text-emerald-400 whitespace-nowrap">Tersimpan</span>
             </div>
         </div>
 
-        <div class="flex items-center gap-2 shrink-0">
-            <!-- Studio Interface Theme Switcher -->
-            <div class="studio-theme-toggle flex items-center rounded-md border border-slate-700 bg-slate-800 p-0.5 text-xs font-semibold shrink-0" role="group" aria-label="Tema Antarmuka Studio">
-                <button type="button" class="btn-studio-dark rounded transition text-white active" title="Tampilan Studio Mode Gelap">
-                    Studio Gelap
-                </button>
-                <button type="button" class="btn-studio-light rounded transition text-slate-400 hover:text-white" title="Tampilan Studio Mode Terang">
-                    Studio Terang
-                </button>
+        {{-- Tengah: Navigasi Halaman --}}
+        <div class="flex items-center gap-1.5 bg-slate-900 border border-slate-800 rounded-md p-1">
+            <button type="button" id="headerPrev" onclick="document.getElementById('prev')?.click()" aria-label="Halaman sebelumnya"
+                    class="btn-header-action !h-7 !min-h-[28px] !max-h-[28px] !px-2.5 rounded bg-transparent border-0 text-slate-300 hover:text-white hover:bg-slate-800 disabled:opacity-40 transition">&larr;</button>
+            <span id="headerSlideTitle" class="px-2 text-xs font-semibold text-white tabular-nums whitespace-nowrap min-w-[120px] text-center">Memuat...</span>
+            <button type="button" id="headerNext" onclick="document.getElementById('next')?.click()" aria-label="Halaman berikutnya"
+                    class="btn-header-action !h-7 !min-h-[28px] !max-h-[28px] !px-2.5 rounded bg-transparent border-0 text-slate-300 hover:text-white hover:bg-slate-800 disabled:opacity-40 transition">&rarr;</button>
+        </div>
+
+        {{-- Kanan: Tema + Aksi --}}
+        <div class="flex items-center justify-end gap-2 min-w-0">
+            <div class="studio-theme-toggle hidden md:flex items-center rounded-md border border-slate-800 bg-slate-900 p-0.5 text-xs font-semibold shrink-0" role="group" aria-label="Tema Antarmuka Studio">
+                <button type="button" class="btn-studio-dark rounded transition text-white active" title="Studio Mode Gelap">Gelap</button>
+                <button type="button" class="btn-studio-light rounded transition text-slate-400 hover:text-white" title="Studio Mode Terang">Terang</button>
             </div>
 
             @if($project->is_anonymous)
                 <a href="{{ $authLoginUrl }}?redirect_to={{ urlencode(request()->fullUrl()) }}"
-                   class="btn-header-action rounded-md border border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white transition">
+                   class="btn-header-action hidden sm:inline-flex rounded-md border border-slate-800 bg-slate-900 text-slate-200 hover:bg-slate-800 hover:text-white transition">
                     Simpan
                 </a>
             @else
                 <a href="{{ route('kalender-pelari.my-projects') }}"
-                   class="btn-header-action rounded-md border border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white transition">
+                   class="btn-header-action hidden sm:inline-flex rounded-md border border-slate-800 bg-slate-900 text-slate-200 hover:bg-slate-800 hover:text-white transition">
                     Proyek Saya
                 </a>
             @endif
             <button type="button" onclick="document.getElementById('download')?.click()"
-                    class="btn-header-action rounded-md border border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white transition">
-                Unduh
+                    class="btn-header-action rounded-md border border-slate-800 bg-slate-900 text-slate-200 hover:bg-slate-800 hover:text-white transition">
+                PNG
             </button>
             <button type="button" onclick="document.getElementById('print')?.click()"
-                    class="btn-header-action rounded-md border border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white transition">
-                PDF
+                    class="btn-header-action btn-header-primary rounded-md border transition">
+                Unduh PDF
             </button>
         </div>
     </header>
@@ -78,7 +86,7 @@
     <div class="kp-workspace flex-1 w-full overflow-hidden">
         <!-- PREVIEW CANVAS STAGE (LEFT COLUMN) -->
         <section class="preview">
-            <div class="toolbar">
+            <div class="toolbar hidden" aria-hidden="true">
                 <button type="button" id="prev" aria-label="Halaman sebelumnya" class="p-2 rounded bg-slate-800 border border-slate-700 text-white">&larr;</button>
                 <strong id="slideTitle" class="text-sm sm:text-base font-bold text-white px-3 font-['Inter_Tight','Sora',sans-serif]"></strong>
                 <button type="button" id="next" aria-label="Halaman berikutnya" class="p-2 rounded bg-slate-800 border border-slate-700 text-white">&rarr;</button>
@@ -214,7 +222,7 @@
                     </label>
                 </fieldset>
 
-                <input type="hidden" id="template" value="classic">
+                <input type="hidden" id="template" value="{{ strtolower($project->template_family ?: 'classic') }}">
                 <fieldset>
                     <legend>Pilihan Template <span class="eyebrow" id="templateCount">/ 37 desain</span></legend>
                     <div id="templateChoices" class="choice-strip" tabindex="0" aria-label="Pilihan template dengan pratinjau"></div>

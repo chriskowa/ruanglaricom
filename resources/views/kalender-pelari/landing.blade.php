@@ -381,67 +381,110 @@
         </div>
     </section>
 
-    {{-- Section 2: Template Showcase (Visual Preview + Real Photos + Uniform Cards) --}}
+    {{-- Section 2: Template Showcase (Authentic Editor Canvas Previews + Load More to Studio Editor) --}}
     <section id="template" class="border-b border-slate-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-16">
             <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
                 <div>
-                    <h2 class="text-2xl sm:text-3xl text-white">Enam Gaya Tata Letak Siap Pakai</h2>
+                    <div class="flex flex-wrap items-center gap-2.5">
+                        <h2 class="text-2xl sm:text-3xl text-white">Pilihan Template Siap Pakai</h2>
+                        <span class="kp-mono text-xs px-2.5 py-1 rounded bg-slate-900 border border-slate-800 text-neon font-semibold">
+                            {{ count($templateHighlights) }} dari {{ $totalTemplatesCount ?? 37 }} Desain
+                        </span>
+                    </div>
                     <p class="text-sm text-slate-300 mt-1.5 max-w-2xl">
-                        Pilih karakter visual yang cocok untuk kalender pribadi maupun edisi komunitas. Setiap template tetap bisa diubah font, warna aksen, dan isi tanggalnya di studio.
+                        Pratinjau asli dari mesin desain studio. Klik salah satu template untuk langsung membuka desain tersebut di editor, atau buka seluruh {{ $totalTemplatesCount ?? 37 }} koleksi desain di Studio Editor.
                     </p>
                 </div>
-                <a href="{{ $studioUrl }}"
-                   class="inline-flex items-center justify-center h-10 px-4 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold text-white transition duration-150 shrink-0 self-start md:self-auto">
-                    Lihat Semua di Studio
-                </a>
+
+                <div class="flex flex-wrap items-center gap-2.5 shrink-0 self-start md:self-auto">
+                    <div class="inline-flex bg-slate-900 p-1 rounded-md border border-slate-800" role="group" aria-label="Orientasi pratinjau template">
+                        <button type="button"
+                                data-tpl-layout="wall"
+                                class="kp-tpl-layout-btn h-8 px-3 rounded text-xs font-bold bg-neon text-slate-950 transition duration-150 cursor-pointer">
+                            Dinding A3+
+                        </button>
+                        <button type="button"
+                                data-tpl-layout="landscape"
+                                class="kp-tpl-layout-btn h-8 px-3 rounded text-xs font-semibold text-slate-300 hover:text-white transition duration-150 cursor-pointer">
+                            Meja A4
+                        </button>
+                    </div>
+                    <a href="{{ $studioUrl }}"
+                       class="inline-flex items-center justify-center h-10 px-4 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold text-white transition duration-150">
+                        Buka 37 Desain di Editor
+                    </a>
+                </div>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {{-- Hidden state inputs required by the authentic Kalender Pelari canvas engine --}}
+            <div class="hidden" aria-hidden="true">
+                <input id="page" value="0">
+                <input id="name" value="{{ auth()->user()?->name ?? 'RUNNER' }}">
+                <input id="year" value="{{ $nextYear }}">
+                <input id="accent" value="#f45123">
+                <input id="paper" value="#ffffff">
+                <input id="template" value="classic">
+                <input id="layout" value="wall">
+                <input id="monthsPerPage" value="1">
+                <input id="font" value="Plus Jakarta Sans">
+                <input id="showHolidays" type="checkbox" checked>
+                <input id="runningMode" type="checkbox" checked>
+                <canvas id="canvas" width="240" height="360"></canvas>
+                <span id="status"></span>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-5">
                 @foreach($templateHighlights as $tpl)
-                    @php
-                        $vis = $templateVisuals[$tpl['id']] ?? $templateVisuals['bold'];
-                    @endphp
-                    <article class="flex flex-col justify-between bg-slate-900 border border-slate-800 rounded-lg overflow-hidden hover:border-slate-700 transition duration-150">
-                        <div>
-                            {{-- Miniature Visual Specimen --}}
-                            <div class="bg-slate-950 border-b border-slate-800 p-3">
-                                <div class="rounded overflow-hidden border border-slate-800 bg-slate-900">
-                                    <div class="px-2.5 py-1.5 flex items-center justify-between kp-mono text-[10px] font-bold {{ $vis['barClass'] }}">
-                                        <span>{{ $vis['label'] }}</span>
-                                        <span>{{ $vis['stat'] }}</span>
-                                    </div>
-                                    <div class="aspect-[16/10] bg-slate-800 overflow-hidden">
-                                        <img src="{{ asset($vis['photo']) }}"
-                                             alt="Pratinjau template {{ $tpl['name'] }}"
-                                             loading="lazy"
-                                             class="w-full h-full object-cover object-center">
-                                    </div>
-                                    <div class="p-2 bg-slate-950 grid grid-cols-7 gap-1 text-center kp-mono text-[9px] text-slate-400">
-                                        <span>1</span><span>2</span><span>3</span><span>4</span>
-                                        <span class="bg-neon text-slate-950 font-bold rounded-sm">5</span>
-                                        <span>6</span><span class="text-red-400">7</span>
-                                    </div>
-                                </div>
+                    <article class="group flex flex-col justify-between bg-slate-900 border border-slate-800 rounded-lg overflow-hidden hover:border-slate-700 transition duration-150">
+                        <a href="{{ $studioUrl }}?template={{ $tpl['id'] }}"
+                           data-tpl-link="{{ $tpl['id'] }}"
+                           class="block focus:outline-none">
+                            <div class="bg-slate-950 border-b border-slate-800 p-3 flex items-center justify-center">
+                                <canvas class="kp-landing-tpl-canvas w-full h-auto rounded border border-slate-800 bg-slate-900 block transition duration-150 group-hover:border-slate-600"
+                                        data-template="{{ $tpl['id'] }}"
+                                        width="220"
+                                        height="330"
+                                        aria-label="Pratinjau template {{ $tpl['name'] }}"></canvas>
                             </div>
 
-                            <div class="p-5 pb-3">
-                                <div class="flex items-center justify-between gap-2 mb-2">
-                                    <h3 class="text-base sm:text-lg text-white">{{ $tpl['name'] }}</h3>
-                                    <span class="kp-mono text-[11px] px-2 py-0.5 rounded bg-slate-800 text-slate-300 shrink-0">{{ $vis['tag'] }}</span>
+                            <div class="p-4 pb-2">
+                                <div class="flex items-start justify-between gap-2">
+                                    <h3 class="text-sm sm:text-base text-white group-hover:text-neon transition-colors">{{ $tpl['name'] }}</h3>
+                                    @if($tpl['id'] === 'poster12m')
+                                        <span class="kp-mono text-[10px] px-1.5 py-0.5 rounded bg-slate-800 text-neon shrink-0">12 BLN</span>
+                                    @endif
                                 </div>
-                                <p class="text-sm text-slate-300 leading-relaxed">{{ $tpl['desc'] }}</p>
+                                <p class="text-xs text-slate-300 mt-1 leading-relaxed line-clamp-2">{{ $tpl['desc'] }}</p>
                             </div>
-                        </div>
+                        </a>
 
-                        <div class="px-5 pb-5 pt-2">
+                        <div class="px-4 pb-4 pt-2">
                             <a href="{{ $studioUrl }}?template={{ $tpl['id'] }}"
-                               class="w-full inline-flex items-center justify-center h-10 px-4 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-sm font-semibold text-white transition duration-150">
-                                Gunakan {{ $tpl['name'] }}
+                               data-tpl-link="{{ $tpl['id'] }}"
+                               class="w-full inline-flex items-center justify-center h-9 px-3 rounded-md bg-slate-800 hover:bg-neon hover:text-slate-950 border border-slate-700 hover:border-neon text-xs font-semibold text-white transition duration-150">
+                                Pakai {{ $tpl['name'] }}
                             </a>
                         </div>
                     </article>
                 @endforeach
+            </div>
+
+            {{-- Load More -> Go to Studio Editor with all 37 Designs --}}
+            <div class="mt-8 bg-slate-900 border border-slate-800 rounded-lg p-5 sm:p-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+                <div>
+                    <div class="text-base font-bold text-white kp-heading">
+                        Masih Ada +{{ max(0, ($totalTemplatesCount ?? 37) - count($templateHighlights)) }} Desain Template Lainnya di Studio Editor
+                    </div>
+                    <p class="text-xs sm:text-sm text-slate-300 mt-1 max-w-2xl leading-relaxed">
+                        Termasuk Botanical Calm, Retro Paper 70s, Split 50/50, Runner's Journal, Cinematic Film 35mm, Y2K Run Club, World Majors 7-Star, KOM Crown, Athletic Blueprint, Race Week &amp; Taper, hingga Golden Hour Miles.
+                    </p>
+                </div>
+                <a href="{{ $studioUrl }}"
+                   id="kpLoadMoreToEditorBtn"
+                   class="w-full md:w-auto inline-flex items-center justify-center min-h-[44px] px-6 rounded-md bg-neon hover:bg-lime-300 text-slate-950 text-sm font-bold transition duration-150 shrink-0">
+                    Load More ({{ $totalTemplatesCount ?? 37 }} Desain di Studio Editor) &rarr;
+                </a>
             </div>
         </div>
     </section>
@@ -722,6 +765,17 @@ document.addEventListener('DOMContentLoaded', function () {
 
         await saveLandingPhotoBlob(file, file.name);
 
+        if (typeof setSlotPhoto === 'function') {
+            const customImg = new Image();
+            customImg.onload = function () {
+                setSlotPhoto(0, 0, customImg);
+                if (typeof window.renderLandingTemplates === 'function') {
+                    window.renderLandingTemplates();
+                }
+            };
+            customImg.src = currentObjectUrl;
+        }
+
         if (resetBtn) resetBtn.classList.remove('hidden');
         if (continueBtn) continueBtn.classList.remove('hidden');
         if (photoHint) photoHint.classList.add('hidden');
@@ -764,9 +818,110 @@ document.addEventListener('DOMContentLoaded', function () {
             resetBtn.classList.add('hidden');
             if (continueBtn) continueBtn.classList.add('hidden');
             if (photoHint) photoHint.classList.remove('hidden');
+            if (typeof setSlotPhoto === 'function') {
+                setSlotPhoto(0, 0, null);
+                if (typeof window.renderLandingTemplates === 'function') {
+                    window.renderLandingTemplates();
+                }
+            }
             await clearLandingPhotoBlob();
         });
     }
 });
+</script>
+<script>
+    window.KP_BG_BASE_URL = "{{ asset('images/kalender-pelari/bg') }}/";
+</script>
+<script src="{{ asset('js/kalender-pelari/data.js') }}"></script>
+<script src="{{ asset('js/kalender-pelari/state.js') }}"></script>
+<script src="{{ asset('js/kalender-pelari/canvas.js') }}"></script>
+<script>
+(function () {
+    let previewTimer = null;
+    const baseStudioUrl = @json($studioUrl);
+
+    function renderLandingTemplatesNow() {
+        previewTimer = null;
+        const tplInput = document.getElementById('template');
+        const paperInput = document.getElementById('paper');
+        const accentInput = document.getElementById('accent');
+        const layoutInput = document.getElementById('layout');
+        if (!tplInput || !paperInput || !accentInput || !layoutInput || typeof draw !== 'function') return;
+
+        const isWall = layoutInput.value === 'wall';
+
+        const canvases = document.querySelectorAll('.kp-landing-tpl-canvas');
+        canvases.forEach(function (c) {
+            const t = c.getAttribute('data-template') || 'classic';
+            // poster12m is always wall/portrait A3+
+            const useWall = (t === 'poster12m') ? true : isWall;
+            const prevLayout = layoutInput.value;
+            layoutInput.value = useWall ? 'wall' : 'landscape';
+
+            const w = useWall ? 220 : 260;
+            const h = useWall ? 330 : 174;
+            if (c.width !== w || c.height !== h) {
+                c.width = w;
+                c.height = h;
+            }
+
+            tplInput.value = t;
+            const pal = (typeof palettes !== 'undefined' && palettes[t]) ? palettes[t] : ['#f45123', '#ffffff'];
+            accentInput.value = pal[0];
+            paperInput.value = pal[1];
+
+            try {
+                draw(c, 0);
+            } catch (e) {}
+
+            layoutInput.value = prevLayout;
+        });
+    }
+
+    window.renderLandingTemplates = function () {
+        if (previewTimer) clearTimeout(previewTimer);
+        previewTimer = setTimeout(renderLandingTemplatesNow, 60);
+    };
+
+    // Hook into data.js image onload callbacks which call render()
+    window.render = window.renderLandingTemplates;
+
+    document.addEventListener('DOMContentLoaded', function () {
+        window.renderLandingTemplates();
+
+        const layoutBtns = document.querySelectorAll('.kp-tpl-layout-btn');
+        const layoutInput = document.getElementById('layout');
+        const tplLinks = document.querySelectorAll('[data-tpl-link]');
+
+        layoutBtns.forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                const targetLayout = btn.getAttribute('data-tpl-layout') || 'wall';
+                if (layoutInput) layoutInput.value = targetLayout;
+
+                layoutBtns.forEach(function (b) {
+                    const active = b.getAttribute('data-tpl-layout') === targetLayout;
+                    b.className = active
+                        ? 'kp-tpl-layout-btn h-8 px-3 rounded text-xs font-bold bg-neon text-slate-950 transition duration-150 cursor-pointer'
+                        : 'kp-tpl-layout-btn h-8 px-3 rounded text-xs font-semibold text-slate-300 hover:text-white transition duration-150 cursor-pointer';
+                });
+
+                tplLinks.forEach(function (a) {
+                    const tplId = a.getAttribute('data-tpl-link');
+                    const formatParam = (targetLayout === 'wall' || tplId === 'poster12m') ? 'A3_LANDSCAPE' : 'A4_LANDSCAPE';
+                    const layoutParam = (tplId === 'poster12m') ? 'wall' : targetLayout;
+                    a.href = baseStudioUrl + '?template=' + encodeURIComponent(tplId) + '&format=' + formatParam + '&layout=' + layoutParam;
+                });
+
+                renderLandingTemplatesNow();
+            });
+        });
+    });
+
+    if (document.fonts && document.fonts.ready) {
+        document.fonts.ready.then(function () {
+            window.renderLandingTemplates();
+        });
+    }
+})();
 </script>
 @endpush

@@ -16,12 +16,12 @@
     top: 16px
   }
 
-  header {
-    background: #20211e;
-    color: white;
-    padding: 20px max(20px, 5vw);
-    font-weight: 800;
-    letter-spacing: .12em
+  header.kp-studio-header {
+    background: #020617;
+    color: #f8fafc;
+    padding: 0 16px;
+    font-weight: 500;
+    letter-spacing: normal;
   }
 
   .kp-workspace {
@@ -120,12 +120,9 @@
     }
   }
 
-  header span {
-    font-size: 12px;
-    font-weight: 400;
-    letter-spacing: 0;
-    color: #bcc3ca;
-    margin-left: 20px
+  header.kp-studio-header span {
+    margin-left: 0;
+    letter-spacing: normal;
   }
 
   body {
@@ -1898,15 +1895,16 @@ body.kp-dark-theme,
 .kp-studio-wrapper header .btn-header-action,
 .kp-studio-wrapper header a.btn-header-action,
 .kp-studio-wrapper header button.btn-header-action {
-  height: 32px !important;
-  min-height: 32px !important;
-  max-height: 32px !important;
+  height: 36px !important;
+  min-height: 36px !important;
+  max-height: 36px !important;
   width: auto !important;
   margin: 0 !important;
-  padding: 0 12px !important;
+  padding: 0 13px !important;
   display: inline-flex !important;
   align-items: center !important;
   justify-content: center !important;
+  gap: 6px !important;
   line-height: 1 !important;
   box-sizing: border-box !important;
   font-size: 12px !important;
@@ -1914,6 +1912,35 @@ body.kp-dark-theme,
   border-radius: 6px !important;
   white-space: nowrap !important;
   flex-shrink: 0 !important;
+}
+
+.kp-studio-wrapper header .btn-header-primary,
+.kp-studio-wrapper header button.btn-header-primary {
+  background: #ccff00 !important;
+  border-color: #ccff00 !important;
+  color: #020617 !important;
+  font-weight: 700 !important;
+}
+
+.kp-studio-wrapper header .btn-header-primary:hover,
+.kp-studio-wrapper header button.btn-header-primary:hover {
+  background: #d9ff4d !important;
+  border-color: #d9ff4d !important;
+  color: #020617 !important;
+}
+
+body.kp-light-theme header .btn-header-primary,
+body.kp-light-theme header button.btn-header-primary {
+  background: #0f172a !important;
+  border-color: #0f172a !important;
+  color: #ffffff !important;
+}
+
+body.kp-light-theme header .btn-header-primary:hover,
+body.kp-light-theme header button.btn-header-primary:hover {
+  background: #1e293b !important;
+  border-color: #1e293b !important;
+  color: #ffffff !important;
 }
 
 /* ==========================================================================

@@ -2544,9 +2544,13 @@ function render() {
   const is2M = isTwoMonthMode();
   const maxP = getMaxPage();
   const curTitle = isPoster ? 'Poster 12 Bulan (A3+)' : (selected() === -1 ? 'Sampul' : (is4M ? fourMonthLabels[selected()] : (is2M ? twoMonthLabels[selected()] : months[selected()])));
-  byId('slideTitle').textContent = isPoster ? 'Poster 12 Bulan (A3+) · 1 Lembar' : (curTitle + ' · ' + (selected() + 2) + ' / ' + (maxP + 2));
+  const fullSlideLabel = isPoster ? 'Poster 12 Bulan (A3+) · 1 Lembar' : (curTitle + ' · ' + (selected() + 2) + ' / ' + (maxP + 2));
+  byId('slideTitle').textContent = fullSlideLabel;
+  if (byId('headerSlideTitle')) byId('headerSlideTitle').textContent = fullSlideLabel;
   byId('prev').disabled = isPoster || selected() === -1;
   byId('next').disabled = isPoster || selected() === maxP;
+  if (byId('headerPrev')) byId('headerPrev').disabled = isPoster || selected() === -1;
+  if (byId('headerNext')) byId('headerNext').disabled = isPoster || selected() === maxP;
   byId('sizeInfo').textContent = isPoster ? 'Dinding · Poster A3+ (320 × 480 mm) · 12 Bulan 1 Lembar' : ((byId('layout').value === 'wall' ? 'Dinding · A3+ (320 × 480 mm)' : 'Kalender Lari · A4 (297 × 210 mm)') + (is4M ? ' · 4 bulan per lembar' : (is2M ? ' · 2 bulan per lembar' : ' · 1 bulan per lembar')));
   if (byId('slides')) {
     for (const button of byId('slides').children) button.setAttribute('aria-current', Number(button.dataset.page) === selected());
@@ -2554,29 +2558,79 @@ function render() {
 }
 
 let templatePreviewTimer = null;
-function scheduleTemplatePreviews() {
+let templateChunkTimer = null;
+let lastTemplateThumbSignature = '';
+
+function getTemplateThumbSignature() {
+  const wall = byId('layout') ? byId('layout').value : 'wall';
+  const mpp = byId('monthsPerPage') ? byId('monthsPerPage').value : '1';
+  const font = byId('font') ? byId('font').value : '';
+  const yr = byId('year') ? byId('year').value : '';
+  const run = byId('runningMode') ? byId('runningMode').checked : true;
+  const hol = byId('showHolidays') ? byId('showHolidays').checked : true;
+  const bg0Ready = defaults && defaults[0] && defaults[0].complete ? '1' : '0';
+  const bg1Ready = defaults && defaults[1] && defaults[1].complete ? '1' : '0';
+  const customPhoto0 = (typeof photos !== 'undefined' && photos.has(0)) ? 'c1' : 'c0';
+  return [wall, mpp, font, yr, run, hol, bg0Ready, bg1Ready, customPhoto0].join('|');
+}
+
+function drawSingleTemplateMini(c, miniW, miniH) {
+  const values = ['template', 'paper', 'accent'].map(id => byId(id).value);
+  try {
+    if (c.width !== miniW || c.height !== miniH) {
+      c.width = miniW;
+      c.height = miniH;
+    }
+    const t = c.dataset.template;
+    byId('template').value = t;
+    const pal = palettes[t] || ['#f45123', '#ffffff'];
+    byId('accent').value = pal[0];
+    byId('paper').value = pal[1];
+    draw(c, 0);
+  } finally {
+    ['template', 'paper', 'accent'].forEach((id, i) => byId(id).value = values[i]);
+  }
+}
+
+function scheduleTemplatePreviews(force = false) {
   if (templatePreviewTimer) return;
   templatePreviewTimer = setTimeout(() => {
     templatePreviewTimer = null;
-    const values = ['template', 'paper', 'accent'].map(id => byId(id).value);
+    const sig = getTemplateThumbSignature();
+    if (!force && sig === lastTemplateThumbSignature) return;
+    lastTemplateThumbSignature = sig;
+
+    if (templateChunkTimer) {
+      clearTimeout(templateChunkTimer);
+      templateChunkTimer = null;
+    }
+
     const wall = byId('layout') ? byId('layout').value === 'wall' : true;
     const miniW = wall ? 96 : 120;
     const miniH = wall ? 144 : 80;
-    try {
-      for (const c of document.querySelectorAll('.template-mini')) {
-        if (c.width !== miniW || c.height !== miniH) {
-          c.width = miniW;
-          c.height = miniH;
-        }
-        const t = c.dataset.template;
-        byId('template').value = t;
-        const pal = palettes[t] || ['#f45123', '#ffffff'];
-        byId('accent').value = pal[0];
-        byId('paper').value = pal[1];
-        draw(c, 0);
-      }
-    } finally {
-      ['template', 'paper', 'accent'].forEach((id, i) => byId(id).value = values[i]);
+    const allMinis = Array.from(document.querySelectorAll('.template-mini'));
+    if (!allMinis.length) return;
+
+    // 1. Immediately draw the first 5 visible thumbnails so the strip looks ready right away
+    const immediateCount = Math.min(5, allMinis.length);
+    for (let i = 0; i < immediateCount; i++) {
+      drawSingleTemplateMini(allMinis[i], miniW, miniH);
     }
-  }, 80);
+
+    // 2. Progressively draw the remaining off-screen thumbnails in small non-blocking batches
+    let idx = immediateCount;
+    function drawNextBatch() {
+      templateChunkTimer = null;
+      const end = Math.min(idx + 4, allMinis.length);
+      for (; idx < end; idx++) {
+        drawSingleTemplateMini(allMinis[idx], miniW, miniH);
+      }
+      if (idx < allMinis.length) {
+        templateChunkTimer = setTimeout(drawNextBatch, 24);
+      }
+    }
+    if (idx < allMinis.length) {
+      templateChunkTimer = setTimeout(drawNextBatch, 32);
+    }
+  }, 60);
 }
