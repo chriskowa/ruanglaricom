@@ -119,21 +119,6 @@ class ProgramBuilderService
             $weeks = $minWeeks;
         }
 
-        #region debug-point vdot-target-clamp-45min [T8] Builder guardrail pre-validation result + VDOT received
-        Log::info('[DBG-VT45 T8] Builder buildPeriodizedProgram guardrail applied + VDOT inputs', [
-            'input_initialVdot' => round($initialVdot, 4),
-            'input_targetVdot' => round($targetVdot, 4),
-            'input_targetDistance' => $targetDistance,
-            'targetVdot_LT_initialVdot' => $targetVdot < $initialVdot,
-            'targetVdot_minus_initialVdot_delta' => round($targetVdot - $initialVdot, 4),
-            'adjustmentsApplied_count_guardrail' => count($adjustmentsApplied),
-            'adjustmentsApplied_guardrail' => $adjustmentsApplied,
-            'final_weekly_mileage_after_guard' => $targetMileage,
-            'final_frequency_after_guard' => $frequency,
-            'final_weeks_after_guard' => $weeks,
-        ]);
-        #endregion
-
         $library = $this->loadLibrary();
 
         // Adjust training frequency by level
@@ -174,17 +159,6 @@ class ProgramBuilderService
 
         // ===== VDOT PROGRESSION =====
         $deltaVdot = $targetVdot - $initialVdot;
-
-        #region debug-point vdot-target-clamp-45min [T9] VDOT progression builder
-        Log::info('[DBG-VT45 T9] VDOT progression builder — delta target vs initial', [
-            'initialVdot' => round($initialVdot, 4),
-            'targetVdot' => round($targetVdot, 4),
-            'deltaVdot' => round($deltaVdot, 4),
-            'deltaVdot_NEGATIVE' => $deltaVdot < 0,
-            'phases_count' => is_array($phases ?? null) ? count($phases) : 0,
-            'taperWeeks' => $taperWeeks,
-        ]);
-        #endregion
 
         // ===== MILEAGE PROGRESSION =====
         $mileageSchedule = $this->buildMileageSchedule($weeks, $targetMileage, $taperConfig, $runnerLevel);
@@ -227,8 +201,8 @@ class ProgramBuilderService
             // Current week's mileage from progressive schedule
             $currentMileage = $mileageSchedule[$w - 1];
 
-            // Smart deload: already applied in buildMileageSchedule()
-            $isDeload = ($w % 4 === 0) && !in_array($phase, ['Taper']);
+            // Smart deload: avoid placing deload immediately before taper
+            $isDeload = ($w % 4 === 0) && !in_array($phase, ['Taper']) && ($w < ($weeks - $taperWeeks));
 
             // ===== LONG RUN DISTANCE (progressive) =====
             $longRunDistance = $this->calculateLongRunForWeek(

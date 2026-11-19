@@ -61,25 +61,43 @@ class OpenAiService
         }
     }
 
-    public function getChatResponse(array $messages, string $model = 'gpt-4o'): ?string
+    private function supportsTemperature(string $model): bool
+    {
+        return !preg_match('/^(gpt-5|gpt-6|o1|o3|o4)/i', trim($model));
+    }
+
+    public function getChatResponse(array $messages, string $model = 'gpt-6-astra', ?User $user = null): ?string
     {
         if (empty($this->apiKey)) {
             Log::error('OpenAI API Key is not set.');
             return null;
         }
 
+        $payload = [
+            'model' => $model,
+            'messages' => $messages,
+        ];
+        if ($this->supportsTemperature($model)) {
+            $payload['temperature'] = 0.7;
+        }
+
         try {
             $response = Http::withHeaders([
                 'Authorization' => 'Bearer ' . $this->apiKey,
                 'Content-Type' => 'application/json',
-            ])->timeout($this->timeout)->post($this->chatCompletionsUrl, [
-                'model' => $model,
-                'messages' => $messages,
-                'temperature' => 0.7,
-            ]);
+            ])->timeout($this->timeout)->post($this->chatCompletionsUrl, $payload);
+
+            if (! $response->successful() && $this->isUnsupportedTemperatureError($response) && array_key_exists('temperature', $payload)) {
+                unset($payload['temperature']);
+                $response = Http::withHeaders([
+                    'Authorization' => 'Bearer ' . $this->apiKey,
+                    'Content-Type' => 'application/json',
+                ])->timeout($this->timeout)->post($this->chatCompletionsUrl, $payload);
+            }
 
             if ($response->successful()) {
                 $data = $response->json();
+                app(AiCoachContinuityService::class)->recordTokenUsage($user, (int) data_get($data, 'usage.total_tokens', 0));
                 return $data['choices'][0]['message']['content'] ?? null;
             }
 
@@ -255,7 +273,12 @@ class OpenAiService
     {
         if (empty($this->apiKey)) {
             Log::error('OpenAI API Key is not set.');
-            return 'Maaf, layanan AI Coach sedang tidak tersedia saat ini (API Key belum dikonfigurasi).';
+            return 'Maaf, layanan Coach Ruang Lari sedang tidak tersedia saat ini (API Key belum dikonfigurasi).';
+        }
+
+        $continuity = app(AiCoachContinuityService::class);
+        if (! $continuity->hasRemainingQuota($runner)) {
+            return 'Kuota konsultasi Coach Ruang Lari harian Anda sudah tercapai. Anda tetap dapat mengikuti jadwal di Kalender Dashboard dan melanjutkan tanya-jawab besok.';
         }
 
         // Get runner profile data
@@ -274,7 +297,8 @@ class OpenAiService
             ]
         );
 
-        $response = $this->getChatResponse($messages, 'gpt-4o');
+        $chatModel = config('services.openai.chat_model') ?: config('services.openai.model') ?: 'gpt-4.1';
+        $response = $this->getChatResponse($messages, $chatModel, $runner);
         
         return $response ?: 'Maaf, Coach sedang beristirahat sejenak. Silakan coba lagi nanti.';
     }
@@ -287,9 +311,11 @@ class OpenAiService
         $pb = $profile['pb'] ?? [];
         $paces = $profile['paces'] ?? [];
         $recent = $this->buildRecentTrainingSummary($user);
+        $activeProgramCtx = app(AiCoachContinuityService::class)->buildActiveProgramPromptContext($user);
         
-        $prompt = "Anda adalah 'Coach AI' dari Ruang Lari, asisten lari profesional yang ahli, ramah, dan memotivasi. ";
-        $prompt .= "Konteks chat harus selalu seputar dunia lari (teknik, nutrisi, recovery, jadwal latihan, sepatu, apparel lari, dll). ";
+        $prompt = "Anda adalah 'Coach Ruang Lari', pelatih lari profesional di platform Ruang Lari yang ahli, terstruktur, dan peduli keberlanjutan latihan atlet (anti junk miles, recovery presisi, dan progres bertahap). ";
+        $prompt .= "Konteks chat harus selalu seputar dunia lari (teknik, nutrisi, recovery, penyesuaian jadwal latihan, sepatu, dll). ";
+        $prompt .= "Program & Jadwal Aktif Atlet:\n{$activeProgramCtx}\n";
         $prompt .= "Jika user bertanya di luar konteks lari, jawab dengan sopan bahwa Anda hanya fokus pada perkembangan lari mereka.\n\n";
         $prompt .= "Gaya jawaban:\n";
         $prompt .= "- Selalu mulai dengan 1-2 kalimat ringkasan situasi pelari (berdasarkan data yang tersedia).\n";
@@ -434,5 +460,119 @@ class OpenAiService
         $m = intdiv($total, 60);
         $s = $total % 60;
         return sprintf('%d:%02d', $m, $s);
+    }
+
+    /**
+     * Multi-turn coaching intake extractor for /buat-program-lari private chat modal.
+     */
+    public function extractCoachProgramTurn(array $messages, array $state, ?User $runner = null): ?array
+    {
+        if (empty($this->apiKey)) {
+            return null;
+        }
+
+        $model = config('services.openai.chat_model') ?: 'gpt-4.1';
+        $today = now()->toDateString();
+        $runnerContext = $runner
+            ? "Profil akun pelari: nama={$runner->name}, gender=" . ($runner->gender ?: 'unknown') . ", usia=" . ($runner->date_of_birth ? Carbon::parse($runner->date_of_birth)->age : 'unknown')
+            : 'Pelari tamu (belum login).';
+
+        $system = <<<PROMPT
+Anda adalah Head Coach Lari Elit RuangLari yang sangat jenius, berpengalaman melatih pelari rekreasional hingga sub-elite, dan menguasai seni serta sains periodisasi modern (Jack Daniels VDOT, Canova, Pfitzinger).
+Tanggal hari ini: {$today}.
+{$runnerContext}
+
+Filosofi kepelatihan Anda (WAJIB tercermin dalam cara Anda bertanya, memberi saran, dan menyusun `coach_notes`):
+- **Anti Junk Miles**: Setiap kilometer harus punya tujuan fisiologis yang jelas. Tidak ada lari "tanggung" di zona abu-abu yang hanya melelahkan tanpa adaptasi.
+- **Keterkaitan Antar Sesi (Connected Microcycle)**: Sesi Easy/Recovery bukan sekadar pengisi jadwal, melainkan fondasi kapilerisasi & pemulihan aktif agar sesi Quality (Threshold, Interval VO2max, Repetition, Long Run) berikutnya bisa dieksekusi di pace presisi.
+- **Recovery Presisi**: Penempatan hari pemulihan dan de-load disesuaikan dengan usia, volume mingguan, dan riwayat cedera atlet agar tidak terjadi overtraining.
+- **Tujuan Berkesinambungan**: Setiap fase (Base -> Build -> Peak -> Taper) saling menyambung secara logis menuju target waktu lomba atlet.
+
+State parameter yang sudah terkumpul saat ini:
+__STATE_JSON__
+
+Tugas Anda di setiap giliran percakapan:
+1. Baca pesan terbaru atlet dan riwayat percakapan, lalu ekstrak parameter coaching yang disebutkan atlet:
+   - target_distance: salah satu dari "5k", "10k", "21k", "42k"
+   - goal_time: format "HH:MM:SS" (contoh: "sub 20 menit 5K" => "00:19:59", "sub 50 menit 10K" => "00:49:59", "sub 2 jam HM" => "01:59:59", "sub 4 jam marathon" => "03:59:59")
+   - pb_distance: jarak catatan waktu terbaik terbaru ("5k", "10k", "21k", "42k", "cooper12", "balke15")
+   - pb_time: format "HH:MM:SS" (atau meter string jika cooper12/balke15)
+   - weekly_mileage: angka km per minggu saat ini (contoh: 25)
+   - frequency: integer hari lari per minggu (3 sampai 7)
+   - long_run_day: "saturday" atau "sunday"
+   - weeks: integer durasi persiapan dalam minggu (8 sampai 24)
+   - target_date: format "YYYY-MM-DD" jika atlet menyebut tanggal lomba spesifik
+   - runner_level: "beginner", "intermediate", atau "advanced"
+   - age: integer usia (10-100)
+   - gender: "male" atau "female"
+   - injury_history: salah satu dari "none", "knee", "hamstring", "ankle", "shin", "back"
+   - is_tropical: boolean (default true jika di Indonesia / iklim panas)
+   - aggressiveness: "conservative", "standard", atau "sharp"
+2. PENTING: JANGAN mengisi pb_distance atau pb_time dari target yang diinginkan atlet (contoh: "Buatkan program 5K sub 20 menit" HANYA mengisi target_distance="5k" dan goal_time="00:19:59", JANGAN mengisi pb_time="00:19:59"). Isi pb_distance dan pb_time HANYA jika atlet secara eksplisit menyebut catatan waktu terbaik (PB) / kemampuan lari saat ini.
+3. DILARANG menulis daftar jadwal mingguan, jadwal harian, atau program latihan lengkap di dalam "assistant_reply". Penyusunan jadwal terstruktur dilakukan oleh engine kalender RuangLari setelah semua parameter terkumpul. Tugas Anda hanya mengonfirmasi parameter yang masuk dengan wawasan kepelatihan singkat yang tajam, lalu menanyakan sisa parameter yang masih kosong.
+4. Jika masih ada parameter wajib yang kosong (target_distance, goal_time, pb_distance, pb_time, weekly_mileage, frequency, weeks, age, gender, injury_history), ajukan maksimal 2 pertanyaan singkat yang paling logis berikutnya dengan gaya bahasa Indonesia yang berwibawa, hangat, jelas, dan TANPA EMOJI.
+5. Sertakan 2-4 opsi "quick_replies" singkat yang relevan agar pelari mudah menjawab dengan sekali klik.
+6. Kembalikan JSON MURNI valid (tanpa markdown code block) dengan struktur persis:
+{
+  "assistant_reply": "Teks balasan coach untuk pelari (tanpa emoji)",
+  "extracted_params": { ... hanya field yang baru ditemukan atau diperbarui ... },
+  "quick_replies": ["opsi 1", "opsi 2"],
+  "coach_notes": "Catatan strategi periodisasi coach (anti junk miles, fokus recovery, keterkaitan antar sesi menuju target)"
+}
+PROMPT;
+
+        $system = str_replace('__STATE_JSON__', json_encode($state, JSON_UNESCAPED_UNICODE), $system);
+
+        $chatMessages = array_merge(
+            [['role' => 'system', 'content' => $system]],
+            $this->normalizeChatHistory($messages)
+        );
+
+        $payload = [
+            'model' => $model,
+            'messages' => $chatMessages,
+            'response_format' => ['type' => 'json_object'],
+        ];
+        if ($this->supportsTemperature($model)) {
+            $payload['temperature'] = 0.4;
+        } elseif (preg_match('/^(gpt-5|gpt-6)/i', trim($model))) {
+            $payload['reasoning_effort'] = 'low';
+        }
+
+        try {
+            $response = Http::withHeaders([
+                'Authorization' => 'Bearer ' . $this->apiKey,
+                'Content-Type' => 'application/json',
+            ])->timeout(12)->post($this->chatCompletionsUrl, $payload);
+
+            if (! $response->successful() && $this->isUnsupportedTemperatureError($response) && array_key_exists('temperature', $payload)) {
+                unset($payload['temperature']);
+                $response = Http::withHeaders([
+                    'Authorization' => 'Bearer ' . $this->apiKey,
+                    'Content-Type' => 'application/json',
+                ])->timeout(12)->post($this->chatCompletionsUrl, $payload);
+            }
+
+            if (! $response->successful()) {
+                Log::warning('OpenAiService extractCoachProgramTurn non-200: ' . $response->status());
+                return null;
+            }
+
+            $respJson = $response->json();
+            app(AiCoachContinuityService::class)->recordTokenUsage($runner, (int) data_get($respJson, 'usage.total_tokens', 0));
+            $content = data_get($respJson, 'choices.0.message.content');
+            if (! is_string($content) || trim($content) === '') {
+                return null;
+            }
+
+            $content = preg_replace('/^```json\s*/i', '', trim($content));
+            $content = preg_replace('/```$/', '', trim($content));
+            $decoded = json_decode(trim($content), true);
+
+            return is_array($decoded) ? $decoded : null;
+        } catch (\Throwable $e) {
+            Log::warning('OpenAiService extractCoachProgramTurn exception: ' . $e->getMessage());
+            return null;
+        }
     }
 }

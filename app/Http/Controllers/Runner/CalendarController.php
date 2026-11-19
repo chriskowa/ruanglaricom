@@ -827,9 +827,19 @@ class CalendarController extends Controller
             // Update program progress
             // $this->updateProgramProgress($enrollment);
 
+            $coachFeedback = app(\App\Services\AiCoachContinuityService::class)->recordSessionFeedback(
+                $user,
+                $enrollment,
+                (int) $validated['session_day'],
+                (string) $validated['status'],
+                isset($validated['rpe']) ? (int) $validated['rpe'] : null,
+                $validated['feeling'] ?? null
+            );
+
             return response()->json([
                 'success' => true,
                 'tracking' => $tracking,
+                'coach_feedback' => $coachFeedback,
             ]);
         }
 

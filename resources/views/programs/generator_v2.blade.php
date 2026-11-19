@@ -1,11 +1,4 @@
-@php
-    $destImg = public_path('images/hero/vdot-runner-training.jpg');
-    $srcImg = 'C:/Users/LENOVO/.gemini/antigravity-ide/brain/ad786e94-2a56-4d78-962d-8aea9a7effaf/vdot_runner_training_1788923975440.jpg';
-    if (!file_exists($destImg) && file_exists($srcImg)) {
-        @copy($srcImg, $destImg);
-    }
-@endphp
-@extends('layouts.pacerhub')
+@extends('layouts.pacerhub', ['skipLoader' => true])
 
 @section('title', 'Buat Program Lari Terstruktur: 5K, 10K, Half Marathon & Marathon Gratis | RuangLari')
 
@@ -19,9 +12,7 @@
 @section('og_image', 'https://ruanglari.com/storage/blog/media/kP2oNYsx0wEzCGJMQYKN1xxUBW3oaUMTCfydDSig.webp')
 
 @push('head')
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800;900&family=Sora:wght@700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800;900&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sora:wght@700;800&display=swap" rel="stylesheet">
 @verbatim
 <script type="application/ld+json">
 {
@@ -137,6 +128,13 @@
 
 @push('styles')
 <style>
+    [v-cloak] { display: none !important; }
+    .coach-chat-prose {
+        font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        font-size: 1.0625rem;
+        line-height: 1.8;
+        letter-spacing: -0.005em;
+    }
     /* Heading Typography Pakem */
     .generator-v2-wrapper h1,
     .generator-v2-wrapper h2,
@@ -401,16 +399,21 @@
                     </div>
                 </div>
 
-                <!-- CTAs: Exactly 1 Primary Solid Lime Button + 1 Ghost Link -->
-                <div class="flex flex-wrap items-center gap-4 pt-2">
-                    <button type="button" @click="openWizard" 
+                <!-- CTAs: Primary Private Coach AI + Manual Form -->
+                <div class="flex flex-wrap items-center gap-3 pt-2">
+                    <button type="button" @click="openAiCoachModal"
                             class="btn-lime-primary px-5 py-3.5 text-xs sm:text-sm tracking-wider uppercase font-extrabold">
-                        <span>Buat Program Lari</span>
+                        <span>Konsultasi Privat Coach AI</span>
                     </button>
-                    
-                    <a href="#dasar-vdot" 
+
+                    <button type="button" @click="openWizard"
+                            class="btn-ghost-secondary px-5 py-3.5 text-xs sm:text-sm tracking-wider uppercase font-bold">
+                        <span>Isi Form Manual</span>
+                    </button>
+
+                    <a href="#dasar-vdot"
                        class="text-xs sm:text-sm font-semibold text-slate-300 hover:text-white underline-offset-4 hover:underline transition">
-                        Lihat Dasar Ilmiah VDOT →
+                        Lihat Dasar Ilmiah VDOT
                     </a>
                 </div>
 
@@ -462,22 +465,75 @@
                                 <div>
                                     <div class="relative">
                                         <input v-model.number="heroVdotH" type="number" min="0" max="99"
-                                               class="w-full px-3 py-2.5 rounded-md bg-slate-950 border border-slate-800 text-white text-center text-sm font-bold focus:outline-none focus:border-brand-lime transition">
+                                               class="w-full px-3 py-2.5 rounded-md bg-slate-950 border border-slate-800 text-white text-center text-sm font-bold font-mono tabular-nums focus:outline-none focus:border-brand-lime transition">
                                     </div>
                                     <span class="text-[10px] text-slate-400 block text-center mt-1">Jam</span>
                                 </div>
                                 <div>
                                     <div class="relative">
                                         <input v-model.number="heroVdotM" type="number" min="0" max="59"
-                                               class="w-full px-3 py-2.5 rounded-md bg-slate-950 border border-slate-800 text-white text-center text-sm font-bold focus:outline-none focus:border-brand-lime transition">
+                                               class="w-full px-3 py-2.5 rounded-md bg-slate-950 border border-slate-800 text-white text-center text-sm font-bold font-mono tabular-nums focus:outline-none focus:border-brand-lime transition">
                                     </div>
                                     <span class="text-[10px] text-slate-400 block text-center mt-1">Menit</span>
                                 </div>
                                 <div>
                                     <div class="relative">
                                         <input v-model.number="heroVdotS" type="number" min="0" max="59"
-                                               class="w-full px-3 py-2.5 rounded-md bg-slate-950 border border-slate-800 text-white text-center text-sm font-bold focus:outline-none focus:border-brand-lime transition">
+                                               class="w-full px-3 py-2.5 rounded-md bg-slate-950 border border-slate-800 text-white text-center text-sm font-bold font-mono tabular-nums focus:outline-none focus:border-brand-lime transition">
                                     </div>
+                                    <span class="text-[10px] text-slate-400 block text-center mt-1">Detik</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Target Lomba (Opsional - Uji Kelayakan Realistis) -->
+                        <div class="pt-3 border-t border-slate-800 space-y-3">
+                            <div class="flex items-center justify-between gap-2">
+                                <span class="text-xs font-semibold text-slate-200">Target Waktu Lomba <span class="text-slate-400 font-normal">(Auto / Edit Manual)</span></span>
+                                <div class="flex items-center gap-2.5">
+                                    <button type="button" @click="heroAutoSetTarget(true)" class="text-[11px] font-semibold text-brand-lime hover:underline transition cursor-pointer">Auto Realistis</button>
+                                    <button v-if="(heroTargetH || heroTargetM || heroTargetS)" type="button" @click="heroClearTarget" class="text-[11px] text-slate-400 hover:text-white transition cursor-pointer">Kosongkan</button>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2.5">
+                                <div>
+                                    <label class="block text-[11px] text-slate-400 mb-1">Jarak Target</label>
+                                    <select v-model="heroTargetDistance" @change="heroTargetDistTouched = true"
+                                            class="w-full px-3 py-2 rounded-md bg-slate-950 border border-slate-800 text-white text-xs focus:outline-none focus:border-brand-lime transition cursor-pointer">
+                                        <option value="5k">5K</option>
+                                        <option value="10k">10K</option>
+                                        <option value="21k">Half Marathon (21.1K)</option>
+                                        <option value="42k">Full Marathon (42.2K)</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[11px] text-slate-400 mb-1">Persiapan</label>
+                                    <select v-model.number="heroTargetWeeks"
+                                            class="w-full px-3 py-2 rounded-md bg-slate-950 border border-slate-800 text-white text-xs focus:outline-none focus:border-brand-lime transition cursor-pointer">
+                                        <option :value="8">8 Minggu</option>
+                                        <option :value="10">10 Minggu</option>
+                                        <option :value="12">12 Minggu</option>
+                                        <option :value="16">16 Minggu</option>
+                                        <option :value="20">20 Minggu</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-2.5">
+                                <div>
+                                    <input v-model.number="heroTargetH" type="number" min="0" max="99" placeholder="0"
+                                           class="w-full px-3 py-2 rounded-md bg-slate-950 border border-slate-800 text-white text-center text-sm font-bold font-mono tabular-nums focus:outline-none focus:border-brand-lime transition">
+                                    <span class="text-[10px] text-slate-400 block text-center mt-1">Jam</span>
+                                </div>
+                                <div>
+                                    <input v-model.number="heroTargetM" type="number" min="0" max="59" placeholder="00"
+                                           class="w-full px-3 py-2 rounded-md bg-slate-950 border border-slate-800 text-white text-center text-sm font-bold font-mono tabular-nums focus:outline-none focus:border-brand-lime transition">
+                                    <span class="text-[10px] text-slate-400 block text-center mt-1">Menit</span>
+                                </div>
+                                <div>
+                                    <input v-model.number="heroTargetS" type="number" min="0" max="59" placeholder="00"
+                                           class="w-full px-3 py-2 rounded-md bg-slate-950 border border-slate-800 text-white text-center text-sm font-bold font-mono tabular-nums focus:outline-none focus:border-brand-lime transition">
                                     <span class="text-[10px] text-slate-400 block text-center mt-1">Detik</span>
                                 </div>
                             </div>
@@ -496,11 +552,44 @@
                     <!-- Result Display Box (Revealed on calculate) -->
                     <transition name="fade">
                         <div v-if="heroVdotCalculated" class="border-t border-slate-800 bg-slate-950 p-5 space-y-4">
+                            <!-- Target Realism Guardrail Feedback -->
+                            <div v-if="heroTargetStatus.hasTarget"
+                                 :class="{
+                                     'bg-rose-950 border-rose-800 text-rose-100': heroTargetStatus.status === 'rejected',
+                                     'bg-amber-950 border-amber-800 text-amber-100': heroTargetStatus.status === 'caution',
+                                     'bg-emerald-950 border-emerald-800 text-emerald-100': heroTargetStatus.status === 'realistic'
+                                 }"
+                                 class="p-3.5 rounded-md border text-xs space-y-2">
+                                <div class="flex items-center justify-between gap-2">
+                                    <span class="font-bold">
+                                        <template v-if="heroTargetStatus.status === 'rejected'">Target Ditolak (Tidak Realistis)</template>
+                                        <template v-else-if="heroTargetStatus.status === 'caution'">Target Ambisius (Perlu Durasi Lebih Panjang)</template>
+                                        <template v-else>Target Realistis</template>
+                                    </span>
+                                    <span class="font-mono tabular-nums px-2 py-0.5 rounded bg-slate-950 text-[11px] font-bold"
+                                          :class="heroTargetStatus.status === 'rejected' ? 'text-rose-300' : (heroTargetStatus.status === 'caution' ? 'text-amber-300' : 'text-emerald-300')">
+                                        VDOT @{{ heroTargetStatus.currentVdot.toFixed(1) }} → @{{ heroTargetStatus.targetVdot.toFixed(1) }}
+                                    </span>
+                                </div>
+                                <p class="leading-relaxed opacity-90">@{{ heroTargetStatus.reason }}</p>
+                                <div v-if="heroTargetStatus.status === 'rejected' || heroTargetStatus.status === 'caution'" class="pt-2 border-t border-slate-800 flex flex-wrap items-center justify-between gap-2">
+                                    <span class="text-[11px] font-mono tabular-nums">
+                                        Rekomendasi @{{ heroTargetWeeks }} minggu: <strong class="text-white">@{{ heroTargetStatus.safeTimeFormatted }}</strong> (VDOT @{{ heroTargetStatus.safeVdot.toFixed(1) }})
+                                    </span>
+                                    <button type="button" @click="heroApplyRealisticTarget"
+                                            class="px-2.5 py-1 rounded bg-lime-400 hover:bg-lime-300 text-slate-950 font-bold text-[11px] transition cursor-pointer">
+                                        Pakai @{{ heroTargetStatus.safeTimeFormatted }}
+                                    </button>
+                                </div>
+                            </div>
+
                             <!-- VDOT Score Strip -->
                             <div class="p-3.5 rounded-md bg-slate-900 border border-slate-800 flex items-center justify-between">
                                 <div>
-                                    <span class="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Estimasi VDOT Score</span>
-                                    <span class="text-2xl font-black text-brand-lime mt-0.5 block">@{{ (heroVdotCompute.vdot || 0).toFixed(1) }}</span>
+                                    <span class="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">
+                                        @{{ heroTargetStatus.hasTarget && heroTargetStatus.status !== 'rejected' ? 'VDOT Target Latihan' : 'Estimasi VDOT Score' }}
+                                    </span>
+                                    <span class="text-2xl font-black text-brand-lime font-mono tabular-nums mt-0.5 block">@{{ (heroVdotCompute.vdot || 0).toFixed(1) }}</span>
                                 </div>
                                 <div class="text-right">
                                     <span class="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-wider block">Level Kebugaran</span>
@@ -566,16 +655,21 @@
                                 </div>
                             </div>
 
-                            <!-- Action Buttons: CTA sync ke Wizard Step 1 (auto scroll ke tool-container) -->
+                            <!-- Action Buttons: Bridge to Coach Ruang Lari or Manual Wizard -->
                             <div class="flex flex-col sm:flex-row gap-2 pt-1">
-                                <button type="button" @click="heroApplyToWizard"
-                                        class="flex-1 btn-lime-primary py-2.5 px-4 rounded-md text-slate-950 text-xs font-bold uppercase tracking-wider transition cursor-pointer text-center">
-                                    Buat Program
+                                <button type="button" @click="heroApplyToAiCoach"
+                                        class="flex-1 btn-lime-primary py-2.5 px-4 rounded-md text-slate-950 text-xs font-bold tracking-wide transition cursor-pointer text-center">
+                                    Lanjut via Coach Ruang Lari
                                 </button>
-                                <a href="#dasar-vdot"
-                                   class="flex-1 text-center py-2.5 px-4 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-xs uppercase tracking-wider transition cursor-pointer">
-                                    Lihat Metodologi
-                                </a>
+                                <button v-if="heroTargetStatus.hasTarget && heroTargetStatus.status === 'rejected'"
+                                        type="button" @click="heroApplyRealisticAndWizard"
+                                        class="flex-1 text-center py-2.5 px-4 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-xs tracking-wide transition cursor-pointer">
+                                    Form Manual (@{{ heroTargetStatus.safeTimeFormatted }})
+                                </button>
+                                <button v-else type="button" @click="heroApplyToWizard"
+                                        class="flex-1 text-center py-2.5 px-4 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white font-bold text-xs tracking-wide transition cursor-pointer">
+                                    Isi Form Manual
+                                </button>
                             </div>
                         </div>
                     </transition>
@@ -793,7 +887,7 @@
                         <div class="space-y-5">
                             <div>
                                 <label class="label-text">Pilih Jarak Parameter Test / Personal Best Terkini</label>
-                                <select v-model="form.pb_distance" class="input-field cursor-pointer text-sm">
+                                <select v-model="form.pb_distance" @change="onPbDistanceChange" class="input-field cursor-pointer text-sm">
                                     <option value="5k">5 Kilometer (5K)</option>
                                     <option value="10k">10 Kilometer (10K)</option>
                                     <option value="21k">Half Marathon (21.1K)</option>
@@ -1814,6 +1908,246 @@
         </div>
     </section>
 
+    <!-- FULL-SCREEN PRIVATE COACH AI MODAL (Inside #generator-v2-app) -->
+    <div v-if="aiModalOpen"
+         v-cloak
+         class="fixed inset-0 z-[90] bg-slate-950 text-slate-200 flex flex-col"
+         role="dialog"
+         aria-modal="true"
+         aria-label="Sesi Privat Coach AI RuangLari">
+    <!-- Top Bar -->
+    <div class="bg-slate-900 border-b border-slate-800 px-4 sm:px-6 py-3.5 shrink-0">
+        <div class="max-w-4xl mx-auto flex items-center justify-between gap-3">
+            <div class="min-w-0">
+                <div class="flex flex-wrap items-center gap-2">
+                    <h2 class="heading-pakem text-base sm:text-lg text-white truncate">Sesi Privat Coach Ruang Lari</h2>
+                    @auth
+                        <span v-if="aiHasTrial" class="px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 text-[11px] font-semibold">1x Free Trial</span>
+                        <span v-else class="px-2 py-0.5 rounded bg-slate-800 text-lime-300 text-[11px] font-mono font-semibold">Rp 15.000 / Program</span>
+                    @else
+                        <span class="px-2 py-0.5 rounded bg-slate-800 text-lime-300 text-[11px] font-semibold">Khusus Member</span>
+                    @endauth
+                </div>
+                <p class="text-xs text-slate-300 truncate mt-0.5">Tanya jawab parameter coaching untuk menyusun jadwal kompatibel My Program &amp; Kalender.</p>
+            </div>
+            <div class="flex items-center gap-2 shrink-0">
+                <button type="button" @click="resetAiCoachSession"
+                        class="px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-200 transition cursor-pointer">
+                    Reset Sesi
+                </button>
+                <button type="button" @click="closeAiCoachModal(true)"
+                        class="px-3 py-1.5 rounded-md bg-slate-950 hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-white transition cursor-pointer">
+                    Pakai Form Manual
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Collected Parameters Progress Strip -->
+    <div class="bg-slate-900 border-b border-slate-800 px-4 sm:px-6 py-2.5 shrink-0 overflow-x-auto">
+        <div class="max-w-4xl mx-auto flex items-center gap-2 text-xs whitespace-nowrap">
+            <div class="px-2.5 py-1 rounded border font-medium"
+                 :class="(aiState.target_distance && aiState.goal_time) ? 'bg-slate-950 border-lime-400 text-lime-300' : 'bg-slate-950 border-slate-800 text-slate-400'">
+                Target: <span class="font-mono tabular-nums">@{{ (aiState.target_distance && aiState.goal_time) ? (aiState.target_distance.toUpperCase() + ' ' + aiState.goal_time) : 'Belum' }}</span>
+            </div>
+            <div class="px-2.5 py-1 rounded border font-medium"
+                 :class="(aiState.pb_distance && aiState.pb_time) ? 'bg-slate-950 border-lime-400 text-lime-300' : 'bg-slate-950 border-slate-800 text-slate-400'">
+                PB: <span class="font-mono tabular-nums">@{{ (aiState.pb_distance && aiState.pb_time) ? (aiState.pb_distance.toUpperCase() + ' ' + aiState.pb_time) : 'Belum' }}</span>
+            </div>
+            <div class="px-2.5 py-1 rounded border font-medium"
+                 :class="(aiState.weekly_mileage && aiState.frequency) ? 'bg-slate-950 border-lime-400 text-lime-300' : 'bg-slate-950 border-slate-800 text-slate-400'">
+                Beban: <span class="font-mono tabular-nums">@{{ (aiState.weekly_mileage && aiState.frequency) ? (aiState.weekly_mileage + 'km / ' + aiState.frequency + 'x') : 'Belum' }}</span>
+            </div>
+            <div class="px-2.5 py-1 rounded border font-medium"
+                 :class="aiState.weeks ? 'bg-slate-950 border-lime-400 text-lime-300' : 'bg-slate-950 border-slate-800 text-slate-400'">
+                Durasi: <span class="font-mono tabular-nums">@{{ aiState.weeks ? (aiState.weeks + ' minggu') : 'Belum' }}</span>
+            </div>
+            <div class="px-2.5 py-1 rounded border font-medium"
+                 :class="(aiState.age && aiState.gender && aiState.injury_history) ? 'bg-slate-950 border-lime-400 text-lime-300' : 'bg-slate-950 border-slate-800 text-slate-400'">
+                Profil: <span>@{{ (aiState.age && aiState.gender && aiState.injury_history) ? (aiState.age + ' thn • ' + aiState.injury_history) : 'Belum' }}</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Chat Thread -->
+    <div ref="aiChatScrollRef" class="flex-1 overflow-y-auto px-4 sm:px-6 py-8">
+        <div class="max-w-3xl mx-auto space-y-6">
+            <div v-for="(msg, idx) in aiMessages" :key="idx"
+                 class="flex"
+                 :class="msg.role === 'user' ? 'justify-end' : 'justify-start'">
+                <div class="max-w-[94%] sm:max-w-[86%] rounded-lg coach-chat-prose"
+                     :class="msg.role === 'user'
+                        ? 'bg-lime-400 text-slate-950 font-semibold px-5 py-3.5'
+                        : 'bg-slate-900 border border-slate-800 text-slate-100 px-5 sm:px-7 py-5 sm:py-6'">
+                    <div v-if="msg.role === 'assistant'" class="flex items-center justify-between gap-2 pb-2.5 mb-3 border-b border-slate-800">
+                        <span class="text-xs font-mono text-lime-300 font-bold tracking-wide">Coach Ruang Lari</span>
+                        <span class="text-[11px] text-slate-400">Sesi Konsultasi Privat</span>
+                    </div>
+                    <div class="whitespace-pre-line">@{{ msg.content }}</div>
+
+                    <!-- Feasibility Confirmation Actions -->
+                    <div v-if="msg.confirmation_actions && msg.confirmation_actions.length" class="mt-3.5 pt-3 border-t border-slate-800 flex flex-wrap gap-2">
+                        <button v-for="act in msg.confirmation_actions"
+                                :key="act.action"
+                                type="button"
+                                :disabled="aiChatBusy"
+                                @click="sendAiCoachAction(act.action, act.label)"
+                                class="px-3 py-1.5 rounded-md bg-slate-950 hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-lime-300 transition cursor-pointer disabled:opacity-50">
+                            @{{ act.label }}
+                        </button>
+                    </div>
+
+                    <!-- Generated Program Summary Card inside Chat -->
+                    <div v-if="msg.program_data" class="mt-4 pt-4 border-t border-slate-800 space-y-3">
+                        <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 text-xs">
+                            <div class="bg-slate-950 border border-slate-800 rounded-md p-2.5">
+                                <div class="text-slate-400">Target</div>
+                                <div class="font-bold text-white font-mono mt-0.5">@{{ msg.program_data.summary.target }}</div>
+                            </div>
+                            <div class="bg-slate-950 border border-slate-800 rounded-md p-2.5">
+                                <div class="text-slate-400">Durasi</div>
+                                <div class="font-bold text-white font-mono tabular-nums mt-0.5">@{{ msg.program_data.weeks }} Minggu</div>
+                            </div>
+                            <div class="bg-slate-950 border border-slate-800 rounded-md p-2.5">
+                                <div class="text-slate-400">VDOT Awal</div>
+                                <div class="font-bold text-lime-300 font-mono tabular-nums mt-0.5">@{{ msg.program_data.summary.vdot }}</div>
+                            </div>
+                            <div class="bg-slate-950 border border-slate-800 rounded-md p-2.5">
+                                <div class="text-slate-400">Target VDOT</div>
+                                <div class="font-bold text-white font-mono tabular-nums mt-0.5">@{{ msg.program_data.summary.target_vdot }}</div>
+                            </div>
+                        </div>
+
+                        <div class="bg-slate-950 border border-slate-800 rounded-md p-3 text-xs space-y-2">
+                            <div class="font-semibold text-white">Zona Pace Latihan Anda</div>
+                            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 font-mono tabular-nums text-slate-300">
+                                <div class="bg-slate-900 rounded px-2.5 py-1.5 flex items-center justify-between gap-2"><span>Easy:</span> <strong class="text-white">@{{ formatPace(msg.program_data.paces.E) }}</strong></div>
+                                <div class="bg-slate-900 rounded px-2.5 py-1.5 flex items-center justify-between gap-2"><span>Marathon:</span> <strong class="text-white">@{{ formatPace(msg.program_data.paces.M) }}</strong></div>
+                                <div class="bg-slate-900 rounded px-2.5 py-1.5 flex items-center justify-between gap-2"><span>Tempo (T):</span> <strong class="text-white">@{{ formatPace(msg.program_data.paces.T) }}</strong></div>
+                                <div class="bg-slate-900 rounded px-2.5 py-1.5 flex items-center justify-between gap-2"><span>Interval (I):</span> <strong class="text-lime-300">@{{ formatPace(msg.program_data.paces.I) }}</strong></div>
+                                <div class="bg-slate-900 rounded px-2.5 py-1.5 flex items-center justify-between gap-2"><span>Repetition (R):</span> <strong class="text-white">@{{ formatPace(msg.program_data.paces.R) }}</strong></div>
+                                <div class="bg-slate-900 rounded px-2.5 py-1.5 flex items-center justify-between gap-2"><span>Total Sesi:</span> <strong class="text-white">@{{ msg.program_data.sessions.length }} hari</strong></div>
+                            </div>
+                        </div>
+
+                        <div v-if="msg.program_data.sessions && msg.program_data.sessions.length" class="bg-slate-950 border border-slate-800 rounded-md p-3 text-xs space-y-2">
+                            <div class="font-semibold text-white">Cuplikan Minggu 1 (Terhubung ke Kalender)</div>
+                            <div class="space-y-1.5">
+                                <div v-for="s in msg.program_data.sessions.slice(0, 4)" :key="s.day"
+                                     class="flex items-center justify-between gap-2 bg-slate-900 rounded px-2.5 py-1.5 text-slate-200">
+                                    <span class="truncate"><strong class="font-mono text-lime-300">Hari @{{ s.day }}</strong> — @{{ s.workout_name || s.type }}</span>
+                                    <span class="font-mono tabular-nums text-slate-300 shrink-0">@{{ s.distance > 0 ? (s.distance + ' km') : (s.duration || 'Rest') }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div v-if="msg.saved_to_calendar && !msg.requires_payment" class="p-3 rounded-md bg-emerald-950 border border-emerald-800 text-xs sm:text-sm text-emerald-200 font-medium">
+                            Sudah aktif penuh di My Program &amp; Kalender Dashboard Anda.
+                        </div>
+                        <div v-else-if="msg.saved_to_calendar && msg.requires_payment" class="p-3 rounded-md bg-amber-950 border border-amber-800 text-xs sm:text-sm text-amber-200">
+                            Program tersimpan (preview 50% minggu awal terbuka). Selesaikan pembayaran <strong class="text-white">Rp 15.000</strong> via QRIS untuk membuka seluruh jadwal &amp; pendampingan penuh Coach Ruang Lari.
+                        </div>
+                        <div v-else-if="msg.has_active_program" class="p-3 rounded-md bg-amber-950 border border-amber-800 text-xs sm:text-sm text-amber-200">
+                            Anda memiliki program aktif: <strong class="text-white">@{{ msg.active_program_title }}</strong>. Pilih aksi untuk menerapkan program baru ini ke kalender:
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row gap-2.5">
+                            <template v-if="msg.saved_to_calendar && !msg.requires_payment">
+                                <a :href="msg.calendar_url || '{{ route('runner.calendar') }}'"
+                                   class="flex-1 btn-lime-primary py-2.5 px-4 text-xs sm:text-sm font-bold text-center">
+                                    Buka Kalender Dashboard
+                                </a>
+                            </template>
+                            <template v-else-if="msg.saved_to_calendar && msg.requires_payment">
+                                <button type="button"
+                                        :disabled="saving"
+                                        @click="payEnrollmentSnap(msg.enrollment_id, msg.price_idr || 15000)"
+                                        class="flex-1 btn-lime-primary py-2.5 px-4 text-xs sm:text-sm font-bold">
+                                    @{{ saving ? 'Memproses...' : 'Bayar Rp 15.000 (QRIS) & Buka Kalender' }}
+                                </button>
+                            </template>
+                            <template v-else-if="msg.has_active_program">
+                                <button type="button"
+                                        :disabled="saving"
+                                        @click="saveAiProgramWithAction('replace')"
+                                        class="flex-1 btn-lime-primary py-2.5 px-4 text-xs font-bold">
+                                    @{{ saving ? 'Menerapkan...' : 'Ganti Program Aktif & Buka Kalender' }}
+                                </button>
+                                <button type="button"
+                                        :disabled="saving"
+                                        @click="saveAiProgramWithAction('add')"
+                                        class="flex-1 btn-ghost-secondary py-2.5 px-4 text-xs font-semibold">
+                                    Tambahkan ke Kalender
+                                </button>
+                            </template>
+                            <template v-else>
+                                <button type="button"
+                                        :disabled="saving"
+                                        @click="saveAiProgramToCalendar"
+                                        class="flex-1 btn-lime-primary py-2.5 px-4 text-xs font-bold">
+                                    @{{ saving ? 'Menyimpan...' : 'Simpan ke My Program & Kalender' }}
+                                </button>
+                            </template>
+                            <button type="button"
+                                    @click="viewAiProgramInPage"
+                                    class="flex-1 btn-ghost-secondary py-2.5 px-4 text-xs font-semibold">
+                                Lihat Jadwal Lengkap
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div v-if="aiChatBusy" class="flex justify-start">
+                <div class="bg-slate-900 border border-slate-800 rounded-lg px-5 py-4 text-sm sm:text-base text-slate-300 font-mono">
+                    Coach AI sedang menganalisis parameter Anda...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bottom Composer -->
+    <div class="bg-slate-900 border-t border-slate-800 px-4 sm:px-6 py-4 shrink-0">
+        <div class="max-w-3xl mx-auto space-y-3">
+            @guest
+                <div class="rounded-lg bg-slate-950 border border-slate-800 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div class="text-sm text-slate-200 leading-relaxed">
+                        Login atau daftar gratis (verifikasi WhatsApp) untuk mendapatkan <strong class="text-lime-300">1x Free Trial</strong> konsultasi privat Coach Ruang Lari.
+                    </div>
+                    <div class="flex items-center gap-2 shrink-0">
+                        <button type="button" @click="openLoginForAiCoach" class="btn-lime-primary px-4 py-2.5 text-xs sm:text-sm font-bold">
+                            Login / Daftar Gratis
+                        </button>
+                    </div>
+                </div>
+            @else
+                <div v-if="aiQuickReplies.length" class="flex flex-wrap gap-2">
+                    <button v-for="qr in aiQuickReplies"
+                            :key="qr"
+                            type="button"
+                            :disabled="aiChatBusy"
+                            @click="sendAiChatMessage(qr)"
+                            class="px-3.5 py-2 rounded-md bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 text-xs sm:text-sm text-slate-200 transition cursor-pointer disabled:opacity-50">
+                        @{{ qr }}
+                    </button>
+                </div>
+
+                <form @submit.prevent="sendAiChatMessage()" class="flex items-center gap-2.5">
+                    <input v-model="aiChatInput"
+                           type="text"
+                           :disabled="aiChatBusy"
+                           placeholder="Ketik target atau jawaban Anda (cth: Buatkan program 5K sub 20 menit)..."
+                           class="flex-1 h-12 px-4 rounded-md bg-slate-950 border border-slate-800 text-base text-white placeholder-slate-400 focus:outline-none focus:border-lime-400">
+                    <button type="submit"
+                            :disabled="aiChatBusy || !aiChatInput.trim()"
+                            class="h-12 px-6 btn-lime-primary text-sm font-bold disabled:opacity-50">
+                        Kirim
+                    </button>
+                </form>
+            @endguest
+        </div>
+    </div>
+    </div>
 </div>
 @endsection
 
@@ -1833,11 +2167,378 @@
             const errors = ref(null);
             const notification = ref(null);
 
-            // PB time inputs initialize as null/empty without fake dummy 0:30:0
-            const pb_hours = ref(null);
-            const pb_minutes = ref(null);
-            const pb_seconds = ref(null);
-            const pb_distance_meters = ref(null);
+            // Private Full-Screen Coach AI Modal State
+            const AI_INITIAL_PROFILE = @json($aiInitialProfile ?? []);
+            const aiHasTrial = ref(@json((bool) ($aiTrialAvailable ?? false)));
+            const aiModalOpen = ref(false);
+            const aiChatBusy = ref(false);
+            const aiChatInput = ref('');
+            const aiChatScrollRef = ref(null);
+            const aiState = reactive({
+                target_distance: null,
+                goal_time: null,
+                pb_distance: AI_INITIAL_PROFILE.pb_distance || null,
+                pb_time: AI_INITIAL_PROFILE.pb_time || null,
+                weekly_mileage: null,
+                frequency: null,
+                long_run_day: null,
+                weeks: null,
+                target_date: null,
+                runner_level: null,
+                age: AI_INITIAL_PROFILE.age || null,
+                gender: AI_INITIAL_PROFILE.gender || null,
+                injury_history: null,
+                is_tropical: true,
+                coach_notes: '',
+                safe_goal_time: null,
+                force_infeasible_ack: false,
+            });
+            const aiMessages = ref([
+                {
+                    role: 'assistant',
+                    content: 'Selamat datang di sesi privat Coach AI RuangLari. Ceritakan target lomba dan waktu yang ingin Anda capai (misalnya: "Buatkan program lari 5K sub 20 menit"), nanti saya pandu melengkapi parameter latihan sebelum menyusun jadwal ke My Program & Kalender.',
+                }
+            ]);
+            const aiQuickReplies = ref([
+                'Buatkan program lari 5K sub 20 menit',
+                'Program 10K sub 50 menit',
+                'Half Marathon pertama dalam 12 minggu',
+                'Marathon sub 4 jam (16 minggu)',
+            ]);
+            const aiGeneratedPayload = ref(null);
+            const aiGeneratedFormPayload = ref(null);
+
+            const scrollAiChatToBottom = () => {
+                setTimeout(() => {
+                    if (aiChatScrollRef.value) {
+                        aiChatScrollRef.value.scrollTop = aiChatScrollRef.value.scrollHeight;
+                    }
+                }, 40);
+            };
+
+            const heroApplyToAiCoach = () => {
+                const distKey = String(heroVdotDistance.value || '5k').toLowerCase();
+                const h = Math.max(0, Math.round(Number(heroVdotH.value) || 0));
+                const m = Math.max(0, Math.min(59, Math.round(Number(heroVdotM.value) || 0)));
+                const s = Math.max(0, Math.min(59, Math.round(Number(heroVdotS.value) || 0)));
+                const pbSec = h * 3600 + m * 60 + s;
+                if (pbSec >= 300) {
+                    aiState.pb_distance = distKey;
+                    aiState.pb_time = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+                }
+
+                const tDistKey = String(heroTargetDistance.value || distKey).toLowerCase();
+                const weeks = Math.max(8, Math.min(24, Number(heroTargetWeeks.value) || 12));
+                aiState.target_distance = tDistKey;
+                aiState.weeks = weeks;
+
+                let useGoalSec = (Math.max(0, Math.round(Number(heroTargetH.value) || 0)) * 3600)
+                    + (Math.max(0, Math.min(59, Math.round(Number(heroTargetM.value) || 0))) * 60)
+                    + Math.max(0, Math.min(59, Math.round(Number(heroTargetS.value) || 0)));
+                if (heroTargetStatus.hasTarget && heroTargetStatus.status === 'rejected' && heroTargetStatus.safeSec >= 300) {
+                    useGoalSec = Math.round(heroTargetStatus.safeSec);
+                }
+                if (useGoalSec >= 300) {
+                    const gh = Math.floor(useGoalSec / 3600);
+                    const gm = Math.floor((useGoalSec % 3600) / 60);
+                    const gs = useGoalSec % 60;
+                    aiState.goal_time = `${String(gh).padStart(2, '0')}:${String(gm).padStart(2, '0')}:${String(gs).padStart(2, '0')}`;
+                }
+
+                aiMessages.value = [
+                    {
+                        role: 'assistant',
+                        content: `Saya sudah menerima data dari kalkulator Anda: PB ${aiState.pb_distance ? aiState.pb_distance.toUpperCase() : '-'} (${aiState.pb_time || '-'}) menuju target ${aiState.target_distance ? aiState.target_distance.toUpperCase() : '-'} (${aiState.goal_time || '-'}) dalam ${aiState.weeks} minggu.\n\nAgar saya tidak memberi junk miles dan recovery-nya pas, rata-rata berapa kilometer Anda berlari per minggu saat ini, dan berapa hari per minggu Anda sanggup latihan?`,
+                    }
+                ];
+                aiQuickReplies.value = [
+                    '25 km/minggu, 4x, Minggu',
+                    '35 km/minggu, 4x, Minggu',
+                    '45 km/minggu, 5x, Sabtu',
+                    '15 km/minggu, 3x, Minggu',
+                ];
+                openAiCoachModal(true);
+            };
+
+            const openAiCoachModal = (clearDismissed = true) => {
+                if (clearDismissed) {
+                    try { sessionStorage.removeItem('rl_ai_coach_dismissed'); } catch (e) {}
+                }
+                aiModalOpen.value = true;
+                scrollAiChatToBottom();
+            };
+
+            const closeAiCoachModal = (rememberDismiss = true) => {
+                aiModalOpen.value = false;
+                if (rememberDismiss) {
+                    try { sessionStorage.setItem('rl_ai_coach_dismissed', '1'); } catch (e) {}
+                }
+            };
+
+            const resetAiCoachSession = () => {
+                Object.assign(aiState, {
+                    target_distance: null,
+                    goal_time: null,
+                    pb_distance: AI_INITIAL_PROFILE.pb_distance || null,
+                    pb_time: AI_INITIAL_PROFILE.pb_time || null,
+                    weekly_mileage: null,
+                    frequency: null,
+                    long_run_day: null,
+                    weeks: null,
+                    target_date: null,
+                    runner_level: null,
+                    age: AI_INITIAL_PROFILE.age || null,
+                    gender: AI_INITIAL_PROFILE.gender || null,
+                    injury_history: null,
+                    is_tropical: true,
+                    coach_notes: '',
+                    safe_goal_time: null,
+                    force_infeasible_ack: false,
+                });
+                aiGeneratedPayload.value = null;
+                aiGeneratedFormPayload.value = null;
+                aiMessages.value = [
+                    {
+                        role: 'assistant',
+                        content: 'Sesi direset. Target lomba dan waktu apa yang ingin Anda capai sekarang?',
+                    }
+                ];
+                aiQuickReplies.value = [
+                    'Buatkan program lari 5K sub 20 menit',
+                    'Program 10K sub 50 menit',
+                    'Half Marathon pertama dalam 12 minggu',
+                    'Marathon sub 4 jam (16 minggu)',
+                ];
+                scrollAiChatToBottom();
+            };
+
+            const postAiChatRequest = async (messageText, action = 'message') => {
+                aiChatBusy.value = true;
+                scrollAiChatToBottom();
+                try {
+                    const historyPayload = aiMessages.value
+                        .slice(-16)
+                        .map(m => ({ role: m.role, content: String(m.content || '') }));
+
+                    const response = await fetch('{{ route("generator.ai-chat.turn", [], false) }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            message: messageText,
+                            history: historyPayload,
+                            state: aiState,
+                            action: action,
+                        }),
+                    });
+
+                    const res = await response.json();
+                    if (!response.ok || !res.success) {
+                        aiMessages.value.push({
+                            role: 'assistant',
+                            content: res.message || 'Maaf, terjadi gangguan saat memproses parameter. Silakan ulangi jawaban Anda.',
+                        });
+                        return;
+                    }
+
+                    if (res.state && typeof res.state === 'object') {
+                        Object.assign(aiState, res.state);
+                    }
+
+                    const assistantMsg = {
+                        role: 'assistant',
+                        content: res.assistant_reply || 'Silakan lanjutkan detail latihan Anda.',
+                    };
+                    if (res.needs_confirmation && Array.isArray(res.confirmation_actions)) {
+                        assistantMsg.confirmation_actions = res.confirmation_actions;
+                    }
+                    if (res.ready_program && res.program_data) {
+                        aiGeneratedPayload.value = res.program_data;
+                        aiGeneratedFormPayload.value = res.form_payload || null;
+                        assistantMsg.program_data = res.program_data;
+                        assistantMsg.saved_to_calendar = !!res.saved_to_calendar;
+                        assistantMsg.enrollment_id = res.enrollment_id || null;
+                        assistantMsg.requires_payment = !!res.requires_payment;
+                        assistantMsg.price_idr = res.price_idr || 15000;
+                        assistantMsg.has_active_program = !!res.has_active_program;
+                        assistantMsg.active_program_title = res.active_program_title || '';
+                        assistantMsg.calendar_url = res.calendar_url || '{{ route("runner.calendar", [], false) }}';
+                        if (typeof res.has_trial === 'boolean') aiHasTrial.value = res.has_trial;
+                        applyAiProgramToState();
+                    }
+
+                    aiMessages.value.push(assistantMsg);
+                    aiQuickReplies.value = Array.isArray(res.quick_replies) ? res.quick_replies : [];
+                } catch (e) {
+                    aiMessages.value.push({
+                        role: 'assistant',
+                        content: 'Koneksi ke Coach AI terputus sementara. Silakan kirim ulang pesan Anda.',
+                    });
+                } finally {
+                    aiChatBusy.value = false;
+                    scrollAiChatToBottom();
+                }
+            };
+
+            const sendAiChatMessage = async (presetText = null) => {
+                if (aiChatBusy.value) return;
+                const text = String(presetText !== null ? presetText : aiChatInput.value).trim();
+                if (!text) return;
+                if (presetText === null) aiChatInput.value = '';
+                aiMessages.value.push({ role: 'user', content: text });
+                await postAiChatRequest(text, 'message');
+            };
+
+            const sendAiCoachAction = async (actionKey, labelText) => {
+                if (aiChatBusy.value) return;
+                aiMessages.value.push({ role: 'user', content: labelText });
+                await postAiChatRequest(labelText, actionKey);
+            };
+
+            const applyAiProgramToState = () => {
+                if (!aiGeneratedPayload.value) return false;
+                const fp = aiGeneratedFormPayload.value || {};
+                if (fp.pb_distance) form.pb_distance = fp.pb_distance;
+                if (fp.pb_time) {
+                    form.pb_time = fp.pb_time;
+                    const parts = String(fp.pb_time).split(':');
+                    if (parts.length === 3) {
+                        pb_hours.value = parseInt(parts[0], 10) || 0;
+                        pb_minutes.value = parseInt(parts[1], 10) || 0;
+                        pb_seconds.value = parseInt(parts[2], 10) || 0;
+                    } else if (['cooper12', 'balke15'].includes(fp.pb_distance)) {
+                        pb_distance_meters.value = parseInt(fp.pb_time, 10) || 2400;
+                    }
+                }
+                if (fp.target_distance) form.target_distance = fp.target_distance;
+                if (fp.start_date) form.start_date = fp.start_date;
+                if (fp.target_date) form.target_date = fp.target_date;
+                if (fp.goal_time) {
+                    form.goal_time = fp.goal_time;
+                    const gParts = String(fp.goal_time).split(':');
+                    if (gParts.length === 3) {
+                        isAutoUpdatingGoal = true;
+                        try {
+                            goal_hours.value = parseInt(gParts[0], 10) || 0;
+                            goal_minutes.value = parseInt(gParts[1], 10) || 0;
+                            goal_seconds.value = parseInt(gParts[2], 10) || 0;
+                        } finally {
+                            isAutoUpdatingGoal = false;
+                        }
+                    }
+                }
+                if (fp.weekly_mileage) form.weekly_mileage = Number(fp.weekly_mileage);
+                if (fp.frequency) form.frequency = Number(fp.frequency);
+                if (fp.runner_level) form.runner_level = fp.runner_level;
+                if (fp.long_run_day) form.long_run_day = fp.long_run_day;
+                if (fp.gender) form.gender = fp.gender;
+                if (fp.age) form.age = Number(fp.age);
+                if (fp.injury_history) form.injury_history = fp.injury_history;
+                if (typeof fp.is_tropical === 'boolean') form.is_tropical = fp.is_tropical;
+
+                result.value = aiGeneratedPayload.value;
+                step.value = 2;
+                isWizardOpen.value = false;
+                return true;
+            };
+
+            const viewAiProgramInPage = () => {
+                if (!applyAiProgramToState()) return;
+                closeAiCoachModal(true);
+                setTimeout(() => {
+                    const el = document.getElementById('tool-container');
+                    if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 80);
+            };
+
+            const saveAiProgramToCalendar = async () => {
+                if (!applyAiProgramToState()) return;
+                closeAiCoachModal(true);
+                await saveAndOpenCalendar();
+            };
+
+            const openLoginForAiCoach = () => {
+                if (window.openLoginModal) {
+                    window.openLoginModal('{{ route("programs.realistic") }}');
+                } else {
+                    window.location.href = '{{ route("login") }}';
+                }
+            };
+
+            const loadMidtransSnapScript = () => {
+                return new Promise((resolve, reject) => {
+                    if (typeof window.snap !== 'undefined') return resolve();
+                    const s = document.createElement('script');
+                    s.src = @json(config('midtrans.is_production') ? 'https://app.midtrans.com/snap/snap.js' : 'https://app.sandbox.midtrans.com/snap/snap.js');
+                    s.setAttribute('data-client-key', @json((string) config('midtrans.client_key')));
+                    s.onload = () => resolve();
+                    s.onerror = () => reject(new Error('Gagal memuat Midtrans Snap.'));
+                    document.head.appendChild(s);
+                });
+            };
+
+            const payEnrollmentSnap = async (enrollmentId, amount = 15000) => {
+                if (!enrollmentId) return;
+                saving.value = true;
+                try {
+                    await loadMidtransSnapScript();
+                    const res = await fetch('{{ route("api.programs.pay", [], false) }}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            enrollment_id: enrollmentId,
+                            amount: amount || 15000,
+                        }),
+                    });
+                    const data = await res.json();
+                    if (!res.ok || !data.success || !data.snap_token) {
+                        showNotification(data.message || 'Gagal memulai pembayaran Midtrans.', 'error');
+                        return;
+                    }
+                    window.snap.pay(data.snap_token, {
+                        onSuccess: () => {
+                            window.location.href = '{{ route("runner.calendar", [], false) }}';
+                        },
+                        onPending: () => {
+                            showNotification('Menunggu penyelesaian pembayaran QRIS/Midtrans Anda.', 'info');
+                        },
+                        onError: () => {
+                            showNotification('Pembayaran gagal atau dibatalkan.', 'error');
+                        },
+                    });
+                } catch (e) {
+                    showNotification(e.message || 'Gagal memproses pembayaran.', 'error');
+                } finally {
+                    saving.value = false;
+                }
+            };
+
+            const saveAiProgramWithAction = async (actionType) => {
+                if (!applyAiProgramToState()) return;
+                closeAiCoachModal(true);
+                await saveAndOpenCalendar(actionType);
+            };
+
+            const DEFAULT_PB_PRESETS = {
+                '5k': { h: 0, m: 25, s: 0, meters: 2400 },
+                '10k': { h: 0, m: 52, s: 0, meters: 2400 },
+                '21k': { h: 1, m: 55, s: 0, meters: 2400 },
+                '42k': { h: 4, m: 15, s: 0, meters: 2400 },
+                'cooper12': { h: 0, m: 12, s: 0, meters: 2400 },
+                'balke15': { h: 0, m: 15, s: 0, meters: 3000 },
+            };
+
+            const pb_hours = ref(0);
+            const pb_minutes = ref(25);
+            const pb_seconds = ref(0);
+            const pb_distance_meters = ref(2400);
 
             const goal_hours = ref(null);
             const goal_minutes = ref(null);
@@ -1866,7 +2567,7 @@
             const form = reactive({
                 pb_distance: '5k',
                 pb_time: '',
-                target_distance: '10k',
+                target_distance: '5k',
                 start_date: defaultStartMondayStr,
                 target_date: '',
                 goal_time: '',
@@ -1986,9 +2687,41 @@
             const heroVdotH = ref(1);
             const heroVdotM = ref(55);
             const heroVdotS = ref(0);
+            const heroTargetDistance = ref('21k');
+            const heroTargetDistTouched = ref(false);
+            const heroTargetManualEdited = ref(false);
+            let isAutoUpdatingHeroPb = false;
+            let isAutoUpdatingHeroTarget = false;
+            const heroTargetWeeks = ref(12);
+            const heroTargetH = ref(0);
+            const heroTargetM = ref(0);
+            const heroTargetS = ref(0);
             const heroVdotCalculated = ref(false);
 
-            watch([heroVdotDistance, heroVdotH, heroVdotM, heroVdotS], () => {
+            const heroTargetStatus = reactive({
+                hasTarget: false,
+                status: 'none', // 'none' | 'realistic' | 'caution' | 'rejected'
+                currentVdot: 0,
+                targetVdot: 0,
+                effectiveVdot: 0,
+                vdotDelta: 0,
+                pctJump: 0,
+                estimatedWeeksNeeded: 0,
+                safeVdot: 0,
+                safeSec: 0,
+                safeTimeFormatted: '-',
+                targetSec: 0,
+                reason: '',
+            });
+
+            watch([heroTargetH, heroTargetM, heroTargetS], ([nh, nm, ns], [oh, om, os]) => {
+                if (isAutoUpdatingHeroTarget) return;
+                if (nh !== oh || nm !== om || ns !== os) {
+                    heroTargetManualEdited.value = true;
+                }
+            }, { flush: 'sync' });
+
+            watch([heroVdotDistance, heroVdotH, heroVdotM, heroVdotS, heroTargetDistance, heroTargetWeeks, heroTargetH, heroTargetM, heroTargetS], () => {
                 heroVdotCalculated.value = false;
             });
             const heroVdotCompute = reactive({
@@ -2447,6 +3180,102 @@
             };
 
             // #region hero-vdot-calculator (implementation: callables dipindahkan SETELAH semua helper distance/VDOT/predict di atas agar tdk kena TDZ)
+            const heroClearTarget = () => {
+                isAutoUpdatingHeroTarget = true;
+                try {
+                    heroTargetH.value = 0;
+                    heroTargetM.value = 0;
+                    heroTargetS.value = 0;
+                } finally {
+                    isAutoUpdatingHeroTarget = false;
+                }
+                heroTargetManualEdited.value = true;
+                heroVdotCalculated.value = false;
+            };
+
+            const heroComputeRealisticTargetSeconds = (currentVdot, tDistKey, weeks) => {
+                if (!currentVdot || currentVdot <= 0) return 0;
+                const ratePerWeek = currentVdot >= 48 ? 0.45 : (currentVdot >= 38 ? 0.50 : 0.40);
+                const maxCyclePct = currentVdot >= 48 ? 0.06 : (currentVdot >= 38 ? 0.07 : 0.08);
+                const scale = Math.min(1.2, Math.max(0.5, weeks / 12));
+                const targetGainPct = Math.min(maxCyclePct, 0.05 * scale);
+                const maxGainByRate = ratePerWeek * weeks * 0.75;
+                const realisticTargetVdot = Math.min(85, Math.min(currentVdot * (1 + targetGainPct), currentVdot + maxGainByRate));
+                return Math.round(predictRaceTimeSeconds(realisticTargetVdot, tDistKey));
+            };
+
+            const heroAutoSetTarget = (force = false) => {
+                if (!force && heroTargetManualEdited.value) return;
+                const distKey = String(heroVdotDistance.value || '5k').toLowerCase();
+                const h = Math.max(0, Math.round(Number(heroVdotH.value) || 0));
+                const m = Math.max(0, Math.min(59, Math.round(Number(heroVdotM.value) || 0)));
+                const s = Math.max(0, Math.min(59, Math.round(Number(heroVdotS.value) || 0)));
+                const sec = h * 3600 + m * 60 + s;
+                if (sec < 300) return;
+
+                const currentVdot = Math.max(15, Math.min(85, calculateVDOTFromPerformance(distKey, sec)));
+                const tDistKey = String(heroTargetDistance.value || distKey).toLowerCase();
+                const weeks = Math.max(8, Math.min(24, Number(heroTargetWeeks.value) || 12));
+                const targetSec = heroComputeRealisticTargetSeconds(currentVdot, tDistKey, weeks);
+                if (targetSec >= 300) {
+                    isAutoUpdatingHeroTarget = true;
+                    try {
+                        heroTargetH.value = Math.floor(targetSec / 3600);
+                        heroTargetM.value = Math.floor((targetSec % 3600) / 60);
+                        heroTargetS.value = targetSec % 60;
+                    } finally {
+                        isAutoUpdatingHeroTarget = false;
+                    }
+                    if (force) {
+                        heroTargetManualEdited.value = false;
+                    }
+                }
+            };
+
+            watch(heroVdotDistance, (newDist, oldDist) => {
+                if (newDist === oldDist) return;
+                const preset = DEFAULT_PB_PRESETS[newDist] || DEFAULT_PB_PRESETS['5k'];
+                isAutoUpdatingHeroPb = true;
+                try {
+                    heroVdotH.value = preset.h;
+                    heroVdotM.value = preset.m;
+                    heroVdotS.value = preset.s;
+                } finally {
+                    isAutoUpdatingHeroPb = false;
+                }
+                heroTargetDistTouched.value = false;
+                heroTargetDistance.value = newDist;
+                heroTargetManualEdited.value = false;
+                heroAutoSetTarget(true);
+            });
+
+            watch([heroVdotH, heroVdotM, heroVdotS, heroTargetDistance, heroTargetWeeks], () => {
+                if (isAutoUpdatingHeroPb) return;
+                heroAutoSetTarget(false);
+            });
+
+            const heroApplyRealisticTarget = () => {
+                if (!heroTargetStatus.safeSec || heroTargetStatus.safeSec < 300) return;
+                const total = Math.round(heroTargetStatus.safeSec);
+                isAutoUpdatingHeroTarget = true;
+                try {
+                    heroTargetH.value = Math.floor(total / 3600);
+                    heroTargetM.value = Math.floor((total % 3600) / 60);
+                    heroTargetS.value = total % 60;
+                } finally {
+                    isAutoUpdatingHeroTarget = false;
+                }
+                heroTargetManualEdited.value = false;
+                heroCalculateVdot();
+            };
+
+            const heroApplyRealisticAndWizard = () => {
+                heroApplyRealisticTarget();
+                if (heroTargetStatus.status !== 'rejected') {
+                    heroApplyToWizard();
+                }
+            };
+
             const heroCalculateVdot = () => {
                 const distKey = String(heroVdotDistance.value || '5k').toLowerCase();
                 const dm = distanceMeters[distKey] || 5000;
@@ -2459,9 +3288,75 @@
                     return;
                 }
                 heroVdotCompute.pbSec = sec;
-                const vdot = Math.max(15, Math.min(85, calculateVDOTFromPerformance(distKey, sec)));
-                heroVdotCompute.vdot = Math.round(vdot * 100) / 100;
-                const vvo2max = vvo2FromVDOT(vdot);
+                const currentVdot = Math.max(15, Math.min(85, calculateVDOTFromPerformance(distKey, sec)));
+
+                // Check optional Target Waktu Lomba
+                const th = Math.max(0, Math.round(Number(heroTargetH.value) || 0));
+                const tm = Math.max(0, Math.min(59, Math.round(Number(heroTargetM.value) || 0)));
+                const ts = Math.max(0, Math.min(59, Math.round(Number(heroTargetS.value) || 0)));
+                const targetSec = th * 3600 + tm * 60 + ts;
+                const tDistKey = String(heroTargetDistance.value || distKey).toLowerCase();
+                const weeks = Math.max(8, Math.min(24, Number(heroTargetWeeks.value) || 12));
+
+                let activeVdot = currentVdot;
+
+                if (targetSec > 0) {
+                    if (targetSec < 300) {
+                        showNotification('Masukkan target waktu yang valid (minimal 5 menit).', 'error');
+                        return;
+                    }
+                    const targetVdot = Math.max(15, Math.min(85, calculateVDOTFromPerformance(tDistKey, targetSec)));
+                    const delta = targetVdot - currentVdot;
+                    const pctJump = currentVdot > 0 ? (delta / currentVdot) * 100 : 0;
+                    const ratePerWeek = currentVdot >= 48 ? 0.45 : (currentVdot >= 38 ? 0.50 : 0.40);
+                    const maxCyclePct = currentVdot >= 48 ? 0.08 : (currentVdot >= 38 ? 0.09 : 0.10);
+                    const maxByRate = ratePerWeek * weeks;
+                    const safeVdot = delta > 0
+                        ? Math.min(currentVdot * (1 + maxCyclePct), currentVdot + maxByRate)
+                        : currentVdot;
+                    const safeSec = predictRaceTimeSeconds(safeVdot, tDistKey);
+                    const estimatedWeeksNeeded = delta > 0 ? Math.ceil(delta / ratePerWeek) : 0;
+
+                    heroTargetStatus.hasTarget = true;
+                    heroTargetStatus.currentVdot = currentVdot;
+                    heroTargetStatus.targetVdot = targetVdot;
+                    heroTargetStatus.vdotDelta = delta;
+                    heroTargetStatus.pctJump = pctJump;
+                    heroTargetStatus.estimatedWeeksNeeded = estimatedWeeksNeeded;
+                    heroTargetStatus.safeVdot = safeVdot;
+                    heroTargetStatus.safeSec = safeSec;
+                    heroTargetStatus.safeTimeFormatted = heroFormatDur(safeSec);
+                    heroTargetStatus.targetSec = targetSec;
+
+                    if (delta > 0 && (pctJump > 10 || delta > maxByRate * 1.35)) {
+                        heroTargetStatus.status = 'rejected';
+                        heroTargetStatus.effectiveVdot = currentVdot;
+                        heroTargetStatus.reason = `Dari PB ${distKey.toUpperCase()} ${heroFormatDur(sec)} (VDOT ${currentVdot.toFixed(1)}), target ${tDistKey.toUpperCase()} ${heroFormatDur(targetSec)} membutuhkan VDOT ${targetVdot.toFixed(1)} (lonjakan +${delta.toFixed(1)} VDOT / +${pctJump.toFixed(1)}%). Untuk satu siklus ${weeks} minggu, batas aman fisiologis maksimal sekitar +${Math.min(maxCyclePct * 100, (maxByRate / currentVdot) * 100).toFixed(1)}%; target Anda idealnya dicapai bertahap dalam ~${estimatedWeeksNeeded} minggu.`;
+                        activeVdot = currentVdot;
+                    } else if (delta > maxByRate) {
+                        heroTargetStatus.status = 'caution';
+                        heroTargetStatus.effectiveVdot = safeVdot;
+                        heroTargetStatus.reason = `Lonjakan +${delta.toFixed(1)} VDOT (${pctJump.toFixed(1)}%) masih memungkinkan tetapi cukup agresif untuk ${weeks} minggu (ideal ~${estimatedWeeksNeeded} minggu). Pace latihan dikunci bertahap ke VDOT aman ${safeVdot.toFixed(1)}.`;
+                        activeVdot = safeVdot;
+                    } else {
+                        heroTargetStatus.status = 'realistic';
+                        heroTargetStatus.effectiveVdot = delta > 0 ? targetVdot : currentVdot;
+                        heroTargetStatus.reason = delta > 0
+                            ? `Kenaikan +${delta.toFixed(1)} VDOT (+${pctJump.toFixed(1)}%) berada dalam laju adaptasi sehat (${ratePerWeek} VDOT/minggu) untuk persiapan ${weeks} minggu.`
+                            : `Target sudah berada dalam jangkauan VDOT saat ini (${currentVdot.toFixed(1)}). Fokus pada konsistensi volume dan strategi race day.`;
+                        activeVdot = heroTargetStatus.effectiveVdot;
+                    }
+                } else {
+                    heroTargetStatus.hasTarget = false;
+                    heroTargetStatus.status = 'none';
+                    heroTargetStatus.currentVdot = currentVdot;
+                    heroTargetStatus.targetVdot = currentVdot;
+                    heroTargetStatus.effectiveVdot = currentVdot;
+                    heroTargetStatus.reason = '';
+                }
+
+                heroVdotCompute.vdot = Math.round(activeVdot * 100) / 100;
+                const vvo2max = vvo2FromVDOT(activeVdot);
                 if (vvo2max > 0) {
                     // Formula Jack Daniels: kecepatan v = vVO2max * ratio (m/min)
                     // Pace dalam menit per kilometer (min/km) = 1000m / kecepatan (m/min)
@@ -2475,10 +3370,10 @@
                     heroVdotCompute.repetition = 1000 / (vvo2max * 1.05);
                     heroVdotCompute.repetition_400 = Math.round((400 / (vvo2max * 1.05)) * 60);
                 }
-                heroVdotCompute.r_5k = predictRaceTimeSeconds(vdot, '5k');
-                heroVdotCompute.r_10k = predictRaceTimeSeconds(vdot, '10k');
-                heroVdotCompute.r_21k = predictRaceTimeSeconds(vdot, '21k');
-                heroVdotCompute.r_42k = predictRaceTimeSeconds(vdot, '42k');
+                heroVdotCompute.r_5k = predictRaceTimeSeconds(activeVdot, '5k');
+                heroVdotCompute.r_10k = predictRaceTimeSeconds(activeVdot, '10k');
+                heroVdotCompute.r_21k = predictRaceTimeSeconds(activeVdot, '21k');
+                heroVdotCompute.r_42k = predictRaceTimeSeconds(activeVdot, '42k');
                 heroVdotCalculated.value = true;
                 heroVdotTab.value = 'paces';
             };
@@ -2493,6 +3388,10 @@
                     showNotification('Masukkan waktu PB yang valid sebelum lanjut ke wizard.', 'error');
                     return;
                 }
+                if (heroTargetStatus.hasTarget && heroTargetStatus.status === 'rejected') {
+                    showNotification('Target terlalu ekstrem dan ditolak. Gunakan target aman yang disarankan terlebih dahulu.', 'error');
+                    return;
+                }
                 form.pb_distance = distKey;
                 if (distKey === 'cooper12' || distKey === 'balke15') {
                     pb_distance_meters.value = dm;
@@ -2502,14 +3401,23 @@
                     pb_seconds.value = s;
                 }
                 userEditedPb.value = true;
-                userEditedGoal.value = false;
-                const defaultTargetMap = {
-                    '5k': '10k',
-                    '10k': '21k',
-                    '21k': '42k',
-                    '42k': '10k',
-                };
-                form.target_distance = defaultTargetMap[distKey] || '10k';
+
+                const th = Math.max(0, Math.round(Number(heroTargetH.value) || 0));
+                const tm = Math.max(0, Math.min(59, Math.round(Number(heroTargetM.value) || 0)));
+                const ts = Math.max(0, Math.min(59, Math.round(Number(heroTargetS.value) || 0)));
+                const tSec = th * 3600 + tm * 60 + ts;
+
+                if (tSec >= 300) {
+                    form.target_distance = String(heroTargetDistance.value || distKey).toLowerCase();
+                    goal_hours.value = th;
+                    goal_minutes.value = tm;
+                    goal_seconds.value = ts;
+                    userEditedGoal.value = true;
+                } else {
+                    userEditedGoal.value = false;
+                    form.target_distance = distKey;
+                }
+
                 isWizardOpen.value = true;
                 wizardStep.value = 1;
                 step.value = 1;
@@ -2517,7 +3425,7 @@
                     const el = document.getElementById('tool-container');
                     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }, 90);
-                showNotification('Data PB kalkulator disinkronkan ke Wizard Step 1.', 'success');
+                showNotification('Data kalkulator disinkronkan ke Wizard Step 1.', 'success');
             };
             // #endregion
 
@@ -2631,6 +3539,28 @@
                         event.target.showPicker();
                     }
                 } catch (e) {}
+            };
+
+            const onPbDistanceChange = () => {
+                const dist = String(form.pb_distance || '5k').toLowerCase();
+                const preset = DEFAULT_PB_PRESETS[dist] || DEFAULT_PB_PRESETS['5k'];
+                if (dist === 'cooper12' || dist === 'balke15') {
+                    pb_distance_meters.value = preset.meters;
+                } else {
+                    pb_hours.value = preset.h;
+                    pb_minutes.value = preset.m;
+                    pb_seconds.value = preset.s;
+                }
+                userEditedPb.value = false;
+                if (['5k', '10k', '21k', '42k', 'cooper12'].includes(dist)) {
+                    form.target_distance = dist;
+                } else {
+                    form.target_distance = '5k';
+                }
+                recommendMileage();
+                applyRecommendedTargetDate();
+                userEditedGoal.value = false;
+                setTimeout(() => suggestGoalTime(true), 0);
             };
 
             const onTargetDistanceChange = () => {
@@ -2891,16 +3821,17 @@
                 } catch (e) {}
                 wizardStep.value = 1;
                 lastSavedTime.value = '';
-                pb_hours.value = null;
-                pb_minutes.value = null;
-                pb_seconds.value = null;
-                pb_distance_meters.value = null;
+                pb_hours.value = 0;
+                pb_minutes.value = 25;
+                pb_seconds.value = 0;
+                pb_distance_meters.value = 2400;
                 goal_hours.value = null;
                 goal_minutes.value = null;
                 goal_seconds.value = null;
+                userEditedGoal.value = false;
                 userEditedTargetDate.value = false;
                 form.pb_distance = '5k';
-                form.target_distance = '10k';
+                form.target_distance = '5k';
                 form.start_date = defaultStartMondayStr;
                 form.weekly_mileage = 40;
                 form.frequency = 4;
@@ -2917,6 +3848,7 @@
                 form.is_tropical = false;
                 applyRecommendedTargetDate();
                 recommendMileage();
+                setTimeout(() => suggestGoalTime(true), 0);
                 showNotification('Draf formulir telah direset.', 'info');
             };
 
@@ -2948,6 +3880,7 @@
             });
 
             onMounted(() => {
+                heroAutoSetTarget(true);
                 const params = new URLSearchParams(window.location.search);
                 let dist = params.get('distance');
                 const time = params.get('time');
@@ -2999,6 +3932,7 @@
                     if (!restored) {
                         applyRecommendedTargetDate();
                         recommendMileage();
+                        suggestGoalTime(true);
                     }
                 }
             });
@@ -3244,6 +4178,10 @@
                     }
 
                     if (data.success) {
+                        if (data.requires_payment && data.enrollment_id) {
+                            await payEnrollmentSnap(data.enrollment_id, data.price_idr || 15000);
+                            return;
+                        }
                         window.location.href = '{{ route("runner.calendar", [], false) }}';
                     } else {
                         showNotification(data.message || 'Gagal menyimpan program.', 'error');
@@ -3335,7 +4273,7 @@
                 goal_hours, goal_minutes, goal_seconds,
                 idealMileage, recommendMileage, realism,
                 current_vdot, target_vdot, recommendedTargetDate, recommendedWeeks, applyRecommendedTargetDate, suggestGoalTime,
-                openDatePicker, onTargetDistanceChange, recalculateRecommendedGoalTime, onToggleCombinePlyometric, onStrengthTypeChange,
+                openDatePicker, onPbDistanceChange, onTargetDistanceChange, recalculateRecommendedGoalTime, onToggleCombinePlyometric, onStrengthTypeChange,
                 bmi, bmiCategory, proteinRecommendation,
                 showNotification,
                 wizardStep, lastSavedTime, goToWizardStep, nextWizardStep, prevWizardStep, resetFormDraft,
@@ -3343,8 +4281,14 @@
                 formAggressiveness, highlightMileage, minMileageDynamic, coachAssessment,
                 applyChipOption, computeCoachAssessment, showFeasibilityModal, feasibilityModalPayload,
                 userEditedGoal, userEditedPb, _debugGoalTimeline, _debugSuggestOverwrites, _dbgPushGoal,
-                heroVdotTab, heroVdotDistance, heroVdotH, heroVdotM, heroVdotS, heroVdotCalculated, heroVdotCompute, heroVdotLevel,
-                heroCalculateVdot, heroFormatPace, heroFormatPaceRange, heroFormatDur, heroApplyToWizard
+                heroVdotTab, heroVdotDistance, heroVdotH, heroVdotM, heroVdotS,
+                heroTargetDistance, heroTargetDistTouched, heroTargetWeeks, heroTargetH, heroTargetM, heroTargetS, heroTargetStatus,
+                heroVdotCalculated, heroVdotCompute, heroVdotLevel,
+                heroCalculateVdot, heroAutoSetTarget, heroClearTarget, heroApplyRealisticTarget, heroApplyRealisticAndWizard, heroApplyToAiCoach,
+                heroFormatPace, heroFormatPaceRange, heroFormatDur, heroApplyToWizard,
+                aiModalOpen, aiHasTrial, aiChatBusy, aiChatInput, aiChatScrollRef, aiMessages, aiQuickReplies, aiState,
+                openAiCoachModal, closeAiCoachModal, resetAiCoachSession, sendAiChatMessage, sendAiCoachAction,
+                viewAiProgramInPage, saveAiProgramToCalendar, saveAiProgramWithAction, payEnrollmentSnap, openLoginForAiCoach
             };
         }
     }).mount('#generator-v2-app');

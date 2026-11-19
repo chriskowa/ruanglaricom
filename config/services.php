@@ -44,6 +44,7 @@ return [
     'openai' => [
         'api_key' => env('OPENAI_API_KEY'),
         'model' => env('OPENAI_MODEL', 'gpt-6-astra'),
+        'chat_model' => env('OPENAI_CHAT_MODEL', 'gpt-4.1'),
         'blog_model' => env('OPENAI_BLOG_MODEL', env('OPENAI_MODEL', 'gpt-6-astra')),
         'endpoint' => env('OPENAI_ENDPOINT', 'responses'),
         'timeout' => (int) env('OPENAI_TIMEOUT', 180),

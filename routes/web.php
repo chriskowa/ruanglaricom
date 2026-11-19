@@ -519,6 +519,9 @@ Route::get('/buat-program-lari', [SelfGeneratedProgramController::class, 'index'
 Route::post('/api/programs/generate', [SelfGeneratedProgramController::class, 'generate'])->name('generator.generate');
 Route::post('/api/programs/store-pending', [SelfGeneratedProgramController::class, 'storePending'])->name('generator.store-pending');
 Route::middleware('auth')->group(function() {
+    Route::post('/api/programs/ai-chat/turn', [SelfGeneratedProgramController::class, 'aiChatTurn'])
+        ->middleware('throttle:20,1')
+        ->name('generator.ai-chat.turn');
     Route::post('/api/programs/save', [SelfGeneratedProgramController::class, 'saveToCalendar'])->name('generator.save');
     Route::post('/api/programs/pay', [SelfGeneratedProgramController::class, 'createPayment'])->name('api.programs.pay');
     Route::post('/api/programs/verify-promo', [SelfGeneratedProgramController::class, 'verifyPromoCode'])->name('api.programs.verify-promo');

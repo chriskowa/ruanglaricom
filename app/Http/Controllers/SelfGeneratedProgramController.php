@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Program;
 use App\Models\ProgramEnrollment;
+use App\Services\AiCoachContinuityService;
 use App\Services\CoachFeasibilityService;
 use App\Services\DanielsRunningService;
 use App\Services\MidtransService;
@@ -11,6 +12,7 @@ use App\Services\OpenAiService;
 use App\Services\ProgramBuilderService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
@@ -27,14 +29,22 @@ class SelfGeneratedProgramController extends Controller
     protected $openAiService;
     protected $builderService;
     protected $coachFeasibility;
+    protected $continuityService;
 
-    public function __construct(DanielsRunningService $danielsService, MidtransService $midtransService, OpenAiService $openAiService, ProgramBuilderService $builderService, CoachFeasibilityService $coachFeasibility)
-    {
+    public function __construct(
+        DanielsRunningService $danielsService,
+        MidtransService $midtransService,
+        OpenAiService $openAiService,
+        ProgramBuilderService $builderService,
+        CoachFeasibilityService $coachFeasibility,
+        AiCoachContinuityService $continuityService
+    ) {
         $this->danielsService = $danielsService;
         $this->midtransService = $midtransService;
         $this->openAiService = $openAiService;
         $this->builderService = $builderService;
         $this->coachFeasibility = $coachFeasibility;
+        $this->continuityService = $continuityService;
     }
 
     public function index()
@@ -44,7 +54,35 @@ class SelfGeneratedProgramController extends Controller
             return $this->processAutoSave();
         }
 
-        return view('programs.generator_v2');
+        $aiInitialProfile = [];
+        $aiTrialAvailable = false;
+        $aiQuotaStatus = null;
+        if (auth()->check()) {
+            $user = auth()->user();
+            $aiTrialAvailable = $this->continuityService->hasAvailableTrial($user);
+            $aiQuotaStatus = $this->continuityService->getDailyQuotaStatus($user);
+            if (in_array($user->gender, ['male', 'female'], true)) {
+                $aiInitialProfile['gender'] = $user->gender;
+            }
+            if ($user->date_of_birth) {
+                $age = Carbon::parse($user->date_of_birth)->age;
+                if ($age >= 10 && $age <= 100) {
+                    $aiInitialProfile['age'] = $age;
+                }
+            }
+            foreach (['5k' => 'pb_5k', '10k' => 'pb_10k', '21k' => 'pb_hm', '42k' => 'pb_fm'] as $dKey => $col) {
+                if (!empty($user->{$col})) {
+                    $normalized = $this->normalizeTimeString((string) $user->{$col});
+                    if ($normalized) {
+                        $aiInitialProfile['pb_distance'] = $dKey;
+                        $aiInitialProfile['pb_time'] = $normalized;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return view('programs.generator_v2', compact('aiInitialProfile', 'aiTrialAvailable', 'aiQuotaStatus'));
     }
 
     /**
@@ -121,6 +159,9 @@ class SelfGeneratedProgramController extends Controller
                 ->value('id') ?? 392;
 
             $title = "Program Latihan " . strtoupper($targetDistance) . " (VDOT " . $vdot . ")";
+            $isFreeTrial = $this->continuityService->consumeTrialIfAvailable($user);
+            $paymentStatus = $isFreeTrial ? 'paid' : 'pending';
+
             $program = Program::create([
                 'coach_id' => $coachAiId,
                 'title' => $title,
@@ -136,7 +177,7 @@ class SelfGeneratedProgramController extends Controller
                 'vdot_score' => $vdot,
                 'is_active' => true,
                 'is_published' => false,
-                'price' => 0,
+                'price' => $isFreeTrial ? 0 : AiCoachContinuityService::PROGRAM_PRICE_IDR,
                 'is_self_generated' => true,
                 'generated_vdot' => $vdot,
                 'daniels_params' => [
@@ -156,6 +197,7 @@ class SelfGeneratedProgramController extends Controller
                     'strength_type' => $form['strength_type'] ?? 'hybrid',
                     'combine_plyometric' => $form['combine_plyometric'] ?? true,
                     'training_paces' => $result['paces'] ?? [],
+                    'ai_coach_notes' => $result['coach_notes'] ?? null,
                 ],
             ]);
 
@@ -166,10 +208,14 @@ class SelfGeneratedProgramController extends Controller
                 'start_date' => $startDate,
                 'end_date' => $targetDate,
                 'status' => 'active',
-                'payment_status' => 'paid', // Fully free
+                'payment_status' => $paymentStatus,
             ]);
 
             DB::commit();
+
+            if ($paymentStatus === 'paid') {
+                $this->continuityService->postProgramWelcomeMessage($user, $program, $enrollment, $result);
+            }
 
             return $enrollment;
         } catch (\Exception $e) {
@@ -247,287 +293,196 @@ class SelfGeneratedProgramController extends Controller
         ]);
 
         try {
-            #region debug-point vdot-target-clamp-45min [T1] validated raw input + pb/goal parse
-            Log::info('[DBG-VT45 T1] Validated raw input parsed', [
-                'pb_time_raw' => $validated['pb_time'] ?? null,
-                'pb_distance' => $validated['pb_distance'] ?? null,
-                'goal_time_raw' => $validated['goal_time'] ?? null,
-                'target_distance' => $validated['target_distance'] ?? null,
-                'weekly_mileage' => $validated['weekly_mileage'] ?? null,
-                'frequency' => $validated['frequency'] ?? null,
-                'runner_level' => $validated['runner_level'] ?? null,
-            ]);
-            #endregion
+            $built = $this->buildProgramPayload($validated, $request->boolean('use_ai', false));
+            return response()->json($built['body'], $built['status']);
+        } catch (\Exception $e) {
+            Log::error('Generator Error: ' . $e->getMessage());
+            $safeAssess = [
+                'feasibility' => 'HIGH_RISK',
+                'score' => 30,
+                'min_required_peak_mileage' => 30,
+                'ideal_peak_mileage' => 40,
+                'max_safe_peak_mileage' => 60,
+                'min_weeks' => 10,
+                'max_weeks' => 24,
+                'min_frequency' => 4,
+                'color' => 'orange',
+                'label' => 'Risiko Kesalahan Sistem',
+                'reason' => 'Terdapat kesalahan saat membangun program. Silakan coba beberapa saat lagi atau sesuaikan parameter beban/target.',
+                'options' => [],
+                'vdot_rate_per_week' => 0.5,
+                'required_weeks_by_vdot' => 12,
+                'violations' => ['Internal error: '.$e->getMessage()],
+            ];
+            return response()->json([
+                'success' => false,
+                'message' => 'Gagal generate program. Silakan coba lagi.',
+                'feasibility' => $safeAssess,
+            ], 500);
+        }
+    }
 
-            $currentVdot = $this->danielsService->calculateVDOT($validated['pb_time'], $validated['pb_distance']);
-            $targetVdot = $this->danielsService->calculateVDOT($validated['goal_time'], $validated['target_distance']);
+    private function buildProgramPayload(array $validated, bool $useAi = false): array
+    {
+        $currentVdot = $this->danielsService->calculateVDOT($validated['pb_time'], $validated['pb_distance']);
+        $targetVdot = $this->danielsService->calculateVDOT($validated['goal_time'], $validated['target_distance']);
 
-            #region debug-point vdot-target-clamp-45min [T2] after daniels calculateVDOT
-            Log::info('[DBG-VT45 T2] Daniels calculateVDOT result', [
-                'currentVdot' => round($currentVdot, 4),
-                'targetVdot' => round($targetVdot, 4),
-                'currentVdot_gt_targetVdot' => $currentVdot > $targetVdot,
-                'currentVdot_targetVdot_delta' => round($targetVdot - $currentVdot, 4),
-            ]);
-            #endregion
+        $targetDate = Carbon::parse($validated['target_date']);
+        if (!empty($validated['start_date'])) {
+            $startDate = Carbon::parse($validated['start_date']);
+            $diffDays = max(1, $startDate->diffInDays($targetDate, false));
+            $weeksUntilRace = max(8, min(24, (int) ceil($diffDays / 7)));
+        } else {
+            $weeksUntilRace = max(8, min(24, (int) ceil(now()->diffInWeeks($targetDate))));
+        }
 
-            $targetDate = Carbon::parse($validated['target_date']);
-            if (!empty($validated['start_date'])) {
-                $startDate = Carbon::parse($validated['start_date']);
-                $diffDays = max(1, $startDate->diffInDays($targetDate, false));
-                $weeksUntilRace = max(8, min(24, (int) ceil($diffDays / 7)));
-            } else {
-                $weeksUntilRace = max(8, min(24, (int) ceil(now()->diffInWeeks($targetDate))));
-            }
+        $aggressiveness = $validated['aggressiveness'] ?? 'standard';
+        if (!in_array($aggressiveness, ['conservative', 'standard', 'sharp'], true)) {
+            $aggressiveness = 'standard';
+        }
+        $injuryHistory = $validated['injury_history'] ?? 'none';
+        $goalTimeSec = $this->parseTimeToSeconds($validated['goal_time']);
+        $weeklyMileageInput = (float) $validated['weekly_mileage'];
+        $frequencyInput = (int) $validated['frequency'];
+        $runnerLevelInput = $validated['runner_level'];
 
-            $aggressiveness = $validated['aggressiveness'] ?? 'standard';
-            if (!in_array($aggressiveness, ['conservative','standard','sharp'], true)) {
-                $aggressiveness = 'standard';
-            }
-            $injuryHistory = $validated['injury_history'] ?? 'none';
-            $goalTimeSec = $this->parseTimeToSeconds($validated['goal_time']);
-            $weeklyMileageInput = (float) $validated['weekly_mileage'];
-            $frequencyInput = (int) $validated['frequency'];
-            $runnerLevelInput = $validated['runner_level'];
+        $assess = $this->coachFeasibility->assess([
+            'target_distance' => $validated['target_distance'],
+            'goal_time_sec' => $goalTimeSec,
+            'runner_level' => $runnerLevelInput,
+            'weekly_mileage' => $weeklyMileageInput,
+            'frequency' => $frequencyInput,
+            'weeks' => $weeksUntilRace,
+            'initial_vdot' => $currentVdot,
+            'target_vdot' => $targetVdot,
+            'injury_history' => $injuryHistory,
+            'aggressiveness' => $aggressiveness,
+        ]);
 
-            #region debug-point vdot-target-clamp-45min [T3] parseTimeToSeconds goal + assess input
-            Log::info('[DBG-VT45 T3] parseTimeToSeconds goal + runner context', [
-                'goal_time_str' => $validated['goal_time'] ?? null,
-                'goalTimeSec_return' => $goalTimeSec,
-                'goalTimeSec_expectedIf_00_37_00' => 37 * 60,
-                'goalTimeSec_expectedIf_00_19_35' => (19 * 60) + 35,
-                'weeksUntilRace' => $weeksUntilRace,
-                'aggressiveness' => $aggressiveness,
-                'injury_history' => $injuryHistory,
-            ]);
-            #endregion
+        $forceAck = (bool) ($validated['force_infeasible_ack'] ?? false);
 
-            $assess = $this->coachFeasibility->assess([
-                'target_distance' => $validated['target_distance'],
-                'goal_time_sec' => $goalTimeSec,
-                'runner_level' => $runnerLevelInput,
-                'weekly_mileage' => $weeklyMileageInput,
-                'frequency' => $frequencyInput,
-                'weeks' => $weeksUntilRace,
-                'initial_vdot' => $currentVdot,
-                'target_vdot' => $targetVdot,
-                'injury_history' => $injuryHistory,
-                'aggressiveness' => $aggressiveness,
-            ]);
-
-            #region debug-point vdot-target-clamp-45min [T4] coach assess result
-            Log::info('[DBG-VT45 T4] CoachFeasibilityService assess output', [
-                'feasibility' => $assess['feasibility'] ?? null,
-                'score' => $assess['score'] ?? null,
-                'min_required_peak_mileage' => $assess['min_required_peak_mileage'] ?? null,
-                'ideal_peak_mileage' => $assess['ideal_peak_mileage'] ?? null,
-                'vdot_rate_per_week' => $assess['vdot_rate_per_week'] ?? null,
-                'required_weeks_by_vdot' => $assess['required_weeks_by_vdot'] ?? null,
-                'min_weeks' => $assess['min_weeks'] ?? null,
-                'violations_count' => isset($assess['violations']) ? count($assess['violations']) : 0,
-                'violations' => $assess['violations'] ?? [],
-            ]);
-            #endregion
-
-            $forceAck = (bool) ($validated['force_infeasible_ack'] ?? false);
-
-            if ($assess['feasibility'] === 'INFEASIBLE' && !$forceAck) {
-                #region debug-point vdot-target-clamp-45min [T4B] 422 infeasible return
-                Log::info('[DBG-VT45 T4B] Returning HTTP 422 INFEASIBLE', [
-                    'forceAck' => $forceAck,
-                    'message' => $assess['reason'] ?? 'N/A',
-                ]);
-                #endregion
-                return response()->json([
+        if ($assess['feasibility'] === 'INFEASIBLE' && !$forceAck) {
+            return [
+                'status' => 422,
+                'body' => [
                     'success' => false,
                     'message' => $assess['reason'],
                     'feasibility' => $assess,
-                ], 422);
-            }
-
-            // Limit the improvement to a realistic level based on percentage of current VDOT
-            $maxVdotImprovementPercent = 0.08; // 8% for intermediate
-            if ($validated['runner_level'] === 'beginner') {
-                $maxVdotImprovementPercent = 0.06;
-            } elseif ($validated['runner_level'] === 'advanced') {
-                $maxVdotImprovementPercent = 0.10;
-            }
-            $vdotRate = $assess['vdot_rate_per_week'] ?? 0.5;
-            $maxAllowedByRate = $vdotRate * $weeksUntilRace;
-            $maxByRatePercent = $currentVdot > 0 ? ($maxAllowedByRate / $currentVdot) : $maxVdotImprovementPercent;
-            $effectiveMaxPercent = min($maxVdotImprovementPercent, $maxByRatePercent);
-            $safeTargetVdot = min($targetVdot, $currentVdot * (1 + $effectiveMaxPercent));
-
-            #region debug-point vdot-target-clamp-45min [T5] safeTargetVdot clamp math
-            Log::info('[DBG-VT45 T5] safeTargetVdot clamp breakdown — MOST SUSPECT AREA', [
-                'runner_level' => $runnerLevelInput,
-                'maxVdotImprovementPercent_static' => $maxVdotImprovementPercent,
-                'vdotRate' => $vdotRate,
-                'weeksUntilRace' => $weeksUntilRace,
-                'maxAllowedByRate_vdotValue' => round($maxAllowedByRate, 4),
-                'maxByRatePercent' => round($maxByRatePercent, 6),
-                'effectiveMaxPercent' => round($effectiveMaxPercent, 6),
-                'A_targetVdot_raw' => round($targetVdot, 4),
-                'B_currentVdot_times_1plus_pct' => round($currentVdot * (1 + $effectiveMaxPercent), 4),
-                'safeTargetVdot = min(A,B)' => round($safeTargetVdot, 4),
-                'safeTargetVdot_LT_targetVdot' => $safeTargetVdot < $targetVdot,
-                'safeTargetVdot_LT_currentVdot' => $safeTargetVdot < $currentVdot,
-                'safeTargetVdot_downgrade_pct_from_targetVdot' => $targetVdot > 0 ? round((($safeTargetVdot - $targetVdot)/$targetVdot)*100, 2) : null,
-            ]);
-            #endregion
-
-            $isTropical = filter_var($validated['is_tropical'] ?? false, FILTER_VALIDATE_BOOLEAN);
-            $includeStrength = filter_var($validated['include_strength'] ?? true, FILTER_VALIDATE_BOOLEAN);
-            $strengthType = $validated['strength_type'] ?? 'hybrid';
-            $combinePlyometric = filter_var($validated['combine_plyometric'] ?? ($strengthType === 'hybrid'), FILTER_VALIDATE_BOOLEAN);
-            if ($combinePlyometric && $strengthType !== 'hybrid') {
-                $strengthType = 'hybrid';
-            }
-            $injuryHistory = $validated['injury_history'] ?? 'none';
-
-            $heightCm = isset($validated['height_cm']) ? (float)$validated['height_cm'] : null;
-            $weightKg = isset($validated['weight_kg']) ? (float)$validated['weight_kg'] : null;
-            $heightM = ($heightCm && $heightCm > 0) ? ($heightCm / 100) : null;
-            $bmi = ($heightM && $weightKg && $weightKg > 0) ? round($weightKg / ($heightM * $heightM), 1) : null;
-
-            $proteinRecommendation = null;
-            if ($weightKg && $weightKg > 0) {
-                $level = $validated['runner_level'];
-                [$minF, $maxF] = match($level) {
-                    'beginner' => [1.4, 1.6],
-                    'advanced' => [1.8, 2.0],
-                    default => [1.6, 1.8],
-                };
-                $proteinRecommendation = [
-                    'min' => (int) round($weightKg * $minF),
-                    'max' => (int) round($weightKg * $maxF),
-                    'note' => "Berdasarkan berat {$weightKg}kg × {$minF}–{$maxF} g/kg (standar ACSM)",
-                ];
-            }
-
-            // Calculate base and adjusted training paces
-            $paces = $this->danielsService->calculateTrainingPaces($currentVdot);
-            if ($isTropical) {
-                // Tropical offset: +5% for E/M, +4% for T, +3% for I, +2% for R
-                $paces['E'] *= 1.05;
-                $paces['M'] *= 1.05;
-                $paces['T'] *= 1.04;
-                $paces['I'] *= 1.03;
-                $paces['R'] *= 1.02;
-            }
-            if (!empty($paces['is_run_walk'])) {
-                $paces['E'] = min($paces['E'], 8.50);
-                if (isset($paces['E_high'])) $paces['E_high'] = min($paces['E_high'], 8.25);
-                if (isset($paces['E_low'])) $paces['E_low'] = min($paces['E_low'], 8.50);
-            }
-
-            // Calculate target Heart Rate zones based on age (Tanaka formula: 208 - 0.7 * age)
-            $age = (int) $validated['age'];
-            $maxHr = (int) round(208 - (0.7 * $age));
-            $hrZones = [
-                'E' => [
-                    'min' => (int) round($maxHr * 0.60),
-                    'max' => (int) round($maxHr * 0.79),
-                    'label' => 'Zone 2 (Aerobic Base)'
+                    'current_vdot' => round($currentVdot, 1),
+                    'target_vdot' => round($targetVdot, 1),
                 ],
-                'M' => [
-                    'min' => (int) round($maxHr * 0.80),
-                    'max' => (int) round($maxHr * 0.85),
-                    'label' => 'Zone 3 (Tempo/Marathon)'
-                ],
-                'T' => [
-                    'min' => (int) round($maxHr * 0.88),
-                    'max' => (int) round($maxHr * 0.92),
-                    'label' => 'Zone 4 (Lactate Threshold)'
-                ],
-                'I' => [
-                    'min' => (int) round($maxHr * 0.93),
-                    'max' => (int) round($maxHr * 0.97),
-                    'label' => 'Zone 5 (VO2 Max)'
-                ],
-                'R' => [
-                    'min' => (int) round($maxHr * 0.98),
-                    'max' => (int) $maxHr,
-                    'label' => 'Zone 5+ (Anaerobic Capacity)'
-                ]
             ];
-            
-            #region debug-point vdot-target-clamp-45min [T6] payload to ProgramBuilderService
-            Log::info('[DBG-VT45 T6] Payload dikirim ke ProgramBuilderService->build', [
-                'input_target_distance' => $validated['target_distance'],
-                'passed_initial_vdot' => round($currentVdot, 4),
-                'passed_target_vdot_safe' => round($safeTargetVdot, 4),
-                'user_goal_time_raw' => $validated['goal_time'],
-                'user_weekly_mileage' => $weeklyMileageInput,
-                'user_frequency' => $frequencyInput,
-                'user_weeks' => $weeksUntilRace,
-                'user_runner_level' => $runnerLevelInput,
-            ]);
-            #endregion
+        }
 
-            $programData = $this->builderService->build([
+        $maxVdotImprovementPercent = 0.08;
+        if ($validated['runner_level'] === 'beginner') {
+            $maxVdotImprovementPercent = 0.06;
+        } elseif ($validated['runner_level'] === 'advanced') {
+            $maxVdotImprovementPercent = 0.10;
+        }
+        $vdotRate = $assess['vdot_rate_per_week'] ?? 0.5;
+        $maxAllowedByRate = $vdotRate * $weeksUntilRace;
+        $maxByRatePercent = $currentVdot > 0 ? ($maxAllowedByRate / $currentVdot) : $maxVdotImprovementPercent;
+        $effectiveMaxPercent = min($maxVdotImprovementPercent, $maxByRatePercent);
+        $safeTargetVdot = min($targetVdot, $currentVdot * (1 + $effectiveMaxPercent));
+
+        $isTropical = filter_var($validated['is_tropical'] ?? false, FILTER_VALIDATE_BOOLEAN);
+        $includeStrength = filter_var($validated['include_strength'] ?? true, FILTER_VALIDATE_BOOLEAN);
+        $strengthType = $validated['strength_type'] ?? 'hybrid';
+        $combinePlyometric = filter_var($validated['combine_plyometric'] ?? ($strengthType === 'hybrid'), FILTER_VALIDATE_BOOLEAN);
+        if ($combinePlyometric && $strengthType !== 'hybrid') {
+            $strengthType = 'hybrid';
+        }
+
+        $heightCm = isset($validated['height_cm']) ? (float) $validated['height_cm'] : null;
+        $weightKg = isset($validated['weight_kg']) ? (float) $validated['weight_kg'] : null;
+        $heightM = ($heightCm && $heightCm > 0) ? ($heightCm / 100) : null;
+        $bmi = ($heightM && $weightKg && $weightKg > 0) ? round($weightKg / ($heightM * $heightM), 1) : null;
+
+        $proteinRecommendation = null;
+        if ($weightKg && $weightKg > 0) {
+            $level = $validated['runner_level'];
+            [$minF, $maxF] = match ($level) {
+                'beginner' => [1.4, 1.6],
+                'advanced' => [1.8, 2.0],
+                default => [1.6, 1.8],
+            };
+            $proteinRecommendation = [
+                'min' => (int) round($weightKg * $minF),
+                'max' => (int) round($weightKg * $maxF),
+                'note' => "Berdasarkan berat {$weightKg}kg x {$minF}-{$maxF} g/kg (standar ACSM)",
+            ];
+        }
+
+        $paces = $this->danielsService->calculateTrainingPaces($currentVdot);
+        if ($isTropical) {
+            $paces['E'] *= 1.05;
+            $paces['M'] *= 1.05;
+            $paces['T'] *= 1.04;
+            $paces['I'] *= 1.03;
+            $paces['R'] *= 1.02;
+        }
+        if (!empty($paces['is_run_walk'])) {
+            $paces['E'] = min($paces['E'], 8.50);
+            if (isset($paces['E_high'])) $paces['E_high'] = min($paces['E_high'], 8.25);
+            if (isset($paces['E_low'])) $paces['E_low'] = min($paces['E_low'], 8.50);
+        }
+
+        $age = (int) $validated['age'];
+        $maxHr = (int) round(208 - (0.7 * $age));
+        $hrZones = [
+            'E' => ['min' => (int) round($maxHr * 0.60), 'max' => (int) round($maxHr * 0.79), 'label' => 'Zone 2 (Aerobic Base)'],
+            'M' => ['min' => (int) round($maxHr * 0.80), 'max' => (int) round($maxHr * 0.85), 'label' => 'Zone 3 (Tempo/Marathon)'],
+            'T' => ['min' => (int) round($maxHr * 0.88), 'max' => (int) round($maxHr * 0.92), 'label' => 'Zone 4 (Lactate Threshold)'],
+            'I' => ['min' => (int) round($maxHr * 0.93), 'max' => (int) round($maxHr * 0.97), 'label' => 'Zone 5 (VO2 Max)'],
+            'R' => ['min' => (int) round($maxHr * 0.98), 'max' => (int) $maxHr, 'label' => 'Zone 5+ (Anaerobic Capacity)'],
+        ];
+
+        $programData = $this->builderService->build([
+            'target_distance' => $validated['target_distance'],
+            'weekly_mileage' => $weeklyMileageInput,
+            'frequency' => $frequencyInput,
+            'weeks' => $weeksUntilRace,
+            'initial_vdot' => $currentVdot,
+            'target_vdot' => $safeTargetVdot,
+            'runner_level' => $runnerLevelInput,
+            'long_run_day' => $validated['long_run_day'],
+            'is_tropical' => $isTropical,
+            'include_strength' => $includeStrength,
+            'strength_type' => $strengthType,
+            'combine_plyometric' => $combinePlyometric,
+            'injury_history' => $injuryHistory,
+            'aggressiveness' => $aggressiveness,
+            'feasibility_assess' => $assess,
+            'force_infeasible_ack' => $forceAck,
+        ]);
+
+        $sessions = $programData['sessions'] ?? [];
+
+        if ($useAi && is_array($sessions) && $sessions) {
+            $sessions = $this->improveProgramSessionsWithAi($sessions, [
                 'target_distance' => $validated['target_distance'],
-                'weekly_mileage' => $weeklyMileageInput,
-                'frequency' => $frequencyInput,
                 'weeks' => $weeksUntilRace,
-                'initial_vdot' => $currentVdot,
-                'target_vdot' => $safeTargetVdot,
-                'runner_level' => $runnerLevelInput,
+                'weekly_mileage' => (float) $validated['weekly_mileage'],
+                'frequency' => (int) $validated['frequency'],
+                'runner_level' => $validated['runner_level'],
                 'long_run_day' => $validated['long_run_day'],
+                'initial_vdot' => (float) $currentVdot,
+                'target_vdot' => (float) $safeTargetVdot,
                 'is_tropical' => $isTropical,
-                'include_strength' => $includeStrength,
-                'strength_type' => $strengthType,
-                'combine_plyometric' => $combinePlyometric,
-                'injury_history' => $injuryHistory,
-                'aggressiveness' => $aggressiveness,
-                'feasibility_assess' => $assess,
-                'force_infeasible_ack' => $forceAck,
+                'paces' => $paces,
             ]);
+        }
 
-            $sessions = $programData['sessions'] ?? [];
+        $adjustments = $programData['adjustments_applied'] ?? [];
+        $feasibilityWarnings = array_values(array_filter([
+            !empty($adjustments) ? 'Beban latihan disesuaikan otomatis agar aman dan memadai.' : null,
+            (!empty($assess['feasibility']) && $assess['feasibility'] !== 'FEASIBLE') ? $assess['reason'] : null,
+        ]));
 
-            $useAi = $request->boolean('use_ai', false);
-            if ($useAi && is_array($sessions) && $sessions) {
-                $sessions = $this->improveProgramSessionsWithAi($sessions, [
-                    'target_distance' => $validated['target_distance'],
-                    'weeks' => $weeksUntilRace,
-                    'weekly_mileage' => (float) $validated['weekly_mileage'],
-                    'frequency' => (int) $validated['frequency'],
-                    'runner_level' => $validated['runner_level'],
-                    'long_run_day' => $validated['long_run_day'],
-                    'initial_vdot' => (float) $currentVdot,
-                    'target_vdot' => (float) $safeTargetVdot,
-                    'is_tropical' => $isTropical,
-                    'paces' => $paces,
-                ]);
-            }
-
-            $adjustments = $programData['adjustments_applied'] ?? [];
-            $feasibilityWarnings = array_values(array_filter([
-                !empty($adjustments) ? 'Beban latihan disesuaikan otomatis agar aman dan memadai.' : null,
-                (!empty($assess['feasibility']) && $assess['feasibility'] !== 'FEASIBLE') ? $assess['reason'] : null,
-            ]));
-
-            #region debug-point vdot-target-clamp-45min [T7] Builder output summary + response JSON target
-            $builderSummary = $programData['summary'] ?? [];
-            Log::info('[DBG-VT45 T7] Builder output + response final target VDOT values', [
-                'builder_summary_total_weeks' => $builderSummary['total_weeks'] ?? null,
-                'builder_summary_vdot' => isset($builderSummary['vdot']) ? round($builderSummary['vdot'], 4) : null,
-                'builder_summary_target_vdot' => isset($builderSummary['target_vdot']) ? round($builderSummary['target_vdot'], 4) : null,
-                'builder_summary_adjustments_count' => is_array($builderSummary['adjustments_applied'] ?? null) ? count($builderSummary['adjustments_applied']) : 0,
-                'builder_summary_adjustments_applied' => $builderSummary['adjustments_applied'] ?? [],
-                'builder_weekly_mileage_applied' => $builderSummary['weekly_mileage_applied'] ?? null,
-                'builder_frequency_applied' => $builderSummary['frequency_applied'] ?? null,
-                'RESPONSE_FINAL_data.summary.vdot' => round($currentVdot, 1),
-                'RESPONSE_FINAL_data.summary.target_vdot' => round($safeTargetVdot, 1),
-                'RESPONSE_FINAL_data.feasibility.label' => $assess['label'] ?? null,
-                'RESPONSE_FINAL_data.feasibility.score' => $assess['score'] ?? null,
-                'adjustments_applied_TOP_LEVEL_count' => is_array($adjustments) ? count($adjustments) : 0,
-                'adjustments_applied_TOP_LEVEL' => $adjustments ?? [],
-            ]);
-            #endregion
-
-            return response()->json([
+        return [
+            'status' => 200,
+            'body' => [
                 'success' => true,
                 'data' => [
                     'vdot' => round($currentVdot, 1),
@@ -557,33 +512,466 @@ class SelfGeneratedProgramController extends Controller
                         ],
                     ],
                 ],
-            ]);
+            ],
+        ];
+    }
 
-        } catch (\Exception $e) {
-            Log::error('Generator Error: ' . $e->getMessage());
-            $safeAssess = [
-                'feasibility' => 'HIGH_RISK',
-                'score' => 30,
-                'min_required_peak_mileage' => 30,
-                'ideal_peak_mileage' => 40,
-                'max_safe_peak_mileage' => 60,
-                'min_weeks' => 10,
-                'max_weeks' => 24,
-                'min_frequency' => 4,
-                'color' => 'orange',
-                'label' => 'Risiko Kesalahan Sistem',
-                'reason' => 'Terdapat kesalahan saat membangun program. Silakan coba beberapa saat lagi atau sesuaikan parameter beban/target.',
-                'options' => [],
-                'vdot_rate_per_week' => 0.5,
-                'required_weeks_by_vdot' => 12,
-                'violations' => ['Internal error: '.$e->getMessage()],
-            ];
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal generate program. Silakan coba lagi.',
-                'feasibility' => $safeAssess,
-            ], 500);
+    /**
+     * AJAX: Multi-turn private AI coaching chat for /buat-program-lari modal
+     */
+    public function aiChatTurn(Request $request)
+    {
+        $validated = $request->validate([
+            'message' => 'required|string|max:1000',
+            'history' => 'nullable|array|max:20',
+            'state' => 'nullable|array',
+            'action' => 'nullable|string|in:message,use_safe_goal,extend_weeks_16,force_safe_build',
+        ]);
+
+        $userMessage = trim($validated['message']);
+        $state = is_array($validated['state'] ?? null) ? $validated['state'] : [];
+        $action = $validated['action'] ?? 'message';
+
+        // Pre-populate authenticated user defaults if empty
+        if (auth()->check()) {
+            $user = auth()->user();
+            if (empty($state['gender']) && in_array($user->gender, ['male', 'female'], true)) {
+                $state['gender'] = $user->gender;
+            }
+            if (empty($state['age']) && $user->date_of_birth) {
+                $uAge = Carbon::parse($user->date_of_birth)->age;
+                if ($uAge >= 10 && $uAge <= 100) {
+                    $state['age'] = $uAge;
+                }
+            }
         }
+
+        // Apply quick action overrides if user confirmed a feasibility adjustment
+        if ($action === 'extend_weeks_16') {
+            $state['weeks'] = 16;
+            $state['target_date'] = now()->startOfWeek()->addWeeks(16)->toDateString();
+        } elseif ($action === 'force_safe_build') {
+            $state['force_infeasible_ack'] = true;
+        } elseif ($action === 'use_safe_goal' && !empty($state['safe_goal_time'])) {
+            $state['goal_time'] = $state['safe_goal_time'];
+            $state['force_infeasible_ack'] = true;
+        }
+
+        $aiResult = null;
+        if ($action === 'message') {
+            $hadPbBefore = !empty($state['pb_time']);
+            $hadGoalBefore = !empty($state['goal_time']);
+            $history = is_array($validated['history'] ?? null) ? $validated['history'] : [];
+            $history[] = ['role' => 'user', 'content' => $userMessage];
+            $user = auth()->user();
+            if ($user && $this->continuityService->hasRemainingQuota($user)) {
+                $aiResult = $this->openAiService->extractCoachProgramTurn($history, $state, $user);
+            }
+            if (is_array($aiResult['extracted_params'] ?? null)) {
+                $extracted = $aiResult['extracted_params'];
+                // Prevent LLM from echoing goal_time into pb_time when user only stated a goal
+                if (!$hadPbBefore && !$hadGoalBefore && !preg_match('/\b(pb|personal\s*best|catatan|rekor|terakhir|sekarang|saat\s*ini)\b/i', $userMessage)) {
+                    unset($extracted['pb_time'], $extracted['pb_distance']);
+                }
+                $state = $this->mergeCoachState($state, $extracted);
+            }
+            $state = $this->parseDeterministicCoachInput($userMessage, $state, $hadGoalBefore);
+            if (!empty($aiResult['coach_notes']) && is_string($aiResult['coach_notes'])) {
+                $state['coach_notes'] = trim($aiResult['coach_notes']);
+            }
+        }
+
+        // Infer runner_level from PB VDOT once PB is known and level not explicitly provided
+        if (empty($state['runner_level']) && !empty($state['pb_distance']) && !empty($state['pb_time'])) {
+            $estVdot = $this->danielsService->calculateVDOT($state['pb_time'], $state['pb_distance']);
+            $state['runner_level'] = $estVdot < 40 ? 'beginner' : ($estVdot < 55 ? 'intermediate' : 'advanced');
+        }
+
+        // Sensible defaults for optional coaching fields once primary params exist
+        if (!isset($state['is_tropical'])) {
+            $state['is_tropical'] = true;
+        }
+        if (empty($state['long_run_day']) && !empty($state['frequency'])) {
+            $state['long_run_day'] = 'sunday';
+        }
+
+        $missing = $this->findMissingCoachFields($state);
+
+        if (!empty($missing)) {
+            $fallback = $this->buildMissingFieldPrompt($missing[0], $state);
+            $reply = (!empty($aiResult['assistant_reply']) && is_string($aiResult['assistant_reply']))
+                ? trim($aiResult['assistant_reply'])
+                : $fallback['reply'];
+            $quickReplies = (!empty($aiResult['quick_replies']) && is_array($aiResult['quick_replies']))
+                ? array_values(array_slice(array_filter($aiResult['quick_replies'], 'is_string'), 0, 4))
+                : $fallback['quick_replies'];
+
+            return response()->json([
+                'success' => true,
+                'ready_program' => false,
+                'needs_confirmation' => false,
+                'assistant_reply' => $reply,
+                'quick_replies' => $quickReplies,
+                'state' => $state,
+                'missing_fields' => $missing,
+            ]);
+        }
+
+        // All required parameters are collected -> normalize payload & run feasibility + builder
+        $weeks = max(8, min(24, (int) ($state['weeks'] ?? 12)));
+        $startDate = now()->dayOfWeekIso <= 3
+            ? now()->startOfWeek()->toDateString()
+            : now()->next(Carbon::MONDAY)->toDateString();
+        $targetDate = !empty($state['target_date'])
+            ? Carbon::parse($state['target_date'])->toDateString()
+            : Carbon::parse($startDate)->addWeeks($weeks)->subDay()->toDateString();
+
+        $formPayload = [
+            'pb_distance' => $state['pb_distance'],
+            'pb_time' => $state['pb_time'],
+            'start_date' => $startDate,
+            'target_distance' => $state['target_distance'],
+            'target_date' => $targetDate,
+            'goal_time' => $state['goal_time'],
+            'weekly_mileage' => (float) $state['weekly_mileage'],
+            'frequency' => (int) $state['frequency'],
+            'runner_level' => $state['runner_level'] ?: 'intermediate',
+            'long_run_day' => $state['long_run_day'] ?: 'sunday',
+            'gender' => $state['gender'] ?: 'male',
+            'age' => (int) ($state['age'] ?? 28),
+            'injury_history' => $state['injury_history'] ?: 'none',
+            'include_strength' => true,
+            'strength_type' => 'hybrid',
+            'combine_plyometric' => true,
+            'is_tropical' => (bool) ($state['is_tropical'] ?? true),
+            'aggressiveness' => $state['aggressiveness'] ?? 'standard',
+            'force_infeasible_ack' => (bool) ($state['force_infeasible_ack'] ?? false),
+        ];
+
+        $built = $this->buildProgramPayload($formPayload, false);
+
+        if ($built['status'] === 422) {
+            $body = $built['body'];
+            $currentVdot = (float) ($body['current_vdot'] ?? 35);
+            $safePct = match ($formPayload['runner_level']) {
+                'beginner' => 0.06,
+                'advanced' => 0.10,
+                default => 0.08,
+            };
+            $safeVdot = min(85, $currentVdot * (1 + min($safePct, ($weeks * 0.5) / max(1, $currentVdot))));
+            $eqTimes = $this->danielsService->calculateEquivalentRaceTimes($safeVdot);
+            $distKey = $formPayload['target_distance'] === 'cooper12' ? '5k' : $formPayload['target_distance'];
+            $safeGoalTime = $eqTimes[$distKey]['time'] ?? '00:25:00';
+            $state['safe_goal_time'] = $safeGoalTime;
+
+            $reason = $body['message'] ?? 'Target saat ini terlalu agresif untuk durasi dan volume latihan Anda.';
+
+            return response()->json([
+                'success' => true,
+                'ready_program' => false,
+                'needs_confirmation' => true,
+                'assistant_reply' => "Analisis kelayakan Coach: {$reason}\n\nAgar progres tetap aman tanpa risiko cedera, pilih salah satu penyesuaian berikut (atau saya bisa susun dengan target aman {$safeGoalTime} terlebih dahulu):",
+                'quick_replies' => [],
+                'confirmation_actions' => [
+                    ['action' => 'use_safe_goal', 'label' => "Pakai Target Aman ({$safeGoalTime})"],
+                    ['action' => 'extend_weeks_16', 'label' => 'Perpanjang Persiapan Jadi 16 Minggu'],
+                    ['action' => 'force_safe_build', 'label' => 'Lanjutkan dengan Penyesuaian Beban Aman'],
+                ],
+                'state' => $state,
+                'missing_fields' => [],
+            ]);
+        }
+
+        $data = $built['body']['data'];
+        if (!empty($state['coach_notes'])) {
+            $data['coach_notes'] = $state['coach_notes'];
+        }
+
+        $savedToCalendar = false;
+        $enrollmentId = null;
+        $requiresPayment = false;
+        $hasActiveProgram = false;
+        $activeProgramTitle = null;
+
+        if (auth()->check()) {
+            $user = auth()->user();
+            $activeEnrollment = ProgramEnrollment::where('runner_id', $user->id)
+                ->where('status', 'active')
+                ->with('program')
+                ->first();
+
+            if ($activeEnrollment) {
+                $hasActiveProgram = true;
+                $activeProgramTitle = $activeEnrollment->program?->title ?? 'Program Aktif';
+            } else {
+                $enrollment = $this->saveProgramFromData($user, ['form' => $formPayload, 'result' => $data], 'add');
+                if ($enrollment) {
+                    $savedToCalendar = true;
+                    $enrollmentId = $enrollment->id;
+                    $requiresPayment = ($enrollment->payment_status !== 'paid');
+                }
+            }
+        }
+
+        $totalSessions = is_array($data['sessions'] ?? null) ? count($data['sessions']) : 0;
+        if ($savedToCalendar && !$requiresPayment) {
+            $summaryReply = "Program latihan {$data['summary']['target']} selama {$data['weeks']} minggu ({$totalSessions} hari jadwal) sudah selesai disusun (Free Trial) dan OTOMATIS diterapkan ke My Program & Kalender Dashboard Anda (VDOT awal {$data['summary']['vdot']} -> target {$data['summary']['target_vdot']}).";
+        } elseif ($savedToCalendar && $requiresPayment) {
+            $summaryReply = "Program latihan {$data['summary']['target']} selama {$data['weeks']} minggu ({$totalSessions} hari jadwal) sudah selesai disusun (VDOT awal {$data['summary']['vdot']} -> target {$data['summary']['target_vdot']}). Karena jatah Free Trial Anda sudah digunakan, silakan selesaikan pembayaran Rp 15.000 (QRIS) untuk membuka seluruh jadwal dan pendampingan penuh Coach Ruang Lari di Kalender Dashboard.";
+        } elseif ($hasActiveProgram) {
+            $summaryReply = "Program latihan {$data['summary']['target']} selama {$data['weeks']} minggu ({$totalSessions} hari jadwal) sudah siap (VDOT awal {$data['summary']['vdot']} -> target {$data['summary']['target_vdot']}). Karena Anda masih memiliki program aktif (\"{$activeProgramTitle}\"), silakan pilih ingin mengganti atau menambahkan ke Kalender Dashboard.";
+        } else {
+            $summaryReply = "Program latihan {$data['summary']['target']} selama {$data['weeks']} minggu ({$totalSessions} hari jadwal) sudah siap.";
+        }
+
+        return response()->json([
+            'success' => true,
+            'ready_program' => true,
+            'needs_confirmation' => false,
+            'saved_to_calendar' => $savedToCalendar,
+            'enrollment_id' => $enrollmentId,
+            'requires_payment' => $requiresPayment,
+            'price_idr' => AiCoachContinuityService::PROGRAM_PRICE_IDR,
+            'has_trial' => auth()->check() ? $this->continuityService->hasAvailableTrial(auth()->user()) : false,
+            'quota' => auth()->check() ? $this->continuityService->getDailyQuotaStatus(auth()->user()) : null,
+            'has_active_program' => $hasActiveProgram,
+            'active_program_title' => $activeProgramTitle,
+            'calendar_url' => route('runner.calendar'),
+            'assistant_reply' => $summaryReply,
+            'quick_replies' => [],
+            'state' => $state,
+            'form_payload' => $formPayload,
+            'program_data' => $data,
+        ]);
+    }
+
+    private function mergeCoachState(array $state, array $extracted): array
+    {
+        $validDistances = ['5k', '10k', '21k', '42k'];
+        $validPbDistances = ['5k', '10k', '21k', '42k', 'cooper12', 'balke15'];
+
+        if (!empty($extracted['target_distance']) && in_array(strtolower((string) $extracted['target_distance']), $validDistances, true)) {
+            $state['target_distance'] = strtolower((string) $extracted['target_distance']);
+        }
+        if (!empty($extracted['goal_time'])) {
+            $t = $this->normalizeTimeString((string) $extracted['goal_time']);
+            if ($t) $state['goal_time'] = $t;
+        }
+        if (!empty($extracted['pb_distance']) && in_array(strtolower((string) $extracted['pb_distance']), $validPbDistances, true)) {
+            $state['pb_distance'] = strtolower((string) $extracted['pb_distance']);
+        }
+        if (!empty($extracted['pb_time'])) {
+            $pbDist = $state['pb_distance'] ?? '5k';
+            if (in_array($pbDist, ['cooper12', 'balke15'], true) && is_numeric($extracted['pb_time'])) {
+                $state['pb_time'] = (string) ((int) $extracted['pb_time']);
+            } else {
+                $t = $this->normalizeTimeString((string) $extracted['pb_time']);
+                if ($t) $state['pb_time'] = $t;
+            }
+        }
+        if (isset($extracted['weekly_mileage']) && is_numeric($extracted['weekly_mileage']) && (float) $extracted['weekly_mileage'] >= 5) {
+            $state['weekly_mileage'] = min(200, max(5, (float) $extracted['weekly_mileage']));
+        }
+        if (isset($extracted['frequency']) && is_numeric($extracted['frequency'])) {
+            $state['frequency'] = min(7, max(3, (int) $extracted['frequency']));
+        }
+        if (!empty($extracted['long_run_day']) && in_array(strtolower((string) $extracted['long_run_day']), ['saturday', 'sunday'], true)) {
+            $state['long_run_day'] = strtolower((string) $extracted['long_run_day']);
+        }
+        if (isset($extracted['weeks']) && is_numeric($extracted['weeks'])) {
+            $state['weeks'] = min(24, max(8, (int) $extracted['weeks']));
+        }
+        if (!empty($extracted['target_date'])) {
+            try {
+                $d = Carbon::parse((string) $extracted['target_date']);
+                if ($d->isFuture()) {
+                    $state['target_date'] = $d->toDateString();
+                    $state['weeks'] = min(24, max(8, (int) ceil(now()->diffInDays($d) / 7)));
+                }
+            } catch (\Throwable $e) {}
+        }
+        if (!empty($extracted['runner_level']) && in_array(strtolower((string) $extracted['runner_level']), ['beginner', 'intermediate', 'advanced'], true)) {
+            $state['runner_level'] = strtolower((string) $extracted['runner_level']);
+        }
+        if (isset($extracted['age']) && is_numeric($extracted['age'])) {
+            $age = (int) $extracted['age'];
+            if ($age >= 10 && $age <= 100) $state['age'] = $age;
+        }
+        if (!empty($extracted['gender']) && in_array(strtolower((string) $extracted['gender']), ['male', 'female'], true)) {
+            $state['gender'] = strtolower((string) $extracted['gender']);
+        }
+        if (!empty($extracted['injury_history']) && in_array(strtolower((string) $extracted['injury_history']), ['none', 'knee', 'hamstring', 'ankle', 'shin', 'back'], true)) {
+            $state['injury_history'] = strtolower((string) $extracted['injury_history']);
+        }
+        if (isset($extracted['is_tropical'])) {
+            $state['is_tropical'] = filter_var($extracted['is_tropical'], FILTER_VALIDATE_BOOLEAN);
+        }
+        if (!empty($extracted['aggressiveness']) && in_array(strtolower((string) $extracted['aggressiveness']), ['conservative', 'standard', 'sharp'], true)) {
+            $state['aggressiveness'] = strtolower((string) $extracted['aggressiveness']);
+        }
+
+        return $state;
+    }
+
+    private function parseDeterministicCoachInput(string $message, array $state, bool $goalSetEarlier = false): array
+    {
+        $lower = mb_strtolower($message);
+
+        // Target distance detection when target_distance is empty
+        if (empty($state['target_distance'])) {
+            if (preg_match('/\b(42k|42\.2k|full\s*marathon|marathon|fm)\b/i', $lower)) {
+                $state['target_distance'] = '42k';
+            } elseif (preg_match('/\b(21k|21\.1k|half\s*marathon|hm)\b/i', $lower)) {
+                $state['target_distance'] = '21k';
+            } elseif (preg_match('/\b10k\b|\b10\s*km\b/i', $lower)) {
+                $state['target_distance'] = '10k';
+            } elseif (preg_match('/\b5k\b|\b5\s*km\b/i', $lower)) {
+                $state['target_distance'] = '5k';
+            }
+        }
+
+        $mentionsPbExplicitly = (bool) preg_match('/\b(pb|personal\s*best|catatan|rekor|terbaik|terakhir)\b/i', $lower);
+
+        // Goal time patterns like "sub 20 menit", "19:59", "01:45:00"
+        if (empty($state['goal_time']) && !$mentionsPbExplicitly) {
+            if (preg_match('/\b(?:sub|target|di\s*bawah)?\s*(\d{1,2})\s*jam(?:\s*(\d{1,2})\s*menit)?\b/i', $lower, $m)) {
+                $h = (int) $m[1];
+                $min = isset($m[2]) ? (int) $m[2] : 0;
+                $sec = $min === 0 ? 59 : 0;
+                if ($min === 0 && $h > 0) {
+                    $h -= 1;
+                    $min = 59;
+                }
+                $state['goal_time'] = sprintf('%02d:%02d:%02d', max(0, $h), $min, $sec);
+            } elseif (preg_match('/\b(?:sub|target)?\s*(\d{1,2})\s*menit\b/i', $lower, $m) && empty($state['pb_time'])) {
+                $min = (int) $m[1];
+                $isSub = str_contains($lower, 'sub') || str_contains($lower, 'bawah');
+                $totalSec = $isSub ? max(300, ($min * 60) - 1) : ($min * 60);
+                $state['goal_time'] = $this->formatSecondsToTime($totalSec);
+            } elseif (preg_match('/\b(\d{1,2}:\d{2}(?::\d{2})?)\b/', $lower, $m)) {
+                $norm = $this->normalizeTimeString($m[1]);
+                if ($norm) {
+                    $state['goal_time'] = $norm;
+                }
+            }
+        }
+
+        // PB time ONLY when goal was already set in an earlier turn OR "pb" explicitly mentioned
+        if ((empty($state['pb_time']) && ($goalSetEarlier || $mentionsPbExplicitly)) || preg_match('/\b(pb|personal\s*best)\b/i', $lower)) {
+            if (empty($state['pb_distance']) || preg_match('/\b(pb|personal\s*best)\b/i', $lower)) {
+                if (preg_match('/\b(?:pb|personal\s*best)?\s*(42k|42\.2k|marathon|fm)\b/i', $lower)) $state['pb_distance'] = '42k';
+                elseif (preg_match('/\b(?:pb|personal\s*best)?\s*(21k|21\.1k|half\s*marathon|hm)\b/i', $lower)) $state['pb_distance'] = '21k';
+                elseif (preg_match('/\b(?:pb|personal\s*best)?\s*(10k|10\s*km)\b/i', $lower)) $state['pb_distance'] = '10k';
+                elseif (preg_match('/\b(?:pb|personal\s*best)?\s*(5k|5\s*km)\b/i', $lower)) $state['pb_distance'] = '5k';
+            }
+            if (preg_match('/\b(\d{1,2}:\d{2}(?::\d{2})?)\b/', $lower, $m)) {
+                $norm = $this->normalizeTimeString($m[1]);
+                if ($norm && ($goalSetEarlier || $mentionsPbExplicitly)) {
+                    $state['pb_time'] = $norm;
+                    if (empty($state['pb_distance'])) {
+                        $state['pb_distance'] = $state['target_distance'] ?? '5k';
+                    }
+                }
+            } elseif (preg_match('/\b(\d{1,2})\s*menit\b/i', $lower, $m) && ($goalSetEarlier || $mentionsPbExplicitly)) {
+                $state['pb_time'] = $this->formatSecondsToTime(((int) $m[1]) * 60);
+                if (empty($state['pb_distance'])) {
+                    $state['pb_distance'] = $state['target_distance'] ?? '5k';
+                }
+            }
+        }
+
+        if (empty($state['weekly_mileage']) && preg_match('/(\d+(?:\.\d+)?)\s*km/i', $lower, $m)) {
+            $km = (float) $m[1];
+            if ($km >= 5 && $km <= 200) $state['weekly_mileage'] = $km;
+        }
+        if (empty($state['frequency']) && preg_match('/\b([3-7])\s*(?:x|kali|hari)\b/i', $lower, $m)) {
+            $state['frequency'] = (int) $m[1];
+        }
+        if (empty($state['long_run_day'])) {
+            if (str_contains($lower, 'sabtu')) $state['long_run_day'] = 'saturday';
+            elseif (str_contains($lower, 'minggu') && !preg_match('/\d+\s*minggu/i', $lower)) $state['long_run_day'] = 'sunday';
+        }
+        if (empty($state['weeks']) && preg_match('/\b(\d{1,2})\s*(?:minggu|pekan|week)\b/i', $lower, $m)) {
+            $state['weeks'] = min(24, max(8, (int) $m[1]));
+        }
+        if (empty($state['age']) && preg_match('/\b(\d{2})\s*(?:tahun|thn)\b/i', $lower, $m)) {
+            $age = (int) $m[1];
+            if ($age >= 10 && $age <= 100) $state['age'] = $age;
+        }
+        if (empty($state['gender'])) {
+            if (preg_match('/\b(pria|laki-laki|cowo|male)\b/i', $lower)) $state['gender'] = 'male';
+            elseif (preg_match('/\b(wanita|perempuan|cewe|female)\b/i', $lower)) $state['gender'] = 'female';
+        }
+        if (empty($state['injury_history'])) {
+            if (preg_match('/tidak\s+ada\s+cedera|tanpa\s+cedera|aman|sehat/i', $lower)) $state['injury_history'] = 'none';
+            elseif (str_contains($lower, 'lutut') || str_contains($lower, 'knee')) $state['injury_history'] = 'knee';
+            elseif (str_contains($lower, 'hamstring')) $state['injury_history'] = 'hamstring';
+            elseif (str_contains($lower, 'ankle') || str_contains($lower, 'engkel')) $state['injury_history'] = 'ankle';
+            elseif (str_contains($lower, 'shin') || str_contains($lower, 'tulang kering')) $state['injury_history'] = 'shin';
+            elseif (str_contains($lower, 'punggung') || str_contains($lower, 'pinggang')) $state['injury_history'] = 'back';
+        }
+
+        return $state;
+    }
+
+    private function findMissingCoachFields(array $state): array
+    {
+        $required = ['target_distance', 'goal_time', 'pb_distance', 'pb_time', 'weekly_mileage', 'frequency', 'weeks', 'age', 'gender', 'injury_history'];
+        $missing = [];
+        foreach ($required as $key) {
+            if (!isset($state[$key]) || $state[$key] === '' || $state[$key] === null) {
+                $missing[] = $key;
+            }
+        }
+        return $missing;
+    }
+
+    private function buildMissingFieldPrompt(string $firstMissing, array $state): array
+    {
+        return match ($firstMissing) {
+            'target_distance', 'goal_time' => [
+                'reply' => 'Halo, saya Coach AI RuangLari. Target jarak lomba dan catatan waktu apa yang ingin Anda kejar saat ini?',
+                'quick_replies' => ['5K sub 20 menit', '10K sub 50 menit', 'Half Marathon sub 2 jam', 'Marathon sub 4 jam'],
+            ],
+            'pb_distance', 'pb_time' => [
+                'reply' => 'Baik, target sudah dicatat. Agar zona pace presisi, berapa catatan waktu terbaik (PB) atau lari maksimal Anda dalam 3-6 bulan terakhir (beserta jaraknya)?',
+                'quick_replies' => ['PB 5K 21:30', 'PB 5K 25:00', 'PB 10K 52:00', 'PB Half Marathon 1:55:00'],
+            ],
+            'weekly_mileage', 'frequency' => [
+                'reply' => 'Oke, PB sudah saya kunci. Saat ini rata-rata berapa kilometer jarak lari Anda per minggu dan sanggup latihan berapa hari per minggu (long run Sabtu atau Minggu)?',
+                'quick_replies' => ['25 km/minggu, 4x, Minggu', '35 km/minggu, 4x, Minggu', '45 km/minggu, 5x, Sabtu', '15 km/minggu, 3x, Minggu'],
+            ],
+            'weeks' => [
+                'reply' => 'Berapa minggu durasi persiapan yang Anda miliki menjelang hari lomba (minimal 8 minggu, ideal 12-16 minggu)?',
+                'quick_replies' => ['8 minggu', '12 minggu', '16 minggu', '20 minggu'],
+            ],
+            default => [
+                'reply' => 'Terakhir, sebutkan usia, jenis kelamin, dan apakah Anda memiliki riwayat cedera tertentu (misal lutut, shin splint, ankle, atau tidak ada cedera)?',
+                'quick_replies' => ['30 tahun, pria, tidak ada cedera', '28 tahun, wanita, tidak ada cedera', '35 tahun, pria, riwayat lutut'],
+            ],
+        };
+    }
+
+    private function normalizeTimeString(string $raw): ?string
+    {
+        $t = trim($raw);
+        if (!preg_match('/^(\d{1,2}:)?\d{1,2}:\d{2}$/', $t)) {
+            return null;
+        }
+        $parts = explode(':', $t);
+        if (count($parts) === 2) {
+            return sprintf('00:%02d:%02d', (int) $parts[0], (int) $parts[1]);
+        }
+        return sprintf('%02d:%02d:%02d', (int) $parts[0], (int) $parts[1], (int) $parts[2]);
+    }
+
+    private function formatSecondsToTime(int $totalSeconds): string
+    {
+        $totalSeconds = max(60, $totalSeconds);
+        $h = intdiv($totalSeconds, 3600);
+        $m = intdiv($totalSeconds % 3600, 60);
+        $s = $totalSeconds % 60;
+        return sprintf('%02d:%02d:%02d', $h, $m, $s);
     }
 
     private function parseTimeToSeconds(string $timeStr): int
@@ -720,7 +1108,11 @@ class SelfGeneratedProgramController extends Controller
             return response()->json([
                 'success' => true,
                 'enrollment_id' => $enrollment->id,
-                'message' => 'Program berhasil disimpan ke kalender!'
+                'requires_payment' => ($enrollment->payment_status !== 'paid'),
+                'price_idr' => AiCoachContinuityService::PROGRAM_PRICE_IDR,
+                'message' => $enrollment->payment_status === 'paid'
+                    ? 'Program berhasil disimpan ke kalender!'
+                    : 'Program tersimpan. Selesaikan pembayaran Rp 15.000 untuk membuka seluruh minggu di kalender.',
             ]);
         }
 
@@ -728,49 +1120,53 @@ class SelfGeneratedProgramController extends Controller
     }
 
     /**
-     * AJAX: Create Midtrans Payment for donation
+     * AJAX: Create Midtrans Payment (Rp 15.000 via QRIS / Snap)
      */
     public function createPayment(Request $request)
     {
         $user = auth()->user();
         $enrollmentId = $request->enrollment_id;
-        $amount = $request->amount ?? 25000;
+        $amount = (int) ($request->amount ?? AiCoachContinuityService::PROGRAM_PRICE_IDR);
+        if ($amount < AiCoachContinuityService::PROGRAM_PRICE_IDR) {
+            $amount = AiCoachContinuityService::PROGRAM_PRICE_IDR;
+        }
 
-        $enrollment = ProgramEnrollment::findOrFail($enrollmentId);
+        $enrollment = ProgramEnrollment::with('program')->findOrFail($enrollmentId);
         if ($enrollment->runner_id !== $user->id) abort(403);
 
-        $orderId = 'GEN-DONATE-' . $enrollment->id . '-' . time();
-        
+        $orderId = 'GEN-PROG-' . $enrollment->id . '-' . time();
+
         $params = [
             'transaction_details' => [
                 'order_id' => $orderId,
-                'gross_amount' => (int) $amount,
+                'gross_amount' => $amount,
             ],
             'customer_details' => [
                 'first_name' => $user->name,
                 'email' => $user->email,
             ],
+            'enabled_payments' => ['other_qris', 'gopay', 'shopeepay', 'bank_transfer'],
             'item_details' => [
                 [
-                    'id' => 'UNLOCK-GEN',
-                    'price' => (int) $amount,
+                    'id' => 'COACH-PROG-UNLOCK',
+                    'price' => $amount,
                     'quantity' => 1,
-                    'name' => 'Donasi Unlock Full Program Lari',
+                    'name' => mb_substr($enrollment->program?->title ?? 'Program Lari Coach Ruang Lari', 0, 50),
                 ]
             ],
         ];
 
         try {
             $snapToken = Snap::getSnapToken($params);
-            
-            // Update enrollment with transaction info
+
             $enrollment->update([
-                'payment_transaction_id' => null, // We'll link this in webhook
+                'payment_transaction_id' => null,
             ]);
 
             return response()->json([
                 'success' => true,
-                'snap_token' => $snapToken
+                'snap_token' => $snapToken,
+                'amount' => $amount,
             ]);
         } catch (\Exception $e) {
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
@@ -778,29 +1174,47 @@ class SelfGeneratedProgramController extends Controller
     }
 
     /**
-     * Webhook for Midtrans Donation
+     * Webhook for Midtrans Program Payment (with signature verification)
      */
     public function webhook(Request $request)
     {
-        $orderId = $request->order_id;
-        $status = $request->transaction_status;
+        $orderId = (string) $request->input('order_id', '');
+        $statusCode = (string) $request->input('status_code', '');
+        $grossAmount = (string) $request->input('gross_amount', '');
+        $signatureKey = (string) $request->input('signature_key', '');
+        $serverKey = (string) config('midtrans.server_key');
 
-        // Order ID format: GEN-DONATE-{enrollment_id}-{time}
+        if ($serverKey !== '' && $signatureKey !== '') {
+            $expectedSignature = hash('sha512', $orderId . $statusCode . $grossAmount . $serverKey);
+            if (! hash_equals($expectedSignature, $signatureKey)) {
+                Log::warning("Midtrans invalid signature for order_id: {$orderId}");
+                return response()->json(['message' => 'Invalid signature'], 403);
+            }
+        }
+
+        $status = (string) $request->input('transaction_status', '');
+
+        // Order ID format: GEN-PROG-{enrollment_id}-{time} or GEN-DONATE-{enrollment_id}-{time}
         $parts = explode('-', $orderId);
         if (count($parts) < 3) return response()->json(['message' => 'Invalid Order ID'], 400);
-        
+
         $enrollmentId = $parts[2];
-        $enrollment = ProgramEnrollment::find($enrollmentId);
+        $enrollment = ProgramEnrollment::with(['program', 'runner'])->find($enrollmentId);
 
         if (!$enrollment) return response()->json(['message' => 'Enrollment not found'], 404);
 
-        if ($status == 'capture' || $status == 'settlement') {
+        if ($status === 'capture' || $status === 'settlement') {
+            $wasUnpaid = ($enrollment->payment_status !== 'paid');
             $enrollment->update([
                 'payment_status' => 'paid',
-                'payment_transaction_id' => $request->transaction_id
+                'payment_transaction_id' => $request->input('transaction_id'),
             ]);
-            
-            Log::info("Donation success for Enrollment ID: " . $enrollmentId);
+
+            if ($wasUnpaid && $enrollment->runner && $enrollment->program) {
+                $this->continuityService->postProgramWelcomeMessage($enrollment->runner, $enrollment->program, $enrollment);
+            }
+
+            Log::info("Program payment success for Enrollment ID: " . $enrollmentId);
         }
 
         return response()->json(['status' => 'ok']);
@@ -813,7 +1227,7 @@ class SelfGeneratedProgramController extends Controller
 
     private function improveProgramSessionsWithAi(array $sessions, array $context): array
     {
-        $hasKey = (bool) (config('services.openai.api_key') ?: env('OPENAI_API_KEY'));
+        $hasKey = (bool) config('services.openai.api_key');
         if (! $hasKey) {
             return $sessions;
         }
@@ -831,6 +1245,19 @@ class SelfGeneratedProgramController extends Controller
         $combinations = array_values(array_unique($combinations));
         if (empty($combinations)) {
             return $sessions;
+        }
+
+        sort($combinations);
+        $cacheKey = 'program_ai_templates_v1_' . md5(json_encode([
+            'level' => $context['runner_level'] ?? 'intermediate',
+            'distance' => $context['target_distance'] ?? '10k',
+            'tropical' => (bool) ($context['is_tropical'] ?? false),
+            'combinations' => $combinations,
+        ]));
+
+        $cachedTemplates = Cache::get($cacheKey);
+        if (is_array($cachedTemplates) && ! empty($cachedTemplates)) {
+            return $this->applyAiTemplatesToSessions($sessions, $cachedTemplates);
         }
 
         $paces = $context['paces'] ?? [];
@@ -902,29 +1329,36 @@ class SelfGeneratedProgramController extends Controller
                 return $sessions;
             }
 
-            foreach ($sessions as $i => $s) {
-                if (! is_array($s)) continue;
-                $phase = $s['phase'] ?? null;
-                $type = $s['type'] ?? null;
-                if (! is_string($phase) || ! is_string($type)) continue;
-                
-                $key = $phase . '_' . $type;
-                $tpl = $templates[$key] ?? null;
-                if (! is_string($tpl) || trim($tpl) === '') continue;
+            Cache::put($cacheKey, $templates, now()->addHours(24));
 
-                $repl = [
-                    '{distance_km}' => (string) ($s['distance'] ?? ''),
-                    '{target_pace}' => (string) ($s['target_pace'] ?? ''),
-                ];
-                $s['description'] = trim(strtr($tpl, $repl));
-                $sessions[$i] = $s;
-            }
-
-            return $sessions;
+            return $this->applyAiTemplatesToSessions($sessions, $templates);
         } catch (\Throwable $e) {
             Log::warning('AI refine generator_v2 failed: '.$e->getMessage());
             return $sessions;
         }
+    }
+
+    private function applyAiTemplatesToSessions(array $sessions, array $templates): array
+    {
+        foreach ($sessions as $i => $s) {
+            if (! is_array($s)) continue;
+            $phase = $s['phase'] ?? null;
+            $type = $s['type'] ?? null;
+            if (! is_string($phase) || ! is_string($type)) continue;
+
+            $key = $phase . '_' . $type;
+            $tpl = $templates[$key] ?? null;
+            if (! is_string($tpl) || trim($tpl) === '') continue;
+
+            $repl = [
+                '{distance_km}' => (string) ($s['distance'] ?? ''),
+                '{target_pace}' => (string) ($s['target_pace'] ?? ''),
+            ];
+            $s['description'] = trim(strtr($tpl, $repl));
+            $sessions[$i] = $s;
+        }
+
+        return $sessions;
     }
 
 

@@ -12,17 +12,7 @@ class ChatController extends Controller
 {
     private function getAiCoach()
     {
-        return User::firstOrCreate(
-            ['email' => 'ai-coach@ruanglari.com'],
-            [
-                'name' => 'Coach AI',
-                'password' => bcrypt(str()->random(16)),
-                'role' => 'coach',
-                'username' => 'coach-ai',
-                'avatar' => 'images/profile/17.jpg',
-                'is_active' => true,
-            ]
-        );
+        return app(\App\Services\AiCoachContinuityService::class)->getCoachUser();
     }
 
     private function getConversationsList()
