@@ -352,13 +352,15 @@
     </script>
 
     @if(env('RECAPTCHA_SITE_KEY_v3'))
-        <script src="https://www.google.com/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY_v3') }}"></script>
+        <script defer src="https://www.google.com/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY_v3') }}"></script>
     @endif
 
     <!-- System fonts: no extra font download. -->
 
-    <!-- FontAwesome 6.5.1 -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <!-- FontAwesome 6.5.1 (non-blocking) -->
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" media="print" onload="this.media='all'" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <noscript><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer" /></noscript>
 
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -428,27 +430,35 @@
             $countdownLabel = 'Pendaftaran Ditutup Dalam';
         }
 
-        // Precompute Jersey Stock
+        // Precompute Jersey Stock in a single GROUP BY query
         $jerseyStockData = [];
         $event->load('jerseyStock');
         if ($event->jerseyStock) {
             $jerseySizesList = $event->jersey_sizes ?? ['XS','S','M','L','XL','2XL','3XL'];
+            $usedBySize = \App\Models\Participant::query()
+                ->selectRaw('UPPER(TRIM(jersey_size)) as sz, COUNT(*) as total')
+                ->whereNotNull('jersey_size')
+                ->whereHas('transaction', fn($q) => $q->where('event_id', $event->id)->whereIn('payment_status', ['paid','cod']))
+                ->groupBy(\DB::raw('UPPER(TRIM(jersey_size))'))
+                ->pluck('total', 'sz');
+
             foreach ($jerseySizesList as $sz) {
                 $col = strtolower($sz);
                 $quota = $event->jerseyStock->$col ?? null;
                 if ($quota !== null) {
-                    $checkSizes = [strtoupper(trim($sz))];
-                    if (strtoupper(trim($sz)) === '2XL' || strtoupper(trim($sz)) === 'XXL') {
+                    $norm = strtoupper(trim($sz));
+                    $checkSizes = [$norm];
+                    if ($norm === '2XL' || $norm === 'XXL') {
                         $checkSizes = ['2XL', 'XXL'];
-                    } elseif (strtoupper(trim($sz)) === '3XL' || strtoupper(trim($sz)) === 'XXXL') {
+                    } elseif ($norm === '3XL' || $norm === 'XXXL') {
                         $checkSizes = ['3XL', 'XXXL'];
                     }
 
-                    $usedCount = \App\Models\Participant::whereNotNull('jersey_size')
-                        ->whereIn(\DB::raw('UPPER(TRIM(jersey_size))'), $checkSizes)
-                        ->whereHas('transaction', fn($q) => $q->where('event_id', $event->id)->whereIn('payment_status', ['paid','cod']))
-                        ->count();
-                    $jerseyStockData[$sz] = ['quota' => (int) $quota, 'remaining' => max(0, (int)$quota - $usedCount)];
+                    $usedCount = 0;
+                    foreach ($checkSizes as $cs) {
+                        $usedCount += (int) ($usedBySize->get($cs) ?? 0);
+                    }
+                    $jerseyStockData[$sz] = ['quota' => (int) $quota, 'remaining' => max(0, (int) $quota - $usedCount)];
                 }
             }
         }
@@ -464,7 +474,7 @@
     @endphp
 
     @if($showMidtrans && $midtransClientKey)
-        <script type="text/javascript" src="{{ $midtransUrl }}/snap/snap.js" data-client-key="{{ $midtransClientKey }}"></script>
+        <script defer type="text/javascript" src="{{ $midtransUrl }}/snap/snap.js" data-client-key="{{ $midtransClientKey }}" id="midtrans-snap-script"></script>
     @endif
 
     <style>
@@ -2794,7 +2804,7 @@
 
     <!-- Scripts Section -->
     @if(($hasPaidParticipants ?? false) && $event->show_participant_list)
-        <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+        <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
         <script>
             (function() {
                 if (typeof Vue !== 'undefined') {
@@ -4177,25 +4187,43 @@
 
                         // 1. Midtrans Snap
                         if (data.success && data.snap_token) {
-                            snap.pay(data.snap_token, {
-                                onSuccess: function(result) {
-                                    const txId = (data.transaction_id || (result && result.transaction_id) || '');
-                                    const refId = (data.registration_id || (result && result.order_id) || '');
-                                    window.location.href = `{{ route("events.show", $event->slug) }}?payment=success&tx=` + encodeURIComponent(txId) + `&ref=` + encodeURIComponent(refId);
-                                },
-                                onPending: function(result) {
-                                    const txId = (data.transaction_id || '');
-                                    const refId = (data.registration_id || '');
-                                    window.location.href = `{{ route("events.show", $event->slug) }}?payment=pending&tx=` + encodeURIComponent(txId) + `&ref=` + encodeURIComponent(refId);
-                                },
-                                onError: function() {
-                                    alert('Pembayaran tidak berhasil diselesaikan.');
-                                    if (btn) { btn.disabled = false; btn.innerHTML = originalText; isConfirmed = false; }
-                                },
-                                onClose: function() {
-                                    window.location.href = `{{ route("events.show", $event->slug) }}?payment=pending&tx=` + encodeURIComponent(data.transaction_id || '') + `&ref=` + encodeURIComponent(data.registration_id || '');
+                            const runSnapPay = () => {
+                                snap.pay(data.snap_token, {
+                                    onSuccess: function(result) {
+                                        const txId = (data.transaction_id || (result && result.transaction_id) || '');
+                                        const refId = (data.registration_id || (result && result.order_id) || '');
+                                        window.location.href = `{{ route("events.show", $event->slug) }}?payment=success&tx=` + encodeURIComponent(txId) + `&ref=` + encodeURIComponent(refId);
+                                    },
+                                    onPending: function(result) {
+                                        const txId = (data.transaction_id || '');
+                                        const refId = (data.registration_id || '');
+                                        window.location.href = `{{ route("events.show", $event->slug) }}?payment=pending&tx=` + encodeURIComponent(txId) + `&ref=` + encodeURIComponent(refId);
+                                    },
+                                    onError: function() {
+                                        alert('Pembayaran tidak berhasil diselesaikan.');
+                                        if (btn) { btn.disabled = false; btn.innerHTML = originalText; isConfirmed = false; }
+                                    },
+                                    onClose: function() {
+                                        window.location.href = `{{ route("events.show", $event->slug) }}?payment=pending&tx=` + encodeURIComponent(data.transaction_id || '') + `&ref=` + encodeURIComponent(data.registration_id || '');
+                                    }
+                                });
+                            };
+
+                            if (typeof window.snap !== 'undefined' && typeof window.snap.pay === 'function') {
+                                runSnapPay();
+                            } else {
+                                const snapEl = document.getElementById('midtrans-snap-script');
+                                if (snapEl) {
+                                    snapEl.addEventListener('load', runSnapPay, { once: true });
+                                    setTimeout(() => {
+                                        if (typeof window.snap === 'undefined' && data.payment_url) {
+                                            window.location.href = data.payment_url;
+                                        }
+                                    }, 3500);
+                                } else if (data.payment_url) {
+                                    window.location.href = data.payment_url;
                                 }
-                            });
+                            }
                             return;
                         }
 
@@ -4709,11 +4737,15 @@
 
             // Check URL param payment=success or payment gateway callbacks (Midtrans settlement / 200)
             const urlParams = new URLSearchParams(window.location.search);
+            const paymentParam = String(urlParams.get('payment') || '').toLowerCase();
             const statusParam = String(urlParams.get('transaction_status') || '').toLowerCase();
-            const isSuccessUrl = urlParams.get('payment') === 'success'
+            const isNonSuccessPayment = ['pending', 'approval_pending', 'failed', 'expired', 'cancel', 'deny'].includes(paymentParam)
+                || ['pending', 'expire', 'cancel', 'deny', 'failure'].includes(statusParam);
+            const isSuccessUrl = !isNonSuccessPayment && (
+                paymentParam === 'success'
                 || ['settlement', 'capture', 'success'].includes(statusParam)
                 || urlParams.get('status_code') === '200'
-                || (urlParams.has('tx') && urlParams.has('ref'));
+            );
 
             if (isSuccessUrl) {
                 openSuccessModal();

@@ -513,7 +513,7 @@
     @endphp
 
     @if($showMidtrans && $midtransClientKey)
-        <script type="text/javascript" src="{{ $midtransUrl }}/snap/snap.js" data-client-key="{{ $midtransClientKey }}" defer></script>
+        <script type="text/javascript" src="{{ $midtransUrl }}/snap/snap.js" data-client-key="{{ $midtransClientKey }}" id="midtrans-snap-script" defer></script>
     @endif
 
     <style>
@@ -4074,25 +4074,43 @@
 
                         // 1. Midtrans Snap
                         if (data.success && data.snap_token) {
-                            snap.pay(data.snap_token, {
-                                onSuccess: function(result) {
-                                    const txId = (data.transaction_id || (result && result.transaction_id) || '');
-                                    const refId = (data.registration_id || (result && result.order_id) || '');
-                                    window.location.href = `{{ route("events.show", $event->slug) }}?payment=success&tx=` + encodeURIComponent(txId) + `&ref=` + encodeURIComponent(refId);
-                                },
-                                onPending: function(result) {
-                                    const txId = (data.transaction_id || '');
-                                    const refId = (data.registration_id || '');
-                                    window.location.href = `{{ route("events.show", $event->slug) }}?payment=pending&tx=` + encodeURIComponent(txId) + `&ref=` + encodeURIComponent(refId);
-                                },
-                                onError: function() {
-                                    alert('Pembayaran tidak berhasil diselesaikan.');
-                                    if (btn) { btn.disabled = false; btn.innerHTML = originalText; isConfirmed = false; }
-                                },
-                                onClose: function() {
-                                    window.location.href = `{{ route("events.show", $event->slug) }}?payment=pending&tx=` + encodeURIComponent(data.transaction_id || '') + `&ref=` + encodeURIComponent(data.registration_id || '');
+                            const runSnapPay = () => {
+                                snap.pay(data.snap_token, {
+                                    onSuccess: function(result) {
+                                        const txId = (data.transaction_id || (result && result.transaction_id) || '');
+                                        const refId = (data.registration_id || (result && result.order_id) || '');
+                                        window.location.href = `{{ route("events.show", $event->slug) }}?payment=success&tx=` + encodeURIComponent(txId) + `&ref=` + encodeURIComponent(refId);
+                                    },
+                                    onPending: function(result) {
+                                        const txId = (data.transaction_id || '');
+                                        const refId = (data.registration_id || '');
+                                        window.location.href = `{{ route("events.show", $event->slug) }}?payment=pending&tx=` + encodeURIComponent(txId) + `&ref=` + encodeURIComponent(refId);
+                                    },
+                                    onError: function() {
+                                        alert('Pembayaran tidak berhasil diselesaikan.');
+                                        if (btn) { btn.disabled = false; btn.innerHTML = originalText; isConfirmed = false; }
+                                    },
+                                    onClose: function() {
+                                        window.location.href = `{{ route("events.show", $event->slug) }}?payment=pending&tx=` + encodeURIComponent(data.transaction_id || '') + `&ref=` + encodeURIComponent(data.registration_id || '');
+                                    }
+                                });
+                            };
+
+                            if (typeof window.snap !== 'undefined' && typeof window.snap.pay === 'function') {
+                                runSnapPay();
+                            } else {
+                                const snapEl = document.getElementById('midtrans-snap-script');
+                                if (snapEl) {
+                                    snapEl.addEventListener('load', runSnapPay, { once: true });
+                                    setTimeout(() => {
+                                        if (typeof window.snap === 'undefined' && data.payment_url) {
+                                            window.location.href = data.payment_url;
+                                        }
+                                    }, 3500);
+                                } else if (data.payment_url) {
+                                    window.location.href = data.payment_url;
                                 }
-                            });
+                            }
                             return;
                         }
 
@@ -4612,11 +4630,15 @@
 
             // Check URL param payment=success or payment gateway callbacks (Midtrans settlement / 200)
             const urlParams = new URLSearchParams(window.location.search);
+            const paymentParam = String(urlParams.get('payment') || '').toLowerCase();
             const statusParam = String(urlParams.get('transaction_status') || '').toLowerCase();
-            const isSuccessUrl = urlParams.get('payment') === 'success'
+            const isNonSuccessPayment = ['pending', 'approval_pending', 'failed', 'expired', 'cancel', 'deny'].includes(paymentParam)
+                || ['pending', 'expire', 'cancel', 'deny', 'failure'].includes(statusParam);
+            const isSuccessUrl = !isNonSuccessPayment && (
+                paymentParam === 'success'
                 || ['settlement', 'capture', 'success'].includes(statusParam)
                 || urlParams.get('status_code') === '200'
-                || (urlParams.has('tx') && urlParams.has('ref'));
+            );
 
             if (isSuccessUrl) {
                 openSuccessModal();
