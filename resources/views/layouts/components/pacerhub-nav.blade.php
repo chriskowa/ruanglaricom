@@ -2,8 +2,8 @@
 <style>
 [x-cloak]{display:none !important;}
 .rl-search-btn {
-    width: 38px;
-    height: 38px;
+    width: 36px;
+    height: 36px;
     padding: 0;
     overflow: hidden;
     transition: width 220ms cubic-bezier(0.22, 1, 0.36, 1), padding 220ms ease, border-color 150ms ease, background-color 150ms ease;
@@ -17,6 +17,10 @@
     transition: max-width 220ms cubic-bezier(0.22, 1, 0.36, 1), opacity 180ms ease, margin-left 220ms ease;
 }
 @media (min-width: 768px) {
+    .rl-search-btn {
+        width: 38px;
+        height: 38px;
+    }
     .rl-search-label {
         display: inline-block;
     }
@@ -60,20 +64,20 @@
         $hasNavItems = $headerMenu && $headerMenu->items && $headerMenu->items->where('is_active', true)->count() > 0;
     @endphp
     <div class="max-w-7xl mx-auto px-3 sm:px-6">
-        <div class="flex items-center justify-between h-16 gap-3">
+        <div class="flex items-center justify-between h-16 gap-2">
             <!-- Left Side: Logo & Sidebar Toggle -->
-            <div class="flex items-center gap-2.5 shrink-0">
+            <div class="flex items-center gap-1.5 sm:gap-2.5 min-w-0 shrink-0">
                 @if(isset($isDashboard) && $isDashboard)
-                <button id="ph-sidebar-toggle" class="p-2 rounded-md hover:bg-slate-900 text-slate-200 transition-colors cursor-pointer" title="Toggle Sidebar">
+                <button id="ph-sidebar-toggle" class="inline-flex items-center justify-center w-9 h-9 rounded-md hover:bg-slate-900 text-slate-200 transition-colors cursor-pointer shrink-0" title="Toggle Sidebar" aria-label="Toggle Sidebar">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
                 @endif
-                <div class="flex items-center gap-1 nav-logo">
+                <div class="flex items-center gap-1 nav-logo shrink-0">
                     <img src="{{ asset('images/logo saja ruang lari.png') }}" alt="RuangLari" class="h-6 sm:h-8 w-auto">
                     <a href="{{ url('/') }}"
-                        class="text-sm sm:text-lg md:text-xl font-black italic tracking-tighter flex items-center {{ $lightMode ? 'text-slate-900' : 'text-white' }}"
+                        class="text-sm sm:text-lg md:text-xl font-black italic tracking-tighter flex items-center whitespace-nowrap {{ $lightMode ? 'text-slate-900' : 'text-white' }}"
                         title="RuangLari Utama">
-                        RUANG<span class="pl-1" style="{{ $lightMode ? 'color: #000000ff;' : 'color: #ccff00;' }}">LARI</span>
+                        RUANG<span class="pl-0.5 sm:pl-1" style="{{ $lightMode ? 'color: #000000ff;' : 'color: #ccff00;' }}">LARI</span>
                     </a>
                 </div>
             </div>
@@ -129,11 +133,11 @@
          
             
             <!-- Right Side: Navigation & Actions -->
-            <div class="flex items-center gap-2 shrink-0">
+            <div class="flex items-center gap-1 sm:gap-2 shrink-0">
                 <button
                     type="button"
                     id="nav-quick-search-btn"
-                    class="rl-search-btn group inline-flex items-center justify-center rounded-md bg-slate-900 border border-slate-800 text-slate-200 hover:text-white cursor-pointer"
+                    class="rl-search-btn group inline-flex items-center justify-center rounded-md bg-slate-900 border border-slate-800 text-slate-200 hover:text-white cursor-pointer shrink-0"
                     title="Cari Tools, Event, Program, Blog (Ctrl+K)"
                     aria-label="Cari Tools, Event, Program, Blog"
                 >
@@ -145,41 +149,31 @@
                     </span>
                 </button>
 
-                @if(!isset($isDashboard) || !$isDashboard)
-                <button id="mobile-menu-toggle" class="md:hidden p-2 rounded-lg {{ $lightMode ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-slate-800 text-slate-200' }} transition-colors" title="Menu">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-                </button>
-                @endif
-
-                <!-- Dashboard & Chat are housed in the User Profile Dropdown to keep the navbar clean -->
-
                 <!-- Cart Icon -->
                 @auth
-                <a href="{{ route('marketplace.cart.index') }}" class="p-1 rounded-lg {{ $lightMode ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-slate-800 text-slate-200' }} transition-colors relative" title="Cart">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                    <span id="nav-cart-count" class="absolute top-1.5 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center hidden">0</span>
+                <a href="{{ route('marketplace.cart.index') }}" class="inline-flex items-center justify-center w-9 h-9 rounded-md hover:bg-slate-900 text-slate-200 hover:text-white transition-colors relative shrink-0" title="Cart" aria-label="Cart">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                    <span id="nav-cart-count" class="absolute top-0.5 right-0.5 w-4 h-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center hidden">0</span>
                 </a>
                 @endauth
 
-                <!-- Chat / Messages (Hidden from top navbar to declutter; available in user dropdown menu) -->
-
                 <!-- Notifications -->
                 @auth
-                <div class="relative" id="notification-container">
-                    <button id="nav-bell-btn" class="p-1 rounded-lg {{ $lightMode ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-slate-800 text-slate-200' }} transition-colors relative" title="Notifications">
+                <div class="relative shrink-0" id="notification-container">
+                    <button id="nav-bell-btn" class="inline-flex items-center justify-center w-9 h-9 rounded-md hover:bg-slate-900 text-slate-200 hover:text-white transition-colors relative cursor-pointer" title="Notifications" aria-label="Notifications">
                         @include('layouts.components.svg-bell')
-                        <span id="notification-badge" class="absolute -top-1 -right-1 min-w-[18px] h-[18px] px-1 bg-red-500 text-[10px] font-bold text-white rounded-full flex items-center justify-center border {{ $lightMode ? 'border-white' : 'border-slate-900' }} hidden"></span>
+                        <span id="notification-badge" class="absolute top-0.5 right-0.5 min-w-[16px] h-[16px] px-1 bg-red-500 text-[10px] font-bold text-white rounded-full flex items-center justify-center border border-slate-950 hidden"></span>
                     </button>
-                    <div id="nav-bell-dropdown" class="absolute right-0 -mr-16 md:mr-0 mt-4 w-80 sm:w-96 {{ $lightMode ? 'bg-white border-slate-200 shadow-xl' : 'bg-slate-900/95 border-slate-700 shadow-2xl' }} backdrop-blur-xl border rounded-2xl hidden overflow-hidden transform transition-all origin-top-right z-50">
-                        <div class="p-4 border-b {{ $lightMode ? 'border-slate-100' : 'border-slate-800' }} flex justify-between items-center">
-                            <h3 class="font-bold {{ $lightMode ? 'text-slate-900' : 'text-white' }}">Notifications</h3>
-                            <button id="mark-all-read" class="text-xs {{ $lightMode ? 'text-slate-900' : 'text-neon' }} hover:text-slate-900 transition-colors">Mark all read</button>
+                    <div id="nav-bell-dropdown" class="fixed sm:absolute left-3 right-3 sm:left-auto sm:right-0 top-16 sm:top-auto sm:mt-3 sm:w-96 bg-slate-900 border border-slate-800 shadow-xl rounded-lg hidden overflow-hidden origin-top-right z-50">
+                        <div class="p-4 border-b border-slate-800 flex justify-between items-center">
+                            <h3 class="font-bold text-white text-sm">Notifications</h3>
+                            <button id="mark-all-read" class="text-xs text-lime-400 hover:text-lime-300 transition-colors cursor-pointer">Mark all read</button>
                         </div>
-                        <div id="notification-list" class="max-h-[400px] overflow-y-auto">
-                            <div class="p-8 text-center text-slate-500 text-sm">Loading...</div>
+                        <div id="notification-list" class="max-h-[60vh] sm:max-h-[400px] overflow-y-auto">
+                            <div class="p-8 text-center text-slate-400 text-sm">Loading...</div>
                         </div>
-                        <div class="p-3 border-t {{ $lightMode ? 'border-slate-100 bg-slate-50/50' : 'border-slate-800 bg-slate-900/50' }}">
-                            <a href="{{ route('notifications.index') }}" class="block w-full text-center py-2 rounded-lg {{ $lightMode ? 'bg-slate-100 hover:bg-slate-200 text-slate-800' : 'bg-slate-800 hover:bg-slate-700 text-slate-200' }} text-sm transition-colors">
+                        <div class="p-3 border-t border-slate-800 bg-slate-950">
+                            <a href="{{ route('notifications.index') }}" class="block w-full text-center py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-colors">
                                 View All Notifications
                             </a>
                         </div>
@@ -189,20 +183,20 @@
                 
                 @auth
                 <!-- User Profile Dropdown -->
-                <div class="relative" id="user-menu-container">
-                    <button id="user-menu-btn" class="flex items-center gap-1 p-1.5 pr-1 rounded-full {{ $lightMode ? 'hover:bg-slate-100 border-slate-200' : 'hover:bg-slate-800 border-transparent hover:border-slate-700' }} border transition-all">
-                        <img class="w-8 h-8 rounded-full object-cover border {{ $lightMode ? 'border-slate-200' : 'border-slate-600' }}" src="{{ auth()->user()->avatar ? (str_starts_with(auth()->user()->avatar, 'http') ? auth()->user()->avatar : (str_starts_with(auth()->user()->avatar, '/storage') ? asset(ltrim(auth()->user()->avatar, '/')) : asset('storage/' . auth()->user()->avatar))) : asset('images/profile/17.jpg') }}" alt="{{ auth()->user()->name }}">
+                <div class="relative shrink-0" id="user-menu-container">
+                    <button id="user-menu-btn" class="inline-flex items-center gap-1.5 h-9 px-1 sm:px-2 rounded-md hover:bg-slate-900 transition-colors cursor-pointer">
+                        <img class="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover border border-slate-700" src="{{ auth()->user()->avatar ? (str_starts_with(auth()->user()->avatar, 'http') ? auth()->user()->avatar : (str_starts_with(auth()->user()->avatar, '/storage') ? asset(ltrim(auth()->user()->avatar, '/')) : asset('storage/' . auth()->user()->avatar))) : asset('images/profile/17.jpg') }}" alt="{{ auth()->user()->name }}">
                         @php
                             $name = auth()->user()->name;
                             $initials = collect(explode(' ', $name))
                                 ->map(fn($word) => strtoupper(substr($word, 0, 1)))
                                 ->implode('');
                         @endphp                            
-                        <span class="hidden md:block text-sm font-medium {{ $lightMode ? 'text-slate-900' : 'text-slate-200' }}">{{ $initials }}</span>
-                        <svg class="w-4 h-4 text-slate-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
+                        <span class="hidden md:block text-sm font-medium text-slate-200">{{ $initials }}</span>
+                        <svg class="hidden sm:block w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
                     </button>
                     
-                    <div id="user-menu-dropdown" class="absolute right-0 mt-4 w-56 {{ $lightMode ? 'bg-white border-slate-200 shadow-xl' : 'bg-slate-900/95 border-slate-700 shadow-2xl' }} backdrop-blur-xl border rounded-2xl hidden transform transition-all origin-top-right z-50">
+                    <div id="user-menu-dropdown" class="absolute right-0 mt-3 w-56 bg-slate-900 border border-slate-800 shadow-xl rounded-lg hidden origin-top-right z-50">
                         <div class="p-4 border-b {{ $lightMode ? 'border-slate-100' : 'border-slate-800' }}">
                             <p class="text-sm font-bold {{ $lightMode ? 'text-slate-900' : 'text-white' }}">{{ auth()->user()->name }}</p>
                             <p class="text-xs {{ $lightMode ? 'text-slate-500' : 'text-primary' }} font-medium uppercase tracking-wider mt-0.5">{{ auth()->user()->role }}</p>
@@ -255,11 +249,17 @@
                 @endauth
                 
                 @guest
-                <div class="flex items-center gap-2 pl-1">
-                    <button onclick="openLoginModal()" class="px-3 min-h-[38px] rounded-md text-xs sm:text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-900 transition-colors cursor-pointer">Login</button>
-                    <button onclick="openRegisterModal()" class="px-3.5 sm:px-4 min-h-[38px] text-xs sm:text-sm font-bold bg-lime-400 hover:bg-lime-300 text-slate-950 rounded-md transition-colors cursor-pointer">Register</button>
+                <div class="flex items-center gap-1 sm:gap-2 shrink-0">
+                    <button onclick="openLoginModal()" class="px-2 sm:px-3 h-9 rounded-md text-xs sm:text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-900 transition-colors cursor-pointer whitespace-nowrap">Login</button>
+                    <button onclick="openRegisterModal()" class="px-2.5 sm:px-4 h-9 text-xs sm:text-sm font-bold bg-lime-400 hover:bg-lime-300 text-slate-950 rounded-md transition-colors cursor-pointer whitespace-nowrap">Register</button>
                 </div>
                 @endguest
+
+                @if(!isset($isDashboard) || !$isDashboard)
+                <button id="mobile-menu-toggle" class="md:hidden inline-flex items-center justify-center w-9 h-9 rounded-md bg-slate-900 border border-slate-800 hover:bg-slate-800 text-slate-200 hover:text-white transition-colors cursor-pointer shrink-0" title="Menu" aria-label="Buka Menu">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                </button>
+                @endif
             </div>
         </div>
     </div>
