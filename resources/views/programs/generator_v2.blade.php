@@ -304,7 +304,7 @@
 
     <!-- Notification Toast -->
     <transition name="fade">
-        <div v-if="notification" class="fixed top-6 right-4 z-[100] max-w-sm w-full">
+        <div v-if="notification" v-cloak class="fixed top-6 right-4 z-[100] max-w-sm w-full">
             <div :class="notification.type === 'error' ? 'bg-red-950 border-red-800 text-red-100' : 'bg-slate-900 border-brand-lime/60 text-slate-100'" 
                  class="p-4 rounded-md border shadow-lg flex items-start gap-3">
                 <div class="flex-1 text-xs font-medium">@{{ notification.message }}</div>
@@ -315,7 +315,7 @@
 
     <!-- Active Program Conflict Modal -->
     <transition name="fade">
-        <div v-if="conflictModal.show" class="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/80">
+        <div v-if="conflictModal.show" v-cloak class="fixed inset-0 z-[150] flex items-center justify-center p-4 bg-black/80">
             <div class="surface-card max-w-md w-full p-6 rounded-lg border border-amber-500/40 shadow-xl space-y-4 relative">
                 <div>
                     <h3 class="text-base font-bold text-white">Program Aktif Terdeteksi</h3>
@@ -1388,7 +1388,7 @@
             </div>
         </div>
 
-        <div v-if="showFeasibilityModal" class="fixed inset-0 z-[9998] flex items-center justify-center px-4" role="dialog" aria-modal="true">
+        <div v-if="showFeasibilityModal" v-cloak class="fixed inset-0 z-[9998] flex items-center justify-center px-4" role="dialog" aria-modal="true">
             <div class="absolute inset-0 bg-black/75 backdrop-blur-sm" @click="showFeasibilityModal = false"></div>
             <div class="relative surface-card border border-red-500/40 rounded-xl max-w-md w-full shadow-2xl overflow-hidden">
                 <div class="px-5 py-4 border-b border-slate-800 bg-red-900/15">
