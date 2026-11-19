@@ -542,8 +542,11 @@ class StoreRegistrationAction
                 || ($discountAmount >= $totalOriginal)
             );
 
-            // If ticket is fully discounted (<= 0) or 100% coupon applied, waive the platform fee
-            if ($isCoupon100 || (($totalOriginal - $discountAmount) <= 0)) {
+            $waiveManualTransferFee = $paymentMethod === 'manual_transfer'
+                && ! empty($event->payment_config['manual_transfer_waive_fee']);
+
+            // If ticket is fully discounted (<= 0), 100% coupon applied, or manual transfer fee is waived for this event
+            if ($isCoupon100 || (($totalOriginal - $discountAmount) <= 0) || $waiveManualTransferFee) {
                 $totalAdminFee = 0;
             } else {
                 $totalAdminFee = $platformFeePerParticipant * $totalParticipants;

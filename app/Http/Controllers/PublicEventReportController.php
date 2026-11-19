@@ -36,11 +36,16 @@ class PublicEventReportController extends Controller
             ->firstOrFail();
 
         // Ensure session covers both event ID and slug
-        session([
+        $expectedToken = $eventModel->payment_config['report_token'] ?? null;
+        $sessionData = [
             'report_access_' . $event => true,
             'report_access_' . $eventModel->id => true,
             'report_access_' . $eventModel->slug => true,
-        ]);
+        ];
+        if (! empty($expectedToken)) {
+            $sessionData['report_access_token_' . $eventModel->id] = $expectedToken;
+        }
+        session($sessionData);
 
         $validated = $request->validate([
             'search' => ['nullable', 'string', 'max:100'],
@@ -190,19 +195,7 @@ class PublicEventReportController extends Controller
             }
 
             if (! empty($filters['age_group'])) {
-                $group = $filters['age_group'];
-                $eventDate = $eventModel->start_at ?: now();
-                if ($group === '50+') {
-                    $participantsQuery->whereDate('participants.date_of_birth', '<=', $eventDate->copy()->subYears(50));
-                } elseif ($group === 'Master 45+') {
-                    $participantsQuery->whereDate('participants.date_of_birth', '<=', $eventDate->copy()->subYears(45))
-                        ->whereDate('participants.date_of_birth', '>', $eventDate->copy()->subYears(50));
-                } elseif ($group === 'Master') {
-                    $participantsQuery->whereDate('participants.date_of_birth', '<=', $eventDate->copy()->subYears(40))
-                        ->whereDate('participants.date_of_birth', '>', $eventDate->copy()->subYears(45));
-                } elseif ($group === 'Umum') {
-                    $participantsQuery->whereDate('participants.date_of_birth', '>', $eventDate->copy()->subYears(40));
-                }
+                $participantsQuery->filterAgeGroup($filters['age_group'], $eventModel->start_at, 'participants.date_of_birth');
             }
 
             if ($filters['min_age'] !== null) {
@@ -455,7 +448,7 @@ class PublicEventReportController extends Controller
     public function updateParticipant(Request $request, $event, $participantId)
     {
         // Check session access
-        if (! session('report_access_' . $event)) {
+        if (! $this->hasValidReportSession($event)) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -601,7 +594,7 @@ class PublicEventReportController extends Controller
 
     public function exportParticipants(Request $request, $event)
     {
-        if (! session('report_access_' . $event)) {
+        if (! $this->hasValidReportSession($event)) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -714,7 +707,7 @@ class PublicEventReportController extends Controller
 
     public function exportParticipantsXlsx(Request $request, $event)
     {
-        if (! session('report_access_' . $event)) {
+        if (! $this->hasValidReportSession($event)) {
             abort(403, 'Unauthorized action.');
         }
 
@@ -848,6 +841,7 @@ class PublicEventReportController extends Controller
             'payment_status' => 'nullable|string|in:paid,pending,failed,expired,cancelled,cod',
         ]);
 
+        $statusMessage = 'Status berhasil diperbarui';
         if ($request->filled('payment_status')) {
             $newPaymentStatus = (string) $validated['payment_status'];
             $transaction = $participant->transaction;
@@ -859,15 +853,16 @@ class PublicEventReportController extends Controller
                 ]);
 
                 if ($newPaymentStatus === 'paid') {
-                    $participant->update([
+                    $transaction->participants()->update([
                         'isApproved' => 1,
                         'status' => 'confirmed',
                     ]);
                     if (! $wasPaid) {
                         \App\Jobs\ProcessPaidEventTransaction::dispatchAfterResponse($transaction);
+                        $statusMessage = 'Status diubah menjadi Paid & e-Ticket dikirim ke peserta.';
                     }
                 } elseif (in_array($newPaymentStatus, ['failed', 'expired', 'cancelled'], true)) {
-                    $participant->update([
+                    $transaction->participants()->update([
                         'isApproved' => 0,
                         'status' => 'cancelled',
                     ]);
@@ -915,7 +910,7 @@ class PublicEventReportController extends Controller
         if ($request->ajax() || $request->wantsJson()) {
             return response()->json([
                 'success' => true,
-                'message' => 'Status berhasil diperbarui',
+                'message' => $statusMessage,
                 'pickup_changed' => $wasPickedUp !== (bool) $participant->is_picked_up,
                 'participant' => [
                     'id' => $participant->id,
@@ -1135,62 +1130,134 @@ class PublicEventReportController extends Controller
         ]);
     }
 
+    protected function resolveReportEventModel($event): ?Event
+    {
+        return Event::query()
+            ->where(function ($q) use ($event) {
+                if (is_numeric($event)) {
+                    $q->where('id', (int) $event);
+                } else {
+                    $q->where('slug', $event);
+                }
+            })
+            ->first();
+    }
+
+    protected function hasValidReportSession($event): bool
+    {
+        $sessionKey = 'report_access_' . $event;
+        if (! session($sessionKey)) {
+            return false;
+        }
+
+        $eventModel = $this->resolveReportEventModel($event);
+        if (! $eventModel) {
+            return false;
+        }
+
+        $expectedToken = $eventModel->payment_config['report_token'] ?? null;
+        if (! empty($expectedToken)) {
+            $sessionToken = (string) session('report_access_token_' . $eventModel->id, '');
+            if ($sessionToken === '' || ! hash_equals((string) $expectedToken, $sessionToken)) {
+                session()->forget([$sessionKey, 'report_access_' . $eventModel->id, 'report_access_' . $eventModel->slug, 'report_access_token_' . $eventModel->id]);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     protected function validateReportAccess(Request $request, $event): bool
     {
         $sessionKey = 'report_access_' . $event;
+        $eventModel = $this->resolveReportEventModel($event);
+        $expectedToken = $eventModel?->payment_config['report_token'] ?? null;
 
-        if (session($sessionKey)) {
-            return true;
-        }
-
-        if ($request->hasValidSignature()) {
-            session([$sessionKey => true]);
-            return true;
-        }
-
-        if ($request->has('signature')) {
-            $queryParams = $request->query();
-            $allowedParams = ['signature', 'expires'];
-            $filteredParams = array_intersect_key($queryParams, array_flip($allowedParams));
-            
-            $checkUrl = $request->url();
-            if (!empty($filteredParams)) {
-                $checkUrl .= '?' . http_build_query($filteredParams);
-            }
-            
-            $tempRequest = Request::create($checkUrl);
-            if ($tempRequest->hasValidSignature()) {
-                session([$sessionKey => true]);
+        $tokenMatches = static function (?string $provided) use ($expectedToken): bool {
+            if (empty($expectedToken)) {
                 return true;
             }
+
+            return ! empty($provided) && hash_equals((string) $expectedToken, (string) $provided);
+        };
+
+        $grantSession = function () use ($sessionKey, $eventModel, $expectedToken): void {
+            $data = [$sessionKey => true];
+            if ($eventModel) {
+                $data['report_access_' . $eventModel->id] = true;
+                $data['report_access_' . $eventModel->slug] = true;
+                if (! empty($expectedToken)) {
+                    $data['report_access_token_' . $eventModel->id] = $expectedToken;
+                }
+            }
+            session($data);
+        };
+
+        if ($request->has('signature') || $request->has('token')) {
+            if (! $tokenMatches($request->query('token'))) {
+                return false;
+            }
+
+            if ($request->hasValidSignature()) {
+                $grantSession();
+                return true;
+            }
+
+            if ($request->has('signature')) {
+                $queryParams = $request->query();
+                $allowedParams = ['token', 'signature', 'expires'];
+                $filteredParams = array_intersect_key($queryParams, array_flip($allowedParams));
+
+                $checkUrl = $request->url();
+                if (! empty($filteredParams)) {
+                    $checkUrl .= '?' . http_build_query($filteredParams);
+                }
+
+                $tempRequest = Request::create($checkUrl);
+                if ($tempRequest->hasValidSignature()) {
+                    $grantSession();
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        if ($this->hasValidReportSession($event)) {
+            return true;
         }
 
         $referer = $request->headers->get('referer');
         if ($referer && str_contains($referer, 'signature=')) {
-            $refererReq = Request::create($referer);
-            if ($refererReq->hasValidSignature()) {
-                session([$sessionKey => true]);
-                return true;
-            }
-
             $refererQuery = [];
             parse_str(parse_url($referer, PHP_URL_QUERY) ?? '', $refererQuery);
-            if (!empty($refererQuery['signature'])) {
-                $filtered = array_intersect_key($refererQuery, array_flip(['signature', 'expires']));
-                $reconstructed = strtok($referer, '?');
-                if (!empty($filtered)) {
-                    $reconstructed .= '?' . http_build_query($filtered);
-                }
-                $tempRef = Request::create($reconstructed);
-                if ($tempRef->hasValidSignature()) {
-                    session([$sessionKey => true]);
+            if ($tokenMatches($refererQuery['token'] ?? null)) {
+                $refererReq = Request::create($referer);
+                if ($refererReq->hasValidSignature()) {
+                    $grantSession();
                     return true;
+                }
+
+                if (! empty($refererQuery['signature'])) {
+                    $filtered = array_intersect_key($refererQuery, array_flip(['token', 'signature', 'expires']));
+                    $reconstructed = strtok($referer, '?');
+                    if (! empty($filtered)) {
+                        $reconstructed .= '?' . http_build_query($filtered);
+                    }
+                    $tempRef = Request::create($reconstructed);
+                    if ($tempRef->hasValidSignature()) {
+                        $grantSession();
+                        return true;
+                    }
                 }
             }
         }
 
-        if (auth()->check()) {
-            return true;
+        if (auth()->check() && $eventModel) {
+            $user = auth()->user();
+            if ($eventModel->user_id === $user->id || (method_exists($user, 'isAdmin') && $user->isAdmin())) {
+                return true;
+            }
         }
 
         return false;
@@ -1288,19 +1355,7 @@ class PublicEventReportController extends Controller
         }
 
         if ($request->filled('age_group')) {
-            $group = $request->age_group;
-            $eventDate = $eventModel->start_at ?: now();
-            if ($group === '50+') {
-                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(50));
-            } elseif ($group === 'Master 45+') {
-                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(45))
-                    ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(50));
-            } elseif ($group === 'Master') {
-                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(40))
-                    ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(45));
-            } elseif ($group === 'Umum') {
-                $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(40));
-            }
+            $query->filterAgeGroup($request->age_group, $eventModel->start_at);
         }
 
         if ($request->filled('min_age')) {
@@ -1354,8 +1409,7 @@ class PublicEventReportController extends Controller
 
     public function doorprizeList(Request $request, $event)
     {
-        $sessionKey = 'report_access_' . $event;
-        if (! session($sessionKey)) {
+        if (! $this->hasValidReportSession($event)) {
             abort(403, 'Unauthorized');
         }
 

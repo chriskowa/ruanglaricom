@@ -263,6 +263,7 @@ class EventController extends Controller
             'payment_config.manual_bank.account_number' => 'nullable|string|max:100',
             'payment_config.manual_bank.account_name' => 'nullable|string|max:150',
             'payment_config.manual_bank.instructions' => 'nullable|string|max:1000',
+            'payment_config.manual_transfer_waive_fee' => 'nullable|boolean',
             'whatsapp_config' => 'nullable|array',
             'whatsapp_config.enabled' => 'nullable|boolean',
             'whatsapp_config.template' => 'nullable|string',
@@ -440,6 +441,9 @@ class EventController extends Controller
         }
         if (isset($validated['payment_config']['midtrans_demo_mode'])) {
             $validated['payment_config']['midtrans_demo_mode'] = (bool) $validated['payment_config']['midtrans_demo_mode'];
+        }
+        if (isset($validated['payment_config']) && is_array($validated['payment_config'])) {
+            $validated['payment_config']['manual_transfer_waive_fee'] = (bool) ($validated['payment_config']['manual_transfer_waive_fee'] ?? false);
         }
 
         // Single images are now paths from Dropzone
@@ -691,6 +695,7 @@ class EventController extends Controller
             'payment_config.manual_bank.account_number' => 'nullable|string|max:100',
             'payment_config.manual_bank.account_name' => 'nullable|string|max:150',
             'payment_config.manual_bank.instructions' => 'nullable|string|max:1000',
+            'payment_config.manual_transfer_waive_fee' => 'nullable|boolean',
             'whatsapp_config' => 'nullable|array',
             'whatsapp_config.enabled' => 'nullable|boolean',
             'whatsapp_config.template' => 'nullable|string',
@@ -940,6 +945,12 @@ class EventController extends Controller
         }
         if (isset($validated['payment_config']['midtrans_demo_mode'])) {
             $validated['payment_config']['midtrans_demo_mode'] = (bool) $validated['payment_config']['midtrans_demo_mode'];
+        }
+        if (isset($validated['payment_config']) && is_array($validated['payment_config'])) {
+            $validated['payment_config']['manual_transfer_waive_fee'] = (bool) ($validated['payment_config']['manual_transfer_waive_fee'] ?? false);
+            if (! empty($event->payment_config['report_token'])) {
+                $validated['payment_config']['report_token'] = $event->payment_config['report_token'];
+            }
         }
 
         $promoCodesInput = $request->input('promo_codes', []);
@@ -1224,19 +1235,7 @@ class EventController extends Controller
 
         // Filter by Age Group
         if (request()->has('age_group') && request()->age_group) {
-            $group = request()->age_group;
-            $eventDate = $event->start_at ?: now();
-            if ($group === '50+') {
-                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(50));
-            } elseif ($group === 'Master 45+') {
-                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(45))
-                    ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(50));
-            } elseif ($group === 'Master') {
-                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(40))
-                    ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(45));
-            } elseif ($group === 'Umum') {
-                $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(40));
-            }
+            $query->filterAgeGroup(request()->age_group, $event->start_at);
         }
 
         // Filter by Min Age
@@ -1486,7 +1485,7 @@ class EventController extends Controller
         ]);
         $eventReport['jersey_sizes_pending_pickup'] = $this->getJerseyPendingPickupCounts($event);
 
-        $reportLink = URL::signedRoute('report.show', ['event' => $event->id]);
+        $reportLink = $this->buildReportLink($event);
 
         $bibNumbers = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
             $q->where('event_id', $event->id);
@@ -1531,6 +1530,39 @@ class EventController extends Controller
             ->get();
 
         return view('eo.events.participants', compact('event', 'participants', 'financials', 'eventReport', 'reportLink', 'nextBibNumber', 'coupons', 'eventDetailAnalytics'));
+    }
+
+    private function buildReportLink(Event $event): string
+    {
+        $token = $event->payment_config['report_token'] ?? null;
+        $params = ['event' => $event->id];
+        if (! empty($token)) {
+            $params['token'] = $token;
+        }
+
+        return URL::signedRoute('report.show', $params);
+    }
+
+    public function regenerateReportLink(Request $request, Event $event)
+    {
+        $this->authorizeEvent($event);
+
+        $config = is_array($event->payment_config) ? $event->payment_config : [];
+        $config['report_token'] = \Illuminate\Support\Str::random(24);
+        $event->payment_config = $config;
+        $event->save();
+
+        session()->forget([
+            'report_access_' . $event->id,
+            'report_access_' . $event->slug,
+            'report_access_token_' . $event->id,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'report_link' => $this->buildReportLink($event),
+            'message' => 'Report link berhasil di-generate ulang. Link lama sudah tidak berlaku.',
+        ]);
     }
 
     private function getJerseyPendingPickupCounts(Event $event): array
@@ -1632,19 +1664,7 @@ class EventController extends Controller
         }
 
         if ($request->filled('age_group')) {
-            $group = $request->query('age_group');
-            $eventDate = $event->start_at ?: now();
-            if ($group === '50+') {
-                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(50));
-            } elseif ($group === 'Master 45+') {
-                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(45))
-                    ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(50));
-            } elseif ($group === 'Master') {
-                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(40))
-                    ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(45));
-            } elseif ($group === 'Umum') {
-                $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(40));
-            }
+            $query->filterAgeGroup($request->query('age_group'), $event->start_at);
         }
 
         // Filter by Min Age
@@ -2735,19 +2755,7 @@ class EventController extends Controller
 
         // Filter by Age Group
         if (request()->has('age_group') && request()->age_group) {
-            $group = request()->age_group;
-            $eventDate = $event->start_at ?: now();
-            if ($group === '50+') {
-                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(50));
-            } elseif ($group === 'Master 45+') {
-                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(45))
-                    ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(50));
-            } elseif ($group === 'Master') {
-                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(40))
-                    ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(45));
-            } elseif ($group === 'Umum') {
-                $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(40));
-            }
+            $query->filterAgeGroup(request()->age_group, $event->start_at);
         }
 
         // Filter by Min Age
@@ -2975,19 +2983,7 @@ class EventController extends Controller
 
         // Filter by Age Group
         if (request()->has('age_group') && request()->age_group) {
-            $group = request()->age_group;
-            $eventDate = $event->start_at ?: now();
-            if ($group === '50+') {
-                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(50));
-            } elseif ($group === 'Master 45+') {
-                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(45))
-                    ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(50));
-            } elseif ($group === 'Master') {
-                $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(40))
-                    ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(45));
-            } elseif ($group === 'Umum') {
-                $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(40));
-            }
+            $query->filterAgeGroup(request()->age_group, $event->start_at);
         }
 
         // Filter by Min Age
@@ -3270,19 +3266,7 @@ class EventController extends Controller
                     $query->whereNotNull('jersey_size')->whereIn(\DB::raw('UPPER(TRIM(jersey_size))'), $matchSizes);
                 }
                 if ($request->filled('age_group')) {
-                    $group = $request->age_group;
-                    $eventDate = $event->start_at ?: now();
-                    if ($group === '50+') {
-                        $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(50));
-                    } elseif ($group === 'Master 45+') {
-                        $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(45))
-                            ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(50));
-                    } elseif ($group === 'Master') {
-                        $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(40))
-                            ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(45));
-                    } elseif ($group === 'Umum') {
-                        $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(40));
-                    }
+                    $query->filterAgeGroup($request->age_group, $event->start_at);
                 }
                 if ($request->filled('min_age')) {
                     $minAge = (int) $request->min_age;

@@ -1607,6 +1607,7 @@
             const eventId = {{ $event->id }};
             const eventSlug = '{{ $event->slug }}';
             const platformFee = {{ $event->platform_fee ?? 0 }};
+            const manualTransferWaiveFee = {{ ! empty($event->payment_config['manual_transfer_waive_fee']) ? 'true' : 'false' }};
             const promoBuyX = {{ (int) ($event->promo_buy_x ?? 0) }};
             let appliedCoupon = null;
             let discountAmount = 0;
@@ -1712,6 +1713,7 @@
 
             // Attach initial listeners
             document.querySelectorAll('.category-select').forEach(el => el.addEventListener('change', handleCategoryChange));
+            document.querySelectorAll('input[name="payment_method"]').forEach(el => el.addEventListener('change', updatePriceSummary));
 
             // Update Total
             function updatePriceSummary() {
@@ -1739,7 +1741,9 @@
                     subtotal += price * paidQty;
                 });
                 
-                const totalFee = (subtotal - discountAmount <= 0) ? 0 : (count * platformFee);
+                const selectedPaymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value || '';
+                const isManualFeeWaived = manualTransferWaiveFee && selectedPaymentMethod === 'manual_transfer';
+                const totalFee = (subtotal - discountAmount <= 0 || isManualFeeWaived) ? 0 : (count * platformFee);
                 document.getElementById('subtotal').textContent = `Rp ${formatCurrency(subtotal)}`;
                 
                 if (platformFee > 0) {

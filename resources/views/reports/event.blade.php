@@ -553,7 +553,9 @@
                     <label class="text-xs font-semibold text-slate-300">Kelompok Umur</label>
                     <select name="age_group" class="mt-1 w-full rounded-md bg-slate-950 border border-slate-800 px-3 py-1.5 text-xs text-white outline-none focus:border-slate-600">
                         <option value="" @selected(($filters['age_group'] ?? '') === '')>Semua Kelompok</option>
-                        <option value="Umum" @selected(($filters['age_group'] ?? '') === 'Umum')>Umum (&lt; 40)</option>
+                        <option value="Kids 6-12" @selected(($filters['age_group'] ?? '') === 'Kids 6-12')>Kids (6-12)</option>
+                        <option value="Pelajar 13-17" @selected(($filters['age_group'] ?? '') === 'Pelajar 13-17')>Pelajar (13-17)</option>
+                        <option value="Umum" @selected(($filters['age_group'] ?? '') === 'Umum')>Umum (18-39)</option>
                         <option value="Master" @selected(($filters['age_group'] ?? '') === 'Master')>Master (40-44)</option>
                         <option value="Master 45+" @selected(($filters['age_group'] ?? '') === 'Master 45+')>Master 45+ (45-49)</option>
                         <option value="50+" @selected(($filters['age_group'] ?? '') === '50+')>50+ (&gt;= 50)</option>
@@ -660,9 +662,10 @@
                             <th class="text-left font-semibold px-3 py-2.5">No Telp</th>
                             <th class="text-left font-semibold px-3 py-2.5">Jersey</th>
                             <th class="text-left font-semibold px-3 py-2.5">No BIB</th>
-                            <th class="text-left font-semibold px-3 py-2.5">Addons</th>
+                            <th class="text-left font-semibold px-3 py-2.5 max-w-[180px]">Addons</th>
                             <th class="text-left font-semibold px-3 py-2.5">Tanggal Registrasi</th>
                             <th class="text-left font-semibold px-3 py-2.5">Status Pembayaran</th>
+                            <th class="text-left font-semibold px-3 py-2.5">Bukti</th>
                             <th class="text-left font-semibold px-3 py-2.5 text-center">Picked Up</th>
                             <th class="text-left font-semibold px-3 py-2.5">Aksi</th>
                         </tr>
@@ -697,15 +700,16 @@
                                     @endphp
                                     <span class="cell-value text-right md:text-left font-mono font-bold text-xs text-white">#{{ $bib ?? '-' }}</span>
                                 </td>
-                                <td class="px-3 py-2 text-slate-200">
+                                <td class="px-3 py-2 text-slate-200 max-w-[180px]">
                                     <span class="mobile-label text-slate-400 font-bold text-xs uppercase">Addons</span>
                                     @php $addons = is_array($p->addons) ? $p->addons : []; @endphp
-                                    <span class="cell-value text-right md:text-left">
+                                    <span class="cell-value text-right md:text-left block max-w-[180px]">
                                         @if(count($addons) > 0)
-                                            <span class="inline-flex flex-wrap gap-1 justify-end md:justify-start">
+                                            <span class="inline-flex flex-wrap gap-1 justify-end md:justify-start max-w-full">
                                                 @foreach($addons as $a)
-                                                    <span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-200">
-                                                        {{ is_array($a) ? ($a['name'] ?? '-') : ($a->name ?? '-') }}
+                                                    @php $addonName = is_array($a) ? ($a['name'] ?? '-') : ($a->name ?? '-'); @endphp
+                                                    <span class="inline-block max-w-full truncate px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-200" title="{{ $addonName }}">
+                                                        {{ $addonName }}
                                                     </span>
                                                 @endforeach
                                             </span>
@@ -730,14 +734,6 @@
                                                 <option value="expired" @selected($p->payment_status === 'expired')>EXPIRED</option>
                                                 <option value="cancelled" @selected($p->payment_status === 'cancelled')>CANCELLED</option>
                                             </select>
-                                            @if(!empty($p->payment_proof))
-                                                <button type="button"
-                                                    onclick="openProofPreviewModal('{{ asset('storage/' . $p->payment_proof) }}', '{{ addslashes($p->name) }}', '{{ $p->public_ref ?? '' }}', '{{ addslashes($p->proof_notes ?? '') }}')"
-                                                    class="px-2 py-1 text-xs rounded-md bg-emerald-950 border border-emerald-700 text-emerald-300 hover:bg-emerald-900 font-semibold transition cursor-pointer"
-                                                    title="Lihat Bukti Transfer">
-                                                    Bukti
-                                                </button>
-                                            @endif
                                             @if($p->payment_status !== 'paid')
                                                 <button type="button"
                                                     onclick="approveParticipantPaid(this, {{ $p->id }})"
@@ -751,6 +747,22 @@
                                             <div class="mt-0.5 text-[10px] font-mono text-amber-400" title="Kupon dipakai">
                                                 Kupon: {{ $p->coupon_code }}
                                             </div>
+                                        @endif
+                                    </div>
+                                </td>
+                                <td class="px-3 py-2 no-click">
+                                    <span class="mobile-label text-slate-400 font-bold text-xs uppercase">Bukti</span>
+                                    <div class="cell-value text-right md:text-left">
+                                        @if(!empty($p->payment_proof))
+                                            <button type="button"
+                                                onclick="openProofPreviewModal('{{ asset('storage/' . $p->payment_proof) }}', '{{ addslashes($p->name) }}', '{{ $p->public_ref ?? '' }}', '{{ addslashes($p->proof_notes ?? '') }}')"
+                                                class="inline-flex items-center gap-1.5 px-2 py-1 text-xs rounded-md bg-emerald-950 border border-emerald-700 text-emerald-300 hover:bg-emerald-900 font-semibold transition cursor-pointer"
+                                                title="Lihat Bukti Transfer">
+                                                <img src="{{ asset('storage/' . $p->payment_proof) }}" alt="Bukti" class="w-6 h-6 object-cover rounded border border-emerald-700/60" loading="lazy">
+                                                <span>Lihat</span>
+                                            </button>
+                                        @else
+                                            <span class="text-slate-500">-</span>
                                         @endif
                                     </div>
                                 </td>
@@ -2523,19 +2535,15 @@
             setSalesInsights(sales);
         }
 
-        function paymentPill(status, couponCode, finalAmount, participantId, pObj) {
+        function paymentPill(status, couponCode, finalAmount, participantId) {
             const text = (status || '').toString().toLowerCase();
             const statuses = ['paid', 'pending', 'cod', 'failed', 'expired', 'cancelled'];
             let options = statuses.map(s => `<option value="${s}" ${s === text ? 'selected' : ''}>${s.toUpperCase()}</option>`).join('');
-            const proofPath = pObj && pObj.payment_proof ? pObj.payment_proof : '';
-            const proofBtn = proofPath
-                ? `<button type="button" onclick="openProofPreviewModal('/storage/' + encodeURI('${String(proofPath).replace(/'/g, "\\'")}'), '${String((pObj && pObj.name) || '').replace(/'/g, "\\'")}', '${String((pObj && pObj.public_ref) || '').replace(/'/g, "\\'")}', '${String((pObj && pObj.proof_notes) || '').replace(/'/g, "\\'")}')" class="px-2 py-1 text-xs rounded-md bg-emerald-950 border border-emerald-700 text-emerald-300 hover:bg-emerald-900 font-semibold transition cursor-pointer" title="Lihat Bukti Transfer">Bukti</button>`
-                : '';
             const approveBtn = text !== 'paid'
                 ? `<button type="button" onclick="approveParticipantPaid(this, ${participantId})" class="px-2 py-1 text-xs rounded-md bg-lime-400 hover:bg-lime-300 text-slate-950 font-bold transition cursor-pointer" title="Approve & Tandai Paid">Approve</button>`
                 : '';
 
-            let html = `<div class="flex flex-wrap items-center gap-1.5 justify-end md:justify-start"><select onchange="updatePaymentStatus(this, ${participantId}, this.value)" class="bg-slate-950 border border-slate-800 text-xs font-semibold rounded-md px-2 py-1 text-white focus:outline-none focus:border-slate-600 cursor-pointer">${options}</select>${proofBtn}${approveBtn}</div>`;
+            let html = `<div class="flex flex-wrap items-center gap-1.5 justify-end md:justify-start"><select onchange="updatePaymentStatus(this, ${participantId}, this.value)" class="bg-slate-950 border border-slate-800 text-xs font-semibold rounded-md px-2 py-1 text-white focus:outline-none focus:border-slate-600 cursor-pointer">${options}</select>${approveBtn}</div>`;
             if (couponCode) {
                 html += `<div class="mt-0.5 text-[10px] text-amber-400 font-mono" title="Kupon dipakai">Kupon: ${couponCode}</div>`;
                 html += `<div class="text-[10px] text-slate-400">Rp ${formatCurrency(finalAmount)}</div>`;
@@ -2543,18 +2551,32 @@
             return html;
         }
 
+        function proofCellHtml(pObj) {
+            const proofPath = pObj && pObj.payment_proof ? pObj.payment_proof : '';
+            if (!proofPath) {
+                return `<span class="text-slate-500">-</span>`;
+            }
+            const proofUrl = '/storage/' + encodeURI(String(proofPath));
+            const escapedUrl = proofUrl.replace(/'/g, "\\'");
+            const escapedName = String((pObj && pObj.name) || '').replace(/'/g, "\\'");
+            const escapedRef = String((pObj && pObj.public_ref) || '').replace(/'/g, "\\'");
+            const escapedNotes = String((pObj && pObj.proof_notes) || '').replace(/'/g, "\\'");
+            return `<button type="button" onclick="openProofPreviewModal('${escapedUrl}', '${escapedName}', '${escapedRef}', '${escapedNotes}')" class="inline-flex items-center gap-1.5 px-2 py-1 text-xs rounded-md bg-emerald-950 border border-emerald-700 text-emerald-300 hover:bg-emerald-900 font-semibold transition cursor-pointer" title="Lihat Bukti Transfer"><img src="${proofUrl}" alt="Bukti" class="w-6 h-6 object-cover rounded border border-emerald-700/60" loading="lazy"><span>Lihat</span></button>`;
+        }
+
         function renderParticipants(paginator) {
             const rows = (paginator && paginator.data) ? paginator.data : [];
             if (!rows.length) {
-                tbody.innerHTML = `<tr><td colspan="10" class="px-4 py-8 text-center text-slate-400">Tidak ada data peserta yang cocok.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="11" class="px-4 py-8 text-center text-slate-400">Tidak ada data peserta yang cocok.</td></tr>`;
             } else {
                 tbody.innerHTML = rows.map((p) => {
                     const addons = Array.isArray(p.addons) ? p.addons : [];
                     const addonsHtml = addons.length
-                        ? `<span class="inline-flex flex-wrap gap-1 justify-end md:justify-start">${
+                        ? `<span class="inline-flex flex-wrap gap-1 justify-end md:justify-start max-w-full">${
                             addons.map((a) => {
                                 const name = (a && (a.name || a['name'])) || '-';
-                                return `<span class="inline-flex items-center px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-200">${name}</span>`;
+                                const safeTitle = String(name).replace(/"/g, '&quot;');
+                                return `<span class="inline-block max-w-full truncate px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-200" title="${safeTitle}">${name}</span>`;
                             }).join('')
                         }</span>`
                         : `<span class="text-slate-500">-</span>`;
@@ -2588,9 +2610,9 @@
                                 <span class="mobile-label text-slate-400 font-bold text-xs uppercase">No BIB</span>
                                 <span class="cell-value text-right md:text-left font-mono font-bold text-xs text-white">#${bib}</span>
                             </td>
-                            <td class="px-3 py-2 text-slate-200">
+                            <td class="px-3 py-2 text-slate-200 max-w-[180px]">
                                 <span class="mobile-label text-slate-400 font-bold text-xs uppercase">Addons</span>
-                                <span class="cell-value text-right md:text-left">${addonsHtml}</span>
+                                <span class="cell-value text-right md:text-left block max-w-[180px]">${addonsHtml}</span>
                             </td>
                             <td class="px-3 py-2 text-slate-300">
                                 <span class="mobile-label text-slate-400 font-bold text-xs uppercase">Tgl Reg</span>
@@ -2598,7 +2620,11 @@
                             </td>
                             <td class="px-3 py-2 no-click">
                                 <span class="mobile-label text-slate-400 font-bold text-xs uppercase">Status</span>
-                                <div class="cell-value text-right md:text-left">${paymentPill(p.payment_status, p.coupon_code, p.final_amount, p.id, p)}</div>
+                                <div class="cell-value text-right md:text-left">${paymentPill(p.payment_status, p.coupon_code, p.final_amount, p.id)}</div>
+                            </td>
+                            <td class="px-3 py-2 no-click">
+                                <span class="mobile-label text-slate-400 font-bold text-xs uppercase">Bukti</span>
+                                <div class="cell-value text-right md:text-left">${proofCellHtml(p)}</div>
                             </td>
                             <td class="px-3 py-2 text-center no-click">
                                 <span class="mobile-label text-slate-400 font-bold text-xs uppercase">Picked Up</span>
@@ -3300,15 +3326,18 @@
         }
 
         window.approveParticipantPaid = function(btn, participantId) {
+            if (!confirm('Approve pembayaran ini sebagai PAID dan kirim email e-Ticket ke peserta?')) {
+                return;
+            }
             const row = btn.closest('tr');
             const selectEl = row ? row.querySelector('select') : null;
             if (selectEl) {
                 selectEl.value = 'paid';
             }
-            window.updatePaymentStatus(selectEl || btn, participantId, 'paid');
+            window.updatePaymentStatus(selectEl || btn, participantId, 'paid', true);
         };
 
-        window.updatePaymentStatus = function(selectEl, participantId, newStatus) {
+        window.updatePaymentStatus = function(selectEl, participantId, newStatus, showSuccessMessage) {
             if (selectEl) selectEl.disabled = true;
             const eventId = "{{ $event->id }}";
             const url = `/reports/${eventId}/participants/${participantId}/status`;
@@ -3332,6 +3361,9 @@
             .then(data => {
                 if (selectEl) selectEl.disabled = false;
                 if (data.success) {
+                    if (showSuccessMessage && data.message) {
+                        alert(data.message);
+                    }
                     const filterForm = document.getElementById('report-filters');
                     if (filterForm) {
                         filterForm.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));

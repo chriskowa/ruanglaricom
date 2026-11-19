@@ -1485,6 +1485,7 @@ Route::middleware('auth')->group(function () {
         Route::resource('events', App\Http\Controllers\EO\EventController::class);
         Route::post('events/{event}/send-test-email', [App\Http\Controllers\EO\EventController::class, 'sendTestEmail'])->name('events.send-test-email');
         Route::get('events/{event}/participants', [App\Http\Controllers\EO\EventController::class, 'participants'])->name('events.participants');
+        Route::post('events/{event}/report-link/regenerate', [App\Http\Controllers\EO\EventController::class, 'regenerateReportLink'])->name('events.report-link.regenerate');
         Route::post('events/{event}/participants', [App\Http\Controllers\EO\EventController::class, 'storeParticipant'])->name('events.participants.store');
         Route::post('events/{event}/participants/import-csv', [App\Http\Controllers\EO\EventController::class, 'importParticipantsCsv'])->name('events.participants.import-csv');
         Route::get('events/{event}/participants/import-template', [App\Http\Controllers\EO\EventController::class, 'downloadParticipantsImportTemplate'])->name('events.participants.import-template');

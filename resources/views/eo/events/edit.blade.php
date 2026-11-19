@@ -907,6 +907,16 @@
                             <label class="block text-xs font-medium text-slate-300 mb-1">Instruksi Pembayaran Tambahan (Opsional)</label>
                             <input type="text" name="payment_config[manual_bank][instructions]" value="{{ old('payment_config.manual_bank.instructions', $manualBank['instructions'] ?? '') }}" placeholder="Contoh: Harap sertakan 3 digit kode unik saat transfer" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:outline-none">
                         </div>
+                        <div class="pt-2 border-t border-slate-700/70">
+                            <input type="hidden" name="payment_config[manual_transfer_waive_fee]" value="0">
+                            <label class="flex items-start gap-2.5 cursor-pointer">
+                                <input type="checkbox" name="payment_config[manual_transfer_waive_fee]" value="1" {{ old('payment_config.manual_transfer_waive_fee', $paymentConfig['manual_transfer_waive_fee'] ?? false) ? 'checked' : '' }} class="mt-0.5 rounded border-slate-600 bg-slate-900 text-emerald-400 focus:ring-emerald-400">
+                                <span>
+                                    <span class="block text-xs font-semibold text-white">Bebaskan Biaya Layanan (Rp 0) khusus Transfer Rekening EO</span>
+                                    <span class="block text-xs text-slate-400 mt-0.5">Jika dicentang, peserta yang memilih Transfer Rekening EO tidak dikenakan biaya layanan platform. Metode lain (Midtrans, Moota, dll) tetap mengikuti pengaturan normal.</span>
+                                </span>
+                            </label>
+                        </div>
                     </div>
 
                     <script>

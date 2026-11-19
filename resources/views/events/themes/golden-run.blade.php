@@ -2664,6 +2664,7 @@
             const totalDisplay = document.getElementById('totalDisplay');
             const platformFeeDisplay = document.getElementById('platformFeeDisplay');
             const platformFee = {{ $event->platform_fee ?? 0 }};
+            const manualTransferWaiveFee = {{ ! empty($event->payment_config['manual_transfer_waive_fee']) ? 'true' : 'false' }};
             const promoBuyX = {{ (int) ($event->promo_buy_x ?? 0) }};
             let participantCount = 1;
             let appliedCoupon = null;
@@ -2728,6 +2729,10 @@
                 return categorySubtotal + addonTotal;
             }
 
+            document.querySelectorAll('input[name="payment_method"]').forEach(input => {
+                input.addEventListener('change', calculateTotal);
+            });
+
             // 1. Calculate Price Function
             function calculateTotal() {
                 const subtotal = calculateSubtotalWithAddons();
@@ -2736,7 +2741,9 @@
                 // Update Displays
                 subtotalDisplay.textContent = formatCurrency(subtotal);
                 
-                const totalFee = (subtotal - discountAmount <= 0) ? 0 : (selectedCount * platformFee);
+                const selectedPaymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value || '';
+                const isManualFeeWaived = manualTransferWaiveFee && selectedPaymentMethod === 'manual_transfer';
+                const totalFee = (subtotal - discountAmount <= 0 || isManualFeeWaived) ? 0 : (selectedCount * platformFee);
                 if(platformFeeDisplay) platformFeeDisplay.textContent = formatCurrency(totalFee);
                 
                 let grandTotal = subtotal + totalFee - discountAmount;

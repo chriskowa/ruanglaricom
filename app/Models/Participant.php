@@ -91,8 +91,53 @@ class Participant extends Model
         if ($age >= 40) {
             return 'Master';
         }
+        if ($age >= 13 && $age <= 17) {
+            return 'Pelajar 13-17';
+        }
+        if ($age >= 6 && $age <= 12) {
+            return 'Kids 6-12';
+        }
 
         return 'Umum';
+    }
+
+    public function scopeFilterAgeGroup($query, ?string $group, $eventDate = null, string $column = 'date_of_birth')
+    {
+        if (! $group) {
+            return $query;
+        }
+
+        $date = $eventDate ? \Carbon\Carbon::parse($eventDate) : now();
+
+        if ($group === '50+') {
+            return $query->whereDate($column, '<=', $date->copy()->subYears(50));
+        }
+        if ($group === 'Master 45+') {
+            return $query->whereDate($column, '<=', $date->copy()->subYears(45))
+                ->whereDate($column, '>', $date->copy()->subYears(50));
+        }
+        if ($group === 'Master') {
+            return $query->whereDate($column, '<=', $date->copy()->subYears(40))
+                ->whereDate($column, '>', $date->copy()->subYears(45));
+        }
+        if ($group === 'Pelajar 13-17') {
+            return $query->whereDate($column, '<=', $date->copy()->subYears(13))
+                ->whereDate($column, '>', $date->copy()->subYears(18));
+        }
+        if ($group === 'Kids 6-12') {
+            return $query->whereDate($column, '<=', $date->copy()->subYears(6))
+                ->whereDate($column, '>', $date->copy()->subYears(13));
+        }
+        if ($group === 'Umum') {
+            return $query->where(function ($q) use ($column, $date) {
+                $q->where(function ($sub) use ($column, $date) {
+                    $sub->whereDate($column, '<=', $date->copy()->subYears(18))
+                        ->whereDate($column, '>', $date->copy()->subYears(40));
+                })->orWhereDate($column, '>', $date->copy()->subYears(6));
+            });
+        }
+
+        return $query;
     }
 
     public function getPicNameAttribute()

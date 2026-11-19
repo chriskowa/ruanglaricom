@@ -123,6 +123,10 @@
                                 <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
                                 Copy Report Link
                             </button>
+                            <button type="button" onclick="regenerateReportLink(this)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-amber-950/50 text-amber-300 border border-amber-500/30 font-bold text-xs flex items-center gap-1.5 transition-colors" title="Buat token report link baru dan nonaktifkan link lama">
+                                <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                Generate Ulang
+                            </button>
                             <button type="button" onclick="sendBulkPendingReminder(this)" class="px-2.5 py-1.5 rounded-lg bg-slate-800/60 hover:bg-red-950/40 text-red-400 border border-red-500/30 font-bold text-xs flex items-center gap-1.5 transition-colors" title="Kirim reminder ke peserta pending > 1 hari">
                                 <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
                                 Bulk Reminder
@@ -482,7 +486,9 @@
                     <label class="block text-xs font-medium text-slate-400 mb-1">Age Group</label>
                     <select name="age_group" class="bg-slate-800 border border-slate-600 text-white text-sm rounded-lg px-3 py-2 focus:border-yellow-400 focus:outline-none">
                         <option value="">All Groups</option>
-                        <option value="Umum" {{ request('age_group') == 'Umum' ? 'selected' : '' }}>Umum (&lt; 40)</option>
+                        <option value="Kids 6-12" {{ request('age_group') == 'Kids 6-12' ? 'selected' : '' }}>Kids (6-12)</option>
+                        <option value="Pelajar 13-17" {{ request('age_group') == 'Pelajar 13-17' ? 'selected' : '' }}>Pelajar (13-17)</option>
+                        <option value="Umum" {{ request('age_group') == 'Umum' ? 'selected' : '' }}>Umum (18-39)</option>
                         <option value="Master" {{ request('age_group') == 'Master' ? 'selected' : '' }}>Master (40-44)</option>
                         <option value="Master 45+" {{ request('age_group') == 'Master 45+' ? 'selected' : '' }}>Master 45+ (45-49)</option>
                         <option value="50+" {{ request('age_group') == '50+' ? 'selected' : '' }}>50+ (&gt;= 50)</option>
@@ -1772,6 +1778,10 @@
                             <button type="button" onclick="closeParticipantsActionsModal(); copyReportLink();" class="w-full px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium flex items-center gap-2 transition-colors">
                                 <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
                                 Copy Report Link
+                            </button>
+                            <button type="button" onclick="closeParticipantsActionsModal(); regenerateReportLink(this);" class="w-full px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-amber-950/50 text-amber-300 border border-amber-500/30 text-xs font-medium flex items-center gap-2 transition-colors">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
+                                Generate Ulang Report Link
                             </button>
                             <button type="button" onclick="closeParticipantsActionsModal(); sendBulkPendingReminder(this);" class="w-full px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-medium flex items-center gap-2 transition-colors">
                                 <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
@@ -4488,6 +4498,51 @@
         }
 
         fallbackCopy(link);
+    }
+
+    window.regenerateReportLink = async function (btn) {
+        if (!confirm('Generate ulang Report Link? Link report yang lama akan langsung tidak berlaku.')) {
+            return;
+        }
+
+        var originalHtml = btn ? btn.innerHTML : '';
+        if (btn) {
+            btn.disabled = true;
+            btn.textContent = 'Generating...';
+        }
+
+        try {
+            var res = await fetch('{{ route("eo.events.report-link.regenerate", $event) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                }
+            });
+            var data = await res.json();
+            if (!res.ok || !data.success || !data.report_link) {
+                throw new Error(data.message || 'Gagal generate ulang report link');
+            }
+
+            var input = document.getElementById('eoReportLink');
+            if (input) {
+                input.value = data.report_link;
+            }
+
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(data.report_link).catch(function () {});
+            }
+
+            alert(data.message + '\nLink baru sudah disalin ke clipboard.');
+        } catch (err) {
+            alert(err.message || 'Terjadi kesalahan saat generate ulang report link');
+        } finally {
+            if (btn) {
+                btn.disabled = false;
+                btn.innerHTML = originalHtml;
+            }
+        }
     }
 
     window.copyPublicRef = function () {

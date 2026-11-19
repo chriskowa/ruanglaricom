@@ -3430,6 +3430,7 @@
             const participantCountBadge = document.getElementById('participantCountBadge');
 
             const platformFee = {{ (float) ($event->platform_fee ?? 0) }};
+            const manualTransferWaiveFee = {{ ! empty($event->payment_config['manual_transfer_waive_fee']) ? 'true' : 'false' }};
             const promoBuyX = {{ (int) ($event->promo_buy_x ?? 0) }};
             const eventId = {{ $event->id }};
             const eventSlug = "{{ $event->slug }}";
@@ -3496,7 +3497,9 @@
                 currentCalculatedSubtotal = subtotal;
 
                 const is100Discount = (appliedCoupon && appliedCoupon.type === 'percent' && parseFloat(appliedCoupon.value) >= 100) || (discountAmount >= subtotal && subtotal > 0);
-                const totalFee = (is100Discount || (subtotal - discountAmount <= 0)) ? 0 : (count * platformFee);
+                const selectedPaymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value || '';
+                const isManualFeeWaived = manualTransferWaiveFee && selectedPaymentMethod === 'manual_transfer';
+                const totalFee = (is100Discount || (subtotal - discountAmount <= 0) || isManualFeeWaived) ? 0 : (count * platformFee);
                 let grandTotal = is100Discount ? 0 : (subtotal + totalFee - discountAmount);
                 if (grandTotal < 0) grandTotal = 0;
                 currentCalculatedGrandTotal = grandTotal;
@@ -3546,6 +3549,10 @@
                     });
                 });
             }
+
+            document.querySelectorAll('input[name="payment_method"]').forEach(input => {
+                input.addEventListener('change', updateCalc);
+            });
 
             function addParticipant() {
                 resetCoupon();
