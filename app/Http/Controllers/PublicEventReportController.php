@@ -132,6 +132,9 @@ class PublicEventReportController extends Controller
                     'transactions.final_amount',
                     'transactions.discount_amount',
                     'transactions.payment_gateway',
+                    'transactions.payment_proof',
+                    'transactions.payment_proof_uploaded_at',
+                    'transactions.proof_notes',
                     'transactions.created_at as transaction_created_at',
                     'transactions.pic_data',
                     'transactions.public_ref',
@@ -849,9 +852,26 @@ class PublicEventReportController extends Controller
             $newPaymentStatus = (string) $validated['payment_status'];
             $transaction = $participant->transaction;
             if ($transaction) {
-                $transaction->update(['payment_status' => $newPaymentStatus]);
+                $wasPaid = ($transaction->payment_status ?? null) === 'paid';
+                $transaction->update([
+                    'payment_status' => $newPaymentStatus,
+                    'paid_at' => $newPaymentStatus === 'paid' ? ($transaction->paid_at ?? now()) : null,
+                ]);
 
-                if (in_array($newPaymentStatus, ['paid', 'cod'], true) && empty($participant->bib_number)) {
+                if ($newPaymentStatus === 'paid') {
+                    $participant->update([
+                        'isApproved' => 1,
+                        'status' => 'confirmed',
+                    ]);
+                    if (! $wasPaid) {
+                        \App\Jobs\ProcessPaidEventTransaction::dispatchAfterResponse($transaction);
+                    }
+                } elseif (in_array($newPaymentStatus, ['failed', 'expired', 'cancelled'], true)) {
+                    $participant->update([
+                        'isApproved' => 0,
+                        'status' => 'cancelled',
+                    ]);
+                } elseif ($newPaymentStatus === 'cod' && empty($participant->bib_number)) {
                     if (method_exists($participant, 'assignBibNumber')) {
                         $participant->assignBibNumber();
                     }

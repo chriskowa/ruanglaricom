@@ -2174,6 +2174,27 @@
                     </div>
                     @endif
 
+                    <!-- Banner Re-open Upload Bukti Transfer Manual (jika modal tertutup / reload) -->
+                    <div id="mtReopenBanner" class="hidden max-w-5xl mx-auto mb-8 bg-slate-50 border border-slate-300 text-slate-900 rounded-lg p-5 shadow-sm">
+                        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                            <div>
+                                <div class="text-xs font-semibold text-slate-500">Transfer Rekening EO &middot; Menunggu Bukti</div>
+                                <h4 class="font-bold text-sm text-slate-900 mt-0.5">
+                                    No. Registrasi <span id="mtBannerRef" class="font-mono">-</span> &middot; <span id="mtBannerAmount" class="font-mono text-theme-primary">Rp 0</span>
+                                </h4>
+                                <p class="text-xs text-slate-600 mt-0.5">Modal tertutup? Anda bisa membuka ulang form unggah bukti pembayaran atau menyalin link halaman pembayaran di bawah ini.</p>
+                            </div>
+                            <div class="flex flex-wrap items-center gap-2 shrink-0">
+                                <button type="button" id="mtReopenModalBtn" class="px-4 min-h-[40px] rounded-md bg-theme-primary text-white font-bold text-xs hover:opacity-95 transition cursor-pointer">
+                                    Unggah Bukti Pembayaran
+                                </button>
+                                <a id="mtBannerFallbackLink" href="{{ route('events.payments.continue', $event->slug) }}" class="px-3.5 min-h-[40px] inline-flex items-center rounded-md bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 font-semibold text-xs transition">
+                                    Buka Link Pembayaran
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+
                     @if(isset($errors) && $errors->any())
                     <div class="max-w-5xl mx-auto mb-8 bg-red-50 border border-red-300 text-red-900 rounded-lg p-5 shadow-sm">
                         <h4 class="font-bold text-xs uppercase tracking-wider mb-2">Mohon Periksa Kembali Isian Formulir:</h4>
@@ -2798,6 +2819,116 @@
         'modalAccentClass' => 'text-theme-primary',
         'modalCloseClass' => 'bg-theme-primary text-white hover-bg-theme-primary rounded-md',
     ])
+
+    @php
+        $beachManualBank = $event->payment_config['manual_bank'] ?? [];
+        $beachRawWa = $event->whatsapp_number ?? ($event->contact_phone ?? ($event->user?->phone ?? ''));
+        $beachCleanWa = preg_replace('/\D+/', '', (string) $beachRawWa);
+        if (str_starts_with($beachCleanWa, '0')) {
+            $beachCleanWa = '62' . substr($beachCleanWa, 1);
+        }
+    @endphp
+    <!-- Manual Transfer & Upload Proof Modal (Same-Page) -->
+    <div id="manualTransferModal" class="fixed inset-0 z-[110] hidden items-center justify-center p-4 bg-slate-900/75" role="dialog" aria-modal="true" aria-labelledby="manualTransferTitle">
+        <div class="bg-white border border-slate-200 rounded-lg max-w-lg w-full shadow-xl overflow-hidden max-h-[92vh] flex flex-col">
+            <div class="px-5 py-4 border-b border-slate-200 flex items-center justify-between bg-slate-50 shrink-0">
+                <div>
+                    <h3 id="manualTransferTitle" class="font-heading text-base font-bold text-slate-900">Transfer Rekening EO</h3>
+                    <p class="text-xs text-slate-600 mt-0.5">No. Registrasi: <span id="mtRegRef" class="font-mono font-bold text-slate-900">-</span></p>
+                </div>
+                <button type="button" onclick="window.closeManualTransferModal()" class="w-8 h-8 rounded-md bg-white border border-slate-200 text-slate-600 hover:text-slate-900 flex items-center justify-center cursor-pointer" aria-label="Tutup">
+                    <i class="fas fa-times text-xs"></i>
+                </button>
+            </div>
+
+            <div class="p-5 space-y-4 overflow-y-auto">
+                <div class="rounded-md bg-slate-50 border border-slate-200 p-4 flex items-center justify-between gap-3">
+                    <div>
+                        <div class="text-xs text-slate-600">Total Transfer (termasuk kode unik)</div>
+                        <div id="mtTotalAmount" class="text-xl font-bold font-mono text-slate-900 mt-0.5">Rp 0</div>
+                    </div>
+                    <button type="button" onclick="window.copyMtValue('amount')" class="px-3 min-h-[36px] rounded-md bg-white border border-slate-300 hover:border-slate-400 text-xs font-semibold text-slate-800 cursor-pointer shrink-0">
+                        Salin Nominal
+                    </button>
+                </div>
+
+                <div class="rounded-md border border-slate-200 p-4 space-y-2.5 bg-white">
+                    <div class="flex items-center justify-between gap-2 text-xs">
+                        <span class="text-slate-600">Bank Tujuan</span>
+                        <span id="mtBankName" class="font-bold text-slate-900">{{ $beachManualBank['bank_name'] ?? '-' }}</span>
+                    </div>
+                    <div class="flex items-center justify-between gap-2 text-xs">
+                        <span class="text-slate-600">Nomor Rekening</span>
+                        <div class="flex items-center gap-2">
+                            <span id="mtAccountNumber" class="font-mono font-bold text-slate-900">{{ $beachManualBank['account_number'] ?? '-' }}</span>
+                            <button type="button" onclick="window.copyMtValue('account')" class="px-2 py-0.5 rounded bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-[11px] cursor-pointer">
+                                Salin
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex items-center justify-between gap-2 text-xs">
+                        <span class="text-slate-600">Atas Nama</span>
+                        <span id="mtAccountName" class="font-semibold text-slate-900">{{ $beachManualBank['account_name'] ?? '-' }}</span>
+                    </div>
+                    <p id="mtInstructions" class="text-xs text-slate-600 pt-2 border-t border-slate-100 {{ empty($beachManualBank['instructions']) ? 'hidden' : '' }}">
+                        {{ $beachManualBank['instructions'] ?? '' }}
+                    </p>
+                </div>
+
+                <form id="mtUploadProofForm" class="space-y-3 border-t border-slate-200 pt-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-800 mb-1.5">Unggah Bukti Transfer</label>
+                        <div id="mtDropzone"
+                             tabindex="0"
+                             role="button"
+                             aria-label="Pilih atau seret file bukti transfer"
+                             class="rounded-lg border-2 border-dashed border-slate-300 bg-slate-50 hover:bg-slate-100 hover:border-slate-400 transition p-4 text-center cursor-pointer">
+                            <input type="file" id="mtProofFile" name="payment_proof" accept="image/*,.pdf" class="sr-only">
+                            <div id="mtDropzoneIdle" class="space-y-1">
+                                <div class="text-xs font-semibold text-slate-800">Klik atau seret bukti transfer ke sini</div>
+                                <div class="text-[11px] text-slate-500">Format: JPG, PNG, WEBP, atau PDF (otomatis dikompres agar ringan)</div>
+                            </div>
+                            <div id="mtDropzonePreview" class="hidden text-left space-y-2">
+                                <div class="flex items-center justify-between gap-3">
+                                    <div class="flex items-center gap-2.5 min-w-0">
+                                        <img id="mtPreviewImg" src="" alt="Preview bukti" class="hidden w-12 h-12 rounded object-cover border border-slate-300 shrink-0">
+                                        <div id="mtPreviewPdfIcon" class="hidden w-12 h-12 rounded bg-rose-100 text-rose-700 font-mono font-bold text-xs items-center justify-center shrink-0">PDF</div>
+                                        <div class="min-w-0">
+                                            <div id="mtPreviewName" class="text-xs font-semibold text-slate-900 truncate">-</div>
+                                            <div id="mtPreviewSize" class="text-[11px] font-mono text-emerald-700">-</div>
+                                        </div>
+                                    </div>
+                                    <button type="button" id="mtClearFileBtn" class="px-2.5 py-1 rounded bg-white border border-slate-300 hover:bg-slate-100 text-xs font-semibold text-slate-700 shrink-0 cursor-pointer">
+                                        Ganti
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-slate-700 mb-1">Catatan (Opsional)</label>
+                        <input type="text" id="mtProofNotes" name="notes" placeholder="Contoh: Transfer a.n Budi dari BCA" class="w-full px-3 min-h-[40px] rounded-md border border-slate-300 text-xs text-slate-900 focus:outline-none focus:border-slate-500">
+                    </div>
+
+                    <div id="mtUploadStatus" class="hidden rounded-md p-3 text-xs font-medium"></div>
+
+                    <button type="submit" id="mtUploadSubmitBtn" class="w-full min-h-[44px] rounded-md bg-theme-primary text-white font-bold text-sm hover:opacity-95 transition cursor-pointer">
+                        Kirim Bukti Pembayaran
+                    </button>
+                </form>
+
+                <div class="border-t border-slate-200 pt-3 flex flex-col sm:flex-row gap-2">
+                    <a id="mtWaPanitiaBtn" href="#" target="_blank" rel="noopener" class="{{ empty($beachCleanWa) ? 'hidden' : 'flex-1' }} min-h-[42px] px-4 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 transition">
+                        <i class="fab fa-whatsapp text-sm"></i>
+                        <span>Kirim Bukti ke WA Panitia</span>
+                    </a>
+                    <a id="mtFallbackPageLink" href="#" class="flex-1 min-h-[42px] px-4 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs flex items-center justify-center transition">
+                        Buka Halaman Pembayaran
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Floating WhatsApp Helpdesk Button -->
     @include('events.partials.floating-whatsapp', ['event' => $event])
@@ -4227,7 +4358,20 @@
                             return;
                         }
 
-                        // 2. Moota Payment
+                        // 2. Manual Transfer (Same-Page Modal + Upload Proof + WA Panitia)
+                        if (data.success && data.payment_gateway === 'manual_transfer') {
+                            if (btn) { btn.disabled = false; btn.innerHTML = originalText; isConfirmed = false; }
+                            if (typeof window.openManualTransferModal === 'function') {
+                                window.openManualTransferModal(data);
+                                return;
+                            }
+                            if (data.redirect_url) {
+                                window.location.href = data.redirect_url;
+                                return;
+                            }
+                        }
+
+                        // 3. Moota Payment
                         if (data.success && data.payment_gateway === 'moota') {
                             if (window.RuangLariMoota && typeof window.RuangLariMoota.open === 'function' && data.transaction_id) {
                                 if (btn) { btn.disabled = false; btn.innerHTML = originalText; isConfirmed = false; }
@@ -4749,6 +4893,347 @@
 
             if (isSuccessUrl) {
                 openSuccessModal();
+            }
+        })();
+
+        (function() {
+            const modal = document.getElementById('manualTransferModal');
+            if (!modal) return;
+            const form = document.getElementById('mtUploadProofForm');
+            const statusEl = document.getElementById('mtUploadStatus');
+            const submitBtn = document.getElementById('mtUploadSubmitBtn');
+            const waBtn = document.getElementById('mtWaPanitiaBtn');
+            const fallbackLink = document.getElementById('mtFallbackPageLink');
+
+            let currentUploadUrl = '';
+            let currentAmountRaw = 0;
+            let currentAccountRaw = @json($beachManualBank['account_number'] ?? '');
+            let compressedBase64 = '';
+            let selectedPdfFile = null;
+            const defaultWaPhone = @json($beachCleanWa ?? '');
+            const eventTitle = @json($event->name);
+            const mtStorageKey = 'ruanglari_last_manual_transfer_' + @json($event->id);
+            const reopenBanner = document.getElementById('mtReopenBanner');
+            const reopenModalBtn = document.getElementById('mtReopenModalBtn');
+            const bannerRef = document.getElementById('mtBannerRef');
+            const bannerAmount = document.getElementById('mtBannerAmount');
+            const bannerFallbackLink = document.getElementById('mtBannerFallbackLink');
+            let lastModalPayload = null;
+
+            const dropzone = document.getElementById('mtDropzone');
+            const fileInput = document.getElementById('mtProofFile');
+            const idleBox = document.getElementById('mtDropzoneIdle');
+            const previewBox = document.getElementById('mtDropzonePreview');
+            const previewImg = document.getElementById('mtPreviewImg');
+            const previewPdfIcon = document.getElementById('mtPreviewPdfIcon');
+            const previewName = document.getElementById('mtPreviewName');
+            const previewSize = document.getElementById('mtPreviewSize');
+            const clearFileBtn = document.getElementById('mtClearFileBtn');
+
+            function formatKb(bytes) {
+                return bytes >= 1048576
+                    ? (bytes / 1048576).toFixed(2) + ' MB'
+                    : Math.max(1, Math.round(bytes / 1024)) + ' KB';
+            }
+
+            function resetMtFileSelection() {
+                compressedBase64 = '';
+                selectedPdfFile = null;
+                if (fileInput) fileInput.value = '';
+                if (idleBox) idleBox.classList.remove('hidden');
+                if (previewBox) previewBox.classList.add('hidden');
+                if (previewImg) {
+                    previewImg.src = '';
+                    previewImg.classList.add('hidden');
+                }
+                if (previewPdfIcon) {
+                    previewPdfIcon.classList.add('hidden');
+                    previewPdfIcon.classList.remove('flex');
+                }
+            }
+
+            function compressImageFile(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onerror = () => reject(new Error('Gagal membaca file gambar.'));
+                    reader.onload = () => {
+                        const img = new Image();
+                        img.onerror = () => reject(new Error('Format gambar tidak didukung.'));
+                        img.onload = () => {
+                            const maxDim = 960;
+                            let w = img.naturalWidth || img.width;
+                            let h = img.naturalHeight || img.height;
+                            if (w > maxDim || h > maxDim) {
+                                const ratio = Math.min(maxDim / w, maxDim / h);
+                                w = Math.round(w * ratio);
+                                h = Math.round(h * ratio);
+                            }
+                            const c = document.createElement('canvas');
+                            c.width = w;
+                            c.height = h;
+                            const ctx = c.getContext('2d');
+                            ctx.drawImage(img, 0, 0, w, h);
+
+                            const encode = (q) => {
+                                let out = c.toDataURL('image/webp', q);
+                                if (!out.startsWith('data:image/webp')) {
+                                    out = c.toDataURL('image/jpeg', q);
+                                }
+                                const bytes = Math.round((out.length - out.indexOf(',') - 1) * 0.75);
+                                return { out, bytes };
+                            };
+
+                            let res = encode(0.62);
+                            for (const q of [0.5, 0.4]) {
+                                if (res.bytes <= 90 * 1024) break;
+                                res = encode(q);
+                            }
+
+                            resolve({ dataUrl: res.out, approxBytes: res.bytes });
+                        };
+                        img.src = reader.result;
+                    };
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            async function handleMtFile(file) {
+                if (!file) return;
+                const isPdf = file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf');
+                const isImage = file.type.startsWith('image/');
+
+                if (!isPdf && !isImage) {
+                    alert('Hanya menerima file gambar (JPG, PNG, WEBP) atau PDF.');
+                    return;
+                }
+
+                if (isPdf) {
+                    if (file.size > 2 * 1024 * 1024) {
+                        alert('Ukuran PDF maksimal 2 MB.');
+                        return;
+                    }
+                    compressedBase64 = '';
+                    selectedPdfFile = file;
+                    if (idleBox) idleBox.classList.add('hidden');
+                    if (previewBox) previewBox.classList.remove('hidden');
+                    if (previewImg) previewImg.classList.add('hidden');
+                    if (previewPdfIcon) {
+                        previewPdfIcon.classList.remove('hidden');
+                        previewPdfIcon.classList.add('flex');
+                    }
+                    if (previewName) previewName.textContent = file.name;
+                    if (previewSize) previewSize.textContent = formatKb(file.size) + ' · Siap dikirim';
+                    return;
+                }
+
+                try {
+                    if (previewName) previewName.textContent = file.name;
+                    if (previewSize) previewSize.textContent = 'Mengompres gambar...';
+                    if (idleBox) idleBox.classList.add('hidden');
+                    if (previewBox) previewBox.classList.remove('hidden');
+
+                    const { dataUrl, approxBytes } = await compressImageFile(file);
+                    compressedBase64 = dataUrl;
+                    selectedPdfFile = null;
+                    if (previewImg) {
+                        previewImg.src = dataUrl;
+                        previewImg.classList.remove('hidden');
+                    }
+                    if (previewPdfIcon) {
+                        previewPdfIcon.classList.add('hidden');
+                        previewPdfIcon.classList.remove('flex');
+                    }
+                    if (previewSize) {
+                        previewSize.textContent = formatKb(file.size) + ' → ' + formatKb(approxBytes) + ' (terkompresi)';
+                    }
+                } catch (err) {
+                    resetMtFileSelection();
+                    alert(err.message || 'Gagal memproses gambar.');
+                }
+            }
+
+            if (dropzone && fileInput) {
+                dropzone.addEventListener('click', (e) => {
+                    if (e.target.closest('#mtClearFileBtn')) return;
+                    fileInput.click();
+                });
+                dropzone.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        fileInput.click();
+                    }
+                });
+                dropzone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    dropzone.classList.add('border-slate-500', 'bg-slate-100');
+                });
+                dropzone.addEventListener('dragleave', () => {
+                    dropzone.classList.remove('border-slate-500', 'bg-slate-100');
+                });
+                dropzone.addEventListener('drop', (e) => {
+                    e.preventDefault();
+                    dropzone.classList.remove('border-slate-500', 'bg-slate-100');
+                    const f = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+                    if (f) handleMtFile(f);
+                });
+                fileInput.addEventListener('change', (e) => {
+                    const f = e.target.files && e.target.files[0];
+                    if (f) handleMtFile(f);
+                });
+            }
+            if (clearFileBtn) {
+                clearFileBtn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    resetMtFileSelection();
+                    fileInput?.click();
+                });
+            }
+
+            function syncMtReopenBanner(payload) {
+                if (!reopenBanner || !payload || !payload.upload_proof_url) return;
+                lastModalPayload = payload;
+                const amt = Math.round(Number(payload.final_amount || 0));
+                if (bannerRef) bannerRef.textContent = payload.registration_id || '-';
+                if (bannerAmount) bannerAmount.textContent = 'Rp ' + amt.toLocaleString('id-ID');
+                if (bannerFallbackLink && payload.redirect_url) bannerFallbackLink.href = payload.redirect_url;
+                reopenBanner.classList.remove('hidden');
+            }
+
+            if (reopenModalBtn) {
+                reopenModalBtn.addEventListener('click', () => {
+                    if (lastModalPayload) window.openManualTransferModal(lastModalPayload);
+                });
+            }
+
+            try {
+                const savedMt = localStorage.getItem(mtStorageKey);
+                if (savedMt) {
+                    const parsedMt = JSON.parse(savedMt);
+                    if (parsedMt && parsedMt.upload_proof_url && (!parsedMt.saved_at || (Date.now() - parsedMt.saved_at) < 24 * 60 * 60 * 1000)) {
+                        syncMtReopenBanner(parsedMt);
+                    }
+                }
+            } catch (e) {}
+
+            window.openManualTransferModal = function(data) {
+                currentUploadUrl = data.upload_proof_url || '';
+                currentAmountRaw = Math.round(Number(data.final_amount || 0));
+                const bank = data.manual_bank || {};
+                if (bank.account_number) currentAccountRaw = bank.account_number;
+
+                try {
+                    const persistPayload = { ...data, saved_at: Date.now() };
+                    localStorage.setItem(mtStorageKey, JSON.stringify(persistPayload));
+                    syncMtReopenBanner(persistPayload);
+                } catch (e) {}
+
+                document.getElementById('mtRegRef').textContent = data.registration_id || '-';
+                document.getElementById('mtTotalAmount').textContent = 'Rp ' + currentAmountRaw.toLocaleString('id-ID');
+                if (bank.bank_name) document.getElementById('mtBankName').textContent = bank.bank_name;
+                if (bank.account_number) document.getElementById('mtAccountNumber').textContent = bank.account_number;
+                if (bank.account_name) document.getElementById('mtAccountName').textContent = bank.account_name;
+
+                const instrEl = document.getElementById('mtInstructions');
+                if (instrEl && bank.instructions) {
+                    instrEl.textContent = bank.instructions;
+                    instrEl.classList.remove('hidden');
+                }
+
+                if (fallbackLink && data.redirect_url) {
+                    fallbackLink.href = data.redirect_url;
+                }
+
+                let waPhone = String(data.event_wa_phone || defaultWaPhone || '').replace(/\D+/g, '');
+                if (waPhone.startsWith('0')) waPhone = '62' + waPhone.slice(1);
+                if (waBtn) {
+                    if (waPhone) {
+                        const firstName = (data.participants && data.participants[0] && data.participants[0].participant_name) ? data.participants[0].participant_name : '';
+                        const waText = `Halo Panitia ${eventTitle}, saya ingin konfirmasi & kirim bukti transfer:\nNo. Registrasi: ${data.registration_id || '-'}\nNama: ${firstName}\nNominal: Rp ${currentAmountRaw.toLocaleString('id-ID')}`;
+                        waBtn.href = `https://wa.me/${waPhone}?text=${encodeURIComponent(waText)}`;
+                        waBtn.classList.remove('hidden');
+                        waBtn.classList.add('flex-1');
+                    } else {
+                        waBtn.classList.add('hidden');
+                    }
+                }
+
+                if (statusEl) {
+                    statusEl.className = 'hidden rounded-md p-3 text-xs font-medium';
+                    statusEl.textContent = '';
+                }
+                if (form) form.reset();
+                resetMtFileSelection();
+
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+            };
+
+            window.closeManualTransferModal = function() {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+            };
+
+            window.copyMtValue = function(type) {
+                const val = type === 'amount' ? String(currentAmountRaw) : String(currentAccountRaw || '');
+                if (!val || val === '-') return;
+                navigator.clipboard?.writeText(val).then(() => {
+                    alert((type === 'amount' ? 'Nominal transfer' : 'Nomor rekening') + ' disalin: ' + val);
+                }).catch(() => {});
+            };
+
+            if (form) {
+                form.addEventListener('submit', async function(e) {
+                    e.preventDefault();
+                    if (!currentUploadUrl) return;
+                    if (!compressedBase64 && !selectedPdfFile) {
+                        alert('Silakan pilih atau seret file bukti transfer terlebih dahulu.');
+                        return;
+                    }
+
+                    const fd = new FormData();
+                    const notesVal = document.getElementById('mtProofNotes')?.value || '';
+                    if (notesVal) fd.append('notes', notesVal);
+                    if (compressedBase64) {
+                        fd.append('payment_proof_base64', compressedBase64);
+                    } else if (selectedPdfFile) {
+                        fd.append('payment_proof', selectedPdfFile);
+                    }
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.textContent = 'Mengunggah...';
+                    }
+                    if (statusEl) statusEl.classList.add('hidden');
+
+                    try {
+                        const res = await fetch(currentUploadUrl, {
+                            method: 'POST',
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || '',
+                                'Accept': 'application/json'
+                            },
+                            body: fd
+                        });
+                        const json = await res.json();
+                        if (res.ok && json.success) {
+                            statusEl.className = 'rounded-md p-3 text-xs font-medium bg-emerald-50 border border-emerald-200 text-emerald-800';
+                            statusEl.textContent = json.message || 'Bukti pembayaran berhasil diunggah! Panitia akan memverifikasi pembayaran Anda.';
+                            statusEl.classList.remove('hidden');
+                            if (submitBtn) submitBtn.textContent = 'Unggah Ulang Bukti';
+                        } else {
+                            statusEl.className = 'rounded-md p-3 text-xs font-medium bg-rose-50 border border-rose-200 text-rose-800';
+                            statusEl.textContent = json.message || 'Gagal mengunggah bukti pembayaran.';
+                            statusEl.classList.remove('hidden');
+                            if (submitBtn) submitBtn.textContent = 'Kirim Bukti Pembayaran';
+                        }
+                    } catch (err) {
+                        statusEl.className = 'rounded-md p-3 text-xs font-medium bg-rose-50 border border-rose-200 text-rose-800';
+                        statusEl.textContent = 'Terjadi gangguan jaringan saat mengunggah bukti.';
+                        statusEl.classList.remove('hidden');
+                        if (submitBtn) submitBtn.textContent = 'Kirim Bukti Pembayaran';
+                    } finally {
+                        if (submitBtn) submitBtn.disabled = false;
+                    }
+                });
             }
         })();
 

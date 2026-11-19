@@ -731,10 +731,11 @@
                     <p class="text-xs text-slate-500 mb-6">Hanya mempengaruhi pembayaran event (Snap token + Snap JS). Tidak mempengaruhi wallet topup.</p>
                     @error('payment_config.midtrans_demo_mode') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
 
-                    <label class="block text-sm font-medium text-slate-300 mb-4">Payment Methods</label>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">Payment Methods</label>
+                    <p class="text-xs text-slate-400 mb-4">Anda dapat memilih satu atau beberapa metode pembayaran sekaligus (misal: Midtrans + Rekening EO).</p>
                     <div class="grid grid-cols-1 md:grid-cols-5 gap-4 mb-5">
                         <label class="relative cursor-pointer group">
-                            <input type="radio" name="payment_config[allowed_methods][]" value="midtrans" class="peer sr-only" checked onchange="toggleManualBankSection()">
+                            <input type="checkbox" name="payment_config[allowed_methods][]" value="midtrans" class="peer sr-only js-allowed-method" checked onchange="toggleManualBankSection(this)">
                             <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800 transition-all hover:border-slate-500 h-full flex flex-col items-center text-center">
                                 <div class="w-12 h-12 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center mb-3">
                                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
@@ -750,13 +751,13 @@
                         </label>
 
                         <label class="relative cursor-pointer group">
-                            <input type="radio" name="payment_config[allowed_methods][]" value="manual_transfer" class="peer sr-only" onchange="toggleManualBankSection()">
+                            <input type="checkbox" name="payment_config[allowed_methods][]" value="manual_transfer" class="peer sr-only js-allowed-method" onchange="toggleManualBankSection(this)">
                             <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800 transition-all hover:border-slate-500 h-full flex flex-col items-center text-center">
                                 <div class="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-3">
                                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" /></svg>
                                 </div>
                                 <h4 class="font-bold text-white mb-1">Rekening EO</h4>
-                                <p class="text-xs text-slate-400">Transfer Langsung + Kode Unik</p>
+                                <p class="text-xs text-slate-400">Transfer Langsung + Upload Bukti</p>
                             </div>
                             <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
                                 <div class="bg-yellow-400 rounded-full p-1">
@@ -766,7 +767,7 @@
                         </label>
 
                         <label class="relative cursor-pointer group">
-                            <input type="radio" name="payment_config[allowed_methods][]" value="moota" class="peer sr-only" onchange="toggleManualBankSection()">
+                            <input type="checkbox" name="payment_config[allowed_methods][]" value="moota" class="peer sr-only js-allowed-method" onchange="toggleManualBankSection(this)">
                             <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800 transition-all hover:border-slate-500 h-full flex flex-col items-center text-center">
                                 <div class="w-12 h-12 rounded-full bg-green-500/20 text-green-400 flex items-center justify-center mb-3">
                                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
@@ -782,7 +783,7 @@
                         </label>
 
                         <label class="relative cursor-pointer group">
-                            <input type="radio" name="payment_config[allowed_methods][]" value="cod" class="peer sr-only" onchange="toggleManualBankSection()">
+                            <input type="checkbox" name="payment_config[allowed_methods][]" value="cod" class="peer sr-only js-allowed-method" onchange="toggleManualBankSection(this)">
                             <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800 transition-all hover:border-slate-500 h-full flex flex-col items-center text-center">
                                 <div class="w-12 h-12 rounded-full bg-orange-500/20 text-orange-400 flex items-center justify-center mb-3">
                                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-2.21 0-4 1.79-4 4 0 1.3.62 2.46 1.58 3.2L12 21l2.42-5.8A3.99 3.99 0 0016 12c0-2.21-1.79-4-4-4zm0 6a2 2 0 110-4 2 2 0 010 4z"/></svg>
@@ -798,7 +799,7 @@
                         </label>
 
                         <label class="relative cursor-pointer group">
-                            <input type="radio" name="payment_config[allowed_methods][]" value="all" class="peer sr-only" onchange="toggleManualBankSection()">
+                            <input type="checkbox" name="payment_config[allowed_methods][]" value="all" class="peer sr-only js-allowed-method" onchange="toggleManualBankSection(this)">
                             <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800 transition-all hover:border-slate-500 h-full flex flex-col items-center text-center">
                                 <div class="w-12 h-12 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center mb-3">
                                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
@@ -842,17 +843,23 @@
                     </div>
 
                     <script>
-                        function toggleManualBankSection() {
+                        function toggleManualBankSection(changedEl) {
+                            var checkboxes = Array.from(document.querySelectorAll('.js-allowed-method'));
+                            var allBox = checkboxes.find(function (el) { return el.value === 'all'; });
+                            if (changedEl && changedEl.value === 'all') {
+                                checkboxes.forEach(function (el) { el.checked = changedEl.checked; });
+                            } else if (changedEl && allBox && !changedEl.checked) {
+                                allBox.checked = false;
+                            }
+
                             var wrapper = document.getElementById('manual_bank_config_wrapper');
                             if (!wrapper) return;
-                            var selected = document.querySelector('input[name="payment_config[allowed_methods][]"]:checked');
-                            if (selected && (selected.value === 'manual_transfer' || selected.value === 'all')) {
-                                wrapper.classList.remove('hidden');
-                            } else {
-                                wrapper.classList.add('hidden');
-                            }
+                            var showBank = checkboxes.some(function (el) {
+                                return el.checked && (el.value === 'manual_transfer' || el.value === 'all');
+                            });
+                            wrapper.classList.toggle('hidden', !showBank);
                         }
-                        document.addEventListener('DOMContentLoaded', toggleManualBankSection);
+                        document.addEventListener('DOMContentLoaded', function () { toggleManualBankSection(); });
                     </script>
                 </div>
             </div>

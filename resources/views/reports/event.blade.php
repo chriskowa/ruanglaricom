@@ -721,14 +721,32 @@
                                 <td class="px-3 py-2 no-click">
                                     <span class="mobile-label text-slate-400 font-bold text-xs uppercase">Status</span>
                                     <div class="cell-value text-right md:text-left">
-                                        <select onchange="updatePaymentStatus(this, {{ $p->id }}, this.value)" class="bg-slate-950 border border-slate-800 text-xs font-semibold rounded-md px-2 py-1 text-white focus:outline-none focus:border-slate-600 cursor-pointer">
-                                            <option value="paid" @selected($p->payment_status === 'paid')>PAID</option>
-                                            <option value="pending" @selected($p->payment_status === 'pending')>PENDING</option>
-                                            <option value="cod" @selected($p->payment_status === 'cod')>COD</option>
-                                            <option value="failed" @selected($p->payment_status === 'failed')>FAILED</option>
-                                            <option value="expired" @selected($p->payment_status === 'expired')>EXPIRED</option>
-                                            <option value="cancelled" @selected($p->payment_status === 'cancelled')>CANCELLED</option>
-                                        </select>
+                                        <div class="flex flex-wrap items-center gap-1.5 justify-end md:justify-start">
+                                            <select onchange="updatePaymentStatus(this, {{ $p->id }}, this.value)" class="bg-slate-950 border border-slate-800 text-xs font-semibold rounded-md px-2 py-1 text-white focus:outline-none focus:border-slate-600 cursor-pointer">
+                                                <option value="paid" @selected($p->payment_status === 'paid')>PAID</option>
+                                                <option value="pending" @selected($p->payment_status === 'pending')>PENDING</option>
+                                                <option value="cod" @selected($p->payment_status === 'cod')>COD</option>
+                                                <option value="failed" @selected($p->payment_status === 'failed')>FAILED</option>
+                                                <option value="expired" @selected($p->payment_status === 'expired')>EXPIRED</option>
+                                                <option value="cancelled" @selected($p->payment_status === 'cancelled')>CANCELLED</option>
+                                            </select>
+                                            @if(!empty($p->payment_proof))
+                                                <button type="button"
+                                                    onclick="openProofPreviewModal('{{ asset('storage/' . $p->payment_proof) }}', '{{ addslashes($p->name) }}', '{{ $p->public_ref ?? '' }}', '{{ addslashes($p->proof_notes ?? '') }}')"
+                                                    class="px-2 py-1 text-xs rounded-md bg-emerald-950 border border-emerald-700 text-emerald-300 hover:bg-emerald-900 font-semibold transition cursor-pointer"
+                                                    title="Lihat Bukti Transfer">
+                                                    Bukti
+                                                </button>
+                                            @endif
+                                            @if($p->payment_status !== 'paid')
+                                                <button type="button"
+                                                    onclick="approveParticipantPaid(this, {{ $p->id }})"
+                                                    class="px-2 py-1 text-xs rounded-md bg-lime-400 hover:bg-lime-300 text-slate-950 font-bold transition cursor-pointer"
+                                                    title="Approve & Tandai Paid">
+                                                    Approve
+                                                </button>
+                                            @endif
+                                        </div>
                                         @if($p->coupon_code)
                                             <div class="mt-0.5 text-[10px] font-mono text-amber-400" title="Kupon dipakai">
                                                 Kupon: {{ $p->coupon_code }}
@@ -2505,12 +2523,19 @@
             setSalesInsights(sales);
         }
 
-        function paymentPill(status, couponCode, finalAmount, participantId) {
+        function paymentPill(status, couponCode, finalAmount, participantId, pObj) {
             const text = (status || '').toString().toLowerCase();
             const statuses = ['paid', 'pending', 'cod', 'failed', 'expired', 'cancelled'];
             let options = statuses.map(s => `<option value="${s}" ${s === text ? 'selected' : ''}>${s.toUpperCase()}</option>`).join('');
-            
-            let html = `<select onchange="updatePaymentStatus(this, ${participantId}, this.value)" class="bg-slate-950 border border-slate-800 text-xs font-semibold rounded-md px-2 py-1 text-white focus:outline-none focus:border-slate-600 cursor-pointer">${options}</select>`;
+            const proofPath = pObj && pObj.payment_proof ? pObj.payment_proof : '';
+            const proofBtn = proofPath
+                ? `<button type="button" onclick="openProofPreviewModal('/storage/' + encodeURI('${String(proofPath).replace(/'/g, "\\'")}'), '${String((pObj && pObj.name) || '').replace(/'/g, "\\'")}', '${String((pObj && pObj.public_ref) || '').replace(/'/g, "\\'")}', '${String((pObj && pObj.proof_notes) || '').replace(/'/g, "\\'")}')" class="px-2 py-1 text-xs rounded-md bg-emerald-950 border border-emerald-700 text-emerald-300 hover:bg-emerald-900 font-semibold transition cursor-pointer" title="Lihat Bukti Transfer">Bukti</button>`
+                : '';
+            const approveBtn = text !== 'paid'
+                ? `<button type="button" onclick="approveParticipantPaid(this, ${participantId})" class="px-2 py-1 text-xs rounded-md bg-lime-400 hover:bg-lime-300 text-slate-950 font-bold transition cursor-pointer" title="Approve & Tandai Paid">Approve</button>`
+                : '';
+
+            let html = `<div class="flex flex-wrap items-center gap-1.5 justify-end md:justify-start"><select onchange="updatePaymentStatus(this, ${participantId}, this.value)" class="bg-slate-950 border border-slate-800 text-xs font-semibold rounded-md px-2 py-1 text-white focus:outline-none focus:border-slate-600 cursor-pointer">${options}</select>${proofBtn}${approveBtn}</div>`;
             if (couponCode) {
                 html += `<div class="mt-0.5 text-[10px] text-amber-400 font-mono" title="Kupon dipakai">Kupon: ${couponCode}</div>`;
                 html += `<div class="text-[10px] text-slate-400">Rp ${formatCurrency(finalAmount)}</div>`;
@@ -2573,7 +2598,7 @@
                             </td>
                             <td class="px-3 py-2 no-click">
                                 <span class="mobile-label text-slate-400 font-bold text-xs uppercase">Status</span>
-                                <div class="cell-value text-right md:text-left">${paymentPill(p.payment_status, p.coupon_code, p.final_amount, p.id)}</div>
+                                <div class="cell-value text-right md:text-left">${paymentPill(p.payment_status, p.coupon_code, p.final_amount, p.id, p)}</div>
                             </td>
                             <td class="px-3 py-2 text-center no-click">
                                 <span class="mobile-label text-slate-400 font-bold text-xs uppercase">Picked Up</span>
@@ -3226,6 +3251,61 @@
                 if (text) text.textContent = 'Tampilkan Filter';
                 localStorage.setItem('reportFiltersCollapsed', '1');
             }
+        };
+
+        if (typeof window.openProofPreviewModal !== 'function') {
+            window.openProofPreviewModal = function(url, name, ref, notes) {
+                let m = document.getElementById('report-proof-modal');
+                if (!m) {
+                    m = document.createElement('div');
+                    m.id = 'report-proof-modal';
+                    m.className = 'fixed inset-0 z-[120] hidden items-center justify-center p-4 bg-slate-950/85';
+                    m.innerHTML = `<div class="bg-slate-900 border border-slate-800 rounded-lg max-w-lg w-full overflow-hidden shadow-xl">
+                        <div class="px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+                            <div>
+                                <div class="text-sm font-bold text-white" id="rpm-title">Bukti Pembayaran</div>
+                                <div class="text-xs text-slate-400 font-mono" id="rpm-sub"></div>
+                            </div>
+                            <button type="button" onclick="document.getElementById('report-proof-modal').classList.add('hidden');document.getElementById('report-proof-modal').classList.remove('flex');" class="px-2.5 py-1 rounded bg-slate-800 text-xs text-slate-200 hover:bg-slate-700 cursor-pointer">Tutup</button>
+                        </div>
+                        <div class="p-4 space-y-3">
+                            <div id="rpm-body" class="bg-slate-950 border border-slate-800 rounded-md p-2 flex items-center justify-center max-h-[65vh] overflow-auto"></div>
+                            <div id="rpm-notes" class="text-xs text-slate-300 hidden"></div>
+                            <div class="flex justify-end gap-2">
+                                <a id="rpm-open-new" href="#" target="_blank" rel="noopener" class="px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-white">Buka Tab Baru</a>
+                            </div>
+                        </div>
+                    </div>`;
+                    document.body.appendChild(m);
+                }
+                document.getElementById('rpm-title').textContent = 'Bukti Pembayaran — ' + (name || 'Peserta');
+                document.getElementById('rpm-sub').textContent = ref ? ('No. Reg: ' + ref) : '';
+                const notesEl = document.getElementById('rpm-notes');
+                if (notes) {
+                    notesEl.textContent = 'Catatan: ' + notes;
+                    notesEl.classList.remove('hidden');
+                } else {
+                    notesEl.classList.add('hidden');
+                }
+                document.getElementById('rpm-open-new').href = url;
+                const body = document.getElementById('rpm-body');
+                if (url.toLowerCase().endsWith('.pdf')) {
+                    body.innerHTML = `<iframe src="${url}" class="w-full h-[55vh] rounded"></iframe>`;
+                } else {
+                    body.innerHTML = `<img src="${url}" alt="Bukti Pembayaran" class="max-w-full max-h-[60vh] object-contain rounded">`;
+                }
+                m.classList.remove('hidden');
+                m.classList.add('flex');
+            };
+        }
+
+        window.approveParticipantPaid = function(btn, participantId) {
+            const row = btn.closest('tr');
+            const selectEl = row ? row.querySelector('select') : null;
+            if (selectEl) {
+                selectEl.value = 'paid';
+            }
+            window.updatePaymentStatus(selectEl || btn, participantId, 'paid');
         };
 
         window.updatePaymentStatus = function(selectEl, participantId, newStatus) {

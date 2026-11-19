@@ -357,6 +357,7 @@ class StoreRegistrationAction
         $fingerprint = [
             'event_id' => $event->id,
             'pic_email' => strtolower($validated['pic_email']),
+            'payment_method' => $validated['payment_method'] ?? null,
             'participants' => collect($validated['participants'])->map(function ($p) {
                 return [
                     'email' => strtolower($p['email']),
@@ -370,7 +371,7 @@ class StoreRegistrationAction
         $existingTxId = Cache::get($idKey);
         if ($existingTxId) {
             $existing = Transaction::find($existingTxId);
-            if ($existing) {
+            if ($existing && ($existing->payment_status === 'pending' || $existing->payment_status === 'paid')) {
                 return $existing;
             }
         }

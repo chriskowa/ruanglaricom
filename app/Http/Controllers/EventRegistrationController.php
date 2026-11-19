@@ -302,6 +302,9 @@ class EventRegistrationController extends Controller
             // Handle Moota & Manual Transfer Redirect
             if (in_array($transaction->payment_gateway, ['moota', 'manual_transfer'], true) && $transaction->payment_status === 'pending') {
                 if ($wantsJson) {
+                    $eventContactPhone = $event->whatsapp_number
+                        ?? ($event->contact_phone ?? ($event->user?->phone ?? null));
+
                     return response()->json([
                         'success' => true,
                         'message' => 'Registrasi berhasil! Silakan lakukan transfer pembayaran.',
@@ -312,6 +315,9 @@ class EventRegistrationController extends Controller
                         'participants' => $participantsData,
                         'final_amount' => (float) ($transaction->final_amount ?? 0),
                         'unique_code' => (int) ($transaction->unique_code ?? 0),
+                        'manual_bank' => $event->payment_config['manual_bank'] ?? [],
+                        'upload_proof_url' => route('events.payment.upload-proof', ['slug' => $slug, 'transaction' => $transaction->id]),
+                        'event_wa_phone' => $eventContactPhone,
                         'redirect_url' => route('events.payment', ['slug' => $slug, 'transaction' => $transaction->id]),
                     ]);
                 }
@@ -407,6 +413,8 @@ class EventRegistrationController extends Controller
 
         $request->validate([
             'notes' => 'nullable|string|max:500',
+            'payment_proof' => 'nullable|file|mimes:jpg,jpeg,png,webp,pdf|max:2048',
+            'payment_proof_base64' => 'nullable|string|max:3000000',
         ]);
 
         $path = null;
