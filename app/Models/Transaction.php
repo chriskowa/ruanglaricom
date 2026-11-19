@@ -146,16 +146,18 @@ class Transaction extends Model
     }
 
     /**
-     * Mark transaction as failed
+     * Mark transaction as failed or expired
      */
-    public function markAsFailed(?string $midtransOrderId = null, ?string $transactionStatus = null): void
+    public function markAsFailed(?string $midtransOrderId = null, ?string $transactionStatus = null, string $paymentStatus = 'failed'): void
     {
         if (($this->payment_status ?? null) === 'paid') {
             return;
         }
 
+        $resolvedStatus = in_array($paymentStatus, ['failed', 'expired'], true) ? $paymentStatus : 'failed';
+
         $this->update([
-            'payment_status' => 'failed',
+            'payment_status' => $resolvedStatus,
             'midtrans_order_id' => $midtransOrderId ?? $this->midtrans_order_id,
             'midtrans_transaction_status' => $transactionStatus ?? $this->midtrans_transaction_status,
         ]);

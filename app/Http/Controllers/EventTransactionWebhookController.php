@@ -198,11 +198,9 @@ class EventTransactionWebhookController extends Controller
                 'success' => true,
                 'message' => 'Transaction pending',
             ]);
-        } elseif ($transactionStatus == 'deny' ||
-                  $transactionStatus == 'expire' ||
-                  $transactionStatus == 'cancel') {
-            // Transaction failed
-            $transaction->markAsFailed($orderId, $transactionStatus);
+        } elseif (in_array($transactionStatus, ['deny', 'expire', 'cancel'], true)) {
+            $targetPaymentStatus = $transactionStatus === 'expire' ? 'expired' : 'failed';
+            $transaction->markAsFailed($orderId, $transactionStatus, $targetPaymentStatus);
 
             return response()->json([
                 'success' => false,
