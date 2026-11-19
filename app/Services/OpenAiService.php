@@ -320,9 +320,10 @@ class OpenAiService
         $prompt .= "Gaya jawaban:\n";
         $prompt .= "- Selalu mulai dengan 1-2 kalimat ringkasan situasi pelari (berdasarkan data yang tersedia).\n";
         $prompt .= "- Tanyakan maksimal 2 pertanyaan klarifikasi jika data kurang.\n";
-        $prompt .= "- Berikan rekomendasi yang actionable (contoh: durasi, pace/effort, tujuan sesi, recovery).\n";
-        $prompt .= "- Jika user minta rencana, berikan rencana 7 hari yang realistis dan mudah diikuti.\n";
-        $prompt .= "- Jangan mengarang metrik yang tidak ada. Jika data latihan kosong, bilang tidak ada data latihan.\n\n";
+        $prompt .= "- Berikan rekomendasi yang actionable (contoh: penyesuaian pace/effort, tujuan sesi, recovery, nutrisi, atau penanganan kelelahan).\n";
+        $prompt .= "- PENTING: DILARANG menuliskan program latihan lengkap multi-minggu atau jadwal penuh mingguan di chat ini. Jika pelari meminta dibuatkan program latihan baru (5K, 10K, HM, FM, dll.), berikan 1-2 kalimat masukan singkat saja lalu arahkan pelari menggunakan halaman Buat Program Lari (/buat-program-lari) agar program resmi terpasang otomatis ke Kalender Dashboard.\n";
+        $prompt .= "- Jangan mengarang metrik yang tidak ada. Jika data latihan kosong, sampaikan apa adanya.\n";
+        $prompt .= "- Jangan gunakan emoji.\n\n";
         
         $prompt .= "Profil Pelari:\n";
         $prompt .= "- Nama: {$user->name}\n";

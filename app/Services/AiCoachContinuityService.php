@@ -14,6 +14,8 @@ class AiCoachContinuityService
 {
     public const DAILY_TOKEN_LIMIT = 25000;
     public const DAILY_REQUEST_LIMIT = 60;
+    public const FREE_CHAT_DAILY_LIMIT = 3;
+    public const ACTIVE_PROGRAM_CHAT_DAILY_LIMIT = 15;
     public const PROGRAM_PRICE_IDR = 15000;
 
     public function getCoachUser(): User
@@ -56,6 +58,35 @@ class AiCoachContinuityService
     public function hasRemainingQuota(User $user): bool
     {
         return $this->getDailyQuotaStatus($user)['has_quota'];
+    }
+
+    public function getCoachChatQuotaStatus(User $user): array
+    {
+        $coach = $this->getCoachUser();
+        $hasActiveProgram = ProgramEnrollment::where('runner_id', $user->id)
+            ->where('status', 'active')
+            ->exists();
+
+        $limit = $user->isAdmin()
+            ? 200
+            : ($hasActiveProgram ? self::ACTIVE_PROGRAM_CHAT_DAILY_LIMIT : self::FREE_CHAT_DAILY_LIMIT);
+
+        $usedToday = Message::where('sender_id', $user->id)
+            ->where('receiver_id', $coach->id)
+            ->whereDate('created_at', now()->toDateString())
+            ->count();
+
+        $tokenQuota = $this->getDailyQuotaStatus($user);
+        $remaining = max(0, $limit - $usedToday);
+
+        return [
+            'has_active_program' => $hasActiveProgram,
+            'used' => $usedToday,
+            'limit' => $limit,
+            'remaining' => $remaining,
+            'can_send' => ($remaining > 0) && $tokenQuota['has_quota'],
+            'token_exhausted' => ! $tokenQuota['has_quota'],
+        ];
     }
 
     public function recordTokenUsage(?User $user, int $tokens): void

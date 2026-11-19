@@ -1,35 +1,39 @@
 @extends('layouts.pacerhub')
+@php $hideFooter = true; @endphp
 
-@section('title', 'Messages')
+@section('title', 'Pesan — Ruang Lari')
 
 @section('content')
-<div class="flex h-[calc(100vh-64px)] overflow-hidden bg-dark pt-20">
-    <!-- Sidebar List -->
+<div class="fixed inset-x-0 top-20 bottom-0 z-20 bg-slate-950 flex overflow-hidden">
     @include('chat.partials.sidebar', ['conversations' => $conversations])
 
-    <!-- Empty State (Hidden on mobile if listing is shown, but here we just hide on mobile for now as index is list-only on mobile) -->
-    <div class="hidden md:flex flex-1 flex-col items-center justify-center bg-slate-900/30 text-center p-8">
-        <div class="w-24 h-24 bg-slate-800 rounded-full flex items-center justify-center mb-6 shadow-2xl shadow-black/50">
-            <svg class="w-10 h-10 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z" />
-            </svg>
+    <div class="hidden md:flex flex-1 flex-col items-center justify-center bg-slate-900 p-8 text-center">
+        <div class="max-w-md bg-slate-950 border border-slate-800 rounded-lg p-6">
+            <h2 class="text-xl font-bold text-white" style="font-family: 'Inter Tight', 'Sora', sans-serif;">
+                Pilih Percakapan
+            </h2>
+            <p class="text-sm text-slate-300 mt-2 leading-relaxed">
+                Pilih percakapan di sebelah kiri untuk melanjutkan diskusi dengan pelatih atau Coach Ruang Lari.
+            </p>
+            @if(!empty($aiCoach))
+                <div class="mt-5 flex flex-wrap items-center justify-center gap-2.5">
+                    <a href="{{ route('chat.show', $aiCoach) }}" class="px-4 min-h-[44px] inline-flex items-center justify-center rounded-md bg-lime-400 hover:bg-lime-300 text-slate-950 font-bold text-sm transition">
+                        Chat Coach Ruang Lari
+                    </a>
+                    <a href="{{ route('programs.realistic') }}" class="px-4 min-h-[44px] inline-flex items-center justify-center rounded-md bg-slate-800 hover:bg-slate-700 text-white font-semibold text-sm transition">
+                        Buat Program Lari
+                    </a>
+                </div>
+            @endif
         </div>
-        <h2 class="text-2xl font-black text-white mb-2">Select a Conversation</h2>
-        <p class="text-slate-400 max-w-sm">Choose a person from the left sidebar to start chatting or continue your conversation.</p>
     </div>
 </div>
 
 <style>
-.custom-scrollbar::-webkit-scrollbar { width: 4px; }
-.custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
-.custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 2px; }
-.custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #ccff00; }
+html, body { overflow: hidden; height: 100%; }
+.chat-scrollbar::-webkit-scrollbar { width: 5px; }
+.chat-scrollbar::-webkit-scrollbar-track { background: #020617; }
+.chat-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+.chat-scrollbar::-webkit-scrollbar-thumb:hover { background: #475569; }
 </style>
-@push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // No extra JS needed for index avatars as they use avatar_url from backend
-    });
-</script>
-@endpush
 @endsection
