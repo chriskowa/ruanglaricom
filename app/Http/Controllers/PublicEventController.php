@@ -423,21 +423,7 @@ class PublicEventController extends Controller
         }
 
         if ($request->has('age_group') && $request->age_group && $request->age_group !== 'all') {
-            $group = $request->age_group;
-            $eventDate = $event->start_at;
-            if ($eventDate) {
-                if ($group === '50+') {
-                    $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(50));
-                } elseif ($group === 'Master 45+') {
-                    $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(45))
-                        ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(50));
-                } elseif ($group === 'Master') {
-                    $query->whereDate('date_of_birth', '<=', $eventDate->copy()->subYears(40))
-                        ->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(45));
-                } elseif ($group === 'Umum') {
-                    $query->whereDate('date_of_birth', '>', $eventDate->copy()->subYears(40));
-                }
-            }
+            $query->filterAgeGroup($request->age_group, $event->start_at);
         }
 
         if ($request->has('search') && $request->search) {

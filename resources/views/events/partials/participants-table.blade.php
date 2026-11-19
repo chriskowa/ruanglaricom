@@ -126,9 +126,12 @@
                             <select v-model="selectedAgeGroup" @change="fetchParticipants(1)" 
                                 class="w-full bg-slate-900 border border-white/10 rounded-xl pl-4 pr-10 py-3 text-xs text-white focus:border-sport-volt focus:ring-1 focus:ring-sport-volt outline-none appearance-none transition-all">
                                 <option value="all">Semua Umur</option>
-                                <option value="Umum">Umum</option>
-                                <option value="Master">Master</option>
-                                <option value="50+">50+</option>
+                                <option value="Kids 6-12">Kids (6-12)</option>
+                                <option value="Pelajar 13-17">Pelajar (13-17)</option>
+                                <option value="Umum">Umum (18-39)</option>
+                                <option value="Master">Master (40-44)</option>
+                                <option value="Master 45+">Master 45+ (45-49)</option>
+                                <option value="50+">50+ (&gt;= 50)</option>
                             </select>
                             <i class="fas fa-filter absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 pointer-events-none text-[10px]"></i>
                         </div>
