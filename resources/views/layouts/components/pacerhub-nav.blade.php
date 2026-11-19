@@ -1,6 +1,41 @@
 @php $lightMode = false; @endphp
-<style>[x-cloak]{display:none !important;}</style>
-<nav id="pacerhub-nav" class="border-b border-slate-800 bg-dark/80 backdrop-blur-md fixed w-full z-40">
+<style>
+[x-cloak]{display:none !important;}
+.rl-search-btn {
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    overflow: hidden;
+    transition: width 220ms cubic-bezier(0.22, 1, 0.36, 1), padding 220ms ease, border-color 150ms ease, background-color 150ms ease;
+}
+.rl-search-label {
+    display: none;
+    max-width: 0;
+    opacity: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    transition: max-width 220ms cubic-bezier(0.22, 1, 0.36, 1), opacity 180ms ease, margin-left 220ms ease;
+}
+@media (min-width: 768px) {
+    .rl-search-label {
+        display: inline-block;
+    }
+    .rl-search-btn:hover,
+    .rl-search-btn:focus-visible {
+        width: 90px;
+        padding: 0 12px;
+        border-color: #334155;
+        background-color: #1e293b;
+    }
+    .rl-search-btn:hover .rl-search-label,
+    .rl-search-btn:focus-visible .rl-search-label {
+        max-width: 48px;
+        opacity: 1;
+        margin-left: 6px;
+    }
+}
+</style>
+<nav id="pacerhub-nav" class="border-b border-slate-800 bg-slate-950 fixed w-full z-40">
     @php
         $headerMenu = \Illuminate\Support\Facades\Cache::remember('nav.header_menu_v1', 3600, function () {
             try {
@@ -24,18 +59,18 @@
 
         $hasNavItems = $headerMenu && $headerMenu->items && $headerMenu->items->where('is_active', true)->count() > 0;
     @endphp
-    <div class="max-w-7xl mx-auto p-2">
-        <div class="flex items-center justify-between h-20">
+    <div class="max-w-7xl mx-auto px-3 sm:px-6">
+        <div class="flex items-center justify-between h-16 gap-3">
             <!-- Left Side: Logo & Sidebar Toggle -->
-            <div class="flex items-center gap-2 pl-2">
+            <div class="flex items-center gap-2.5 shrink-0">
                 @if(isset($isDashboard) && $isDashboard)
-                <button id="ph-sidebar-toggle" class="p-2 rounded-lg {{ $lightMode ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-slate-800 text-slate-200' }} transition-colors" title="Toggle Sidebar">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+                <button id="ph-sidebar-toggle" class="p-2 rounded-md hover:bg-slate-900 text-slate-200 transition-colors cursor-pointer" title="Toggle Sidebar">
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
                 </button>
                 @endif
                 <div class="flex items-center gap-1 nav-logo">
                     <img src="{{ asset('images/logo saja ruang lari.png') }}" alt="RuangLari" class="h-6 sm:h-8 w-auto">
-                    <a href="{{ url('/') }}" 
+                    <a href="{{ url('/') }}"
                         class="text-sm sm:text-lg md:text-xl font-black italic tracking-tighter flex items-center {{ $lightMode ? 'text-slate-900' : 'text-white' }}"
                         title="RuangLari Utama">
                         RUANG<span class="pl-1" style="{{ $lightMode ? 'color: #000000ff;' : 'color: #ccff00;' }}">LARI</span>
@@ -62,10 +97,10 @@
                                      x-transition:leave-end="transform opacity-0 scale-95"
                                      x-cloak
                                      style="display: none;"
-                                     class="absolute left-0 mt-2 w-48 {{ $lightMode ? 'bg-white border-slate-200' : 'bg-slate-900 border-slate-700' }} border rounded-xl shadow-2xl origin-top-left z-50">
-                                    <div class="p-1 space-y-1">
+                                     class="absolute left-0 mt-2 w-52 bg-slate-900 border border-slate-800 rounded-lg shadow-lg origin-top-left z-50">
+                                    <div class="p-1.5 space-y-0.5">
                                         @foreach($item->children as $child)
-                                            <a href="{{ url($child->url) }}" target="{{ $child->target ?: '_self' }}" class="block px-4 py-2 text-sm {{ $lightMode ? 'text-slate-600 hover:bg-slate-50 hover:text-slate-900' : 'text-slate-200 hover:bg-slate-800 hover:text-white' }} rounded-lg transition-colors">
+                                            <a href="{{ url($child->url) }}" target="{{ $child->target ?: '_self' }}" class="block px-3.5 py-2 text-sm text-slate-200 hover:bg-slate-800 hover:text-white rounded-md transition-colors">
                                                 {{ $child->title }}
                                             </a>
                                         @endforeach
@@ -94,7 +129,22 @@
          
             
             <!-- Right Side: Navigation & Actions -->
-            <div class="flex items-center gap-1">
+            <div class="flex items-center gap-2 shrink-0">
+                <button
+                    type="button"
+                    id="nav-quick-search-btn"
+                    class="rl-search-btn group inline-flex items-center justify-center rounded-md bg-slate-900 border border-slate-800 text-slate-200 hover:text-white cursor-pointer"
+                    title="Cari Tools, Event, Program, Blog (Ctrl+K)"
+                    aria-label="Cari Tools, Event, Program, Blog"
+                >
+                    <svg class="w-4 h-4 shrink-0 text-slate-300 group-hover:text-lime-400 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 100-15 7.5 7.5 0 000 15z" />
+                    </svg>
+                    <span class="rl-search-label text-xs font-semibold text-slate-200">
+                        Cari
+                    </span>
+                </button>
+
                 @if(!isset($isDashboard) || !$isDashboard)
                 <button id="mobile-menu-toggle" class="md:hidden p-2 rounded-lg {{ $lightMode ? 'hover:bg-slate-100 text-slate-800' : 'hover:bg-slate-800 text-slate-200' }} transition-colors" title="Menu">
                     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
@@ -182,6 +232,15 @@
                                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
                                 Notifications
                             </a>
+                            <div class="h-px bg-slate-800 my-1"></div>
+                            <a href="{{ route('pacer.index') }}" class="flex items-center gap-3 px-3 py-2 text-sm text-slate-200 hover:bg-slate-800 hover:text-white rounded-md transition-colors">
+                                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                Direktori Pacers
+                            </a>
+                            <a href="{{ route('pacer.register') }}" class="flex items-center gap-3 px-3 py-2 text-sm font-semibold text-lime-400 hover:bg-slate-800 rounded-md transition-colors">
+                                <svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" /></svg>
+                                Join Pacer
+                            </a>
                             <div class="h-px {{ $lightMode ? 'bg-slate-100' : 'bg-slate-800' }} my-1"></div>
                             <form action="{{ route('logout') }}" method="POST">
                                 @csrf
@@ -196,26 +255,17 @@
                 @endauth
                 
                 @guest
-                <div class="flex items-center gap-1.5 sm:gap-3">
-                    <button onclick="openLoginModal()" class="text-xs sm:text-sm font-bold {{ $lightMode ? 'text-slate-800 hover:text-slate-900' : 'text-slate-200 hover:text-white' }} transition-colors px-1 py-1">Login</button>
-                    <button onclick="openRegisterModal()" class="px-2.5 py-1.5 sm:px-4 sm:py-2 text-xs sm:text-sm font-bold bg-slate-900 text-white rounded-xl hover:bg-slate-800 hover:shadow-lg transition-all transform hover:-translate-y-0.5">Register</button>
+                <div class="flex items-center gap-2 pl-1">
+                    <button onclick="openLoginModal()" class="px-3 min-h-[38px] rounded-md text-xs sm:text-sm font-semibold text-slate-200 hover:text-white hover:bg-slate-900 transition-colors cursor-pointer">Login</button>
+                    <button onclick="openRegisterModal()" class="px-3.5 sm:px-4 min-h-[38px] text-xs sm:text-sm font-bold bg-lime-400 hover:bg-lime-300 text-slate-950 rounded-md transition-colors cursor-pointer">Register</button>
                 </div>
                 @endguest
-                
-                @auth
-                <div class="hidden md:flex items-center gap-2 pl-2 border-l {{ $lightMode ? 'border-slate-200' : 'border-slate-800' }}">
-                    <a href="{{ route('pacer.index') }}" class="px-4 py-2 text-sm font-bold {{ $lightMode ? 'text-slate-700 hover:text-slate-900' : 'text-slate-200 hover:text-neon' }} transition-colors">Pacers</a>
-                    <a href="{{ route('pacer.register') }}" class="px-4 py-2 text-sm font-bold {{ $lightMode ? 'bg-slate-900 text-white hover:bg-slate-800' : 'bg-neon text-dark hover:bg-lime-400 hover:shadow-neon/20' }} rounded-xl hover:shadow-lg transition-all transform hover:-translate-y-0.5">
-                        Join Pacer
-                    </a>
-                </div>
-                @endauth
             </div>
         </div>
     </div>
 </nav>
 
-<div id="mobile-menu-panel" class="md:hidden hidden fixed top-20 left-0 right-0 z-40 {{ $lightMode ? 'bg-white/95 border-slate-200' : 'bg-slate-900/95 border-slate-700' }} backdrop-blur-xl border rounded-b-2xl shadow-2xl max-h-[80vh] overflow-y-auto">
+<div id="mobile-menu-panel" class="md:hidden hidden fixed top-16 left-0 right-0 z-40 bg-slate-950 border-b border-slate-800 rounded-b-lg shadow-xl max-h-[80vh] overflow-y-auto">
     <div class="p-3 grid grid-cols-1 gap-1">
         @if($hasNavItems)
             @foreach($headerMenu->items as $item)
@@ -587,6 +637,219 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
+    // Global Quick Search (Lazy Reveal — 0 network work until clicked)
+    const searchTriggerBtn = document.getElementById('nav-quick-search-btn');
+    const searchModal = document.getElementById('nav-quick-search-modal');
+    const searchInput = document.getElementById('nav-quick-search-input');
+    const searchCloseBtn = document.getElementById('nav-quick-search-close');
+    const searchResultsEl = document.getElementById('nav-quick-search-results');
+    const searchStatusEl = document.getElementById('nav-quick-search-status');
+
+    if (searchTriggerBtn && searchModal && searchInput && searchResultsEl) {
+        const searchEndpoint = @json(route('api.quick-search'));
+        const localCache = new Map();
+        let searchDebounce = null;
+        let activeController = null;
+        let activeResultIndex = -1;
+
+        const defaultTools = [
+            { title: 'Buat Program Lari AI (Coach Ruang Lari)', subtitle: 'Susun jadwal latihan personal VDOT ke kalender', url: @json(route('programs.realistic')), badge: 'Tool' },
+            { title: 'Kalkulator Pace & VDOT', subtitle: 'Hitung pace target, race predictor & zona latihan', url: @json(route('calculator')), badge: 'Tool' },
+            { title: 'Kalender Pelari Studio (Cetak PDF)', subtitle: 'Desain kalender meja/dinding dengan foto lari 300 DPI', url: @json(route('kalender-pelari.landing')), badge: 'Tool' },
+            { title: 'Pace Pro Strategy', subtitle: 'Rencana strategi pace per kilometer & elevasi GPX', url: @json(route('tools.pace-pro')), badge: 'Tool' },
+            { title: 'Buat Rute Lari & GPX', subtitle: 'Gambar rute lari dan ekspor file GPX', url: @json(route('tools.buat-rute-lari')), badge: 'Tool' },
+            { title: 'Kalender Event Lari', subtitle: 'Jadwal lomba lari nasional & komunitas', url: @json(route('calendar.public')), badge: 'Tool' }
+        ];
+
+        function escapeSearchHtml(str) {
+            return String(str || '')
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;');
+        }
+
+        function renderGroup(label, items) {
+            if (!items || !items.length) return '';
+            let html = `<div class="mb-3 last:mb-0"><div class="px-2.5 py-1 text-xs font-semibold text-slate-400">${escapeSearchHtml(label)}</div><div class="space-y-1">`;
+            items.forEach((item) => {
+                html += `<a href="${escapeSearchHtml(item.url)}" class="quick-search-item flex items-center justify-between gap-3 px-3 py-2.5 rounded-md bg-slate-950 border border-slate-800 hover:border-slate-700 hover:bg-slate-800 transition-colors">
+                    <div class="min-w-0">
+                        <div class="text-sm font-semibold text-white truncate">${escapeSearchHtml(item.title)}</div>
+                        ${item.subtitle ? `<div class="text-xs text-slate-400 truncate mt-0.5">${escapeSearchHtml(item.subtitle)}</div>` : ''}
+                    </div>
+                    <span class="shrink-0 px-2 py-0.5 rounded bg-slate-800 text-slate-200 text-xs font-medium">${escapeSearchHtml(item.badge || '')}</span>
+                </a>`;
+            });
+            html += '</div></div>';
+            return html;
+        }
+
+        function renderSearchPayload(data, isDefault) {
+            activeResultIndex = -1;
+            const sections = [
+                renderGroup(isDefault ? 'Akses Cepat Tools' : 'Fitur & Tools', data.tools || []),
+                renderGroup('Event Lari', data.events || []),
+                renderGroup('Program Latihan', data.programs || []),
+                renderGroup('Blog & Journal', data.articles || [])
+            ].join('');
+
+            if (!sections) {
+                searchResultsEl.innerHTML = `<div class="py-10 text-center text-sm text-slate-400">Tidak ada hasil untuk "<span class="text-white font-semibold">${escapeSearchHtml(searchInput.value.trim())}</span>".</div>`;
+                return;
+            }
+            searchResultsEl.innerHTML = sections;
+        }
+
+        function openQuickSearch() {
+            searchModal.classList.remove('hidden');
+            searchModal.classList.add('flex');
+            document.body.style.overflow = 'hidden';
+            if (!searchInput.value.trim()) {
+                renderSearchPayload({ tools: defaultTools }, true);
+                if (searchStatusEl) searchStatusEl.textContent = 'Ketik minimal 2 huruf untuk mencari Event, Program, Blog, atau Tools';
+            }
+            setTimeout(() => searchInput.focus(), 20);
+        }
+
+        function closeQuickSearch() {
+            searchModal.classList.add('hidden');
+            searchModal.classList.remove('flex');
+            document.body.style.overflow = '';
+            if (activeController) {
+                activeController.abort();
+                activeController = null;
+            }
+        }
+
+        function updateKeyboardHighlight(links) {
+            links.forEach((el, idx) => {
+                if (idx === activeResultIndex) {
+                    el.classList.add('border-lime-400', 'bg-slate-800');
+                    el.scrollIntoView({ block: 'nearest' });
+                } else {
+                    el.classList.remove('border-lime-400', 'bg-slate-800');
+                }
+            });
+        }
+
+        searchTriggerBtn.addEventListener('click', openQuickSearch);
+        searchCloseBtn?.addEventListener('click', closeQuickSearch);
+        searchModal.addEventListener('click', (e) => {
+            if (e.target === searchModal) closeQuickSearch();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') {
+                e.preventDefault();
+                if (searchModal.classList.contains('hidden')) openQuickSearch();
+                else closeQuickSearch();
+                return;
+            }
+            if (e.key === '/' && !['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement?.tagName) && !document.activeElement?.isContentEditable) {
+                e.preventDefault();
+                openQuickSearch();
+                return;
+            }
+            if (!searchModal.classList.contains('hidden')) {
+                if (e.key === 'Escape') {
+                    closeQuickSearch();
+                    return;
+                }
+                const links = Array.from(searchResultsEl.querySelectorAll('.quick-search-item'));
+                if (!links.length) return;
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    activeResultIndex = (activeResultIndex + 1) % links.length;
+                    updateKeyboardHighlight(links);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    activeResultIndex = (activeResultIndex - 1 + links.length) % links.length;
+                    updateKeyboardHighlight(links);
+                } else if (e.key === 'Enter' && activeResultIndex >= 0 && links[activeResultIndex]) {
+                    e.preventDefault();
+                    window.location.href = links[activeResultIndex].getAttribute('href');
+                }
+            }
+        });
+
+        searchInput.addEventListener('input', () => {
+            const q = searchInput.value.trim();
+            clearTimeout(searchDebounce);
+
+            if (q.length < 2) {
+                if (activeController) activeController.abort();
+                renderSearchPayload({ tools: defaultTools }, true);
+                if (searchStatusEl) searchStatusEl.textContent = 'Ketik minimal 2 huruf untuk mencari Event, Program, Blog, atau Tools';
+                return;
+            }
+
+            const cacheKey = q.toLowerCase();
+            if (localCache.has(cacheKey)) {
+                renderSearchPayload(localCache.get(cacheKey), false);
+                if (searchStatusEl) searchStatusEl.textContent = 'Hasil instan';
+                return;
+            }
+
+            if (searchStatusEl) searchStatusEl.textContent = 'Mencari...';
+            searchDebounce = setTimeout(() => {
+                if (activeController) activeController.abort();
+                activeController = new AbortController();
+
+                fetch(searchEndpoint + '?q=' + encodeURIComponent(q), {
+                    headers: { 'Accept': 'application/json' },
+                    signal: activeController.signal
+                })
+                .then((res) => res.ok ? res.json() : Promise.reject(res.status))
+                .then((data) => {
+                    localCache.set(cacheKey, data);
+                    renderSearchPayload(data, false);
+                    if (searchStatusEl) searchStatusEl.textContent = 'Gunakan panah atas/bawah & Enter untuk membuka';
+                })
+                .catch((err) => {
+                    if (err && err.name === 'AbortError') return;
+                    if (searchStatusEl) searchStatusEl.textContent = 'Gagal memuat hasil pencarian';
+                });
+            }, 220);
+        });
+    }
 });
 </script>
+
+<!-- Global Quick Search Modal (Hidden & Zero Overhead Until Triggered) -->
+<div id="nav-quick-search-modal"
+     role="dialog"
+     aria-modal="true"
+     aria-label="Pencarian Cepat Ruang Lari"
+     class="fixed inset-0 z-[120] hidden items-start justify-center bg-slate-950/85 px-3 pt-16 sm:pt-24">
+    <div class="w-full max-w-2xl bg-slate-900 border border-slate-800 rounded-lg overflow-hidden shadow-xl">
+        <div class="p-3 sm:p-4 border-b border-slate-800 flex items-center gap-2.5 bg-slate-950">
+            <svg class="w-5 h-5 text-slate-400 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-4.35-4.35M10.5 18a7.5 7.5 0 100-15 7.5 7.5 0 000 15z" />
+            </svg>
+            <input
+                type="search"
+                id="nav-quick-search-input"
+                autocomplete="off"
+                placeholder="Cari fitur tools, event lari, program latihan, atau artikel..."
+                class="w-full min-h-[40px] bg-transparent text-sm sm:text-base text-white placeholder-slate-400 focus:outline-none"
+            >
+            <button
+                type="button"
+                id="nav-quick-search-close"
+                class="px-3 min-h-[36px] rounded-md bg-slate-800 hover:bg-slate-700 text-xs font-semibold text-slate-200 hover:text-white transition cursor-pointer shrink-0"
+            >
+                Tutup
+            </button>
+        </div>
+
+        <div id="nav-quick-search-results" class="p-3 sm:p-4 max-h-[65vh] overflow-y-auto"></div>
+
+        <div class="px-4 py-2.5 border-t border-slate-800 bg-slate-950 flex items-center justify-between gap-2 text-xs text-slate-400">
+            <span id="nav-quick-search-status">Ketik minimal 2 huruf untuk mencari Event, Program, Blog, atau Tools</span>
+            <span class="hidden sm:inline font-mono text-slate-300">Ctrl+K</span>
+        </div>
+    </div>
+</div>
 @endpush

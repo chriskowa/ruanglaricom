@@ -588,6 +588,10 @@ Route::get('/api/run-connect/leaderboard', [RunConnectController::class, 'getLea
 Route::get('/api/strava/leaderboard', [App\Http\Controllers\HomeController::class, 'stravaLeaderboard'])->name('api.strava.leaderboard');
 
 // Notifications API
+Route::get('/api/quick-search', [App\Http\Controllers\GlobalSearchController::class, 'index'])
+    ->middleware('throttle:60,1')
+    ->name('api.quick-search');
+
 Route::get('/api/notifications', [RunConnectController::class, 'getNotifications'])->name('api.notifications.index');
 Route::post('/api/notifications/read-all', [RunConnectController::class, 'readAllNotifications'])->name('api.notifications.read-all');
 Route::post('/api/notifications/{id}/read', [RunConnectController::class, 'readNotification'])->name('api.notifications.read');
