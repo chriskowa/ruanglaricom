@@ -510,10 +510,22 @@ class RaceMasterApiController extends Controller
             'status' => 'nullable|in:finished,running,dnf,ready',
         ]);
 
+        $bibStr = trim((string) $bib);
         $rsp = RaceSessionParticipant::query()
             ->where('race_id', $session->race_id)
-            ->where('bib_number', (string) $bib)
+            ->where('bib_number', $bibStr)
             ->first();
+
+        if (! $rsp && ctype_digit($bibStr)) {
+            $normalizedBib = ltrim($bibStr, '0') ?: '0';
+            $rsp = RaceSessionParticipant::query()
+                ->where('race_id', $session->race_id)
+                ->get()
+                ->first(function ($item) use ($normalizedBib) {
+                    $b = trim((string) $item->bib_number);
+                    return ctype_digit($b) && ((ltrim($b, '0') ?: '0') === $normalizedBib);
+                });
+        }
 
         if (! $rsp) {
             return response()->json([
@@ -665,9 +677,20 @@ class RaceMasterApiController extends Controller
             'predicted_time_ms' => 'nullable|integer|min:0|max:86400000',
         ]);
 
+        $bibStr = trim((string) $bib);
         $rsp = RaceSessionParticipant::where('race_id', $race->id)
-            ->where('bib_number', (string) $bib)
+            ->where('bib_number', $bibStr)
             ->first();
+
+        if (! $rsp && ctype_digit($bibStr)) {
+            $normalizedBib = ltrim($bibStr, '0') ?: '0';
+            $rsp = RaceSessionParticipant::where('race_id', $race->id)
+                ->get()
+                ->first(function ($item) use ($normalizedBib) {
+                    $b = trim((string) $item->bib_number);
+                    return ctype_digit($b) && ((ltrim($b, '0') ?: '0') === $normalizedBib);
+                });
+        }
 
         if (! $rsp) {
             return response()->json(['success' => false, 'message' => 'Peserta tidak ditemukan.'], 404);
@@ -1166,7 +1189,7 @@ class RaceMasterApiController extends Controller
                 return [
                     'id' => $c->id,
                     'bib_number' => $c->raceSessionParticipant?->bib_number,
-                    'download_url' => route('tools.race-master.certificates.download', ['certificate' => $c->id]),
+                    'download_url' => URL::temporarySignedRoute('tools.race-master.certificates.public', now()->addDays(30), ['certificate' => $c->id]),
                 ];
             })
             ->values()
@@ -1361,7 +1384,7 @@ class RaceMasterApiController extends Controller
             'race' => [
                 'id' => $session->race?->id,
                 'name' => $session->race?->name,
-                'logo_url' => $session->race?->logo_url ? Storage::disk('public')->url($session->race->logo_url) : null,
+                'logo_url' => ($session->race && $session->race->logo_path) ? Storage::disk('public')->url($session->race->logo_path) : null,
             ],
             'participants' => $participantStats,
             'standings' => $standings,
@@ -1400,7 +1423,7 @@ class RaceMasterApiController extends Controller
                 return [
                     'id' => $c->id,
                     'bib_number' => $c->raceSessionParticipant?->bib_number,
-                    'download_url' => route('tools.race-master.certificates.download', ['certificate' => $c->id]),
+                    'download_url' => URL::temporarySignedRoute('tools.race-master.certificates.public', now()->addDays(30), ['certificate' => $c->id]),
                 ];
             })
             ->values()
@@ -1779,7 +1802,7 @@ class RaceMasterApiController extends Controller
                 return ($a['total_time_ms'] ?? 0) <=> ($b['total_time_ms'] ?? 0);
             }
 
-            return strcmp((string) $a['bib'], (string) $b['bib']);
+            return strnatcmp((string) $a['bib'], (string) $b['bib']);
         });
 
         $sessionSlug = $session->slug ?: (string) $session->id;

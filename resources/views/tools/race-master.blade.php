@@ -2405,7 +2405,7 @@
                             <td class="p-4 font-mono font-bold text-base text-slate-900 dark:text-white">@{{ p.bib }}</td>
                             <td class="p-4 font-bold text-slate-800 dark:text-slate-200">@{{ p.name }}</td>
                             <td class="p-4 text-center">
-                                <span class="bg-slate-100 px-2.5 py-1 rounded text-xs font-bold dark:bg-slate-800 dark:text-slate-300">@{{ p.laps.length }}</span>
+                                <span class="bg-slate-100 px-2.5 py-1 rounded text-xs font-bold dark:bg-slate-800 dark:text-slate-300">@{{ p.laps ? p.laps.length : 0 }}</span>
                             </td>
                             <td class="p-4 text-right font-mono font-bold text-indigo-700 dark:text-indigo-400">
                                 @{{ formatTime(p.totalTime) }}
@@ -5661,75 +5661,57 @@
                     return;
                 }
 
-                editRunnerSaving.value = true;
-                editRunnerError.value = '';
-
                 const bib = editRunnerForm.value.bib;
                 const pId = editRunnerForm.value.id;
                 const newStatus = editRunnerForm.value.status;
                 const newMs = editRunnerCalculatedMs.value;
 
-                // 1. Update local reactive participant state immediately
-                const localP = participants.value.find(item => item.id === pId || String(item.bib) === String(bib));
-                if (localP) {
-                    localP.name = trimmedName;
-                    if (newStatus === 'dnf') {
-                        localP.status = 'dnf';
-                    } else if (newStatus === 'ready') {
-                        localP.status = 'ready';
-                        localP.totalTime = 0;
-                    } else {
-                        localP.totalTime = newMs;
-                        localP.status = newMs > 0 ? 'finished' : (newStatus || 'running');
-                        if (!Array.isArray(localP.laps)) localP.laps = [];
-                        if (localP.laps.length === 0 && newMs > 0) {
-                            localP.laps.push({ lap: 1, time: newMs, totalTime: newMs });
-                        } else if (localP.laps.length > 0 && newMs > 0) {
-                            const lastIdx = localP.laps.length - 1;
-                            if (typeof localP.laps[lastIdx] === 'object' && localP.laps[lastIdx] !== null) {
-                                localP.laps[lastIdx].totalTime = newMs;
-                            } else {
-                                localP.laps[lastIdx] = newMs;
-                            }
-                        }
-                    }
-                    saveState();
+                if (newStatus === 'finished' && newMs <= 0) {
+                    editRunnerError.value = 'Untuk status Finish, catatan waktu harus lebih dari 00:00:00.00.';
+                    return;
                 }
 
-                // 2. Sync to backend API if session or race is active
+                editRunnerSaving.value = true;
+                editRunnerError.value = '';
+
+                const localP = participants.value.find(item => item.id === pId || String(item.bib) === String(bib));
                 const targetSession = sessionSlug.value || currentSessionId.value;
+                let resData = null;
+
+                // 1. Sync to backend API first if session or race is active
                 if (targetSession) {
                     const payload = {
                         name: trimmedName,
-                        total_time_ms: newMs,
+                        total_time_ms: (newStatus === 'dnf' || newStatus === 'ready' || newStatus === 'running') ? 0 : newMs,
                         status: newStatus,
                     };
 
                     try {
-                        let endpoint = `${apiBase}/sessions/${encodeURIComponent(String(targetSession))}/participants/${encodeURIComponent(String(bib))}/edit-result`;
-                        let resData;
+                        let endpoint = isAuthenticated
+                            ? `${apiBase}/sessions/${encodeURIComponent(String(targetSession))}/participants/${encodeURIComponent(String(bib))}/edit-result`
+                            : `${apiBase}/public/${encodeURIComponent(String(targetSession))}/participants/${encodeURIComponent(String(bib))}/edit-result`;
                         try {
                             resData = await apiFetchJson(endpoint, {
                                 method: 'POST',
                                 headers: { 'Content-Type': 'application/json' },
                                 body: JSON.stringify(payload)
                             });
-                        } catch (errAuth) {
-                            endpoint = `${apiBase}/public/${encodeURIComponent(String(targetSession))}/participants/${encodeURIComponent(String(bib))}/edit-result`;
-                            resData = await apiFetchJson(endpoint, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify(payload)
-                            });
-                        }
-
-                        if (resData && resData.participant) {
-                            if (localP && resData.participant.rank) {
-                                localP.rank = resData.participant.rank;
+                        } catch (errFirst) {
+                            if (isAuthenticated) {
+                                endpoint = `${apiBase}/public/${encodeURIComponent(String(targetSession))}/participants/${encodeURIComponent(String(bib))}/edit-result`;
+                                resData = await apiFetchJson(endpoint, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify(payload)
+                                });
+                            } else {
+                                throw errFirst;
                             }
                         }
                     } catch (e) {
-                        console.warn('Backend sync edit participant error:', e);
+                        editRunnerError.value = e?.message || 'Gagal menyimpan perubahan ke server.';
+                        editRunnerSaving.value = false;
+                        return;
                     }
                 } else if (currentRaceId.value) {
                     try {
@@ -5737,14 +5719,53 @@
                             name: trimmedName,
                             predicted_time_ms: newMs > 0 ? newMs : null,
                         };
-                        await apiFetchJson(`${apiBase}/races/${currentRaceId.value}/participants/${encodeURIComponent(String(bib))}/update`, {
+                        resData = await apiFetchJson(`${apiBase}/races/${currentRaceId.value}/participants/${encodeURIComponent(String(bib))}/update`, {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify(payload)
                         });
                     } catch (e) {
-                        console.warn('Backend race participant update error:', e);
+                        editRunnerError.value = e?.message || 'Gagal memperbarui data peserta.';
+                        editRunnerSaving.value = false;
+                        return;
                     }
+                }
+
+                // 2. Update local reactive participant state cleanly
+                if (localP) {
+                    localP.name = (resData && resData.participant && resData.participant.name) ? resData.participant.name : trimmedName;
+                    if (newStatus === 'dnf') {
+                        localP.status = 'dnf';
+                        localP.totalTime = 0;
+                        localP.laps = [];
+                        localP.rank = null;
+                    } else if (newStatus === 'ready' || newStatus === 'running') {
+                        localP.status = newStatus;
+                        localP.totalTime = 0;
+                        localP.laps = [];
+                        localP.rank = null;
+                    } else {
+                        const resolvedMs = (resData && resData.participant && typeof resData.participant.total_time_ms === 'number')
+                            ? resData.participant.total_time_ms
+                            : newMs;
+                        localP.totalTime = resolvedMs;
+                        localP.status = resolvedMs > 0 ? 'finished' : (newStatus || 'running');
+                        if (!Array.isArray(localP.laps)) localP.laps = [];
+                        if (localP.laps.length === 0 && resolvedMs > 0) {
+                            localP.laps.push({ lap: 1, time: resolvedMs, totalTime: resolvedMs });
+                        } else if (localP.laps.length > 0 && resolvedMs > 0) {
+                            const lastIdx = localP.laps.length - 1;
+                            if (typeof localP.laps[lastIdx] === 'object' && localP.laps[lastIdx] !== null) {
+                                localP.laps[lastIdx].totalTime = resolvedMs;
+                            } else {
+                                localP.laps[lastIdx] = resolvedMs;
+                            }
+                        }
+                        if (resData && resData.participant && resData.participant.rank) {
+                            localP.rank = resData.participant.rank;
+                        }
+                    }
+                    saveState();
                 }
 
                 editRunnerSaving.value = false;
@@ -8989,17 +9010,21 @@
             });
 
             const sortedResults = computed(() => {
-                // Sort by: Finished > Laps Desc > Time Asc
+                const statusWeight = { finished: 1, running: 2, ready: 3, dnf: 4 };
                 return [...participants.value].sort((a, b) => {
-                    if (a.status === 'dnf' && b.status !== 'dnf') return 1;
-                    if (a.status !== 'dnf' && b.status === 'dnf') return -1;
-                    
-                    // Both active/finished
-                    const aLaps = a.laps.length;
-                    const bLaps = b.laps.length;
-                    
-                    if (aLaps !== bLaps) return bLaps - aLaps; // More laps first
-                    return a.totalTime - b.totalTime; // Faster time first
+                    const wa = statusWeight[a.status] || 99;
+                    const wb = statusWeight[b.status] || 99;
+                    if (wa !== wb) return wa - wb;
+
+                    const aLaps = Array.isArray(a.laps) ? a.laps.length : 0;
+                    const bLaps = Array.isArray(b.laps) ? b.laps.length : 0;
+                    if (aLaps !== bLaps) return bLaps - aLaps;
+
+                    const aTime = (typeof a.totalTime === 'number' && a.totalTime > 0) ? a.totalTime : Number.POSITIVE_INFINITY;
+                    const bTime = (typeof b.totalTime === 'number' && b.totalTime > 0) ? b.totalTime : Number.POSITIVE_INFINITY;
+                    if (aTime !== bTime) return aTime - bTime;
+
+                    return compareBibs(a, b);
                 });
             });
             
