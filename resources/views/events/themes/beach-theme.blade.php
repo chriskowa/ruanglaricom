@@ -524,7 +524,8 @@
         #imageLightbox:not(.hidden),
         #confirmationModal:not(.hidden),
         #registrationFailureModal:not(.hidden),
-        #registrationSuccessModal:not(.hidden) {
+        #registrationSuccessModal:not(.hidden),
+        #manualTransferModal:not(.hidden) {
             display: flex !important;
             align-items: center !important;
             justify-content: center !important;
@@ -4171,10 +4172,23 @@
 
             // Confirm Submit Click
             const confirmBtn = document.getElementById('confirmSubmitBtn');
+            const confirmCancelBtn = document.querySelector('#confirmationModal button[onclick*="closeConfirmationModal"]');
+            function setConfirmBtnLoading(loading) {
+                if (confirmBtn) {
+                    confirmBtn.disabled = loading;
+                    confirmBtn.innerHTML = loading
+                        ? '<i class="fas fa-spinner fa-spin mr-1.5"></i> Memproses...'
+                        : (currentCalculatedGrandTotal <= 0 ? 'Konfirmasi Pendaftaran' : 'Lanjut Bayar');
+                }
+                if (confirmCancelBtn) {
+                    confirmCancelBtn.disabled = loading;
+                }
+            }
             if (confirmBtn) {
                 confirmBtn.addEventListener('click', function() {
+                    if (confirmBtn.disabled) return;
                     isConfirmed = true;
-                    closeConfirmationModal();
+                    setConfirmBtnLoading(true);
                     processSubmission();
                 });
             }
@@ -4269,6 +4283,8 @@
                                 formattedMsg = data.message || 'Terjadi kesalahan pada proses registrasi.';
                             }
 
+                            setConfirmBtnLoading(false);
+                            closeConfirmationModal();
                             window.openFailureModal(formattedMsg);
 
                             if (btn) {
@@ -4325,6 +4341,8 @@
 
                         // 1. Midtrans Snap
                         if (data.success && data.snap_token) {
+                            setConfirmBtnLoading(false);
+                            closeConfirmationModal();
                             const runSnapPay = () => {
                                 snap.pay(data.snap_token, {
                                     onSuccess: function(result) {
@@ -4367,10 +4385,16 @@
 
                         // 2. Manual Transfer (Same-Page Modal + Upload Proof + WA Panitia)
                         if (data.success && data.payment_gateway === 'manual_transfer') {
+                            setConfirmBtnLoading(false);
+                            closeConfirmationModal();
                             if (btn) { btn.disabled = false; btn.innerHTML = originalText; isConfirmed = false; }
-                            if (typeof window.openManualTransferModal === 'function') {
-                                window.openManualTransferModal(data);
-                                return;
+                            try {
+                                if (typeof window.openManualTransferModal === 'function') {
+                                    window.openManualTransferModal(data);
+                                    return;
+                                }
+                            } catch (modalErr) {
+                                console.error('openManualTransferModal error:', modalErr);
                             }
                             if (data.redirect_url) {
                                 window.location.href = data.redirect_url;
@@ -4380,6 +4404,8 @@
 
                         // 3. Moota Payment
                         if (data.success && data.payment_gateway === 'moota') {
+                            setConfirmBtnLoading(false);
+                            closeConfirmationModal();
                             if (window.RuangLariMoota && typeof window.RuangLariMoota.open === 'function' && data.transaction_id) {
                                 if (btn) { btn.disabled = false; btn.innerHTML = originalText; isConfirmed = false; }
                                 window.RuangLariMoota.open({
@@ -4410,22 +4436,37 @@
                     })
                     .catch(err => {
                         console.error(err);
-                        alert('Gagal menghubungi server. Silakan coba kembali.');
+                        setConfirmBtnLoading(false);
+                        closeConfirmationModal();
+                        window.openFailureModal('Gagal menghubungi server. Silakan periksa koneksi internet Anda dan coba kembali.');
                         if (btn) { btn.disabled = false; btn.innerHTML = originalText; isConfirmed = false; }
                     });
                 };
 
                 @if(env('RECAPTCHA_SITE_KEY_v3'))
                     if (typeof grecaptcha !== 'undefined') {
+                        let recaptchaDone = false;
+                        const recaptchaFallback = setTimeout(() => {
+                            if (!recaptchaDone) {
+                                recaptchaDone = true;
+                                executeRequest();
+                            }
+                        }, 4000);
                         grecaptcha.ready(function() {
                             grecaptcha.execute('{{ env('RECAPTCHA_SITE_KEY_v3') }}', {action: 'event_register'})
                             .then(function(token) {
+                                if (recaptchaDone) return;
+                                recaptchaDone = true;
+                                clearTimeout(recaptchaFallback);
                                 const el = document.getElementById('recaptchaToken');
                                 if (el) el.value = token;
                                 executeRequest();
                             })
                             .catch(function(err) {
                                 console.error('reCAPTCHA error:', err);
+                                if (recaptchaDone) return;
+                                recaptchaDone = true;
+                                clearTimeout(recaptchaFallback);
                                 executeRequest();
                             });
                         });
@@ -5173,11 +5214,13 @@
 
                 modal.classList.remove('hidden');
                 modal.classList.add('flex');
+                document.body.classList.add('overflow-hidden');
             };
 
             window.closeManualTransferModal = function() {
                 modal.classList.add('hidden');
                 modal.classList.remove('flex');
+                document.body.classList.remove('overflow-hidden');
             };
 
             window.copyMtValue = function(type) {

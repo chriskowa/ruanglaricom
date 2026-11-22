@@ -38,7 +38,10 @@ class StoreRegistrationAction
     {
         // Sanitize inputs
         if ($request->has('pic_email')) {
-            $request->merge(['pic_email' => trim($request->pic_email)]);
+            $request->merge(['pic_email' => trim((string) $request->pic_email)]);
+        }
+        if ($request->has('pic_phone')) {
+            $request->merge(['pic_phone' => preg_replace('/[^0-9]/', '', (string) $request->pic_phone)]);
         }
         if ($request->has('coupon_code')) {
             $couponCode = trim((string) $request->coupon_code);
@@ -51,7 +54,14 @@ class StoreRegistrationAction
             $participants = $request->participants;
             foreach ($participants as &$p) {
                 if (isset($p['email'])) {
-                    $p['email'] = trim($p['email']);
+                    $p['email'] = trim((string) $p['email']);
+                }
+                if (isset($p['phone'])) {
+                    $p['phone'] = preg_replace('/[^0-9]/', '', (string) $p['phone']);
+                }
+                if (isset($p['emergency_contact_number'])) {
+                    $cleanedEmergency = preg_replace('/[^0-9]/', '', (string) $p['emergency_contact_number']);
+                    $p['emergency_contact_number'] = $cleanedEmergency !== '' ? $cleanedEmergency : null;
                 }
                 if (isset($p['date_of_birth'])) {
                     $p['date_of_birth'] = trim((string) $p['date_of_birth']);

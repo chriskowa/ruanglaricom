@@ -381,6 +381,12 @@ class EventRegistrationController extends Controller
                 ->withErrors($e->errors())
                 ->withInput();
         } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('Registration Store Error', [
+                'slug' => $slug,
+                'payment_method' => $request->input('payment_method'),
+                'error' => $e->getMessage(),
+            ]);
+
             // If AJAX request, return JSON error
             if ($wantsJson) {
                 return response()->json([
