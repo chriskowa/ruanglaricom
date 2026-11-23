@@ -2230,9 +2230,43 @@
                                     </div>
                                     <div><div class="text-xs text-slate-500">Approval Status</div><div id="dm_approval_status"></div></div>
                                     <div>
-                                        <div class="text-xs text-slate-500">Addons</div>
+                                        <div class="flex items-center justify-between mb-1">
+                                            <div class="text-xs text-slate-500">Addons</div>
+                                            <button type="button" id="toggleEditAddonsJsonBtn" onclick="toggleEditAddonsJson()" class="edit-mode hidden text-[11px] text-slate-400 hover:text-white underline">Mode JSON</button>
+                                        </div>
                                         <div id="dm_addons" class="view-mode space-y-1"></div>
-                                        <textarea name="addons" id="edit_addons_json" rows="6" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs focus:border-blue-500 focus:outline-none font-mono placeholder-slate-500" placeholder='[{"name":"Jersey Extra","value":"M"}]'></textarea>
+                                        @php $eoEventAddons = $event->addons_with_quota ?? []; @endphp
+                                        <div id="edit_addons_checklist" class="edit-mode hidden space-y-1.5 mt-1">
+                                            @forelse($eoEventAddons as $addon)
+                                                @php
+                                                    $addonName = $addon['name'] ?? '-';
+                                                    $addonPrice = (int) ($addon['price'] ?? 0);
+                                                    $hasQuota = isset($addon['quota']) && $addon['quota'] !== null;
+                                                    $remaining = $addon['remaining'] ?? null;
+                                                @endphp
+                                                <label class="flex items-center justify-between gap-2 p-2 rounded bg-slate-800/80 border border-slate-700 hover:border-slate-500 cursor-pointer text-xs">
+                                                    <span class="flex items-center gap-2 min-w-0">
+                                                        <input type="checkbox"
+                                                            class="edit-addon-checkbox w-4 h-4 rounded border-slate-600 bg-slate-900 text-blue-500 focus:ring-blue-500"
+                                                            data-name="{{ $addonName }}"
+                                                            data-price="{{ $addonPrice }}"
+                                                            onchange="syncEditAddonsJsonFromCheckboxes()">
+                                                        <span class="text-slate-200 font-medium truncate">{{ $addonName }}</span>
+                                                    </span>
+                                                    <span class="flex items-center gap-2 shrink-0">
+                                                        @if($hasQuota)
+                                                            <span class="text-[10px] {{ ($remaining !== null && $remaining <= 0) ? 'text-rose-400' : 'text-slate-400' }}">Sisa: {{ $remaining }}</span>
+                                                        @endif
+                                                        @if($addonPrice > 0)
+                                                            <span class="text-[11px] font-mono text-emerald-400">+Rp {{ number_format($addonPrice, 0, ',', '.') }}</span>
+                                                        @endif
+                                                    </span>
+                                                </label>
+                                            @empty
+                                                <div class="text-[11px] text-slate-500 italic">Event ini tidak memiliki daftar add-on.</div>
+                                            @endforelse
+                                        </div>
+                                        <textarea name="addons" id="edit_addons_json" rows="4" class="hidden w-full mt-2 bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-xs focus:border-blue-500 focus:outline-none font-mono placeholder-slate-500" placeholder='[{"name":"Jersey Extra","price":0}]'></textarea>
                                     </div>
                                 </div>
                             </div>
@@ -3535,7 +3569,7 @@
         setValue('edit_coupon_id', d.coupon_id);
         setValue('edit_notes', d.notes);
         var addons = Array.isArray(d.addons) ? d.addons : [];
-        setValue('edit_addons_json', JSON.stringify(addons, null, 2));
+        populateEditAddonsUI(addons);
         
         toggleEditPickedUpByField();
         togglePickedByField();
@@ -3550,6 +3584,95 @@
             } else {
                 wrapper.classList.add('hidden');
             }
+        }
+    };
+
+    window.populateEditAddonsUI = function(addons) {
+        var list = Array.isArray(addons) ? addons : [];
+        var selectedMap = {};
+        list.forEach(function(item) {
+            if (item && item.name) {
+                selectedMap[String(item.name).trim()] = item;
+            }
+        });
+
+        var checkboxes = document.querySelectorAll('#edit_addons_checklist .edit-addon-checkbox');
+        var matchedNames = {};
+        checkboxes.forEach(function(cb) {
+            var name = String(cb.getAttribute('data-name') || '').trim();
+            if (Object.prototype.hasOwnProperty.call(selectedMap, name)) {
+                cb.checked = true;
+                matchedNames[name] = true;
+            } else {
+                cb.checked = false;
+            }
+        });
+
+        var jsonEl = document.getElementById('edit_addons_json');
+        if (jsonEl) {
+            jsonEl.value = JSON.stringify(list, null, 2);
+            jsonEl.classList.add('hidden');
+        }
+    };
+
+    window.syncEditAddonsJsonFromCheckboxes = function() {
+        var jsonEl = document.getElementById('edit_addons_json');
+        var checkboxes = document.querySelectorAll('#edit_addons_checklist .edit-addon-checkbox');
+        var knownNames = {};
+        var result = [];
+
+        checkboxes.forEach(function(cb) {
+            var name = String(cb.getAttribute('data-name') || '').trim();
+            var price = parseInt(cb.getAttribute('data-price') || '0', 10) || 0;
+            knownNames[name] = true;
+            if (cb.checked) {
+                result.push({ name: name, price: price });
+            }
+        });
+
+        if (jsonEl && jsonEl.value.trim()) {
+            try {
+                var existing = JSON.parse(jsonEl.value.trim());
+                if (Array.isArray(existing)) {
+                    existing.forEach(function(item) {
+                        var itemName = item && item.name ? String(item.name).trim() : '';
+                        if (itemName && !knownNames[itemName]) {
+                            result.push(item);
+                        }
+                    });
+                }
+            } catch (e) {}
+        }
+
+        if (jsonEl) {
+            jsonEl.value = JSON.stringify(result, null, 2);
+        }
+    };
+
+    window.toggleEditAddonsJson = function() {
+        var jsonEl = document.getElementById('edit_addons_json');
+        if (!jsonEl) return;
+        jsonEl.classList.toggle('hidden');
+    };
+
+    window.collectEditAddonsPayload = function() {
+        var jsonEl = document.getElementById('edit_addons_json');
+        var isJsonVisible = jsonEl && !jsonEl.classList.contains('hidden');
+        if (isJsonVisible) {
+            var raw = jsonEl.value.trim();
+            if (!raw) return [];
+            try {
+                return JSON.parse(raw);
+            } catch (e) {
+                return null;
+            }
+        }
+        window.syncEditAddonsJsonFromCheckboxes();
+        var syncedRaw = jsonEl ? jsonEl.value.trim() : '[]';
+        try {
+            return syncedRaw ? JSON.parse(syncedRaw) : [];
+        } catch (e) {
+            return null;
         }
     };
 
@@ -3798,16 +3921,10 @@
         if (!formData.gender) errors.push('Jenis kelamin wajib dipilih');
         if (!formData.race_category_id) errors.push('Kategori lomba wajib dipilih');
 
-        var addonsText = document.getElementById('edit_addons_json').value.trim();
-        var addonsPayload = [];
-        if (addonsText) {
-            try {
-                addonsPayload = JSON.parse(addonsText);
-            } catch (e) {
-                errors.push('Format Addons JSON tidak valid');
-            }
-        }
-        if (!Array.isArray(addonsPayload)) {
+        var addonsPayload = collectEditAddonsPayload();
+        if (addonsPayload === null) {
+            errors.push('Format Addons JSON tidak valid');
+        } else if (!Array.isArray(addonsPayload)) {
             errors.push('Addons harus berupa array JSON');
         } else if (addonsPayload.length > 50) {
             errors.push('Addons maksimal 50 item');

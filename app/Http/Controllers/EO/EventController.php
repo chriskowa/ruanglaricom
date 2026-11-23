@@ -2017,6 +2017,7 @@ class EventController extends Controller
             'addons' => 'nullable|array|max:50',
             'addons.*' => 'array',
             'addons.*.name' => 'nullable|string|max:100',
+            'addons.*.price' => 'nullable|numeric|min:0',
             'addons.*.value' => 'nullable',
             'notes' => 'nullable|string|max:1000',
         ]);
@@ -2096,6 +2097,29 @@ class EventController extends Controller
 
         $participantData = $validated;
         unset($participantData['coupon_id'], $participantData['pic_name'], $participantData['pic_email'], $participantData['pic_phone']);
+        if (array_key_exists('addons', $participantData)) {
+            $eventAddonsByName = collect($event->addons ?? [])->keyBy('name');
+            $normalizedAddons = [];
+            foreach (($participantData['addons'] ?? []) as $addonItem) {
+                $aName = trim((string) ($addonItem['name'] ?? ''));
+                if ($aName === '') {
+                    continue;
+                }
+                $matchedEventAddon = $eventAddonsByName->get($aName);
+                $price = isset($addonItem['price'])
+                    ? (int) $addonItem['price']
+                    : ($matchedEventAddon ? (int) ($matchedEventAddon['price'] ?? 0) : 0);
+                $entry = [
+                    'name' => $aName,
+                    'price' => $price,
+                ];
+                if (array_key_exists('value', $addonItem) && $addonItem['value'] !== null && $addonItem['value'] !== '') {
+                    $entry['value'] = $addonItem['value'];
+                }
+                $normalizedAddons[] = $entry;
+            }
+            $participantData['addons'] = $normalizedAddons;
+        }
         $participant->update($participantData);
 
         if ($participant->transaction) {
