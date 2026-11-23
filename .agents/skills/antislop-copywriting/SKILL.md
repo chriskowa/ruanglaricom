@@ -1,7 +1,7 @@
 ---
 name: antislop-copywriting
 description: "Copy and text skill for antislop. Use when writing or editing prose: headlines, tone, CTAs, and anti-AI-writing patterns. Load with the core."
-allowed-tools: Read Write Edit Glob Grep
+allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 # antislop-copywriting
 
@@ -100,6 +100,16 @@ allowed-tools: Read Write Edit Glob Grep
   > Next.js caches data at multiple layers, including request memoization, the data cache, and the router cache.
 - **Rule:** R-36.
 
+### Temporal Runway Clichés
+
+- **The pattern:** opening a piece, section, or paragraph with a sweeping temporal generalization: "In today's fast-paced world", "In an era of rapid technological disruption", "In today's ever-evolving digital landscape", "In an increasingly connected world".
+- **Why it reads as AI:** it is empty runway. It establishes a broad, indisputable setting before saying an ordinary thing, padding word count and delaying the real subject. Real writers start directly with the subject itself.
+- **Before:**
+  > In today's fast-paced digital landscape, engineering teams struggle to keep internal documentation fresh and accurate.
+- **After:**
+  > Engineering teams struggle to keep internal documentation fresh and accurate.
+- **Rule:** R-16, R-36.
+
 ### All-Caps Emphasis
 
 - **The pattern:** a whole sentence, clause, or phrase in ALL CAPS inside a paragraph to shout emphasis: "The launch is ready and WE NEED TO MOVE NOW before the window closes."
@@ -175,6 +185,16 @@ allowed-tools: Read Write Edit Glob Grep
   > The old rules no longer applied, and every page had to be designed from scratch.
 - **Rule:** R-36.
 
+### Theatrical Takeaways
+
+- **The pattern:** dramatic single-line coaching commands and conclusion-labeling: "Read that again.", "Let that sink in.", "The message is clear:", "That distinction matters.", "The takeaway is simple:", "Here is the bottom line:".
+- **Why it reads as AI:** it directs the reader how to feel or react to an ordinary statement instead of letting the claim stand on its own evidence. It is stage direction pretending to be copywriting.
+- **Before:**
+  > Automated rollbacks cut customer downtime by 40%. Read that again. Let that sink in.
+- **After:**
+  > Automated rollbacks cut customer downtime by 40%.
+- **Rule:** R-36.
+
 ### Synonym Cycling
 
 - **The pattern:** swapping synonyms to avoid repeating a word: "the protagonist faces a challenge, the main character must adapt, the central figure persists".
@@ -243,7 +263,7 @@ allowed-tools: Read Write Edit Glob Grep
 - **After:**
   > You don't say "Netherlands, Europe" as an address, yet this mislabeling continues.
 - **False positive:** many editors and journalists use em dashes deliberately. On its own an em dash is not proof of AI. It counts when it sits in a cluster with other tells (R-02 still bans it in output, but do not rewrite the user's deliberate style without saying so).
-- **Voice override:** if the user provides a writing sample that uses em dashes at a certain frequency, match the sample's frequency instead of cutting them all (see Voice calibration).
+- **Voice sample:** if the user provides a writing sample that uses em dashes, that sample is a direction rather than agent copy. Surface it the way R-37 says (name the character, name the rule, ask), then match the sample's frequency only if the owner keeps it. Never keep or cut them silently.
 
 ### Boldface Overuse
 
@@ -279,6 +299,19 @@ allowed-tools: Read Write Edit Glob Grep
   > The update improves the interface, speeds up load times, and encrypts data in transit.
 - **Rule:** R-36.
 - **Carve-out:** the `- **Tell:**` / `- **Why:**` / `- **Fix:**` headers that structure every antislop skill entry are a documentation convention, not the header-restates-the-item habit above, and are exempt.
+
+### Title Case in List Elements
+
+- **The pattern:** capitalizing every word in bullet items, feature cards, or body list entries: "- Comprehensive Security Audits Across All Repositories".
+- **Why it reads as AI:** models default to title case for list elements and short blocks to make them feel official. Sentence case is easier to read and sounds like a human wrote it.
+- **Before:**
+  > - Comprehensive Security Audits Across All Repositories
+  > - Instant Notifications Delivered Right To Your Team's Slack Channel
+- **After:**
+  > - Comprehensive security audits across all repositories
+  > - Instant notifications delivered to your team's Slack channel
+- **Rule:** R-36.
+- **Not a ban:** proper nouns, acronyms, and genuine publication titles keep their capitalization. The tell is capitalizing every word in a regular list item or feature bullet.
 
 ### Emojis in Headings
 
@@ -344,7 +377,7 @@ If the user provides a sample of their own writing, match it before rewriting:
 
 1. Read the sample first. Note its sentence lengths, vocabulary, paragraph openings, punctuation, and recurring phrases.
 2. Match those habits instead of merely deleting AI patterns. Do not upgrade casual words or regularize deliberate quirks.
-3. The sample outranks this skill's style rules. If the sample uses em dashes, keep them at roughly the sample's frequency (R-02 still applies to any copy the user did not authorize; when the user's own voice uses them, the voice wins).
+3. The sample outranks this skill's style rules, except where R-02 applies. R-02 governs copy the agent authors; a sample that uses em dashes is a direction, so it goes through R-37's conflict protocol, and you match its frequency only if the owner keeps it. R-02 applies in full to any copy the user did not authorize.
 
 Without a sample, use the defaults above. Matching the author beats scrubbing the tell.
 
@@ -362,11 +395,13 @@ Run these alongside the core Delivery Gate when the task is copy work. Every lin
 
 - [ ] No fabricated numbers, testimonials, names, dates, or claims; everything real or a labeled placeholder (R-17, R-18, R-36, R-38)
 - [ ] Buzzwords from R-16 and the Empty AI Vocabulary list replaced with specific, evidenced language
-- [ ] No em dashes in the output (R-02), unless the user's own sample voice uses them
+- [ ] No em dashes in the output (R-02); if the user's own sample voice uses them, they were surfaced under R-37 and the owner kept them
 - [ ] No excessive quotation marks: quotes only where they carry meaning (dialogue, real citations, titles), not as default emphasis (R-36)
 - [ ] No all-caps emphasis clauses: emphasis written into the sentence, not shouted with caps (R-36)
 - [ ] Every sentence names its actor: no actorless passive, no abstraction given a human verb, where a real subject was available (R-02, R-16)
 - [ ] CTAs specific to the action, not generic templates (R-15)
-- [ ] No AI-rhythm tells: no forced rule of three, no negative parallelism, no staccato drama, no aphorism formulas, no false ranges (R-36)
+- [ ] No AI-rhythm tells: no forced rule of three, no negative parallelism, no staccato drama, no theatrical takeaways, no aphorism formulas, no false ranges (R-36)
+- [ ] No temporal runway clichés ("in today's fast-paced world", "in an increasingly digital landscape") padding openings (R-16, R-36)
+- [ ] List items and bullet points use natural sentence case, not mechanical title case on every word (R-36)
 - [ ] Voice present: the copy has a real voice (the user's sample or a clearly chosen tone), not a sterile default (R-37)
 - [ ] Read aloud: the copy sounds like a person wrote it, not like a model padded it

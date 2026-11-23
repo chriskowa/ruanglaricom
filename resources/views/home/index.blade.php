@@ -249,26 +249,38 @@
     {{-- =========================================================
         FACTUAL PLATFORM STATS BAR (REAL-TIME DATABASE METRICS)
     ========================================================== --}}
+    @if(!empty($factualStats) && (!empty($factualStats['events_count']) || !empty($factualStats['communities_count']) || !empty($factualStats['runners_count'])))
     <section class="rl-editorial-stats-bar" aria-label="Statistik Ruang Lari">
         <div class="rl-shell">
             <div class="rl-stats-track">
+                @if(!empty($factualStats['events_count']))
                 <div class="rl-stat-col">
-                    <span class="rl-stat-number font-mono">{{ !empty($factualStats['events_count']) ? number_format($factualStats['events_count']) : '1.8K+' }}</span>
+                    <span class="rl-stat-number font-mono">{{ number_format($factualStats['events_count']) }}</span>
                     <span class="rl-stat-desc">Event Lari Terdaftar</span>
                 </div>
+                @endif
+                @if(!empty($factualStats['events_count']) && !empty($factualStats['communities_count']))
                 <div class="rl-stat-divider" aria-hidden="true"></div>
+                @endif
+                @if(!empty($factualStats['communities_count']))
                 <div class="rl-stat-col">
-                    <span class="rl-stat-number font-mono">{{ !empty($factualStats['communities_count']) ? number_format($factualStats['communities_count']) : '50+' }}</span>
+                    <span class="rl-stat-number font-mono">{{ number_format($factualStats['communities_count']) }}</span>
                     <span class="rl-stat-desc">Komunitas Terhubung</span>
                 </div>
+                @endif
+                @if((!empty($factualStats['events_count']) || !empty($factualStats['communities_count'])) && !empty($factualStats['runners_count']))
                 <div class="rl-stat-divider" aria-hidden="true"></div>
+                @endif
+                @if(!empty($factualStats['runners_count']))
                 <div class="rl-stat-col">
-                    <span class="rl-stat-number font-mono">{{ !empty($factualStats['runners_count']) ? number_format($factualStats['runners_count']) : '10K+' }}</span>
+                    <span class="rl-stat-number font-mono">{{ number_format($factualStats['runners_count']) }}</span>
                     <span class="rl-stat-desc">Pelari Bergabung</span>
                 </div>
+                @endif
             </div>
         </div>
     </section>
+    @endif
 
     {{-- =========================================================
         01 / TRAINING LAB — VDOT
@@ -913,7 +925,7 @@
         --rl-panel: #0D131F;
         --rl-surface: #0D131F;
         --rl-line: #1E293B;
-        --rl-border-subtle: rgba(255, 255, 255, 0.08);
+        --rl-border-subtle: #1E293B;
         --rl-text: #FFFFFF;
         --rl-muted: #94A3B8;
         --rl-lime: #C7FF00;
@@ -1545,8 +1557,8 @@
         bottom: -0.75rem;
         left: 50%;
         transform: translateX(-50%);
-        background: rgba(10, 15, 24, 0.95);
-        border: 1px solid rgba(184, 255, 0, 0.35);
+        background: #0A0F18;
+        border: 1px solid var(--rl-line);
         padding: 0.45rem 0.95rem;
         border-radius: 4px;
         display: flex;
@@ -1559,7 +1571,6 @@
         white-space: nowrap;
         box-shadow: 0 10px 25px rgba(0, 0, 0, 0.85);
         z-index: 10;
-        backdrop-filter: blur(8px);
         transition: all 0.25s ease;
     }
 
@@ -1573,7 +1584,7 @@
     ---------------------------------------------------- */
     .rl-hero-strip {
         margin-top: 3.5rem;
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        border-top: 1px solid var(--rl-line);
         background: #080C14;
         padding: 1.25rem 0 1.35rem;
         position: relative;
@@ -2062,7 +2073,7 @@
     .rl-lab-form small {
         display: block;
         margin-top: .4rem;
-        color: rgba(255,255,255,.38);
+        color: #CBD5E1;
         font-size: .65rem;
     }
 
@@ -2836,9 +2847,9 @@
     }
 
     .rl-badge-used {
-        background: rgba(15, 23, 42, 0.85);
+        background: #0F172A;
         color: #CBD5E1;
-        border: 1px solid rgba(255, 255, 255, 0.15);
+        border: 1px solid var(--rl-line);
         font-size: 0.62rem;
         font-weight: 800;
         padding: 0.2rem 0.5rem;
