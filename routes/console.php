@@ -13,10 +13,12 @@ Schedule::command('withdrawals:process')
     ->dailyAt('02:00')
     ->timezone('Asia/Jakarta');
 
-// Schedule Program Reminders (daily at 2 PM / 14:00 WIB)
-Schedule::command('programs:schedule-reminders')
-    ->dailyAt('16:00')
-    ->timezone('Asia/Jakarta');
+// Schedule Program Reminders (daily at 16:00 WIB) — paused while WA gateway is disabled
+if (filter_var(env('WHATSAPP_GATEWAY_ENABLED', false), FILTER_VALIDATE_BOOLEAN)) {
+    Schedule::command('programs:schedule-reminders')
+        ->dailyAt('16:00')
+        ->timezone('Asia/Jakarta');
+}
 
 // Process queue jobs automatically (Shared Hosting friendly)
 // Runs worker every minute, processes all jobs in priority order, then stops.

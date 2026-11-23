@@ -42,6 +42,10 @@ class WhatsApp
 
         $to = $normalized;
 
+        if (! filter_var(env('WHATSAPP_GATEWAY_ENABLED', false), FILTER_VALIDATE_BOOLEAN)) {
+            return;
+        }
+
         $isActive = (bool) AppSettings::get('whatsapp_is_active', false);
         if (!$isActive) {
             return;
