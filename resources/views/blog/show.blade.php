@@ -1,4 +1,4 @@
-@extends('layouts.pacerhub')
+@extends('layouts.pacerhub', ['skipHeavyAssets' => true, 'skipLoader' => true])
 
 @php
     $isEn = app()->getLocale() === 'en';
@@ -12,7 +12,10 @@
     }
     
     $metaTitle = $article->localized_meta_title ?: $article->localized_title . ' | Ruang Lari';
-    $metaDescription = $article->localized_meta_description ?: ($article->localized_excerpt ?: Str::limit(preg_replace('/\s+/', ' ', trim(strip_tags($article->localized_content))), 160));
+    $plainBody = preg_replace('/\s+/', ' ', trim(strip_tags((string) $article->localized_content)));
+    $metaDescription = $article->localized_meta_description ?: ($article->localized_excerpt ?: Str::limit($plainBody, 160));
+    $wordCount = str_word_count($plainBody);
+    $readingMinutes = max(1, (int) ceil($wordCount / 200));
     $publishedAtIso = optional($article->published_at ?: $article->created_at)?->toIso8601String();
     $modifiedAtIso = optional($article->updated_at ?: $article->created_at)?->toIso8601String();
     $hasEnglish = !empty($article->title_en) && !empty($article->content_en);
@@ -48,6 +51,9 @@
 
 @if($bgImage)
     @section('og_image', $bgImage)
+    @push('head')
+        <link rel="preload" as="image" href="{{ $bgImage }}" fetchpriority="high">
+    @endpush
 @endif
 
 @push('structured_data')
@@ -125,6 +131,11 @@
 
 @push('styles')
 <style>
+    .blog-heading {
+        font-family: 'Inter Tight', 'Sora', sans-serif;
+        font-weight: 800;
+        letter-spacing: -0.03em;
+    }
     .vertical-text {
         writing-mode: vertical-lr;
         text-orientation: mixed;
@@ -458,19 +469,19 @@
 @endpush
 
 @section('content')
-<div class="min-h-screen bg-[#020617] pt-0 pb-20 text-slate-200">
+<div class="min-h-screen bg-slate-950 pt-0 pb-20 text-slate-200">
     <!-- Reading Progress Bar -->
     <div class="fixed top-0 left-0 w-full h-1 bg-slate-800 z-[100]">
-        <div id="readingProgress" class="h-full bg-[#C7FF00] w-0 transition-all duration-100"></div>
+        <div id="readingProgress" class="h-full bg-lime-400 w-0"></div>
     </div>
     
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
         <div class="flex items-center justify-between md:hidden">
-            <a href="{{ route('home') }}" class="inline-flex items-center text-xs text-slate-400 hover:text-white transition-colors">
+            <a href="{{ route('blog.index') }}" class="inline-flex items-center text-xs text-slate-300 hover:text-white transition-colors">
                 <i class="fas fa-arrow-left mr-2"></i>
-                <span class="truncate max-w-[220px]">{{ $article->localized_title }}</span>
+                <span class="truncate max-w-[220px]">{{ $isEn ? 'All Articles' : 'Semua Artikel' }}</span>
             </a>
-            <div class="inline-flex rounded-md bg-[#080D17] border border-slate-800 p-1">
+            <div class="inline-flex rounded-md bg-slate-900 border border-slate-800 p-1">
                 <a href="{{ route('blog.show', ['slug' => $article->slug, 'lang' => 'id']) }}" class="px-3 py-1.5 rounded text-xs font-bold transition-colors {{ app()->getLocale() === 'id' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-400 hover:text-white' }}">ID</a>
                 <a href="{{ route('blog.show', ['slug' => $article->slug, 'lang' => 'en']) }}" class="px-3 py-1.5 rounded text-xs font-bold transition-colors {{ app()->getLocale() === 'en' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-400 hover:text-white' }}">EN</a>
             </div>
@@ -506,7 +517,7 @@
                     </li>
                 </ol>
             </nav>
-            <div class="inline-flex rounded-md bg-[#080D17] border border-slate-800 p-1">
+            <div class="inline-flex rounded-md bg-slate-900 border border-slate-800 p-1">
                 <a href="{{ route('blog.show', ['slug' => $article->slug, 'lang' => 'id']) }}" class="px-3.5 py-1.5 rounded text-xs font-bold transition-colors {{ app()->getLocale() === 'id' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-400 hover:text-white' }}">ID</a>
                 <a href="{{ route('blog.show', ['slug' => $article->slug, 'lang' => 'en']) }}" class="px-3.5 py-1.5 rounded text-xs font-bold transition-colors {{ app()->getLocale() === 'en' ? 'bg-slate-800 text-white shadow-sm' : 'text-slate-400 hover:text-white' }}">EN</a>
             </div>
@@ -521,23 +532,23 @@
             $shareUrl = urlencode(url()->current());
             $shareText = urlencode($article->localized_title);
         @endphp
-        <div class="desktop-floating-share hidden flex-col items-center gap-2.5 fixed left-4 min-[1600px]:left-8 top-1/2 -translate-y-1/2 z-40 bg-[#080D17] border border-slate-800 p-2.5 rounded-lg shadow-xl">
+        <div class="desktop-floating-share hidden flex-col items-center gap-2.5 fixed left-4 min-[1600px]:left-8 top-1/2 -translate-y-1/2 z-40 bg-slate-900 border border-slate-800 p-2.5 rounded-lg shadow-sm">
             <span class="text-[9px] font-bold text-slate-400 uppercase tracking-widest vertical-text mb-2 select-none">BAGIKAN</span>
-            <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-md bg-[#0B1220] border border-slate-800 hover:border-slate-700 hover:text-white flex items-center justify-center text-slate-400 transition-colors relative group" aria-label="Share ke Facebook">
+            <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-md bg-slate-950 border border-slate-800 hover:border-slate-700 hover:text-white flex items-center justify-center text-slate-300 transition-colors relative group" aria-label="Share ke Facebook">
                 <i class="fab fa-facebook-f text-xs"></i>
-                <span class="absolute left-full ml-3 px-2.5 py-1 rounded bg-[#080D17] text-white text-[10px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-slate-800 shadow-xl">Facebook</span>
+                <span class="absolute left-full ml-3 px-2.5 py-1 rounded bg-slate-900 text-white text-[10px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-slate-800 shadow-sm">Facebook</span>
             </a>
-            <a href="https://twitter.com/intent/tweet?url={{ $shareUrl }}&text={{ $shareText }}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-md bg-[#0B1220] border border-slate-800 hover:border-slate-700 hover:text-white flex items-center justify-center text-slate-400 transition-colors relative group" aria-label="Share ke X">
+            <a href="https://twitter.com/intent/tweet?url={{ $shareUrl }}&text={{ $shareText }}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-md bg-slate-950 border border-slate-800 hover:border-slate-700 hover:text-white flex items-center justify-center text-slate-300 transition-colors relative group" aria-label="Share ke X">
                 <i class="fab fa-x-twitter text-xs"></i>
-                <span class="absolute left-full ml-3 px-2.5 py-1 rounded bg-[#080D17] text-white text-[10px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-slate-800 shadow-xl">X (Twitter)</span>
+                <span class="absolute left-full ml-3 px-2.5 py-1 rounded bg-slate-900 text-white text-[10px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-slate-800 shadow-sm">X (Twitter)</span>
             </a>
-            <a href="https://wa.me/?text={{ $shareText }}%20{{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-md bg-[#0B1220] border border-slate-800 hover:border-slate-700 hover:text-white flex items-center justify-center text-slate-400 transition-colors relative group" aria-label="Share ke WhatsApp">
+            <a href="https://wa.me/?text={{ $shareText }}%20{{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-md bg-slate-950 border border-slate-800 hover:border-slate-700 hover:text-white flex items-center justify-center text-slate-300 transition-colors relative group" aria-label="Share ke WhatsApp">
                 <i class="fab fa-whatsapp text-xs"></i>
-                <span class="absolute left-full ml-3 px-2.5 py-1 rounded bg-[#080D17] text-white text-[10px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-slate-800 shadow-xl">WhatsApp</span>
+                <span class="absolute left-full ml-3 px-2.5 py-1 rounded bg-slate-900 text-white text-[10px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-slate-800 shadow-sm">WhatsApp</span>
             </a>
-            <button onclick="copyArticleLink(this)" class="w-9 h-9 rounded-md bg-[#0B1220] border border-slate-800 hover:border-slate-700 hover:text-white flex items-center justify-center text-slate-400 transition-colors relative group" aria-label="Salin Tautan">
+            <button type="button" onclick="copyArticleLink(this)" class="w-9 h-9 rounded-md bg-slate-950 border border-slate-800 hover:border-slate-700 hover:text-white flex items-center justify-center text-slate-300 transition-colors relative group cursor-pointer" aria-label="Salin Tautan">
                 <i class="fas fa-link text-xs"></i>
-                <span class="absolute left-full ml-3 px-2.5 py-1 rounded bg-[#080D17] text-white text-[10px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-slate-800 shadow-xl">Salin Link</span>
+                <span class="absolute left-full ml-3 px-2.5 py-1 rounded bg-slate-900 text-white text-[10px] font-semibold opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none border border-slate-800 shadow-sm">Salin Link</span>
             </button>
         </div>
 
@@ -546,77 +557,88 @@
                 <div class="lg:col-span-8 min-w-0">
                     <!-- Article Header & Title (Editorial Style) -->
                     <div class="mb-8 mt-1">
-                        <h1 class="text-2xl sm:text-3xl md:text-4xl font-bold text-white leading-tight tracking-tight mb-4">
+                        <h1 class="blog-heading text-2xl sm:text-3xl md:text-4xl text-white leading-tight mb-4">
                             {{ $article->localized_title }}
                         </h1>
                         
                         <div class="flex items-center flex-wrap gap-2.5 text-xs text-slate-300">
                             @if($article->category)
-                                <a href="{{ route('blog.category', $article->category->slug) }}" class="inline-flex items-center px-2.5 py-1 rounded bg-[#0B1220] hover:bg-[#111A2C] text-slate-200 border border-slate-800 text-[11px] font-semibold transition-colors">
+                                <a href="{{ route('blog.category', $article->category->slug) }}" class="inline-flex items-center px-2.5 py-1 rounded bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 text-xs font-semibold transition-colors">
                                     {{ $article->category->name }}
                                 </a>
                                 <span class="text-slate-600 select-none">•</span>
                             @endif
-                            <span class="flex items-center gap-1.5 py-1 text-slate-400">
-                                <i class="far fa-calendar-alt text-slate-500"></i>
+                            <span class="flex items-center gap-1.5 py-1 text-slate-300">
+                                <i class="far fa-calendar-alt text-slate-400"></i>
                                 {{ $article->published_at ? $article->published_at->format('d M Y') : $article->created_at->format('d M Y') }}
                             </span>
                             @if($article->user)
                                 <span class="text-slate-600 select-none">•</span>
-                                <span class="flex items-center gap-1.5 py-1 text-slate-300 font-medium">
-                                    <i class="far fa-user text-slate-500"></i>
+                                <span class="flex items-center gap-1.5 py-1 text-slate-200 font-medium">
+                                    <i class="far fa-user text-slate-400"></i>
                                     {{ $article->user->name }}
                                 </span>
                             @endif
                             <span class="text-slate-600 select-none">•</span>
-                            <span class="flex items-center gap-1.5 py-1 text-slate-400 font-mono" title="Jumlah dibaca">
-                                <i class="far fa-eye text-slate-500"></i>
-                                {{ number_format((int) ($article->views_count ?? 0)) }} {{ app()->getLocale() === 'en' ? 'views' : 'dibaca' }}
+                            <span class="flex items-center gap-1.5 py-1 text-slate-300 font-mono tabular-nums" title="Estimasi waktu baca">
+                                <i class="far fa-clock text-slate-400"></i>
+                                {{ $readingMinutes }} {{ $isEn ? 'min read' : 'menit baca' }}
+                            </span>
+                            <span class="text-slate-600 select-none">•</span>
+                            <span class="flex items-center gap-1.5 py-1 text-slate-300 font-mono tabular-nums" title="Jumlah dibaca">
+                                <i class="far fa-eye text-slate-400"></i>
+                                {{ number_format((int) ($article->views_count ?? 0)) }} {{ $isEn ? 'views' : 'dibaca' }}
                             </span>
                         </div>
 
                         <!-- Mobile Share Bar (Shown on screens < 1440px) -->
                         <div class="mobile-share-bar flex items-center gap-2 mt-4 pt-3 border-t border-slate-800">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-2">Bagikan:</span>
-                            <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-md bg-[#080D17] border border-slate-800 flex items-center justify-center text-slate-400 active:text-white" aria-label="Share ke Facebook">
+                            <span class="text-xs font-semibold text-slate-300 mr-1">Bagikan:</span>
+                            <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-md bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-300 active:text-white" aria-label="Share ke Facebook">
                                 <i class="fab fa-facebook-f text-xs"></i>
                             </a>
-                            <a href="https://twitter.com/intent/tweet?url={{ $shareUrl }}&text={{ $shareText }}" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-md bg-[#080D17] border border-slate-800 flex items-center justify-center text-slate-400 active:text-white" aria-label="Share ke X">
+                            <a href="https://twitter.com/intent/tweet?url={{ $shareUrl }}&text={{ $shareText }}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-md bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-300 active:text-white" aria-label="Share ke X">
                                 <i class="fab fa-x-twitter text-xs"></i>
                             </a>
-                            <a href="https://wa.me/?text={{ $shareText }}%20{{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-md bg-[#080D17] border border-slate-800 flex items-center justify-center text-slate-400 active:text-white" aria-label="Share ke WhatsApp">
+                            <a href="https://wa.me/?text={{ $shareText }}%20{{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-md bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-300 active:text-white" aria-label="Share ke WhatsApp">
                                 <i class="fab fa-whatsapp text-xs"></i>
                             </a>
-                            <button onclick="copyArticleLink(this)" class="w-8 h-8 rounded-md bg-[#080D17] border border-slate-800 flex items-center justify-center text-slate-400 active:text-white" aria-label="Salin Tautan">
+                            <button type="button" onclick="copyArticleLink(this)" class="w-9 h-9 rounded-md bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-300 active:text-white cursor-pointer" aria-label="Salin Tautan">
                                 <i class="fas fa-link text-xs"></i>
                             </button>
                         </div>
                     </div>
 
                     <!-- Feature Image (Clean magazine aspect-ratio, solid border) -->
-                    <div class="relative w-full h-[240px] md:h-[460px] overflow-hidden rounded-lg border border-slate-800 shadow-xl mb-10 bg-[#080D17]">
+                    <div class="relative w-full h-[240px] md:h-[460px] overflow-hidden rounded-lg border border-slate-800 mb-8 bg-slate-900">
                         @if($bgImage)
-                            <img src="{{ $bgImage }}" alt="{{ $article->localized_title }}" class="w-full h-full object-cover">
+                            <img src="{{ $bgImage }}" alt="{{ $article->localized_title }}" class="w-full h-full object-cover" fetchpriority="high" decoding="async">
                         @else
-                            <img src="{{ asset('images/ruanglari.webp') }}" alt="{{ $article->localized_title }}" class="w-full h-full object-cover">
+                            <img src="{{ asset('images/ruanglari.webp') }}" alt="{{ $article->localized_title }}" class="w-full h-full object-cover" fetchpriority="high" decoding="async">
                         @endif
                     </div>
 
                     @if($article->localized_excerpt)
-                        <div class="text-lg md:text-xl text-slate-300 leading-relaxed font-normal mb-8 border-l-2 border-slate-600 pl-4 italic">
+                        <div class="text-base md:text-lg text-slate-200 leading-relaxed font-normal mb-8 bg-slate-900 border border-slate-800 rounded-lg p-4 sm:p-5">
                             {{ $article->localized_excerpt }}
                         </div>
                     @endif
 
-                    <article class="prose prose-invert prose-lg max-w-none 
+                    <!-- Auto Table of Contents (shown automatically when article has >= 3 H2 headings) -->
+                    <nav id="articleTocBox" aria-label="Daftar Isi" class="hidden mb-8 rounded-lg bg-slate-900 border border-slate-800 p-4 sm:p-5">
+                        <div class="blog-heading text-sm text-white mb-2.5">{{ $isEn ? 'Table of Contents' : 'Daftar Isi' }}</div>
+                        <ol id="articleTocList" class="space-y-1.5 text-sm text-slate-300 list-decimal list-inside"></ol>
+                    </nav>
+
+                    <article id="articleBody" class="prose prose-invert prose-lg max-w-none 
                         prose-headings:font-bold prose-headings:text-white prose-headings:tracking-tight
                         prose-p:text-slate-300 prose-p:leading-relaxed
                         prose-a:text-slate-200 prose-a:underline hover:prose-a:text-white
                         prose-strong:text-white
-                        prose-blockquote:border-l-2 prose-blockquote:border-slate-600 prose-blockquote:bg-[#0B1220] prose-blockquote:py-2 prose-blockquote:px-5 prose-blockquote:rounded-r-md prose-blockquote:not-italic
+                        prose-blockquote:border-l-2 prose-blockquote:border-slate-700 prose-blockquote:bg-slate-900 prose-blockquote:py-2 prose-blockquote:px-5 prose-blockquote:rounded-r-md prose-blockquote:not-italic
                         prose-ul:list-disc prose-ul:text-slate-300
                         prose-ol:list-decimal prose-ol:text-slate-300
-                        prose-img:rounded-lg prose-img:shadow-lg prose-img:border prose-img:border-slate-800
+                        prose-img:rounded-lg prose-img:border prose-img:border-slate-800
                         prose-hr:border-slate-800">
                         
                         {!! $article->localized_content !!}
@@ -624,22 +646,22 @@
                     </article>
 
                     <div class="mt-14 pt-6 border-t border-slate-800 flex flex-col sm:flex-row gap-6 justify-between items-center">
-                        <a href="{{ route('home') }}" class="inline-flex items-center gap-2 text-slate-400 hover:text-white transition-colors group text-xs font-mono">
+                        <a href="{{ route('blog.index') }}" class="inline-flex items-center gap-2 text-slate-300 hover:text-white transition-colors group text-xs font-mono">
                             <i class="fas fa-arrow-left group-hover:-translate-x-1 transition-transform"></i>
-                            <span>Kembali ke Beranda</span>
+                            <span>{{ $isEn ? 'Back to Blog' : 'Kembali ke Blog' }}</span>
                         </a>
                         <div class="flex items-center gap-2.5">
-                            <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-1">Bagikan artikel:</span>
-                            <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-md bg-[#080D17] border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors" aria-label="Share ke Facebook">
+                            <span class="text-xs font-semibold text-slate-300 mr-1">Bagikan artikel:</span>
+                            <a href="https://www.facebook.com/sharer/sharer.php?u={{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-md bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-300 hover:text-white transition-colors" aria-label="Share ke Facebook">
                                 <i class="fab fa-facebook-f text-xs"></i>
                             </a>
-                            <a href="https://twitter.com/intent/tweet?url={{ $shareUrl }}&text={{ $shareText }}" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-md bg-[#080D17] border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors" aria-label="Share ke X">
+                            <a href="https://twitter.com/intent/tweet?url={{ $shareUrl }}&text={{ $shareText }}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-md bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-300 hover:text-white transition-colors" aria-label="Share ke X">
                                 <i class="fab fa-x-twitter text-xs"></i>
                             </a>
-                            <a href="https://wa.me/?text={{ $shareText }}%20{{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-8 h-8 rounded-md bg-[#080D17] border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors" aria-label="Share ke WhatsApp">
+                            <a href="https://wa.me/?text={{ $shareText }}%20{{ $shareUrl }}" target="_blank" rel="noopener noreferrer" class="w-9 h-9 rounded-md bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-300 hover:text-white transition-colors" aria-label="Share ke WhatsApp">
                                 <i class="fab fa-whatsapp text-xs"></i>
                             </a>
-                            <button onclick="copyArticleLink(this)" class="w-8 h-8 rounded-md bg-[#080D17] border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition-colors" aria-label="Salin Tautan">
+                            <button type="button" onclick="copyArticleLink(this)" class="w-9 h-9 rounded-md bg-slate-900 border border-slate-800 hover:border-slate-700 flex items-center justify-center text-slate-300 hover:text-white transition-colors cursor-pointer" aria-label="Salin Tautan">
                                 <i class="fas fa-link text-xs"></i>
                             </button>
                         </div>
@@ -648,26 +670,32 @@
 
                 <aside class="lg:col-span-4 mt-12 lg:mt-0">
                     <div class="sticky top-24">
-                        <!-- Single Sidebar Card with Tabs -->
-                        <div x-data="{ activeTab: 'trending' }" class="bg-[#080D17] border border-slate-800 rounded-lg p-5">
+                        <!-- Single Sidebar Card with Tabs (Vanilla JS, zero heavy bundle dependency) -->
+                        <div class="bg-slate-900 border border-slate-800 rounded-lg p-5">
                             <!-- Tabs Header Navigation -->
-                            <div class="flex items-center gap-2 pb-3 border-b border-slate-800">
-                                <button 
-                                    @click="activeTab = 'trending'" 
-                                    :class="activeTab === 'trending' ? 'text-white border-white font-bold' : 'text-slate-400 border-transparent hover:text-slate-200 font-medium'"
-                                    class="text-xs uppercase tracking-wider py-1.5 px-3 border-b-2 transition-all duration-200 cursor-pointer">
+                            <div class="flex items-center gap-2 pb-3 border-b border-slate-800" role="tablist">
+                                <button
+                                    type="button"
+                                    id="blogTabBtnTrending"
+                                    role="tab"
+                                    aria-selected="true"
+                                    onclick="switchBlogSidebarTab('trending')"
+                                    class="text-xs uppercase tracking-wider py-1.5 px-3 border-b-2 border-lime-400 text-white font-bold transition-colors cursor-pointer">
                                     Trending Artikel
                                 </button>
-                                <button 
-                                    @click="activeTab = 'events'" 
-                                    :class="activeTab === 'events' ? 'text-white border-white font-bold' : 'text-slate-400 border-transparent hover:text-slate-200 font-medium'"
-                                    class="text-xs uppercase tracking-wider py-1.5 px-3 border-b-2 transition-all duration-200 cursor-pointer">
+                                <button
+                                    type="button"
+                                    id="blogTabBtnEvents"
+                                    role="tab"
+                                    aria-selected="false"
+                                    onclick="switchBlogSidebarTab('events')"
+                                    class="text-xs uppercase tracking-wider py-1.5 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 font-medium transition-colors cursor-pointer">
                                     Jadwal Lari
                                 </button>
                             </div>
 
                             <!-- Tab 1: Trending Articles -->
-                            <div x-show="activeTab === 'trending'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0">
+                            <div id="blogTabPanelTrending" role="tabpanel">
                                 @if(isset($trending) && $trending->count() > 0)
                                     <div class="space-y-3.5 mt-4">
                                         @foreach($trending as $t)
@@ -679,25 +707,25 @@
                                                         : asset('storage/' . ltrim($t->featured_image, '/'));
                                                 }
                                             @endphp
-                                            <a href="{{ route('blog.show', $t->slug) }}" class="group flex items-start gap-3 pb-3 border-b border-slate-800/80 last:border-0 last:pb-0">
-                                                <div class="w-6 h-6 rounded bg-[#0B1220] border border-slate-800 flex items-center justify-center text-xs font-mono font-bold text-slate-400 flex-none select-none">
+                                            <a href="{{ route('blog.show', $t->slug) }}" class="group flex items-start gap-3 pb-3 border-b border-slate-800 last:border-0 last:pb-0">
+                                                <div class="w-6 h-6 rounded bg-slate-950 border border-slate-800 flex items-center justify-center text-xs font-mono tabular-nums font-bold text-slate-300 flex-none select-none">
                                                     {{ $loop->iteration }}
                                                 </div>
                                                 <div class="flex-1 min-w-0">
                                                     <div class="text-xs font-semibold text-slate-200 group-hover:text-white leading-snug line-clamp-2 transition-colors">
                                                         {{ $t->localized_title }}
                                                     </div>
-                                                    <div class="mt-1 flex items-center gap-2 text-[10px] text-slate-500 font-mono">
+                                                    <div class="mt-1 flex items-center gap-2 text-xs text-slate-400 font-mono tabular-nums">
                                                         @if($t->category)
-                                                            <span class="text-slate-400 font-sans font-medium">{{ $t->category->name }}</span>
+                                                            <span class="text-slate-300 font-sans font-medium">{{ $t->category->name }}</span>
                                                             <span>•</span>
                                                         @endif
                                                         <span>{{ number_format((int) ($t->views_count ?? 0)) }} dibaca</span>
                                                     </div>
                                                 </div>
                                                 @if($tImg)
-                                                    <div class="w-11 h-11 rounded-md bg-slate-900 border border-slate-800 flex-none overflow-hidden">
-                                                        <img src="{{ $tImg }}" alt="{{ $t->localized_title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                                                    <div class="w-11 h-11 rounded-md bg-slate-950 border border-slate-800 flex-none overflow-hidden">
+                                                        <img src="{{ $tImg }}" alt="{{ $t->localized_title }}" class="w-full h-full object-cover" loading="lazy" decoding="async">
                                                     </div>
                                                 @endif
                                             </a>
@@ -705,18 +733,18 @@
                                     </div>
 
                                     <div class="mt-5 pt-3.5 border-t border-slate-800 text-center">
-                                        <a href="{{ route('blog.index') }}" class="inline-flex items-center gap-1.5 text-xs font-mono text-slate-400 hover:text-white transition-colors">
+                                        <a href="{{ route('blog.index') }}" class="inline-flex items-center gap-1.5 text-xs font-mono text-slate-300 hover:text-white transition-colors">
                                             <span>Lihat Semua Artikel</span>
                                             <i class="fas fa-arrow-right text-[10px]"></i>
                                         </a>
                                     </div>
                                 @else
-                                    <div class="mt-4 text-xs text-slate-500 italic text-center py-3">Belum ada artikel populer.</div>
+                                    <div class="mt-4 text-xs text-slate-400 text-center py-3">Belum ada artikel populer.</div>
                                 @endif
                             </div>
 
                             <!-- Tab 2: Jadwal Lari Terdekat -->
-                            <div x-show="activeTab === 'events'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" style="display: none;">
+                            <div id="blogTabPanelEvents" role="tabpanel" class="hidden">
                                 @if(isset($upcomingEvents) && $upcomingEvents->count() > 0)
                                     <div class="space-y-2.5 mt-4">
                                         @foreach($upcomingEvents as $ev)
@@ -724,30 +752,30 @@
                                                 $evDate = $ev->start_at ? \Carbon\Carbon::parse($ev->start_at) : null;
                                                 $cityName = $ev->city ? $ev->city->name : ($ev->location_name ?: 'Indonesia');
                                             @endphp
-                                            <a href="{{ url('/events/' . $ev->slug) }}" class="group flex items-center gap-3 p-2.5 rounded-md bg-[#0B1220] hover:bg-[#111A2C] border border-slate-800 hover:border-slate-700 transition-colors">
-                                                <div class="flex-none w-10 h-10 rounded bg-[#080D17] border border-slate-800 flex flex-col items-center justify-center text-center p-1">
-                                                    <span class="text-[9px] font-bold text-slate-400 uppercase font-mono leading-none">{{ $evDate ? $evDate->translatedFormat('M') : 'EVT' }}</span>
-                                                    <span class="text-xs font-bold text-white font-mono leading-tight mt-0.5">{{ $evDate ? $evDate->format('d') : '•' }}</span>
+                                            <a href="{{ url('/events/' . $ev->slug) }}" class="group flex items-center gap-3 p-2.5 rounded-md bg-slate-950 hover:bg-slate-800 border border-slate-800 hover:border-slate-700 transition-colors">
+                                                <div class="flex-none w-10 h-10 rounded bg-slate-900 border border-slate-800 flex flex-col items-center justify-center text-center p-1">
+                                                    <span class="text-[10px] font-bold text-slate-300 uppercase font-mono leading-none">{{ $evDate ? $evDate->translatedFormat('M') : 'EVT' }}</span>
+                                                    <span class="text-xs font-bold text-white font-mono tabular-nums leading-tight mt-0.5">{{ $evDate ? $evDate->format('d') : '•' }}</span>
                                                 </div>
                                                 <div class="flex-1 min-w-0">
                                                     <div class="text-xs font-bold text-slate-200 group-hover:text-white truncate transition-colors">
                                                         {{ $ev->name }}
                                                     </div>
-                                                    <div class="mt-1 flex items-center gap-1.5 text-[10px] text-slate-400 font-mono">
-                                                        <i class="fas fa-map-marker-alt text-[9px] text-slate-500"></i>
+                                                    <div class="mt-1 flex items-center gap-1.5 text-xs text-slate-400 font-mono">
+                                                        <i class="fas fa-map-marker-alt text-[10px] text-slate-400"></i>
                                                         <span class="truncate">{{ $cityName }}</span>
                                                     </div>
                                                 </div>
-                                                <i class="fas fa-chevron-right text-[10px] text-slate-600 group-hover:text-slate-300 transition-colors mr-1"></i>
+                                                <i class="fas fa-chevron-right text-[10px] text-slate-500 group-hover:text-slate-300 transition-colors mr-1"></i>
                                             </a>
                                         @endforeach
                                     </div>
                                 @else
-                                    <div class="mt-4 text-xs text-slate-500 italic text-center py-3">Belum ada jadwal event mendatang.</div>
+                                    <div class="mt-4 text-xs text-slate-400 text-center py-3">Belum ada jadwal event mendatang.</div>
                                 @endif
 
                                 <div class="mt-5 pt-3.5 border-t border-slate-800 text-center">
-                                    <a href="{{ url('/events') }}" class="inline-flex items-center gap-1.5 text-xs font-mono text-slate-400 hover:text-white transition-colors">
+                                    <a href="{{ url('/events') }}" class="inline-flex items-center gap-1.5 text-xs font-mono text-slate-300 hover:text-white transition-colors">
                                         <span>Jelajahi Kalender Event</span>
                                         <i class="fas fa-arrow-right text-[10px]"></i>
                                     </a>
@@ -761,35 +789,35 @@
     </div>
 
     @if(isset($relatedArticles) && $relatedArticles->count() > 0)
-    <div class="mt-20 py-14 bg-[#080D17] border-t border-slate-800">
+    <div class="mt-20 py-14 bg-slate-900 border-t border-slate-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex items-center justify-between mb-8">
-                <h3 class="text-xl font-bold text-white">Artikel Lainnya dari {{ $article->category->name ?? 'Blog' }}</h3>
-                <a href="{{ $article->category ? route('blog.category', $article->category->slug) : route('blog.index') }}" class="text-xs font-mono text-slate-400 hover:text-white transition-colors">Lihat Semua →</a>
+                <h3 class="blog-heading text-xl text-white">Artikel Lainnya dari {{ $article->category->name ?? 'Blog' }}</h3>
+                <a href="{{ $article->category ? route('blog.category', $article->category->slug) : route('blog.index') }}" class="text-xs font-mono text-slate-300 hover:text-white transition-colors">Lihat Semua →</a>
             </div>
             
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 @foreach($relatedArticles as $related)
-                <a href="{{ route('blog.show', $related->slug) }}" class="group flex flex-col bg-[#080D17] rounded-lg overflow-hidden border border-slate-800 hover:border-slate-700 hover:bg-[#0B1220] transition-colors">
+                <a href="{{ route('blog.show', $related->slug) }}" class="group flex flex-col bg-slate-950 rounded-lg overflow-hidden border border-slate-800 hover:border-slate-700 transition-colors">
                     <div class="relative h-44 overflow-hidden bg-slate-900">
                         @php
                             $relImage = method_exists($related, 'getFeaturedImageUrl')
                                 ? $related->getFeaturedImageUrl()
                                 : asset('ruanglari.webp');
                         @endphp
-                        <img src="{{ $relImage }}" alt="{{ $related->title }}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" onerror="this.onerror=null; this.src='{{ asset('ruanglari.webp') }}';">
-                        <div class="absolute top-2 right-2 bg-black/70 px-2 py-0.5 rounded text-[10px] font-mono text-slate-300">
+                        <img src="{{ $relImage }}" alt="{{ $related->localized_title }}" class="w-full h-full object-cover group-hover:opacity-90 transition-opacity duration-150" loading="lazy" decoding="async" onerror="this.onerror=null; this.src='{{ asset('ruanglari.webp') }}';">
+                        <div class="absolute top-2 right-2 bg-slate-950/90 px-2 py-0.5 rounded text-xs font-mono tabular-nums text-slate-200">
                             {{ $related->published_at ? $related->published_at->format('d M') : $related->created_at->format('d M') }}
                         </div>
                     </div>
                     <div class="p-5 flex-1 flex flex-col justify-between">
                         <div>
-                            <h4 class="text-sm font-bold text-white mb-2 line-clamp-2 group-hover:text-slate-200 transition-colors">{{ $related->title }}</h4>
-                            <p class="text-slate-400 text-xs line-clamp-2 leading-relaxed">{{ Str::limit(strip_tags($related->excerpt ?? $related->content), 90) }}</p>
+                            <h4 class="blog-heading text-base text-white mb-2 line-clamp-2 group-hover:text-lime-300 transition-colors">{{ $related->localized_title }}</h4>
+                            <p class="text-slate-300 text-xs line-clamp-2 leading-relaxed">{{ $related->localized_excerpt ?: Str::limit(strip_tags((string) $related->localized_content), 90) }}</p>
                         </div>
-                        <div class="mt-4 text-xs font-semibold text-slate-300 inline-flex items-center gap-1 group-hover:text-white transition-colors">
-                            <span>Baca Selengkapnya</span>
-                            <span class="transition-transform group-hover:translate-x-0.5">→</span>
+                        <div class="mt-4 text-xs font-semibold text-slate-200 inline-flex items-center gap-1 group-hover:text-lime-300 transition-colors">
+                            <span>{{ $isEn ? 'Read more' : 'Baca Selengkapnya' }}</span>
+                            <span>→</span>
                         </div>
                     </div>
                 </a>
@@ -805,33 +833,79 @@
 
 @push('scripts')
 <script>
-    window.addEventListener('scroll', () => {
-        const winScroll = document.documentElement.scrollTop || document.body.scrollTop;
-        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-        const scrolled = (winScroll / height) * 100;
-        const progressBar = document.getElementById('readingProgress');
+    (function() {
+        var progressBar = document.getElementById('readingProgress');
+        var scrollTicking = false;
         if (progressBar) {
-            progressBar.style.width = scrolled + '%';
+            window.addEventListener('scroll', function() {
+                if (scrollTicking) return;
+                scrollTicking = true;
+                window.requestAnimationFrame(function() {
+                    var winScroll = document.documentElement.scrollTop || document.body.scrollTop;
+                    var height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+                    var scrolled = height > 0 ? Math.min(100, Math.max(0, (winScroll / height) * 100)) : 0;
+                    progressBar.style.width = scrolled + '%';
+                    scrollTicking = false;
+                });
+            }, { passive: true });
         }
-    });
+    })();
+
+    function switchBlogSidebarTab(tab) {
+        var isTrending = tab === 'trending';
+        var btnTrending = document.getElementById('blogTabBtnTrending');
+        var btnEvents = document.getElementById('blogTabBtnEvents');
+        var panelTrending = document.getElementById('blogTabPanelTrending');
+        var panelEvents = document.getElementById('blogTabPanelEvents');
+
+        if (panelTrending) panelTrending.classList.toggle('hidden', !isTrending);
+        if (panelEvents) panelEvents.classList.toggle('hidden', isTrending);
+
+        if (btnTrending) {
+            btnTrending.setAttribute('aria-selected', isTrending ? 'true' : 'false');
+            btnTrending.className = isTrending
+                ? 'text-xs uppercase tracking-wider py-1.5 px-3 border-b-2 border-lime-400 text-white font-bold transition-colors cursor-pointer'
+                : 'text-xs uppercase tracking-wider py-1.5 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 font-medium transition-colors cursor-pointer';
+        }
+        if (btnEvents) {
+            btnEvents.setAttribute('aria-selected', !isTrending ? 'true' : 'false');
+            btnEvents.className = !isTrending
+                ? 'text-xs uppercase tracking-wider py-1.5 px-3 border-b-2 border-lime-400 text-white font-bold transition-colors cursor-pointer'
+                : 'text-xs uppercase tracking-wider py-1.5 px-3 border-b-2 border-transparent text-slate-400 hover:text-slate-200 font-medium transition-colors cursor-pointer';
+        }
+    }
 
     function copyArticleLink(btn) {
-        navigator.clipboard.writeText(window.location.href).then(() => {
-            const icon = btn.querySelector('i');
+        var onCopied = function() {
+            var icon = btn.querySelector('i');
             if (icon) {
-                const originalClass = icon.className;
+                var originalClass = icon.className;
                 icon.className = 'fas fa-check text-emerald-400';
-                setTimeout(() => {
+                setTimeout(function() {
                     icon.className = originalClass;
                 }, 2000);
             }
-            
-            const tooltip = btn.querySelector('span');
+            var tooltip = btn.querySelector('span');
             if (tooltip) {
-                const originalText = tooltip.innerText;
+                var originalText = tooltip.dataset.origText || tooltip.innerText;
+                tooltip.dataset.origText = originalText;
                 tooltip.innerText = 'Tersalin!';
+                setTimeout(function() {
+                    tooltip.innerText = originalText;
+                }, 2000);
             }
-        });
+        };
+
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(window.location.href).then(onCopied).catch(function() {});
+        } else {
+            var tmp = document.createElement('input');
+            tmp.value = window.location.href;
+            document.body.appendChild(tmp);
+            tmp.select();
+            try { document.execCommand('copy'); onCopied(); } catch (e) {}
+            document.body.removeChild(tmp);
+        }
     }
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -843,6 +917,31 @@
                 wrapper.appendChild(table);
             }
         });
+
+        var bodyEl = document.getElementById('articleBody');
+        var tocBox = document.getElementById('articleTocBox');
+        var tocList = document.getElementById('articleTocList');
+        if (bodyEl && tocBox && tocList) {
+            var headings = bodyEl.querySelectorAll('h2');
+            if (headings.length >= 3) {
+                headings.forEach(function(h, idx) {
+                    var text = (h.textContent || '').trim();
+                    if (!text) return;
+                    if (!h.id) h.id = 'bagian-' + (idx + 1);
+                    h.classList.add('scroll-mt-24');
+                    var li = document.createElement('li');
+                    var a = document.createElement('a');
+                    a.href = '#' + h.id;
+                    a.textContent = text;
+                    a.className = 'hover:text-lime-300 transition-colors';
+                    li.appendChild(a);
+                    tocList.appendChild(li);
+                });
+                if (tocList.children.length >= 3) {
+                    tocBox.classList.remove('hidden');
+                }
+            }
+        }
     });
 
     window.addEventListener('message', function(event) {

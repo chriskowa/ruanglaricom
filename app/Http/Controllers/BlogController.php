@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Article;
 use App\Models\BlogCategory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 
 class BlogController extends Controller
 {
@@ -14,22 +16,40 @@ class BlogController extends Controller
         $search = trim((string) $request->query('q', ''));
         $sort = $request->query('sort', 'latest');
 
-        $categories = BlogCategory::query()
-            ->select(['id', 'name', 'slug', 'description', 'meta_title', 'meta_description'])
-            ->whereHas('articles', function ($q) {
-                $q->published();
-            })
-            ->withCount([
-                'articles as published_articles_count' => function ($q) {
+        $categories = Cache::remember('blog.categories_with_count_v1', 300, function () {
+            return BlogCategory::query()
+                ->select(['id', 'name', 'slug', 'description', 'meta_title', 'meta_description'])
+                ->whereHas('articles', function ($q) {
                     $q->published();
-                },
-            ])
-            ->orderByDesc('published_articles_count')
-            ->orderBy('name')
-            ->get();
+                })
+                ->withCount([
+                    'articles as published_articles_count' => function ($q) {
+                        $q->published();
+                    },
+                ])
+                ->orderByDesc('published_articles_count')
+                ->orderBy('name')
+                ->get();
+        });
 
         $articlesQuery = Article::query()
             ->published()
+            ->select([
+                'id',
+                'user_id',
+                'category_id',
+                'title',
+                'title_en',
+                'slug',
+                'excerpt',
+                'excerpt_en',
+                DB::raw('LEFT(content, 400) as content'),
+                DB::raw('LEFT(content_en, 400) as content_en'),
+                'featured_image',
+                'views_count',
+                'published_at',
+                'created_at',
+            ])
             ->with(['user:id,name', 'category:id,name,slug']);
 
         $activeCategory = $category;
@@ -69,18 +89,20 @@ class BlogController extends Controller
 
         $articles = $articlesQuery->paginate(12)->withQueryString();
 
-        $trending = Article::query()
-            ->published()
-            ->select(['id', 'title', 'slug', 'featured_image', 'views_count', 'published_at', 'created_at', 'category_id'])
-            ->with(['category:id,name,slug'])
-            ->orderByDesc('views_count')
-            ->orderByRaw('COALESCE(published_at, created_at) DESC')
-            ->limit(5)
-            ->get();
-
         if ($request->ajax()) {
             return view('blog.partials.results', compact('articles'));
         }
+
+        $trending = Cache::remember('blog.trending_v1', 300, function () {
+            return Article::query()
+                ->published()
+                ->select(['id', 'title', 'title_en', 'slug', 'featured_image', 'views_count', 'published_at', 'created_at', 'category_id'])
+                ->with(['category:id,name,slug'])
+                ->orderByDesc('views_count')
+                ->orderByRaw('COALESCE(published_at, created_at) DESC')
+                ->limit(6)
+                ->get();
+        })->take(5);
 
         // Build Clean SEO Metadata & Canonical URL
         if ($activeCategory) {
@@ -143,42 +165,68 @@ class BlogController extends Controller
             ->published()
             ->firstOrFail();
 
-        $article->increment('views_count');
+        $viewedKey = 'blog_viewed_' . $article->id;
+        if (! $request->session()->has($viewedKey)) {
+            $article->increment('views_count');
+            $request->session()->put($viewedKey, true);
+        }
 
-        $relatedArticles = Article::where('category_id', $article->category_id)
+        $relatedArticles = Article::query()
+            ->where('category_id', $article->category_id)
             ->where('id', '!=', $article->id)
             ->published()
+            ->select([
+                'id',
+                'category_id',
+                'title',
+                'title_en',
+                'slug',
+                'excerpt',
+                'excerpt_en',
+                DB::raw('LEFT(content, 300) as content'),
+                DB::raw('LEFT(content_en, 300) as content_en'),
+                'featured_image',
+                'published_at',
+                'created_at',
+            ])
             ->with(['category:id,name,slug'])
             ->latest('published_at')
             ->limit(3)
             ->get();
 
-        $trending = Article::query()
-            ->published()
-            ->where('id', '!=', $article->id)
-            ->select(['id', 'title', 'title_en', 'slug', 'featured_image', 'views_count', 'published_at', 'created_at', 'category_id'])
-            ->with(['category:id,name,slug'])
-            ->orderByDesc('views_count')
-            ->orderByRaw('COALESCE(published_at, created_at) DESC')
-            ->limit(5)
-            ->get();
+        $trending = Cache::remember('blog.trending_v1', 300, function () {
+            return Article::query()
+                ->published()
+                ->select(['id', 'title', 'title_en', 'slug', 'featured_image', 'views_count', 'published_at', 'created_at', 'category_id'])
+                ->with(['category:id,name,slug'])
+                ->orderByDesc('views_count')
+                ->orderByRaw('COALESCE(published_at, created_at) DESC')
+                ->limit(6)
+                ->get();
+        })->where('id', '!=', $article->id)->take(5)->values();
 
-        $upcomingEvents = \App\Models\Event::query()
-            ->where('is_active', true)
-            ->where('start_at', '>=', now()->startOfDay())
-            ->orderBy('start_at', 'asc')
-            ->with(['city'])
-            ->limit(4)
-            ->get();
-
-        if ($upcomingEvents->isEmpty()) {
-            $upcomingEvents = \App\Models\Event::query()
+        $upcomingEvents = Cache::remember('blog.sidebar_upcoming_events_v1', 600, function () {
+            $events = \App\Models\Event::query()
+                ->select(['id', 'name', 'slug', 'start_at', 'city_id', 'location_name'])
                 ->where('is_active', true)
-                ->orderBy('start_at', 'desc')
-                ->with(['city'])
+                ->where('start_at', '>=', now()->startOfDay())
+                ->orderBy('start_at', 'asc')
+                ->with(['city:id,name'])
                 ->limit(4)
                 ->get();
-        }
+
+            if ($events->isEmpty()) {
+                $events = \App\Models\Event::query()
+                    ->select(['id', 'name', 'slug', 'start_at', 'city_id', 'location_name'])
+                    ->where('is_active', true)
+                    ->orderBy('start_at', 'desc')
+                    ->with(['city:id,name'])
+                    ->limit(4)
+                    ->get();
+            }
+
+            return $events;
+        });
 
         return view('blog.show', compact('article', 'relatedArticles', 'trending', 'upcomingEvents'));
     }
