@@ -7,6 +7,7 @@ class GoogleSheetsParticipantExporter
     public const OUTPUT_COLUMNS = [
         'No',
         'Nama',
+        'Nama di BIB',
         'Gender',
         'Tanggal Lahir',
         'Email',
@@ -17,6 +18,7 @@ class GoogleSheetsParticipantExporter
         'BIB Number',
         'Jersey Size',
         'Golongan Darah',
+        'Riwayat Penyakit',
         'Addons',
         'Target Time',
         'Kupon',
@@ -25,6 +27,7 @@ class GoogleSheetsParticipantExporter
         'Fee Platform',
         'Nama Kontak Darurat',
         'No. Kontak Darurat',
+        'Hubungan Kontak Darurat',
         'Status Pembayaran',
         'Metode Input',
         'Status Pengambilan',

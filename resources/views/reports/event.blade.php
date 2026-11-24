@@ -1081,9 +1081,17 @@
                         <div class="text-white font-mono text-base font-bold mt-0.5" id="dm-bib">-</div>
                     </div>
                     <div>
+                        <div class="text-[11px] text-slate-400">Nama di BIB</div>
+                        <div class="text-white font-semibold mt-0.5" id="dm-bib-name">-</div>
+                    </div>
+                    <div>
                         <div class="text-[11px] text-slate-400">Ukuran Jersey & Gol. Darah</div>
                         <div class="text-white font-bold mt-0.5" id="dm-jersey">-</div>
                         <div class="text-slate-400 text-[11px]" id="dm-blood-type">-</div>
+                    </div>
+                    <div>
+                        <div class="text-[11px] text-slate-400">Riwayat Penyakit / Alergi</div>
+                        <div class="text-white whitespace-pre-line mt-0.5" id="dm-medical-history">-</div>
                     </div>
                     <div>
                         <div class="text-[11px] text-slate-400">Kelompok Umur</div>
@@ -2109,6 +2117,9 @@
         var emergency = '-';
         if (data.emergency_contact_name || data.emergency_contact_number) {
             emergency = (data.emergency_contact_name || '') + ' (' + (data.emergency_contact_number || '') + ')';
+            if (data.emergency_contact_relation) {
+                emergency += ' - ' + data.emergency_contact_relation;
+            }
         }
         document.getElementById('dm-emergency').textContent = emergency;
         
@@ -2124,8 +2135,12 @@
         
         document.getElementById('dm-category').textContent = (data.category && data.category.name) ? data.category.name : (data.category_name || '-');
         document.getElementById('dm-bib').textContent = data.bib_number || '-';
+        var dmBibNameEl = document.getElementById('dm-bib-name');
+        if (dmBibNameEl) dmBibNameEl.textContent = data.bib_name || '-';
         document.getElementById('dm-jersey').textContent = data.jersey_size || '-';
         document.getElementById('dm-blood-type').textContent = data.blood_type || '-';
+        var dmMedEl = document.getElementById('dm-medical-history');
+        if (dmMedEl) dmMedEl.textContent = data.medical_history || '-';
         document.getElementById('dm-age-group').textContent = data.age_group || '-';
         document.getElementById('dm-target-time').textContent = data.target_time || '-';
         

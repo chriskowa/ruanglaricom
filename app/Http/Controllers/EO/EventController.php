@@ -1401,12 +1401,14 @@ class EventController extends Controller
                 return [
                     'id' => $p->id,
                     'name' => $p->name,
+                    'bib_name' => $p->bib_name,
                     'gender' => $p->gender,
                     'email' => $p->email,
                     'phone' => $p->phone,
                     'id_card' => $p->id_card,
                     'emergency_contact_name' => $p->emergency_contact_name,
                     'emergency_contact_number' => $p->emergency_contact_number,
+                    'emergency_contact_relation' => $p->emergency_contact_relation,
                     'date_of_birth' => $p->date_of_birth ? $p->date_of_birth->toDateString() : null,
                     'address' => $p->address,
                     'city' => $p->city,
@@ -1432,6 +1434,7 @@ class EventController extends Controller
                     'status' => in_array($p->transaction->payment_status ?? '', ['failed', 'expired']) ? 'cancelled' : $p->status,
                     'category_quota' => $p->category ? $p->category->quota : 0,
                     'blood_type' => $p->blood_type,
+                    'medical_history' => $p->medical_history,
                     'payment_update_url' => route('eo.events.transactions.payment-status', [$event, $p->transaction->id]),
                     'pic_name' => $p->transaction->pic_data['name'] ?? '-',
                     'pic_phone' => $p->transaction->pic_data['phone'] ?? '-',
@@ -1760,12 +1763,14 @@ class EventController extends Controller
             return [
                 'id' => $p->id,
                 'name' => $p->name,
+                'bib_name' => $p->bib_name,
                 'gender' => $p->gender,
                 'email' => $p->email,
                 'phone' => $p->phone,
                 'id_card' => $p->id_card,
                 'emergency_contact_name' => $p->emergency_contact_name,
                 'emergency_contact_number' => $p->emergency_contact_number,
+                'emergency_contact_relation' => $p->emergency_contact_relation,
                 'address' => $p->address,
                 'city' => $p->city,
                 'province' => $p->province,
@@ -1778,6 +1783,7 @@ class EventController extends Controller
                 'age_group' => $p->getAgeGroup($event->start_at),
                 'jersey_size' => $p->jersey_size,
                 'blood_type' => $p->blood_type,
+                'medical_history' => $p->medical_history,
                 'created_at' => $p->created_at ? $p->created_at->format('Y-m-d H:i:s') : null,
                 'payment_status' => $p->transaction->payment_status ?? 'pending',
                 'payment_update_url' => route('eo.events.participants.payment-update', ['event' => $event->slug, 'participant' => $p->id]),
@@ -1815,6 +1821,7 @@ class EventController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'bib_name' => 'nullable|string|max:30',
             'gender' => 'nullable|in:male,female',
             'email' => 'required|email|max:255',
             'phone' => 'required|string|min:10|max:15|regex:/^[0-9]+$/',
@@ -1834,8 +1841,10 @@ class EventController extends Controller
             'target_time' => ['nullable', 'string', 'regex:/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/', 'not_in:00:00:00'],
             'jersey_size' => 'nullable|string|max:10',
             'blood_type' => 'nullable|string|in:A,B,AB,O',
+            'medical_history' => 'nullable|string|max:500',
             'emergency_contact_name' => 'nullable|string|max:255',
             'emergency_contact_number' => 'nullable|string|min:10|max:15|regex:/^[0-9]+$/',
+            'emergency_contact_relation' => 'nullable|string|max:50',
             'bib_number' => ['nullable', 'string', 'max:20', Rule::unique('participants', 'bib_number')],
             'send_whatsapp' => 'nullable|boolean',
             'use_queue' => 'nullable|boolean',
@@ -1990,11 +1999,13 @@ class EventController extends Controller
 
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'bib_name' => 'nullable|string|max:30',
             'email' => 'required|email|max:255',
             'phone' => 'required|string|min:8|max:20',
             'id_card' => 'required|string|max:50',
             'emergency_contact_name' => 'nullable|string|max:255',
             'emergency_contact_number' => 'nullable|string|max:20',
+            'emergency_contact_relation' => 'nullable|string|max:50',
             'gender' => 'required|in:male,female',
             'date_of_birth' => 'nullable|date',
             'address' => 'nullable|string|max:500',
@@ -2005,6 +2016,7 @@ class EventController extends Controller
             'bib_number' => ['nullable', 'string', 'max:20', Rule::unique('participants', 'bib_number')->ignore($participant->id)],
             'jersey_size' => 'nullable|string|max:10',
             'blood_type' => 'nullable|string|in:A,B,AB,O',
+            'medical_history' => 'nullable|string|max:500',
             'strava_url' => 'nullable|string|max:500',
             'is_picked_up' => 'nullable|boolean',
             'picked_up_by' => 'nullable|string|max:255',
@@ -2229,11 +2241,13 @@ class EventController extends Controller
             'data' => [
                 'id' => $participant->id,
                 'name' => $participant->name,
+                'bib_name' => $participant->bib_name,
                 'email' => $participant->email,
                 'phone' => $participant->phone,
                 'id_card' => $participant->id_card,
                 'emergency_contact_name' => $participant->emergency_contact_name,
                 'emergency_contact_number' => $participant->emergency_contact_number,
+                'emergency_contact_relation' => $participant->emergency_contact_relation,
                 'gender' => $participant->gender,
                 'date_of_birth' => $participant->date_of_birth ? $participant->date_of_birth->toDateString() : null,
                 'address' => $participant->address,
@@ -2246,6 +2260,7 @@ class EventController extends Controller
                 'bib_number' => $participant->bib_number,
                 'jersey_size' => $participant->jersey_size,
                 'blood_type' => $participant->blood_type,
+                'medical_history' => $participant->medical_history,
                 'age_group' => $participant->getAgeGroup($event->start_at) . ($participant->date_of_birth ? ' (' . number_format($participant->date_of_birth->floatDiffInYears($event->start_at), 1) . ' thn)' : ''),
                 'is_picked_up' => $participant->is_picked_up,
                 'picked_up_at' => $participant->picked_up_at,
@@ -2886,6 +2901,7 @@ class EventController extends Controller
                     fputcsv($file, [
                         $rowNumber,
                         $participant->name,
+                        $participant->bib_name ?? '-',
                         ucfirst($participant->gender ?? '-'),
                         $participant->date_of_birth ? $participant->date_of_birth->format('Y-m-d') : '-',
                         $participant->email,
@@ -2896,6 +2912,7 @@ class EventController extends Controller
                         $participant->bib_number ?? '-',
                         $participant->jersey_size ?? '-',
                         $participant->blood_type ?? '-',
+                        $participant->medical_history ?? '-',
                         (! empty($participant->addons) && is_array($participant->addons)) ? collect($participant->addons)->pluck('name')->filter()->implode(', ') : '-',
                         $participant->target_time ?? '-',
                         $participant->transaction && $participant->transaction->coupon ? $participant->transaction->coupon->code : '-',
@@ -2904,6 +2921,7 @@ class EventController extends Controller
                         $platformFee,
                         $participant->emergency_contact_name ?? '-',
                         $participant->emergency_contact_number ?? '-',
+                        $participant->emergency_contact_relation ?? '-',
                         ucfirst($participant->transaction->payment_status ?? 'pending'),
                         $inputMethodName,
                         $participant->is_picked_up ? 'Sudah Diambil' : 'Belum Diambil',
@@ -3106,6 +3124,7 @@ class EventController extends Controller
                     $rows[] = \OpenSpout\Common\Entity\Row::fromValues([
                         $rowNumber,
                         $participant->name,
+                        $participant->bib_name ?? '-',
                         ucfirst($participant->gender ?? '-'),
                         $participant->date_of_birth ? $participant->date_of_birth->format('Y-m-d') : '-',
                         $participant->email,
@@ -3116,6 +3135,7 @@ class EventController extends Controller
                         $participant->bib_number ?? '-',
                         $participant->jersey_size ?? '-',
                         $participant->blood_type ?? '-',
+                        $participant->medical_history ?? '-',
                         (! empty($participant->addons) && is_array($participant->addons)) ? collect($participant->addons)->pluck('name')->filter()->implode(', ') : '-',
                         $participant->target_time ?? '-',
                         $participant->transaction && $participant->transaction->coupon ? $participant->transaction->coupon->code : '-',
@@ -3124,6 +3144,7 @@ class EventController extends Controller
                         $platformFee,
                         $participant->emergency_contact_name ?? '-',
                         $participant->emergency_contact_number ?? '-',
+                        $participant->emergency_contact_relation ?? '-',
                         ucfirst($participant->transaction->payment_status ?? 'pending'),
                         $inputMethodName,
                         $participant->is_picked_up ? 'Sudah Diambil' : 'Belum Diambil',
@@ -3464,7 +3485,7 @@ class EventController extends Controller
                 }
                 $genderVal = trim($genderVal ?? '') === '' ? '-' : $genderVal;
 
-                $pName = isset($pOverride['name']) ? $pOverride['name'] : $p->name;
+                $pName = isset($pOverride['name']) ? $pOverride['name'] : $p->display_bib_name;
                 $pName = trim($pName ?? '') === '' ? '-' : $pName;
                 if ($pName !== '-') {
                     $pName = $this->formatBibName($pName, $maxNameLength);
@@ -3518,6 +3539,7 @@ class EventController extends Controller
                             '{emergency_contact_number}', '[E#]',
                             '{emergency_contact_name}', '[EN]',
                             '{bib_number}', '#',
+                            '{bib_name}',
                             '{name}', '[N]',
                             '{category}', '[C]',
                             '{blood_type}', '[B]',
@@ -3529,6 +3551,7 @@ class EventController extends Controller
                             $pEmergencyNumber, $pEmergencyNumber,
                             $pEmergencyName, $pEmergencyName,
                             $dynamicBib, $dynamicBib,
+                            $pName,
                             $pName, $pName,
                             $pCategory, $pCategory,
                             $pBloodType, $pBloodType,

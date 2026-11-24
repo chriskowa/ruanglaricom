@@ -2368,6 +2368,8 @@
                                                     </div>
                                                 </div>
 
+                                                @include('events.partials.dynamic-extra-fields', ['mode' => 'light'])
+
                                                 <!-- Jersey Size & Target Time -->
                                                 <div class="grid grid-cols-1 {{ $showTargetTime ? 'sm:grid-cols-2' : '' }} gap-3 items-start">
                                                     <div>
@@ -4112,6 +4114,7 @@
 
                 items.forEach((item, i) => {
                     const pName = item.querySelector('input[name*="[name]"]')?.value || '-';
+                    const pBibName = item.querySelector('input[name*="[bib_name]"]')?.value?.trim() || '';
                     const pNik = item.querySelector('input[name*="[id_card]"]')?.value || '-';
                     const pSize = item.querySelector('select[name*="[jersey_size]"]')?.value || '-';
                     const catRadio = item.querySelector('input[type="radio"].cat-radio:checked');
@@ -4139,7 +4142,7 @@
                     row.className = 'bg-white border border-slate-200 rounded p-2.5 text-xs flex justify-between items-start gap-2';
                     row.innerHTML = `
                         <div class="min-w-0 flex-1">
-                            <span class="font-bold text-slate-900 block truncate">${i + 1}. ${pName}</span>
+                            <span class="font-bold text-slate-900 block truncate">${i + 1}. ${pName}${pBibName ? ` (BIB: ${pBibName})` : ''}</span>
                             <span class="text-[11px] text-slate-500 block">NIK: ${pNik} • Jersey: ${pSize}</span>
                             ${addonsHtml}
                         </div>

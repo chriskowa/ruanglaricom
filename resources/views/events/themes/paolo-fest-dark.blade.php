@@ -1007,6 +1007,7 @@
                                         <input type="text" name="participants[0][emergency_contact_name]" placeholder="Nama Kontak Darurat" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-4 focus:ring-2 focus:ring-neon-blue outline-none text-white placeholder-slate-500" required>
                                         <input type="text" name="participants[0][emergency_contact_number]" placeholder="No. Kontak Darurat" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-4 focus:ring-2 focus:ring-neon-blue outline-none text-white placeholder-slate-500" required minlength="10" maxlength="15" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                     </div>
+                                    @include('events.partials.dynamic-extra-fields', ['mode' => 'dark'])
                                     </div>
                                 </div>
                             </div>

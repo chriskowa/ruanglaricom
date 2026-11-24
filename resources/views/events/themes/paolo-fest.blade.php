@@ -1978,6 +1978,7 @@
                                             <input type="text" name="participants[0][emergency_contact_name]" placeholder="Nama Kontak Darurat" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>
                                             <input type="text" name="participants[0][emergency_contact_number]" placeholder="No. Kontak Darurat" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required minlength="10" maxlength="15" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                         </div>
+                                        @include('events.partials.dynamic-extra-fields', ['mode' => 'light'])
                                         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <div class="space-y-1 relative">
                                                 <label class="text-xs font-bold text-slate-500 uppercase tracking-wider ml-1">Ukuran Jersey</label>

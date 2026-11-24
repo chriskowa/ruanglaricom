@@ -462,7 +462,8 @@
 
         $hasFormFieldsConfig = isset($event->premium_amenities['form_fields']) && is_array($event->premium_amenities['form_fields']);
         $formFields = $hasFormFieldsConfig ? $event->premium_amenities['form_fields'] : [];
-        $showJersey = $hasFormFieldsConfig ? !empty($formFields['jersey_size']) : true;
+        $hasStandardFieldsConfig = isset($formFields['id_card']) || isset($formFields['address']) || isset($formFields['date_of_birth']) || isset($formFields['emergency_contact']) || isset($formFields['jersey_size']);
+        $showJersey = $hasStandardFieldsConfig ? !empty($formFields['jersey_size']) : true;
         $showTargetTime = !empty($formFields['target_time']);
         $showStravaField = !empty($formFields['strava_activity']) || !empty($formFields['strava_url']);
 
@@ -2250,6 +2251,8 @@
                                                         <input type="text" name="participants[0][emergency_contact_number]" required minlength="10" maxlength="15" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')" class="input-light w-full px-3 py-2 text-sm" placeholder="08xxxxxxxxxx">
                                                     </div>
                                                 </div>
+
+                                                @include('events.partials.dynamic-extra-fields', ['mode' => 'light'])
 
                                                 @if($showJersey || $showTargetTime)
                                                 <!-- Jersey Size & Target Time -->

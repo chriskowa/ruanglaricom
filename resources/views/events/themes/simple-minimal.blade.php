@@ -356,6 +356,7 @@
                                         @if(!empty($event->premium_amenities['form_fields']['strava_activity']))
                                         <input type="url" name="participants[0][strava_url]" placeholder="Link Aktivitas Strava (Opsional)" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:bg-white transition">
                                         @endif
+                                        @include('events.partials.dynamic-extra-fields', ['mode' => 'light'])
                                     </div>
                                 </div>
 

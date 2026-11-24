@@ -2,1226 +2,914 @@
 <html lang="id" class="scroll-smooth">
 <head>
     <meta charset="UTF-8" />
-    <script>
-        // Nominatim CORS Proxy Interceptor
-        (function() {
-            var originalFetch = window.fetch;
-            window.fetch = function(url, options) {
-                if (typeof url === 'string' && url.includes('nominatim.openstreetmap.org')) {
-                    var proxyUrl = '/image-proxy?url=' + encodeURIComponent(url);
-                    return originalFetch(proxyUrl, options);
-                }
-                return originalFetch(url, options);
-            };
-        })();
-    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     @php
-        $seoTitle = isset($seo['title']) && $seo['title'] ? $seo['title'] : $event->name . ' - ' . ($event->location_name ?? 'Official Event');
-        $seoDesc = isset($seo['description']) && $seo['description'] ? $seo['description'] : Str::limit(strip_tags($event->short_description ?: $event->full_description), 155);
-        $seoKeywords = isset($seo['keywords']) && $seo['keywords'] ? $seo['keywords'] : 'lari, event lari, ' . $event->name . ', ' . ($event->location_name ?? '') . ', pendaftaran lari, ruanglari';
-        $seoUrl = isset($seo['url']) && $seo['url'] ? $seo['url'] : route('events.show', $event->slug);
-        $seoImage = isset($seo['image']) && $seo['image'] ? $seo['image'] : ($event->hero_image ? asset('storage/' . $event->hero_image) : asset('images/ruanglari_green.png'));
+        $seoTitle = !empty($seo['title']) ? $seo['title'] : $event->name . ' - ' . ($event->location_name ?? 'Official Event');
+        $seoDesc = !empty($seo['description']) ? $seo['description'] : \Illuminate\Support\Str::limit(strip_tags($event->short_description ?: $event->full_description), 155);
+        $seoKeywords = !empty($seo['keywords']) ? $seo['keywords'] : 'lari, event lari, ' . $event->name . ', ' . ($event->location_name ?? '') . ', pendaftaran lari, ruanglari';
+        $seoUrl = !empty($seo['url']) ? $seo['url'] : route('events.show', $event->slug);
+        $seoImage = !empty($seo['image']) ? $seo['image'] : ($event->hero_image ? asset('storage/' . $event->hero_image) : asset('images/ruanglari_green.png'));
+        $faviconUrl = $event->getFaviconUrl();
+
+        $now = now();
+        $isRegOpen = !($event->registration_open_at && $now < $event->registration_open_at)
+            && !($event->registration_close_at && $now > $event->registration_close_at);
+
+        $accentColor = $event->theme_colors['primary'] ?? ($event->theme_colors['neon'] ?? '#ccff00');
+        $pa = is_array($event->premium_amenities) ? $event->premium_amenities : [];
+        $hasPa = !empty($pa);
+        $showSection = function ($key) use ($pa, $hasPa) {
+            if (!$hasPa) return false;
+            return !empty($pa[$key]['enabled']);
+        };
+
+        $heroBg = $event->hero_image ? asset('storage/' . $event->hero_image) : ($event->hero_image_url ?? '');
+        $facilities = is_array($event->facilities) ? array_values(array_filter($event->facilities, fn($f) => !empty($f['name']))) : [];
+        $gallery = is_array($event->gallery) ? array_values(array_filter($event->gallery)) : [];
+        $faqItems = isset($pa['faq']['items']) && is_array($pa['faq']['items'])
+            ? array_values(array_filter($pa['faq']['items'], fn($f) => !empty($f['question']) && !empty($f['answer'])))
+            : [];
+        $whatToBring = isset($pa['what_to_bring']['items']) && is_array($pa['what_to_bring']['items'])
+            ? array_values(array_filter($pa['what_to_bring']['items']))
+            : [];
+        $eventAddons = is_array($event->addons)
+            ? array_values(array_filter($event->addons, fn($a) => !empty($a['name'])))
+            : [];
+
+        $hasRacePack = ($showSection('jersey') || $showSection('medal') || $event->jersey_image || $event->medal_image);
+        $hasLogistics = $showSection('rpc') || $showSection('venue') || ($showSection('what_to_bring') && count($whatToBring) > 0);
+        $hasRouteSection = !empty($event->location_name) || !empty($event->location_address) || !empty($event->map_embed_url) || !empty($event->route_map_image);
+
+        // Payment config
+        $paymentConfig = is_array($event->payment_config) ? $event->payment_config : [];
+        if (isset($paymentConfig['allowed_methods']) && is_array($paymentConfig['allowed_methods'])) {
+            $allowed = $paymentConfig['allowed_methods'];
+            $showMidtrans = in_array('midtrans', $allowed) || in_array('all', $allowed);
+            $showMoota = in_array('moota', $allowed) || in_array('all', $allowed);
+            $showManualTransfer = in_array('manual_transfer', $allowed) || in_array('all', $allowed);
+            $showCod = in_array('cod', $allowed);
+        } else {
+            $showMidtrans = $paymentConfig['midtrans'] ?? true;
+            $showMoota = $paymentConfig['moota'] ?? false;
+            $showManualTransfer = $paymentConfig['manual_transfer'] ?? false;
+            $showCod = $paymentConfig['cod'] ?? false;
+        }
+        if (!$showMidtrans && !$showMoota && !$showManualTransfer && !$showCod) {
+            $showMidtrans = true;
+        }
+        $defaultPayment = $showMidtrans ? 'midtrans' : ($showMoota ? 'moota' : ($showManualTransfer ? 'manual_transfer' : 'cod'));
+        $manualTransferWaiveFee = !empty($paymentConfig['manual_transfer_waive_fee']);
+
+        $midtransDemoMode = filter_var($paymentConfig['midtrans_demo_mode'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
+        $midtransUrl = $midtransDemoMode ? config('midtrans.base_url_sandbox') : 'https://app.midtrans.com';
+        $midtransClientKey = $midtransDemoMode ? config('midtrans.client_key_sandbox') : config('midtrans.client_key');
+
+        $jerseySizes = is_array($event->jersey_sizes) && count($event->jersey_sizes) > 0
+            ? $event->jersey_sizes
+            : ['XS', 'S', 'M', 'L', 'XL', '2XL'];
     @endphp
 
     <title>{{ $seoTitle }}</title>
     <meta name="description" content="{{ $seoDesc }}" />
     <meta name="keywords" content="{{ $seoKeywords }}">
     <link rel="canonical" href="{{ $seoUrl }}">
-    <meta name="theme-color" content="{{ $event->theme_colors['dark'] ?? '#0f172a' }}">
-    
-    <!-- Open Graph / Facebook -->
+    <meta name="theme-color" content="#020617">
+    <meta name="csrf-token" content="{{ csrf_token() }}" />
+
     <meta property="og:type" content="event" />
     <meta property="og:title" content="{{ $seoTitle }}" />
     <meta property="og:description" content="{{ $seoDesc }}" />
     <meta property="og:url" content="{{ $seoUrl }}" />
     <meta property="og:image" content="{{ $seoImage }}" />
     <meta property="og:site_name" content="RuangLari" />
-
-    <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="{{ $seoTitle }}" />
     <meta name="twitter:description" content="{{ $seoDesc }}" />
     <meta name="twitter:image" content="{{ $seoImage }}" />
 
-    <!-- Schema.org Structured Data -->
+    <link rel="icon" type="image/png" sizes="32x32" href="{{ $faviconUrl }}">
+    <link rel="icon" type="image/png" sizes="16x16" href="{{ $faviconUrl }}">
+    <link rel="apple-touch-icon" href="{{ $faviconUrl }}">
+    <link rel="shortcut icon" href="{{ $faviconUrl }}">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:wght@700;800&family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Sora:wght@700;800&display=swap" rel="stylesheet">
+
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    @if(env('RECAPTCHA_SITE_KEY_v3'))
+        <script async defer src="https://www.google.com/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY_v3') }}"></script>
+    @endif
+    @if($showMidtrans && $midtransClientKey)
+        <script defer src="{{ $midtransUrl }}/snap/snap.js" data-client-key="{{ $midtransClientKey }}"></script>
+    @endif
+
     <script type="application/ld+json">
     {
       "@@context": "https://schema.org",
       "@@type": "Event",
-      "name": "{{ $event->name }}",
-      "description": "{{ $seoDesc }}",
-      "image": "{{ $seoImage }}",
-      "startDate": "{{ $event->start_at ? $event->start_at->toIso8601String() : '' }}",
-      "endDate": "{{ $event->end_at ? $event->end_at->toIso8601String() : ($event->start_at ? $event->start_at->addHours(4)->toIso8601String() : '') }}",
+      "name": @json($event->name),
+      "description": @json($seoDesc),
+      "image": @json($seoImage),
+      "startDate": @json($event->start_at ? $event->start_at->toIso8601String() : ''),
+      "endDate": @json($event->end_at ? $event->end_at->toIso8601String() : ($event->start_at ? $event->start_at->copy()->addHours(4)->toIso8601String() : '')),
       "eventStatus": "https://schema.org/EventScheduled",
       "eventAttendanceMode": "https://schema.org/OfflineEventAttendanceMode",
       "location": {
         "@@type": "Place",
-        "name": "{{ $event->location_name ?? 'TBA' }}",
+        "name": @json($event->location_name ?? 'TBA'),
         "address": {
           "@@type": "PostalAddress",
-          "addressLocality": "{{ $event->city ?? '' }}",
+          "addressLocality": @json($event->city ?? ''),
           "addressCountry": "ID"
         }
       },
       "organizer": {
         "@@type": "Organization",
         "name": "RuangLari",
-        "url": "{{ url('/') }}"
+        "url": @json(url('/'))
       },
       "offers": {
         "@@type": "Offer",
-        "url": "{{ $seoUrl }}",
-        "price": "0",
+        "url": @json($seoUrl),
         "priceCurrency": "IDR",
-        "availability": "{{ (isset($isRegOpen) && $isRegOpen) ? 'https://schema.org/InStock' : 'https://schema.org/SoldOut' }}",
-        "validFrom": "{{ $event->registration_open_at ? $event->registration_open_at->toIso8601String() : '' }}"
+        "availability": "{{ $isRegOpen ? 'https://schema.org/InStock' : 'https://schema.org/SoldOut' }}"
       }
     }
     </script>
-    @php
-        $faviconUrl = $event->getFaviconUrl();
-    @endphp
-    <link rel="icon" type="image/png" sizes="32x32" href="{{ $faviconUrl }}">
-    <link rel="icon" type="image/png" sizes="16x16" href="{{ $faviconUrl }}">
-    <link rel="apple-touch-icon" href="{{ $faviconUrl }}">
-    <link rel="manifest" href="{{ asset('images/green/site.webmanifest') }}">
-    <link rel="shortcut icon" href="{{ $faviconUrl }}">
-    <meta name="csrf-token" content="{{ csrf_token() }}" />
-
-    @if(env('RECAPTCHA_SITE_KEY_v3'))
-        <script src="https://www.google.com/recaptcha/api.js?render={{ env('RECAPTCHA_SITE_KEY_v3') }}"></script>
-    @endif
-    
-    @vite(['resources/css/app.css', 'resources/js/app.js'])
-    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
-    
-    @php
-        $midtransDemoMode = filter_var($event->payment_config['midtrans_demo_mode'] ?? null, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
-        $midtransUrl = $midtransDemoMode ? config('midtrans.base_url_sandbox') : 'https://app.midtrans.com';
-        $midtransClientKey = $midtransDemoMode ? config('midtrans.client_key_sandbox') : config('midtrans.client_key');
-    @endphp
-    <link rel="stylesheet" href="{{ $midtransUrl }}/snap/snap.css" />
-    <script type="text/javascript" src="{{ $midtransUrl }}/snap/snap.js" data-client-key="{{ $midtransClientKey }}"></script>
-
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        dark: '{{ $event->theme_colors["dark"] ?? "#0f172a" }}',
-                        card: '{{ $event->theme_colors["card"] ?? "#1e293b" }}',
-                        input: '{{ $event->theme_colors["input"] ?? "#020617" }}',
-                        neon: '{{ $event->theme_colors["neon"] ?? "#ccff00" }}',
-                        neonHover: '{{ $event->theme_colors["neonHover"] ?? "#b3e600" }}',
-                        accent: '{{ $event->theme_colors["accent"] ?? "#3b82f6" }}',
-                        danger: '{{ $event->theme_colors["danger"] ?? "#ef4444" }}',
-                    },
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
-                    },
-                    animation: {
-                        'float': 'float 6s ease-in-out infinite',
-                    },
-                    keyframes: {
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-20px)' },
-                        }
-                    }
-                }
-            }
-        }
-    </script>
 
     <style>
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 8px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
-        
-        .text-glow { text-shadow: 0 0 20px rgba(204, 255, 0, 0.4); }
-        .glass { background: rgba(30, 41, 59, 0.7); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
-        
-        /* Animation Utility Classes */
-        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s cubic-bezier(0.5, 0, 0, 1); }
-        .reveal.active { opacity: 1; transform: translateY(0); }
-
-        /* FAQ Transition */
-        .accordion-content { transition: max-height 0.3s ease-out, padding 0.3s ease; max-height: 0; overflow: hidden; }
-        .accordion-btn[aria-expanded="true"] svg { transform: rotate(180deg); }
-        .accordion-btn[aria-expanded="true"] { color: #ccff00; }
+        :root {
+            --theme-accent: {{ $accentColor }};
+        }
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: #020617;
+            color: #e2e8f0;
+        }
+        h1, h2, h3, h4, .font-heading {
+            font-family: 'Inter Tight', 'Sora', sans-serif;
+            letter-spacing: -0.03em;
+        }
+        .font-mono-num {
+            font-family: 'JetBrains Mono', ui-monospace, monospace;
+            font-variant-numeric: tabular-nums;
+        }
+        .accent-bg {
+            background-color: var(--theme-accent);
+            color: #020617;
+        }
+        .accent-bg:hover {
+            filter: brightness(0.92);
+        }
+        .accent-text {
+            color: var(--theme-accent);
+        }
+        .accent-border {
+            border-color: var(--theme-accent);
+        }
+        a[href], button:not(:disabled), select, summary, label[for], input[type="checkbox"], input[type="radio"] {
+            cursor: pointer;
+        }
+        button:disabled {
+            cursor: not-allowed;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
     </style>
 </head>
-<body class="bg-dark text-slate-200 font-sans antialiased flex flex-col min-h-screen selection:bg-neon selection:text-dark">
+<body class="bg-slate-950 text-slate-200 antialiased flex flex-col min-h-screen">
 
-    @php
-        $pa = $event->premium_amenities ?? null;
-        $hasPa = !is_null($pa);
-        $showSection = function($key) use ($pa, $hasPa) {
-            if (!$hasPa) return true;
-            return isset($pa[$key]['enabled']) && $pa[$key]['enabled'];
-        };
-    @endphp
-
-    <nav class="fixed w-full z-50 border-b border-white/5 bg-dark/80 backdrop-blur-md transition-all duration-300" id="navbar">
+    <header class="sticky top-0 z-50 bg-slate-950 border-b border-slate-800">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-20">
-                <a href="#top" class="flex items-center gap-3 group">
+            <div class="flex items-center justify-between h-16">
+                <a href="#top" class="flex items-center gap-3 min-w-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400 rounded-md">
                     @if($event->logo_image)
-                        <img src="{{ asset('storage/' . $event->logo_image) }}" alt="{{ $event->name }}" class="h-9 w-auto rounded-md shadow-lg group-hover:scale-105 transition">
-                    @else
-                        <div class="w-3 h-8 bg-neon skew-x-[-12deg] group-hover:shadow-[0_0_15px_#ccff00] transition duration-300"></div>
-                        <span class="text-xl font-bold tracking-tight text-white uppercase">{{ $event->name }}</span>
-                    @endif                    
+                        <img src="{{ asset('storage/' . $event->logo_image) }}" alt="{{ $event->name }}" width="36" height="36" class="h-9 w-auto object-contain rounded">
+                    @endif
+                    <span class="font-heading text-lg font-extrabold text-white truncate">{{ $event->name }}</span>
                 </a>
-                
-                <div class="hidden md:flex items-center gap-8">
-                    <a href="#fasilitas" class="text-sm font-medium text-slate-400 hover:text-white hover:underline decoration-neon decoration-2 underline-offset-4 transition-all">Fasilitas</a>
-                    @if($showSection('gallery'))
-                    <a href="#gallery" class="text-sm font-medium text-slate-400 hover:text-white hover:underline decoration-neon decoration-2 underline-offset-4 transition-all">Galeri</a>
-                    @endif
-                    @if($showSection('jersey') || $showSection('medal'))
-                    <a href="#jersey" class="text-sm font-medium text-slate-400 hover:text-white hover:underline decoration-neon decoration-2 underline-offset-4 transition-all">Race Pack</a>
-                    @endif
-                    <a href="#lokasi" class="text-sm font-medium text-slate-400 hover:text-white hover:underline decoration-neon decoration-2 underline-offset-4 transition-all">Rute</a>
-                    @if($showSection('faq'))
-                    <a href="#faq" class="text-sm font-medium text-slate-400 hover:text-white hover:underline decoration-neon decoration-2 underline-offset-4 transition-all">FAQ</a>
-                    @endif
-                    
-                    @php
-                        $now = now();
-                        $isRegOpen = !($event->registration_open_at && $now < $event->registration_open_at) && !($event->registration_close_at && $now > $event->registration_close_at);
-                    @endphp
 
+                <nav aria-label="Navigasi utama" class="hidden md:flex items-center gap-6">
+                    @if($categories->count() > 0)
+                        <a href="#kategori" class="text-sm font-medium text-slate-300 hover:text-white transition duration-150">Kategori</a>
+                    @endif
+                    @if(count($facilities) > 0)
+                        <a href="#fasilitas" class="text-sm font-medium text-slate-300 hover:text-white transition duration-150">Fasilitas</a>
+                    @endif
+                    @if($hasRacePack)
+                        <a href="#racepack" class="text-sm font-medium text-slate-300 hover:text-white transition duration-150">Race Pack</a>
+                    @endif
+                    @if($showSection('gallery') && count($gallery) > 0)
+                        <a href="#gallery" class="text-sm font-medium text-slate-300 hover:text-white transition duration-150">Galeri</a>
+                    @endif
+                    @if($hasRouteSection)
+                        <a href="#lokasi" class="text-sm font-medium text-slate-300 hover:text-white transition duration-150">Lokasi</a>
+                    @endif
+                    @if($showSection('faq') && count($faqItems) > 0)
+                        <a href="#faq" class="text-sm font-medium text-slate-300 hover:text-white transition duration-150">FAQ</a>
+                    @endif
                     @if($isRegOpen)
-                        <a href="#registrasi" class="px-6 py-2.5 bg-neon text-dark text-sm font-bold rounded-lg hover:bg-neonHover hover:-translate-y-0.5 transition shadow-[0_0_15px_rgba(204,255,0,0.3)]">
-                            DAFTAR SEKARANG
+                        <a href="#registrasi" class="accent-bg px-4 py-2 text-sm font-bold rounded-md transition duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
+                            Daftar Sekarang
                         </a>
+                    @else
+                        <span class="px-4 py-2 bg-slate-800 text-slate-300 text-sm font-semibold rounded-md">Pendaftaran Ditutup</span>
                     @endif
-                </div>
+                </nav>
 
-                <button id="navToggle" class="md:hidden text-white hover:text-neon p-2">
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
+                <button type="button" id="navToggle" aria-expanded="false" aria-controls="mobileMenu" aria-label="Buka menu navigasi" class="md:hidden inline-flex items-center justify-center w-11 h-11 rounded-md text-slate-200 hover:bg-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400">
+                    <svg class="w-6 h-6" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" /></svg>
                 </button>
             </div>
-            
-            <div id="mobileMenu" class="hidden md:hidden bg-card border-t border-slate-700 absolute w-full left-0 px-4 py-4 space-y-3 shadow-2xl">
-                <a href="#fasilitas" class="block py-2 text-slate-300 hover:text-neon font-medium">Fasilitas</a>
-                @if($showSection('gallery'))
-                <a href="#gallery" class="block py-2 text-slate-300 hover:text-neon font-medium">Galeri</a>
-                @endif
-                @if($showSection('jersey') || $showSection('medal'))
-                <a href="#jersey" class="block py-2 text-slate-300 hover:text-neon font-medium">Race Pack</a>
-                @endif
-                <a href="#registrasi" class="block py-2 text-slate-300 hover:text-neon font-medium">Registrasi</a>
-                @if($showSection('faq'))
-                <a href="#faq" class="block py-2 text-slate-300 hover:text-neon font-medium">FAQ</a>
-                @endif
-            </div>
         </div>
-    </nav>
 
-    <main id="top" class="flex-grow">
-        
-        <section class="relative min-h-screen flex items-center pt-20 px-4 overflow-hidden">
-            @php
-                $heroBg = $event->hero_image ? asset('storage/' . $event->hero_image) : ($event->hero_image_url ?? '');
-            @endphp
-            @if($heroBg)
-                <div class="absolute inset-0 z-0">
-                    <img src="{{ $heroBg }}" class="w-full h-full object-cover opacity-50 scale-105 animate-[pulse_10s_ease-in-out_infinite]">
-                    <div class="absolute inset-0 bg-gradient-to-t from-dark via-dark/80 to-dark/30"></div>
-                    <div class="absolute inset-0 bg-gradient-to-r from-dark via-transparent to-transparent"></div>
-                </div>
-            @else
-                <div class="absolute top-0 right-0 w-[600px] h-[600px] bg-neon/10 rounded-full blur-[120px] -z-10 animate-float"></div>
-                <div class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-accent/10 rounded-full blur-[100px] -z-10"></div>
+        <div id="mobileMenu" class="hidden md:hidden bg-slate-900 border-t border-slate-800 px-4 py-4 space-y-2">
+            @if($categories->count() > 0)
+                <a href="#kategori" class="mobile-nav-link block py-2.5 px-3 rounded-md text-sm font-medium text-slate-200 hover:bg-slate-800">Kategori</a>
             @endif
+            @if(count($facilities) > 0)
+                <a href="#fasilitas" class="mobile-nav-link block py-2.5 px-3 rounded-md text-sm font-medium text-slate-200 hover:bg-slate-800">Fasilitas</a>
+            @endif
+            @if($hasRacePack)
+                <a href="#racepack" class="mobile-nav-link block py-2.5 px-3 rounded-md text-sm font-medium text-slate-200 hover:bg-slate-800">Race Pack</a>
+            @endif
+            @if($showSection('gallery') && count($gallery) > 0)
+                <a href="#gallery" class="mobile-nav-link block py-2.5 px-3 rounded-md text-sm font-medium text-slate-200 hover:bg-slate-800">Galeri</a>
+            @endif
+            @if($hasRouteSection)
+                <a href="#lokasi" class="mobile-nav-link block py-2.5 px-3 rounded-md text-sm font-medium text-slate-200 hover:bg-slate-800">Lokasi</a>
+            @endif
+            @if($showSection('faq') && count($faqItems) > 0)
+                <a href="#faq" class="mobile-nav-link block py-2.5 px-3 rounded-md text-sm font-medium text-slate-200 hover:bg-slate-800">FAQ</a>
+            @endif
+            @if($isRegOpen)
+                <a href="#registrasi" class="mobile-nav-link block text-center accent-bg py-2.5 px-4 rounded-md text-sm font-bold mt-2">Daftar Sekarang</a>
+            @endif
+        </div>
+    </header>
 
-            <div class="relative z-10 max-w-7xl mx-auto w-full grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-                <div class="text-left reveal active">
-                    <div class="inline-flex items-center gap-3 mb-8 bg-white/5 backdrop-blur-md border border-white/10 rounded-full pl-2 pr-4 py-1.5 hover:bg-white/10 transition cursor-default">
-                        <span class="bg-neon text-dark text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-wider">Official Event</span>
-                        <span class="text-slate-300 text-xs font-mono border-l border-white/20 pl-3">{{ $event->location_name }}</span>
-                    </div>
+    <main id="top" class="flex-grow pt-0">
+        <!-- Hero Section -->
+        <section class="bg-slate-950 border-b border-slate-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+                    <div class="lg:col-span-7 space-y-6">
+                        <h1 class="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white leading-tight">
+                            {{ $event->name }}
+                        </h1>
 
-                    <h1 class="text-5xl md:text-7xl lg:text-8xl font-black tracking-tighter mb-6 leading-[0.9] text-white">
-                        {{ strtoupper($event->name) }}
-                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-neon to-emerald-400 block mt-2 text-glow">RACE {{ $event->start_at->format('Y') }}</span>
-                    </h1>
-
-                    <div class="text-slate-300 text-lg md:text-xl mb-10 leading-relaxed max-w-xl font-light border-l-4 border-neon pl-6">
-                        {!! $event->short_description ?? 'Tantang dirimu di rute terbaik tahun ini. Atmosfer kompetitif, fasilitas premium, dan pengalaman lari yang tak terlupakan.' !!}
-                    </div>
-
-                    <div class="flex flex-wrap gap-4">
-                        @if($isRegOpen)
-                            <a href="#registrasi" class="px-8 py-4 bg-neon text-dark font-black text-lg rounded-xl hover:bg-white transition-all shadow-[0_0_30px_rgba(204,255,0,0.4)] flex items-center gap-2 group">
-                                AMANKAN SLOT
-                                <svg class="w-5 h-5 group-hover:translate-x-1 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6" /></svg>
-                            </a>
-                        @else
-                             <button disabled class="px-8 py-4 bg-slate-800 text-slate-500 font-bold text-lg rounded-xl cursor-not-allowed border border-slate-700">
-                                REGISTRASI DITUTUP
-                            </button>
-                        @endif
-                        <a href="#lokasi" class="px-8 py-4 bg-transparent border border-slate-600 text-white font-bold text-lg rounded-xl hover:border-white hover:bg-white/5 transition">
-                            LIHAT RUTE
-                        </a>
-                    </div>
-                    
-                    <div class="grid grid-cols-3 gap-6 mt-16 border-t border-slate-800 pt-8">
-                        <div>
-                            <p class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Date</p>
-                            <p class="text-white text-lg font-mono font-bold">{{ $event->start_at->format('d M') }}</p>
+                        <div class="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-slate-300">
+                            @if($event->start_at)
+                                <span class="font-mono-num font-semibold text-white">{{ $event->start_at->translatedFormat('d F Y') }} &middot; {{ $event->start_at->format('H:i') }} WIB</span>
+                            @endif
+                            @if($event->location_name)
+                                <span class="text-slate-300">{{ $event->location_name }}@if($event->city), {{ $event->city }}@endif</span>
+                            @endif
                         </div>
-                        <div>
-                            <p class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Category</p>
-                            <p class="text-neon text-lg font-mono font-bold">{{ $categories->count() }} Classes</p>
-                        </div>
-                        <div>
-                            <p class="text-slate-500 text-xs font-bold uppercase tracking-wider mb-1">Start</p>
-                            <p class="text-white text-lg font-mono font-bold">{{ $event->start_at->format('H:i') }}</p>
-                        </div>
-                    </div>
-                </div>
 
-                <div class="hidden lg:block relative reveal delay-200">
-                    <div class="relative z-10 bg-card/40 backdrop-blur-xl border border-white/10 p-2 rounded-3xl transform rotate-3 hover:rotate-0 transition duration-500 shadow-2xl">
-                        @if($event->hero_image)
-                            <img src="{{ asset('storage/' . $event->hero_image) }}" class="rounded-2xl w-full object-cover h-[500px]">
-                        @else
-                            <div class="rounded-2xl w-full h-[500px] bg-gradient-to-br from-slate-800 to-slate-900 flex items-center justify-center">
-                                <span class="text-slate-600 font-mono">Visual Event</span>
+                        @if($event->short_description)
+                            <div class="text-slate-300 text-base sm:text-lg leading-relaxed max-w-2xl prose prose-invert prose-sm">
+                                {!! $event->short_description !!}
                             </div>
                         @endif
-                        
-                        <div class="bg-card border-y border-slate-800 relative z-20 -mt-8 mx-4 md:mx-auto max-w-5xl rounded-2xl shadow-2xl overflow-hidden reveal">
-                          <div class="p-6 md:p-8 flex flex-col md:flex-row items-center justify-between gap-6 bg-slate-900/80 backdrop-blur">
-                              <div class="flex items-center gap-4">
-                                  <div class="bg-neon/10 p-3 rounded-full animate-pulse">
-                                      <svg class="w-6 h-6 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                                  </div>
-                                  <div>
-                                      <h3 class="text-white font-bold text-lg uppercase tracking-widest">Race Starts In</h3>
-                                      <p class="text-slate-400 text-xs">Bersiaplah di garis start!</p>
-                                  </div>
-                              </div>
-                              
-                              <div class="grid grid-cols-4 gap-2 md:gap-4 text-center" id="countdown-timer">
-                                  <div class="bg-dark border border-slate-700 rounded-lg p-2 md:p-3 min-w-[70px]">
-                                      <span class="block text-2xl md:text-3xl font-mono font-bold text-white" id="cd-days">00</span>
-                                      <span class="text-[10px] text-slate-500 uppercase font-bold">Days</span>
-                                  </div>
-                                  <div class="bg-dark border border-slate-700 rounded-lg p-2 md:p-3 min-w-[70px]">
-                                      <span class="block text-2xl md:text-3xl font-mono font-bold text-white" id="cd-hours">00</span>
-                                      <span class="text-[10px] text-slate-500 uppercase font-bold">Hours</span>
-                                  </div>
-                                  <div class="bg-dark border border-slate-700 rounded-lg p-2 md:p-3 min-w-[70px]">
-                                      <span class="block text-2xl md:text-3xl font-mono font-bold text-white" id="cd-minutes">00</span>
-                                      <span class="text-[10px] text-slate-500 uppercase font-bold">Mins</span>
-                                  </div>
-                                  <div class="bg-dark border border-slate-700 rounded-lg p-2 md:p-3 min-w-[70px]">
-                                      <span class="block text-2xl md:text-3xl font-mono font-bold text-neon" id="cd-seconds">00</span>
-                                      <span class="text-[10px] text-slate-500 uppercase font-bold">Secs</span>
-                                  </div>
-                              </div>
-                          </div>
-                      </div>
 
-                      <script>
-                          // Countdown Logic
-                          const eventDate = new Date("{{ $event->start_at->format('Y-m-d H:i:s') }}").getTime();
-                          
-                          const timerInterval = setInterval(function() {
-                              const now = new Date().getTime();
-                              const distance = eventDate - now;
+                        <div class="flex flex-wrap items-center gap-3 pt-1">
+                            @if($isRegOpen)
+                                <a href="#registrasi" class="accent-bg px-6 py-3 text-sm sm:text-base font-bold rounded-md transition duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white">
+                                    Daftar Sekarang
+                                </a>
+                            @else
+                                <button type="button" disabled class="px-6 py-3 bg-slate-800 text-slate-300 font-bold text-sm sm:text-base rounded-md border border-slate-700">
+                                    Pendaftaran Ditutup
+                                </button>
+                            @endif
+                            @if($categories->count() > 0)
+                                <a href="#kategori" class="px-6 py-3 bg-slate-900 text-white border border-slate-700 hover:border-slate-500 font-semibold text-sm sm:text-base rounded-md transition duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400">
+                                    Lihat Kategori & Harga
+                                </a>
+                            @endif
+                        </div>
 
-                              if (distance < 0) {
-                                  clearInterval(timerInterval);
-                                  document.getElementById("countdown-timer").innerHTML = "<div class='col-span-4 text-neon font-bold text-xl uppercase tracking-widest'>RACE STARTED / FINISHED</div>";
-                                  return;
-                              }
+                        @if($event->start_at)
+                            <div class="bg-slate-900 border border-slate-800 rounded-lg p-4 sm:p-5 mt-4">
+                                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <div>
+                                        <p class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Hitung Mundur Race Day</p>
+                                        <p class="text-xs text-slate-400 mt-0.5">{{ $event->start_at->translatedFormat('l, d F Y') }}</p>
+                                    </div>
+                                    <div class="grid grid-cols-4 gap-2 text-center" id="countdown-timer">
+                                        <div class="bg-slate-950 border border-slate-800 rounded-md px-3 py-2">
+                                            <span class="block text-xl sm:text-2xl font-mono-num font-bold text-white" id="cd-days">00</span>
+                                            <span class="text-xs text-slate-400">Hari</span>
+                                        </div>
+                                        <div class="bg-slate-950 border border-slate-800 rounded-md px-3 py-2">
+                                            <span class="block text-xl sm:text-2xl font-mono-num font-bold text-white" id="cd-hours">00</span>
+                                            <span class="text-xs text-slate-400">Jam</span>
+                                        </div>
+                                        <div class="bg-slate-950 border border-slate-800 rounded-md px-3 py-2">
+                                            <span class="block text-xl sm:text-2xl font-mono-num font-bold text-white" id="cd-minutes">00</span>
+                                            <span class="text-xs text-slate-400">Menit</span>
+                                        </div>
+                                        <div class="bg-slate-950 border border-slate-800 rounded-md px-3 py-2">
+                                            <span class="block text-xl sm:text-2xl font-mono-num font-bold accent-text" id="cd-seconds">00</span>
+                                            <span class="text-xs text-slate-400">Detik</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                    </div>
 
-                              document.getElementById("cd-days").innerText = Math.floor(distance / (1000 * 60 * 60 * 24)).toString().padStart(2, '0');
-                              document.getElementById("cd-hours").innerText = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60)).toString().padStart(2, '0');
-                              document.getElementById("cd-minutes").innerText = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60)).toString().padStart(2, '0');
-                              document.getElementById("cd-seconds").innerText = Math.floor((distance % (1000 * 60)) / 1000).toString().padStart(2, '0');
-                          }, 1000);
-                      </script>
+                    <div class="lg:col-span-5">
+                        @if($heroBg)
+                            <div class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
+                                <img src="{{ $heroBg }}" alt="Poster {{ $event->name }}" width="800" height="1000" fetchpriority="high" class="w-full h-auto max-h-[520px] object-cover">
+                            </div>
+                        @else
+                            <div class="bg-slate-900 border border-slate-800 rounded-lg p-8 flex flex-col justify-between min-h-[300px]">
+                                <div class="space-y-4">
+                                    <p class="text-xs font-semibold uppercase tracking-wider accent-text">Informasi Singkat Event</p>
+                                    <dl class="space-y-3 text-sm">
+                                        @if($event->start_at)
+                                            <div class="flex justify-between border-b border-slate-800 pb-2">
+                                                <dt class="text-slate-400">Tanggal</dt>
+                                                <dd class="text-white font-semibold font-mono-num">{{ $event->start_at->translatedFormat('d M Y') }}</dd>
+                                            </div>
+                                            <div class="flex justify-between border-b border-slate-800 pb-2">
+                                                <dt class="text-slate-400">Flag Off</dt>
+                                                <dd class="text-white font-semibold font-mono-num">{{ $event->start_at->format('H:i') }} WIB</dd>
+                                            </div>
+                                        @endif
+                                        @if($categories->count() > 0)
+                                            <div class="flex justify-between border-b border-slate-800 pb-2">
+                                                <dt class="text-slate-400">Kategori</dt>
+                                                <dd class="text-white font-semibold">{{ $categories->pluck('name')->implode(', ') }}</dd>
+                                            </div>
+                                        @endif
+                                        @if($event->location_name)
+                                            <div class="flex justify-between">
+                                                <dt class="text-slate-400">Lokasi</dt>
+                                                <dd class="text-white font-semibold text-right">{{ $event->location_name }}</dd>
+                                            </div>
+                                        @endif
+                                    </dl>
+                                </div>
+                            </div>
+                        @endif
                     </div>
                 </div>
-                
             </div>
         </section>
 
-        <section class="py-20 bg-dark border-b border-slate-800">
-          <div class="max-w-7xl mx-auto px-4">
-              <div class="text-center mb-12 reveal">
-                  <span class="text-neon font-mono font-bold uppercase tracking-widest text-sm">Race Categories</span>
-                  <h2 class="text-3xl md:text-5xl font-black text-white mb-4">CHOOSE YOUR <span class="text-slate-600">DISTANCE</span></h2>
-                  
-                  <p class="text-slate-400 mt-2">Detail teknis untuk setiap kategori lomba.</p>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  @foreach($categories as $cat)
-                  <div class="bg-card border border-slate-700 rounded-2xl p-6 hover:border-neon transition group reveal hover:-translate-y-1">
-                      <div class="flex justify-between items-start mb-6">
-                          <div>
-                              <h3 class="text-3xl font-black text-white italic">{{ $cat->name }}</h3>
-                              <p class="text-slate-500 text-xs font-mono mt-1">{{ $cat->distance_km ?? '?' }} KM Distance</p>
-                          </div>
-                          <div class="bg-slate-800 p-2 rounded-lg text-neon group-hover:bg-neon group-hover:text-dark transition">
-                              <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
-                          </div>
-                      </div>
-                      
-                      <div class="space-y-3 font-mono text-sm border-t border-slate-700 pt-4">
-                          <div class="flex justify-between">
-                              <span class="text-slate-400">Flag Off</span>
-                              <span class="text-white font-bold">{{ $cat->start_time ? \Carbon\Carbon::parse($cat->start_time)->format('H:i') . ' WIB' : ($event->start_at ? $event->start_at->format('H:i') . ' WIB' : 'TBA') }}</span>
-                          </div>
-                          <div class="flex justify-between">
-                              <span class="text-slate-400">Cut Off Time (COT)</span>
-                              <span class="text-neon font-bold">{{ $cat->cot_hours ?? '-' }} Jam</span>
-                          </div>
-                          <div class="flex justify-between">
-                              <span class="text-slate-400">Min. Usia</span>
-                              <span class="text-white">{{ $cat->min_age ?? 17 }} Tahun</span>
-                          </div>
-                      </div>
-                  </div>
-                  @endforeach
-              </div>
-          </div>
-        </section>
-
-        <section id="fasilitas" class="py-24 bg-dark relative">
-          <div class="max-w-7xl mx-auto px-4">
-              <div class="flex flex-col md:flex-row justify-between items-end mb-16 reveal">
-                  <div>
-                      <span class="text-neon font-mono font-bold uppercase tracking-widest text-sm">Premium Amenities</span>
-                      <h2 class="text-3xl md:text-5xl font-black text-white mt-2">RUNNER <span class="text-slate-600">EXPERIENCE</span></h2>
-                  </div>
-                  <p class="text-slate-400 max-w-md mt-4 md:mt-0 text-right text-sm md:text-base">
-                      Kami memastikan kenyamanan dan keamanan Anda dari garis start hingga finish line dengan standar internasional.
-                  </p>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                  @php $facilities = $event->facilities ?? []; @endphp
-
-                  {{-- KONDISI 1: JIKA ADA DATA DARI DATABASE --}}
-                  @if(!empty($facilities) && is_array($facilities) && count($facilities) > 0)
-                      
-                      @foreach($facilities as $index => $facility)
-                          {{-- Logic: Item Pertama jadi 'Hero Card' (Besar) --}}
-                          @if($index === 0)
-                              <div class="md:col-span-2 md:row-span-2 bg-card border border-slate-700 rounded-3xl p-8 relative overflow-hidden group reveal">
-                                  <div class="absolute inset-0 bg-gradient-to-b from-transparent to-black/90 z-10"></div>
-                                  {{-- Check for uploaded image --}}
-                                  @if(isset($facility['image']) && $facility['image'])
-                                      <img src="{{ asset('storage/' . $facility['image']) }}" class="absolute inset-0 w-full h-full object-cover -z-0 transition duration-700 group-hover:scale-110 opacity-60">
-                                  @else
-                                      <img src="https://images.unsplash.com/photo-1596727147705-0043c7576566?auto=format&fit=crop&q=80&w=800" class="absolute inset-0 w-full h-full object-cover -z-0 transition duration-700 group-hover:scale-110 opacity-60">
-                                  @endif
-                                  
-                                  <div class="relative z-20 h-full flex flex-col justify-between">
-                                      <div class="flex justify-between items-start">
-                                          <div class="bg-slate-900/80 backdrop-blur p-3 rounded-2xl border border-slate-600 group-hover:border-neon transition shadow-lg">
-                                              @if(isset($facility['image']) && $facility['image'])
-                                                {{-- Small icon not needed if main bg is image, but let's keep it or hide it --}}
-                                                <svg class="w-8 h-8 text-white group-hover:text-neon transition" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                                                </svg>
-                                              @else
-                                                <svg class="w-8 h-8 text-white group-hover:text-neon transition" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                                                </svg>
-                                              @endif
-                                          </div>
-                                          <span class="px-3 py-1 bg-neon text-dark text-[10px] font-bold rounded-full uppercase tracking-wider">Main Facility</span>
-                                      </div>
-                                      <div>
-                                          <h3 class="text-3xl font-bold text-white mb-2 group-hover:text-neon transition">{{ $facility['name'] }}</h3>
-                                          <p class="text-slate-200 text-sm leading-relaxed max-w-sm">
-                                              {{ $facility['description'] }}
-                                          </p>
-                                      </div>
-                                  </div>
-                              </div>
-                          @else
-                              {{-- Logic: Item Selanjutnya (Card Kecil) --}}
-                              <div class="bg-card border border-slate-800 rounded-3xl p-6 hover:border-neon/50 hover:bg-slate-800/50 transition duration-300 group reveal relative overflow-hidden">
-                                  @if(isset($facility['image']) && $facility['image'])
-                                      <div class="absolute inset-0 z-0">
-                                          <img src="{{ asset('storage/' . $facility['image']) }}" class="w-full h-full object-cover opacity-20 group-hover:opacity-40 transition duration-500 group-hover:scale-110">
-                                          <div class="absolute inset-0 bg-gradient-to-t from-card via-card/80 to-transparent"></div>
-                                      </div>
-                                  @endif
-
-                                  <div class="relative z-10">
-                                      <div class="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition border border-slate-700 group-hover:border-neon shadow-lg">
-                                          {{-- Rotasi Icon Sederhana Berdasarkan Index --}}
-                                          @if($index % 4 == 1)
-                                              <svg class="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg> {{-- Air --}}
-                                          @elseif($index % 4 == 2)
-                                              <svg class="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg> {{-- Medis --}}
-                                          @elseif($index % 4 == 3)
-                                              <svg class="w-6 h-6 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg> {{-- Lock --}}
-                                          @else
-                                              <svg class="w-6 h-6 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /></svg> {{-- Camera --}}
-                                          @endif
-                                      </div>
-                                      <h3 class="text-lg font-bold text-white mb-2">{{ $facility['name'] }}</h3>
-                                      <p class="text-slate-400 text-xs leading-relaxed">
-                                          {{ \Illuminate\Support\Str::limit($facility['description'], 80) }}
-                                      </p>
-                                  </div>
-                              </div>
-                          @endif
-                      @endforeach
-
-                  {{-- KONDISI 2: JIKA TIDAK ADA DATA (TAMPILKAN DEFAULT STATIC DESIGN) --}}
-                  @else
-                      
-                      <div class="md:col-span-2 md:row-span-2 bg-card border border-slate-700 rounded-3xl p-8 relative overflow-hidden group reveal">
-                          <div class="absolute inset-0 bg-gradient-to-b from-transparent to-black/80 z-10"></div>
-                          <img src="https://images.unsplash.com/photo-1596727147705-0043c7576566?auto=format&fit=crop&q=80&w=800" class="absolute inset-0 w-full h-full object-cover -z-0 transition duration-700 group-hover:scale-110 group-hover:rotate-1 opacity-60">
-                          
-                          <div class="relative z-20 h-full flex flex-col justify-between">
-                              <div class="flex justify-between items-start">
-                                  <div class="bg-slate-900/80 backdrop-blur p-3 rounded-2xl border border-slate-600 group-hover:border-neon transition shadow-lg">
-                                      <svg class="w-8 h-8 text-white group-hover:text-neon transition" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
-                                      </svg>
-                                  </div>
-                                  <span class="px-3 py-1 bg-neon text-dark text-[10px] font-bold rounded-full uppercase tracking-wider">All Runners</span>
-                              </div>
-                              
-                              <div>
-                                  <h3 class="text-3xl font-bold text-white mb-2 group-hover:text-neon transition">Complete Race Pack</h3>
-                                  <p class="text-slate-200 text-sm leading-relaxed max-w-sm">
-                                      Jersey lari premium (Dry-fit), Nomor BIB dengan Timing Chip terintegrasi, Tas Serut eksklusif, dan Panduan Lomba Digital.
-                                  </p>
-                              </div>
-                          </div>
-                      </div>
-
-                      <div class="bg-card border border-slate-800 rounded-3xl p-6 hover:border-blue-400/50 hover:bg-slate-800/50 transition duration-300 group reveal">
-                          <div class="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition border border-slate-700 group-hover:border-blue-400">
-                              <svg class="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
-                          </div>
-                          <h3 class="text-lg font-bold text-white mb-2">Hydration Points</h3>
-                          <p class="text-slate-400 text-xs leading-relaxed">
-                              Water station setiap 2.5 KM. Tersedia air mineral dingin & minuman isotonik.
-                          </p>
-                      </div>
-
-                      <div class="bg-card border border-slate-800 rounded-3xl p-6 hover:border-red-400/50 hover:bg-slate-800/50 transition duration-300 group reveal">
-                          <div class="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition border border-slate-700 group-hover:border-red-400">
-                              <svg class="w-6 h-6 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-                          </div>
-                          <h3 class="text-lg font-bold text-white mb-2">Medical Care</h3>
-                          <p class="text-slate-400 text-xs leading-relaxed">
-                              Ambulans siaga, dokter, dan fisioterapi di garis finish. Keamanan prioritas kami.
-                          </p>
-                      </div>
-
-                      <div class="md:col-span-2 bg-card border border-slate-800 rounded-3xl p-6 flex flex-col md:flex-row items-center gap-6 hover:border-neon/50 hover:bg-slate-800/50 transition duration-300 group reveal">
-                          <div class="w-16 h-16 bg-slate-900 rounded-2xl flex-shrink-0 flex items-center justify-center border border-slate-700 group-hover:border-neon group-hover:text-neon text-white transition">
-                              <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                          </div>
-                          <div>
-                              <h3 class="text-xl font-bold text-white mb-1 group-hover:text-neon transition">Precise Timing System</h3>
-                              <p class="text-slate-400 text-sm">
-                                  Sistem pencatatan waktu standar internasional. Live Result dan E-Certificate langsung setelah finish.
-                              </p>
-                          </div>
-                      </div>
-
-                      <div class="bg-card border border-slate-800 rounded-3xl p-6 hover:border-purple-400/50 hover:bg-slate-800/50 transition duration-300 group reveal">
-                          <div class="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition border border-slate-700 group-hover:border-purple-400">
-                              <svg class="w-6 h-6 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                          </div>
-                          <h3 class="text-lg font-bold text-white mb-2">Free Photos</h3>
-                          <p class="text-slate-400 text-xs leading-relaxed">
-                              Fotografer profesional di berbagai titik. Foto resolusi tinggi gratis.
-                          </p>
-                      </div>
-
-                      <div class="bg-card border border-slate-800 rounded-3xl p-6 hover:border-orange-400/50 hover:bg-slate-800/50 transition duration-300 group reveal">
-                          <div class="w-12 h-12 bg-slate-900 rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition border border-slate-700 group-hover:border-orange-400">
-                              <svg class="w-6 h-6 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" /></svg>
-                          </div>
-                          <h3 class="text-lg font-bold text-white mb-2">Safe Bag Drop</h3>
-                          <p class="text-slate-400 text-xs leading-relaxed">
-                              Area penitipan tas yang aman dan terorganisir dengan sistem nomor BIB.
-                          </p>
-                      </div>
-
-                  @endif
-              </div>
-          </div>
-      </section>
-
-      @if($showSection('gallery'))
-      <section id="gallery" class="py-24 bg-dark relative border-t border-slate-800">
-          <div class="max-w-7xl mx-auto px-4">
-              <div class="text-center mb-16 reveal">
-                   <span class="text-neon font-mono font-bold uppercase tracking-widest text-sm">Event Gallery</span>
-                   <h2 class="text-3xl md:text-5xl font-black text-white mt-2">CAPTURE THE <span class="text-slate-600">MOMENT</span></h2>
-              </div>
-
-              @if($event->gallery && count($event->gallery) > 0)
-                  <div class="relative group reveal">
-                       <!-- Scroll Buttons -->
-                      <button id="scrollLeft" class="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-dark/80 hover:bg-neon hover:text-dark text-white p-3 rounded-full border border-slate-700 transition shadow-lg opacity-0 group-hover:opacity-100 hidden md:block">
-                          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" /></svg>
-                      </button>
-                      <button id="scrollRight" class="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-dark/80 hover:bg-neon hover:text-dark text-white p-3 rounded-full border border-slate-700 transition shadow-lg opacity-0 group-hover:opacity-100 hidden md:block">
-                          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" /></svg>
-                      </button>
-
-                      <div id="galleryContainer" class="flex overflow-x-auto gap-6 snap-x snap-mandatory pb-8 hide-scrollbar" style="scroll-behavior: smooth;">
-                          @foreach($event->gallery as $image)
-                              <div class="snap-center shrink-0 w-[85vw] md:w-[600px] h-[300px] md:h-[400px] relative rounded-3xl overflow-hidden group/item border border-slate-800 shadow-2xl">
-                                  <img src="{{ asset('storage/' . $image) }}" class="w-full h-full object-cover transition duration-700 group-hover/item:scale-110 cursor-pointer lightbox-trigger" alt="Gallery">
-                                  <div class="absolute inset-0 bg-gradient-to-t from-dark/90 via-transparent to-transparent opacity-0 group-hover/item:opacity-100 transition duration-300 flex items-end p-6 pointer-events-none">
-                                      <span class="text-neon font-mono text-sm uppercase tracking-wider">Event Moment</span>
-                                  </div>
-                              </div>
-                          @endforeach
-                      </div>
-                  </div>
-                  
-                  <script>
-                      document.getElementById('scrollLeft').addEventListener('click', () => {
-                          document.getElementById('galleryContainer').scrollBy({ left: -600, behavior: 'smooth' });
-                      });
-                      document.getElementById('scrollRight').addEventListener('click', () => {
-                          document.getElementById('galleryContainer').scrollBy({ left: 600, behavior: 'smooth' });
-                      });
-                  </script>
-                  
-                  <style>
-                      .hide-scrollbar::-webkit-scrollbar { display: none; }
-                      .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
-                  </style>
-              @else
-                  <div class="text-center py-20 border border-dashed border-slate-800 rounded-3xl bg-slate-900/50 reveal">
-                      <div class="w-16 h-16 bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-600">
-                          <svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                      </div>
-                      <p class="text-slate-500 font-medium">Galeri foto akan segera hadir.</p>
-                  </div>
-              @endif
-          </div>
-      </section>
-      @endif
-
-      
-
-        @if($showSection('jersey') || $showSection('medal'))
-        <section id="jersey" class="py-24 bg-gradient-to-b from-dark to-card border-y border-slate-800">
-            <div class="max-w-7xl mx-auto px-4">
-                @if($showSection('jersey'))
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center mb-24 reveal">
-                    <div class="order-2 md:order-1 relative group">
-                        <div class="absolute -inset-1 bg-gradient-to-r from-neon via-white to-blue-500 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
-                        <div class="relative bg-dark border border-slate-700 rounded-2xl overflow-hidden aspect-video shadow-2xl">
-                             @if($event->jersey_image)
-                                <img src="{{ asset('storage/' . $event->jersey_image) }}" class="w-full h-full object-cover cursor-pointer lightbox-trigger" alt="Jersey">
-                            @else
-                                <div class="w-full h-full flex items-center justify-center bg-slate-800 text-slate-500 font-mono">JERSEY DESIGN</div>
-                            @endif
-                        </div>
-                    </div>
-                    <div class="order-1 md:order-2">
-                        <div class="flex items-center gap-2 mb-4">
-                            <span class="h-px w-10 bg-neon"></span>
-                            <span class="text-neon font-bold uppercase tracking-widest text-xs">Apparel Partner</span>
-                        </div>
-                        <h3 class="text-4xl font-black text-white mb-6">OFFICIAL JERSEY</h3>
-                        <p class="text-slate-400 text-lg leading-relaxed mb-8">
-                            Didesain untuk performa. Material ultra-ringan dengan teknologi sirkulasi udara maksimal. Potongan atletis yang membuat Anda tampil cepat sebelum garis start.
-                        </p>
-                        <ul class="space-y-3">
-                            <li class="flex items-center gap-3 text-slate-300">
-                                <svg class="w-5 h-5 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                <span>Quick-Dry Fabric Technology</span>
-                            </li>
-                            <li class="flex items-center gap-3 text-slate-300">
-                                <svg class="w-5 h-5 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                <span>Anti-UV Protection</span>
-                            </li>
-                        </ul>
-                    </div>
-                </div>
-                @endif
-
-                @if($showSection('medal'))
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-16 items-center reveal">
+        <!-- Categories Section -->
+        @if($categories->count() > 0)
+        <section id="kategori" class="py-16 bg-slate-950 border-b border-slate-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-10">
                     <div>
-                        <div class="flex items-center gap-2 mb-4">
-                            <span class="h-px w-10 bg-neon"></span>
-                            <span class="text-neon font-bold uppercase tracking-widest text-xs">Finisher Reward</span>
-                        </div>
-                        <h3 class="text-4xl font-black text-white mb-6">THE MEDAL</h3>
-                        <p class="text-slate-400 text-lg leading-relaxed mb-8">
-                            Simbol ketangguhan Anda. Medali Heavy Zinc Alloy dengan ukiran 3D mendetail. Bukan sekadar kenang-kenangan, ini adalah bukti bahwa Anda menaklukkan tantangan.
-                        </p>
-                        <div class="inline-block border border-slate-700 bg-slate-800/50 px-6 py-3 rounded-lg">
-                            <p class="text-xs text-slate-400 uppercase font-bold mb-1">Syarat Mendapatkan:</p>
-                            <p class="text-white font-mono text-sm">Finish dibawah Cut Off Time (COT)</p>
-                        </div>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-white">Kategori Lomba & Biaya Pendaftaran</h2>
+                        <p class="text-sm text-slate-300 mt-1">Pilih jarak lomba sesuai target Anda. Harga menyesuaikan periode Early Bird atau Reguler yang sedang berlaku.</p>
                     </div>
-                    <div class="relative group">
-                        <div class="absolute -inset-1 bg-gradient-to-r from-yellow-500 via-orange-500 to-red-500 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
-                        <div class="relative bg-dark border border-slate-700 rounded-2xl overflow-hidden aspect-video shadow-2xl">
-                             @if($event->medal_image)
-                                <img src="{{ asset('storage/' . $event->medal_image) }}" class="w-full h-full object-cover cursor-pointer lightbox-trigger" alt="Medal">
-                            @else
-                                <div class="w-full h-full flex items-center justify-center bg-slate-800 text-slate-500 font-mono">MEDAL DESIGN</div>
+                    @if((int)($event->promo_buy_x ?? 0) > 0)
+                        <div class="bg-slate-900 border border-slate-800 rounded-md px-4 py-2 text-xs text-slate-200">
+                            Promo Grup: Daftar <strong class="accent-text">{{ (int)$event->promo_buy_x }}</strong> peserta di kategori sama, <strong class="accent-text">Gratis 1</strong> peserta.
+                        </div>
+                    @endif
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    @foreach($categories as $cat)
+                        @php
+                            $earlyValid = ($cat->price_early ?? 0) > 0
+                                && (!$cat->early_bird_end_at || $now->lte($cat->early_bird_end_at))
+                                && (!$cat->early_bird_quota || ($cat->early_bird_sold_count ?? 0) < $cat->early_bird_quota);
+                            $priceRegular = (int) ($cat->price_regular ?? 0);
+                            $priceLate = (int) ($cat->price_late ?? 0);
+                            $displayPrice = $earlyValid ? (int) $cat->price_early : ($priceRegular > 0 ? $priceRegular : $priceLate);
+                            $tierLabel = $earlyValid ? 'Early Bird' : 'Reguler';
+                        @endphp
+                        <article class="bg-slate-900 border border-slate-800 rounded-lg p-6 flex flex-col justify-between">
+                            <div>
+                                <div class="flex items-start justify-between gap-3 mb-4">
+                                    <div>
+                                        <h3 class="text-xl font-bold text-white">{{ $cat->name }}</h3>
+                                        @if($cat->distance_km)
+                                            <p class="text-xs text-slate-400 font-mono-num mt-0.5">Jarak {{ $cat->distance_km }} KM</p>
+                                        @endif
+                                    </div>
+                                    <span class="px-2.5 py-1 rounded text-xs font-semibold bg-slate-800 text-slate-200">{{ $tierLabel }}</span>
+                                </div>
+
+                                <div class="mb-5 pb-5 border-b border-slate-800">
+                                    @if($earlyValid && $priceRegular > $displayPrice)
+                                        <span class="block text-xs text-slate-400 line-through font-mono-num">Rp {{ number_format($priceRegular, 0, ',', '.') }}</span>
+                                    @endif
+                                    <p class="text-2xl font-extrabold text-white font-mono-num">
+                                        {{ $displayPrice > 0 ? 'Rp ' . number_format($displayPrice, 0, ',', '.') : 'Gratis' }}
+                                    </p>
+                                </div>
+
+                                <dl class="space-y-2.5 text-sm mb-6">
+                                    <div class="flex justify-between">
+                                        <dt class="text-slate-400">Flag Off</dt>
+                                        <dd class="text-white font-mono-num font-medium">{{ $cat->start_time ? \Carbon\Carbon::parse($cat->start_time)->format('H:i') . ' WIB' : ($event->start_at ? $event->start_at->format('H:i') . ' WIB' : 'TBA') }}</dd>
+                                    </div>
+                                    @if($cat->cot_hours)
+                                        <div class="flex justify-between">
+                                            <dt class="text-slate-400">Cut Off Time</dt>
+                                            <dd class="text-white font-mono-num font-medium">{{ $cat->cot_hours }} Jam</dd>
+                                        </div>
+                                    @endif
+                                    @if($cat->min_age)
+                                        <div class="flex justify-between">
+                                            <dt class="text-slate-400">Usia Minimum</dt>
+                                            <dd class="text-white font-mono-num font-medium">{{ $cat->min_age }} Tahun</dd>
+                                        </div>
+                                    @endif
+                                    @if($cat->quota)
+                                        <div class="flex justify-between">
+                                            <dt class="text-slate-400">Kuota</dt>
+                                            <dd class="text-white font-mono-num font-medium">{{ number_format($cat->quota, 0, ',', '.') }} Slot</dd>
+                                        </div>
+                                    @endif
+                                </dl>
+                            </div>
+
+                            @if($isRegOpen)
+                                <button type="button" onclick="selectCategoryAndScroll({{ $cat->id }})" class="w-full py-2.5 px-4 bg-slate-800 hover:bg-slate-700 text-white font-semibold text-sm rounded-md border border-slate-700 transition duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400">
+                                    Pilih Kategori {{ $cat->name }}
+                                </button>
+                            @endif
+                        </article>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+        @endif
+
+        <!-- Facilities Section (Only when populated in Master Event) -->
+        @if(count($facilities) > 0)
+        <section id="fasilitas" class="py-16 bg-slate-950 border-b border-slate-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="max-w-2xl mb-10">
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-white">Fasilitas Peserta</h2>
+                    <p class="text-sm text-slate-300 mt-1">Fasilitas resmi yang disediakan panitia untuk seluruh peserta terdaftar.</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                    @foreach($facilities as $facility)
+                        <div class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden flex flex-col">
+                            @if(!empty($facility['image']))
+                                <img src="{{ asset('storage/' . $facility['image']) }}" alt="{{ $facility['name'] }}" width="600" height="360" loading="lazy" class="w-full h-44 object-cover border-b border-slate-800">
+                            @endif
+                            <div class="p-5">
+                                <h3 class="text-base font-bold text-white">{{ $facility['name'] }}</h3>
+                                @if(!empty($facility['description']))
+                                    <p class="text-sm text-slate-300 mt-1.5 leading-relaxed">{{ $facility['description'] }}</p>
+                                @endif
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+        @endif
+
+        <!-- Race Pack (Jersey & Medal) -->
+        @if($hasRacePack)
+        <section id="racepack" class="py-16 bg-slate-950 border-b border-slate-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="max-w-2xl mb-10">
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-white">Race Pack: Jersey & Medali</h2>
+                    <p class="text-sm text-slate-300 mt-1">Kelengkapan resmi yang diterima peserta terdaftar.</p>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    @if($event->jersey_image || $showSection('jersey'))
+                        <div class="bg-slate-900 border border-slate-800 rounded-lg p-6 space-y-4">
+                            <div class="flex items-center justify-between">
+                                <h3 class="text-lg font-bold text-white">Jersey Resmi</h3>
+                                <span class="text-xs text-slate-400 font-mono-num">{{ implode(' / ', $jerseySizes) }}</span>
+                            </div>
+                            @if($event->jersey_image)
+                                <img src="{{ asset('storage/' . $event->jersey_image) }}" alt="Jersey {{ $event->name }}" width="800" height="500" loading="lazy" class="lightbox-trigger w-full h-64 object-cover rounded-md border border-slate-800 cursor-zoom-in">
+                            @endif
+                            @if(!empty($pa['jersey']['description']))
+                                <p class="text-sm text-slate-300 leading-relaxed">{{ $pa['jersey']['description'] }}</p>
                             @endif
                         </div>
-                    </div>
+                    @endif
+
+                    @if($event->medal_image || $showSection('medal'))
+                        <div class="bg-slate-900 border border-slate-800 rounded-lg p-6 space-y-4">
+                            <h3 class="text-lg font-bold text-white">Medali Finisher</h3>
+                            @if($event->medal_image)
+                                <img src="{{ asset('storage/' . $event->medal_image) }}" alt="Medali Finisher {{ $event->name }}" width="800" height="500" loading="lazy" class="lightbox-trigger w-full h-64 object-cover rounded-md border border-slate-800 cursor-zoom-in">
+                            @endif
+                            @if(!empty($pa['medal']['description']))
+                                <p class="text-sm text-slate-300 leading-relaxed">{{ $pa['medal']['description'] }}</p>
+                            @endif
+                        </div>
+                    @endif
                 </div>
-                @endif
+            </div>
+        </section>
+        @endif
+
+        <!-- Gallery -->
+        @if($showSection('gallery') && count($gallery) > 0)
+        <section id="gallery" class="py-16 bg-slate-950 border-b border-slate-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-white mb-8">Galeri Event</h2>
+                <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                    @foreach($gallery as $idx => $imgPath)
+                        <button type="button" onclick="openLightbox('{{ asset('storage/' . $imgPath) }}')" class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden aspect-[4/3] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400">
+                            <img src="{{ asset('storage/' . $imgPath) }}" alt="Galeri {{ $event->name }} {{ $idx + 1 }}" width="400" height="300" loading="lazy" class="w-full h-full object-cover hover:opacity-90 transition duration-150">
+                        </button>
+                    @endforeach
+                </div>
             </div>
         </section>
         @endif
 
         @include('events.partials.prizes-section', ['categories' => $categories])
+        @include('events.partials.sponsor-carousel', [
+            'gradientFrom' => 'from-slate-950',
+            'titleColor' => 'text-slate-300',
+            'containerClass' => 'bg-slate-900 border border-slate-800',
+            'sectionClass' => 'py-14 bg-slate-950 border-b border-slate-800'
+        ])
+        @include('events.partials.custom-section')
 
-        <section id="registrasi" class="py-24 relative overflow-hidden">
-             <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[800px] bg-neon/5 rounded-full blur-[100px] pointer-events-none -z-10"></div>
-
-            <div class="max-w-5xl mx-auto px-4">
-                <div class="text-center mb-12 reveal">
-                    <h2 class="text-3xl md:text-5xl font-black text-white mb-4">SECURE YOUR <span class="text-neon">SLOT</span></h2>
-                    <p class="text-slate-400">Bergabunglah dengan ribuan pelari lainnya.</p>
+        <!-- Registration Section -->
+        <section id="registrasi" class="py-16 bg-slate-950 border-b border-slate-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="max-w-2xl mb-10">
+                    <h2 class="text-2xl sm:text-3xl font-extrabold text-white">Formulir Pendaftaran Peserta</h2>
+                    <p class="text-sm text-slate-300 mt-1">Isi data penanggung jawab (PIC) dan peserta. Satu transaksi dapat mendaftarkan lebih dari satu peserta.</p>
                 </div>
 
+                @if(request('payment') === 'pending')
+                    <div class="mb-6 bg-slate-900 border border-amber-500/50 rounded-md p-4 text-sm text-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div>
+                            <p class="font-bold text-amber-300">Pembayaran Masih Menunggu</p>
+                            <p class="text-slate-300 text-xs mt-0.5">Jika popup pembayaran tertutup, lanjutkan pembayaran tanpa mengisi ulang formulir.</p>
+                        </div>
+                        <a href="{{ route('events.payments.continue', $event->slug) }}" class="accent-bg px-4 py-2 rounded-md text-xs font-bold shrink-0 text-center">Lanjutkan Pembayaran</a>
+                    </div>
+                @elseif(request('payment') === 'success' || request('success') === 'true')
+                    <div class="mb-6 bg-slate-900 border border-emerald-500/50 rounded-md p-4 text-sm text-emerald-200">
+                        <p class="font-bold">Registrasi & Pembayaran Berhasil</p>
+                        <p class="text-xs text-slate-300 mt-0.5">Bukti pendaftaran dan e-Tiket dikirim ke email PIC dan peserta.</p>
+                    </div>
+                @endif
+
                 @if(!$isRegOpen)
-                    <div class="bg-card border border-red-500/30 rounded-2xl p-8 text-center max-w-2xl mx-auto reveal">
-                        <svg class="w-16 h-16 text-red-500 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                        <h3 class="text-2xl font-bold text-white mb-2">REGISTRASI DITUTUP</h3>
-                        <p class="text-slate-400">
-                             @if($event->registration_open_at && $now < $event->registration_open_at)
-                                Pendaftaran akan dibuka pada: <span class="text-white font-mono">{{ $event->registration_open_at->format('d F Y, H:i') }} WIB</span>
+                    <div class="bg-slate-900 border border-slate-800 rounded-lg p-8 text-center max-w-xl mx-auto">
+                        <h3 class="text-lg font-bold text-white">Pendaftaran Belum Dibuka / Sudah Ditutup</h3>
+                        <p class="text-sm text-slate-300 mt-2">
+                            @if($event->registration_open_at && $now < $event->registration_open_at)
+                                Pendaftaran akan dibuka pada {{ $event->registration_open_at->translatedFormat('d F Y, H:i') }} WIB.
                             @else
-                                Pendaftaran telah ditutup. Sampai jumpa di event berikutnya.
+                                Periode pendaftaran untuk event ini telah berakhir.
                             @endif
                         </p>
                     </div>
                 @else
-                    <form action="{{ route('events.register.store', $event->slug) }}" method="POST" id="registrationForm" class="space-y-8 reveal">
+                    <div id="formAlertBanner" class="hidden mb-6 rounded-md p-4 text-sm border" role="alert"></div>
+
+                    <form action="{{ route('events.register.store', $event->slug) }}" method="POST" id="registrationForm" novalidate class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
                         @csrf
-                        
-                        @if(session('success') || session('snap_token'))
-                            <div class="bg-green-500/10 border border-green-500/50 text-green-400 p-4 rounded-xl flex items-center gap-3">
-                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                <div><strong>Berhasil!</strong> Data tersimpan. Lanjutkan pembayaran.</div>
-                            </div>
-                        @endif
-                        @if(request('payment') === 'pending')
-                            <div class="bg-yellow-500/10 border border-yellow-500/40 text-yellow-200 p-4 rounded-xl flex items-start gap-3">
-                                <svg class="w-6 h-6 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+
+                        <!-- Left Column: PIC & Participants -->
+                        <div class="lg:col-span-8 space-y-6">
+                            <!-- PIC Card -->
+                            <div class="bg-slate-900 border border-slate-800 rounded-lg p-6 space-y-4">
                                 <div>
-                                    <div class="font-bold text-white">Pembayaran masih pending</div>
-                                    <div class="text-xs text-slate-300 mt-1">Jika popup Midtrans tertutup/refresh, Anda bisa melanjutkan tanpa registrasi ulang.</div>
-                                    <a href="{{ route('events.payments.continue', $event->slug) }}" class="inline-block mt-2 text-xs font-bold bg-yellow-400 hover:bg-yellow-300 text-black px-3 py-2 rounded-lg">Lanjutkan Pembayaran</a>
+                                    <h3 class="text-base font-bold text-white">1. Data Penanggung Jawab (PIC)</h3>
+                                    <p class="text-xs text-slate-400 mt-0.5">Invoice dan notifikasi pembayaran akan dikirim ke kontak PIC ini.</p>
                                 </div>
-                            </div>
-                        @elseif(request('payment') === 'success')
-                            <div class="bg-green-500/10 border border-green-500/40 text-green-200 p-4 rounded-xl flex items-start gap-3">
-                                <svg class="w-6 h-6 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                <div>
-                                    <div class="font-bold text-white">Pembayaran berhasil</div>
-                                    <div class="text-xs text-slate-300 mt-1">Jika belum menerima konfirmasi, refresh halaman ini beberapa saat lagi.</div>
-                                </div>
-                            </div>
-                        @endif
-                        @if($errors->any())
-                            <div class="bg-red-500/10 border border-red-500/50 text-red-400 p-4 rounded-xl">
-                                <ul class="list-disc pl-5 text-sm">
-                                    @foreach($errors->all() as $error) <li>{{ $error }}</li> @endforeach
-                                </ul>
-                            </div>
-                        @endif
 
-                        <div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
-                            <div class="xl:col-span-2 space-y-8">
-                                <div class="bg-card border border-slate-800 rounded-3xl p-6 md:p-8">
-                                    <h3 class="text-lg font-bold text-white mb-6 flex items-center gap-3">
-                                        <span class="w-8 h-8 rounded-full bg-slate-700 text-neon flex items-center justify-center font-mono text-sm">01</span>
-                                        Data Penanggung Jawab
-                                    </h3>
-                                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-                                        <div class="space-y-2">
-                                            <label class="text-xs font-bold text-slate-500 uppercase ml-1">Nama Lengkap</label>
-                                            <input type="text" name="pic_name" value="{{ old('pic_name') }}" required class="w-full bg-input border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon outline-none transition">
-                                        </div>
-                                        <div class="space-y-2">
-                                            <label class="text-xs font-bold text-slate-500 uppercase ml-1">Email</label>
-                                            <input type="email" name="pic_email" value="{{ old('pic_email') }}" required class="w-full bg-input border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon outline-none transition">
-                                        </div>
-                                        <div class="space-y-2 md:col-span-2">
-                                            <label class="text-xs font-bold text-slate-500 uppercase ml-1">WhatsApp / No. HP</label>
-                                            <input type="text" name="pic_phone" value="{{ old('pic_phone') }}" required class="w-full bg-input border border-slate-700 rounded-xl px-4 py-3 text-white focus:border-neon focus:ring-1 focus:ring-neon outline-none transition">
-                                        </div>
+                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <div class="sm:col-span-2">
+                                        <label for="pic_name" class="block text-xs font-semibold text-slate-300 mb-1.5">Nama Lengkap PIC <span class="text-rose-400">*</span></label>
+                                        <input type="text" id="pic_name" name="pic_name" value="{{ old('pic_name') }}" required autocomplete="name" class="w-full bg-slate-950 border border-slate-700 rounded-md px-3.5 py-2.5 text-sm text-white placeholder-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400" placeholder="Nama lengkap penanggung jawab">
+                                    </div>
+                                    <div>
+                                        <label for="pic_email" class="block text-xs font-semibold text-slate-300 mb-1.5">Email PIC <span class="text-rose-400">*</span></label>
+                                        <input type="email" id="pic_email" name="pic_email" value="{{ old('pic_email') }}" required autocomplete="email" class="w-full bg-slate-950 border border-slate-700 rounded-md px-3.5 py-2.5 text-sm text-white placeholder-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400" placeholder="nama@email.com">
+                                    </div>
+                                    <div>
+                                        <label for="pic_phone" class="block text-xs font-semibold text-slate-300 mb-1.5">Nomor WhatsApp PIC <span class="text-rose-400">*</span></label>
+                                        <input type="tel" id="pic_phone" name="pic_phone" value="{{ old('pic_phone') }}" required minlength="10" maxlength="15" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')" class="w-full bg-slate-950 border border-slate-700 rounded-md px-3.5 py-2.5 text-sm text-white placeholder-slate-400 font-mono-num focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400" placeholder="081234567890">
                                     </div>
                                 </div>
+                            </div>
 
-                                <div class="bg-card border border-slate-800 rounded-3xl p-6 md:p-8">
-                                    <div class="flex justify-between items-center mb-6">
-                                        <h3 class="text-lg font-bold text-white flex items-center gap-3">
-                                            <span class="w-8 h-8 rounded-full bg-slate-700 text-neon flex items-center justify-center font-mono text-sm">02</span>
-                                            Data Peserta
-                                        </h3>
-                                        <button type="button" id="addParticipant" class="text-xs font-bold text-neon border border-neon px-4 py-2 rounded-lg hover:bg-neon hover:text-dark transition">
-                                            + TAMBAH
-                                        </button>
-                                    </div>
+                            <!-- Participants Wrapper -->
+                            <div class="space-y-4">
+                                <div class="flex items-center justify-between">
+                                    <h3 class="text-base font-bold text-white">2. Data Peserta Lari</h3>
+                                    <button type="button" id="addParticipant" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-semibold rounded-md border border-slate-700 transition duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400">
+                                        + Tambah Peserta
+                                    </button>
+                                </div>
 
-                                    <div id="participantsWrapper" class="space-y-4">
-                                        <div class="participant-item bg-slate-900/50 border border-slate-700 hover:border-slate-500 p-6 rounded-2xl transition relative group" data-index="0">
-                                            <div class="flex justify-between items-center mb-4 pb-2 border-b border-slate-800">
-                                                <strong class="text-neon font-mono text-sm uppercase">Peserta #1</strong>
-                                                <button type="button" class="remove-participant hidden text-red-500 hover:text-red-400 text-xs font-bold uppercase">Hapus</button>
+                                <div id="participantsWrapper" class="space-y-5">
+                                    <div class="participant-item bg-slate-900 border border-slate-800 rounded-lg p-6 space-y-4" data-index="0">
+                                        <div class="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-slate-800">
+                                            <div class="flex flex-wrap items-center gap-2">
+                                                <strong class="participant-title text-sm font-bold text-white">Peserta #1</strong>
+                                                <button type="button" onclick="copyFromPic(this)" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded border border-slate-700 transition duration-150">
+                                                    Isi dari PIC
+                                                </button>
+                                                <button type="button" onclick="copyFromPrev(this)" class="copy-prev-btn hidden px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-medium rounded border border-slate-700 transition duration-150">
+                                                    Salin Kontak Darurat
+                                                </button>
                                             </div>
-                                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                <div class="space-y-1">
-                                                    <label class="text-[10px] text-slate-500 uppercase font-bold">Nama</label>
-                                                    <input type="text" name="participants[0][name]" required class="w-full bg-input border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-neon outline-none">
-                                                </div>
-                                                <div class="space-y-1">
-                                                    <label class="text-[10px] text-slate-500 uppercase font-bold">Email</label>
-                                                    <input type="email" name="participants[0][email]" required class="w-full bg-input border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-neon outline-none">
-                                                </div>
-                                                <div class="space-y-1">
-                                                    <label class="text-[10px] text-slate-500 uppercase font-bold">Gender</label>
-                                                    <select name="participants[0][gender]" required class="w-full bg-input border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-neon outline-none">
-                                                        <option value="">-- Pilih --</option>
-                                                        <option value="male">Laki-laki</option>
-                                                        <option value="female">Perempuan</option>
-                                                    </select>
-                                                </div>
-                                                <div class="space-y-1">
-                                                    <label class="text-[10px] text-slate-500 uppercase font-bold">No. HP</label>
-                                                    <input type="text" name="participants[0][phone]" required class="w-full bg-input border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-neon outline-none">
-                                                </div>
-                                                <div class="space-y-1">
-                                                    <label class="text-[10px] text-slate-500 uppercase font-bold">No. ID (KTP)</label>
-                                                    <input type="text" name="participants[0][id_card]" required class="w-full bg-input border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-neon outline-none">
-                                                </div>
-                                                <div class="md:col-span-2 space-y-1">
-                                                    <label class="text-[10px] text-slate-500 uppercase font-bold">Alamat</label>
-                                                    <textarea name="participants[0][address]" required maxlength="500" rows="3" class="w-full bg-input border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-neon outline-none"></textarea>
-                                                </div>
-                                                <div class="space-y-1">
-                                                    <label class="text-[10px] text-slate-500 uppercase font-bold">Nama Kontak Darurat</label>
-                                                    <input type="text" name="participants[0][emergency_contact_name]" required class="w-full bg-input border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-neon outline-none">
-                                                </div>
-                                                <div class="space-y-1">
-                                                    <label class="text-[10px] text-slate-500 uppercase font-bold">No. Kontak Darurat</label>
-                                                    <input type="text" name="participants[0][emergency_contact_number]" required class="w-full bg-input border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-neon outline-none">
-                                                </div>
-                                                <div class="md:col-span-2 space-y-1">
-                                                    <label class="text-[10px] text-slate-500 uppercase font-bold">Kategori</label>
-                                                    <select name="participants[0][category_id]" class="category-select w-full bg-input border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-neon outline-none" data-index="0" required>
-                                                        <option value="">-- Pilih Kategori --</option>
-                                                        @foreach($categories as $cat)
-                                                            @php
-                                                                $now = now();
-                                                                $earlyValid = $cat->price_early > 0 && 
-                                                                              (!$cat->early_bird_end_at || $now->lte($cat->early_bird_end_at)) &&
-                                                                              (!$cat->early_bird_quota || ($cat->early_bird_sold_count ?? 0) < $cat->early_bird_quota);
-                                                                $earlyPrice = $earlyValid ? $cat->price_early : 0;
-                                                            @endphp
-                                                            <option value="{{ $cat->id }}" 
-                                                                data-price-early="{{ $earlyPrice }}"
-                                                                data-price-regular="{{ $cat->price_regular }}"
-                                                                data-price-late="{{ $cat->price_late }}"
-                                                                data-reg-start="{{ $cat->reg_start_at }}"
-                                                                data-reg-end="{{ $cat->reg_end_at }}"
-                                                                data-quota="{{ $cat->quota }}">
-                                                                {{ $cat->name }} ({{ $cat->distance_km ?? '?' }}K)
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                    <div class="category-info h-4 text-[10px] text-neon font-mono mt-1" data-index="0"></div>
-                                                </div>
-                                                <div class="space-y-1">
-                                                    <label class="text-[10px] text-slate-500 uppercase font-bold">Jersey Size</label>
-                                                    <select name="participants[0][jersey_size]" class="w-full bg-input border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-neon outline-none">
-                                                        <option value="">-- Pilih --</option>
-                                                        @foreach(($event->jersey_sizes ?? ['S','M','L','XL']) as $size)
-                                                            <option value="{{ $size }}">{{ $size }}</option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                                @if(!empty($event->premium_amenities['form_fields']['target_time']))
-                                                <div class="space-y-1">
-                                                    <label class="text-[10px] text-slate-500 uppercase font-bold">Target Waktu (Optional)</label>
-                                                    <input type="text" name="participants[0][target_time]" placeholder="HH:MM:SS (Contoh: 00:55:00)" class="w-full bg-input border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-neon outline-none">
-                                                </div>
-                                                @endif
+                                            <button type="button" class="remove-participant hidden text-xs font-semibold text-rose-400 hover:text-rose-300 px-2 py-1 rounded">
+                                                Hapus Peserta
+                                            </button>
+                                        </div>
 
-                                                @if(!empty($event->premium_amenities['form_fields']['strava_activity']))
-                                                <div class="space-y-1">
-                                                    <label class="text-[10px] text-slate-400 uppercase font-bold">Link Aktivitas Strava <span class="text-slate-400 font-normal lowercase">(opsional)</span></label>
-                                                    <input type="url" name="participants[0][strava_url]" placeholder="https://www.strava.com/activities/..." class="w-full bg-input border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:border-neon outline-none">
-                                                </div>
-                                                @endif
+                                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                            <div class="sm:col-span-2">
+                                                <label class="block text-xs font-semibold text-slate-300 mb-1.5">Kategori Lomba <span class="text-rose-400">*</span></label>
+                                                <select data-field="category_id" name="participants[0][category_id]" class="category-select w-full bg-slate-950 border border-slate-700 rounded-md px-3.5 py-2.5 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400" required>
+                                                    <option value="">-- Pilih Kategori --</option>
+                                                    @foreach($categories as $cat)
+                                                        @php
+                                                            $earlyValid = ($cat->price_early ?? 0) > 0
+                                                                && (!$cat->early_bird_end_at || $now->lte($cat->early_bird_end_at))
+                                                                && (!$cat->early_bird_quota || ($cat->early_bird_sold_count ?? 0) < $cat->early_bird_quota);
+                                                            $pReg = (int) ($cat->price_regular ?? 0);
+                                                            $pLate = (int) ($cat->price_late ?? 0);
+                                                            $activePrice = $earlyValid ? (int) $cat->price_early : ($pReg > 0 ? $pReg : $pLate);
+                                                        @endphp
+                                                        <option value="{{ $cat->id }}" data-price="{{ $activePrice }}" data-price-regular="{{ $pReg }}" data-quota="{{ $cat->quota ?? '' }}">
+                                                            {{ $cat->name }}@if($cat->distance_km) ({{ $cat->distance_km }}K)@endif — {{ $activePrice > 0 ? 'Rp ' . number_format($activePrice, 0, ',', '.') : 'Gratis' }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                                <p class="category-info text-xs accent-text font-mono-num mt-1 min-h-[16px]"></p>
                                             </div>
+
+                                            <div>
+                                                <label class="block text-xs font-semibold text-slate-300 mb-1.5">Nama Lengkap <span class="text-rose-400">*</span></label>
+                                                <input type="text" data-field="name" name="participants[0][name]" required maxlength="255" class="w-full bg-slate-950 border border-slate-700 rounded-md px-3.5 py-2.5 text-sm text-white placeholder-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400" placeholder="Sesuai KTP/identitas">
+                                            </div>
+
+                                            <div>
+                                                <label class="block text-xs font-semibold text-slate-300 mb-1.5">Jenis Kelamin <span class="text-rose-400">*</span></label>
+                                                <select data-field="gender" name="participants[0][gender]" required class="w-full bg-slate-950 border border-slate-700 rounded-md px-3.5 py-2.5 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400">
+                                                    <option value="">-- Pilih --</option>
+                                                    <option value="male">Laki-laki</option>
+                                                    <option value="female">Perempuan</option>
+                                                </select>
+                                            </div>
+
+                                            <div>
+                                                <label class="block text-xs font-semibold text-slate-300 mb-1.5">Email Peserta <span class="text-rose-400">*</span></label>
+                                                <input type="email" data-field="email" name="participants[0][email]" required maxlength="255" class="w-full bg-slate-950 border border-slate-700 rounded-md px-3.5 py-2.5 text-sm text-white placeholder-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400" placeholder="peserta@email.com">
+                                            </div>
+
+                                            <div>
+                                                <label class="block text-xs font-semibold text-slate-300 mb-1.5">Tanggal Lahir <span class="text-rose-400">*</span></label>
+                                                <input type="date" data-field="date_of_birth" name="participants[0][date_of_birth]" required max="{{ now()->subDay()->format('Y-m-d') }}" class="w-full bg-slate-950 border border-slate-700 rounded-md px-3.5 py-2.5 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400">
+                                            </div>
+
+                                            <div>
+                                                <label class="block text-xs font-semibold text-slate-300 mb-1.5">No. HP / WhatsApp <span class="text-rose-400">*</span></label>
+                                                <input type="tel" data-field="phone" name="participants[0][phone]" required minlength="10" maxlength="15" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')" class="w-full bg-slate-950 border border-slate-700 rounded-md px-3.5 py-2.5 text-sm text-white font-mono-num placeholder-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400" placeholder="081234567890">
+                                            </div>
+
+                                            <div>
+                                                <label class="block text-xs font-semibold text-slate-300 mb-1.5">No. Identitas (KTP/SIM/Paspor) <span class="text-rose-400">*</span></label>
+                                                <input type="text" data-field="id_card" name="participants[0][id_card]" required maxlength="50" class="w-full bg-slate-950 border border-slate-700 rounded-md px-3.5 py-2.5 text-sm text-white font-mono-num placeholder-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400" placeholder="Nomor identitas resmi">
+                                            </div>
+
+                                            <div class="sm:col-span-2">
+                                                <label class="block text-xs font-semibold text-slate-300 mb-1.5">Alamat Lengkap <span class="text-rose-400">*</span></label>
+                                                <textarea data-field="address" name="participants[0][address]" required maxlength="500" rows="2" class="w-full bg-slate-950 border border-slate-700 rounded-md px-3.5 py-2.5 text-sm text-white placeholder-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400" placeholder="Alamat domisili saat ini"></textarea>
+                                            </div>
+
+                                            <div>
+                                                <label class="block text-xs font-semibold text-slate-300 mb-1.5">Nama Kontak Darurat <span class="text-rose-400">*</span></label>
+                                                <input type="text" data-field="emergency_contact_name" name="participants[0][emergency_contact_name]" required maxlength="255" class="w-full bg-slate-950 border border-slate-700 rounded-md px-3.5 py-2.5 text-sm text-white placeholder-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400" placeholder="Nama keluarga/kerabat">
+                                            </div>
+
+                                            <div>
+                                                <label class="block text-xs font-semibold text-slate-300 mb-1.5">No. Kontak Darurat <span class="text-rose-400">*</span></label>
+                                                <input type="tel" data-field="emergency_contact_number" name="participants[0][emergency_contact_number]" required minlength="10" maxlength="15" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')" class="w-full bg-slate-950 border border-slate-700 rounded-md px-3.5 py-2.5 text-sm text-white font-mono-num placeholder-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400" placeholder="081234567890">
+                                            </div>
+
+                                            <div>
+                                                <label class="block text-xs font-semibold text-slate-300 mb-1.5">Ukuran Jersey <span class="text-rose-400">*</span></label>
+                                                <select data-field="jersey_size" name="participants[0][jersey_size]" required class="w-full bg-slate-950 border border-slate-700 rounded-md px-3.5 py-2.5 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400">
+                                                    <option value="">-- Pilih Ukuran --</option>
+                                                    @foreach($jerseySizes as $size)
+                                                        <option value="{{ $size }}">{{ $size }}</option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+
+                                            <div>
+                                                <label class="block text-xs font-semibold text-slate-300 mb-1.5">Golongan Darah (Opsional)</label>
+                                                <select data-field="blood_type" name="participants[0][blood_type]" class="w-full bg-slate-950 border border-slate-700 rounded-md px-3.5 py-2.5 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400">
+                                                    <option value="">-- Pilih --</option>
+                                                    <option value="A">A</option>
+                                                    <option value="B">B</option>
+                                                    <option value="AB">AB</option>
+                                                    <option value="O">O</option>
+                                                </select>
+                                            </div>
+
+                                            @if(!empty($pa['form_fields']['target_time']))
+                                                <div>
+                                                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Target Waktu Finish (Opsional)</label>
+                                                    <input type="text" data-field="target_time" name="participants[0][target_time]" placeholder="HH:MM:SS (contoh: 00:55:00)" class="w-full bg-slate-950 border border-slate-700 rounded-md px-3.5 py-2.5 text-sm text-white font-mono-num placeholder-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400">
+                                                </div>
+                                            @endif
+
+                                            @if(!empty($pa['form_fields']['strava_activity']) || !empty($pa['form_fields']['strava_url']))
+                                                <div>
+                                                    <label class="block text-xs font-semibold text-slate-300 mb-1.5">Link Aktivitas Strava (Opsional)</label>
+                                                    <input type="url" data-field="strava_url" name="participants[0][strava_url]" placeholder="https://www.strava.com/activities/..." class="w-full bg-slate-950 border border-slate-700 rounded-md px-3.5 py-2.5 text-sm text-white placeholder-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400">
+                                                </div>
+                                            @endif
+
+                                            <div class="sm:col-span-2">
+                                                @include('events.partials.dynamic-extra-fields', ['mode' => 'dark'])
+                                            </div>
+
+                                            @if(count($eventAddons) > 0)
+                                                <div class="sm:col-span-2 pt-3 border-t border-slate-800 space-y-2">
+                                                    <p class="text-xs font-semibold text-slate-300">Add-ons Tambahan (Opsional)</p>
+                                                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                                                        @foreach($eventAddons as $aIdx => $addon)
+                                                            <label class="flex items-center justify-between gap-2 p-2.5 rounded-md bg-slate-950 border border-slate-800 hover:border-slate-600">
+                                                                <span class="flex items-center gap-2 text-xs text-slate-200">
+                                                                    <input type="hidden" data-addon-name="{{ $aIdx }}" name="participants[0][addons][{{ $aIdx }}][name]" value="{{ $addon['name'] }}">
+                                                                    <input type="checkbox" data-addon-check="{{ $aIdx }}" data-addon-price="{{ (int)($addon['price'] ?? 0) }}" name="participants[0][addons][{{ $aIdx }}][selected]" value="1" class="addon-checkbox rounded border-slate-600 bg-slate-900 text-lime-400 focus:ring-lime-400">
+                                                                    <span>{{ $addon['name'] }}</span>
+                                                                </span>
+                                                                <span class="text-xs font-mono-num text-slate-300">+Rp {{ number_format((int)($addon['price'] ?? 0), 0, ',', '.') }}</span>
+                                                            </label>
+                                                        @endforeach
+                                                    </div>
+                                                </div>
+                                            @endif
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                        </div>
 
-                            <div class="xl:col-span-1">
-                                <div class="sticky top-24 space-y-6">
-                                    <div class="bg-card border border-slate-800 rounded-3xl p-6">
-                                        <label class="text-xs font-bold text-slate-500 uppercase mb-2 block">Kode Promo</label>
-                                        <div class="flex gap-2">
-                                            <input type="text" id="coupon_code" value="{{ old('coupon_code') }}" placeholder="KODE..." class="flex-1 bg-input border border-slate-700 rounded-lg px-3 py-2 text-sm text-white uppercase focus:border-neon outline-none">
-                                            <button type="button" id="applyCoupon" class="bg-slate-700 text-white px-4 rounded-lg text-xs font-bold hover:bg-white hover:text-dark transition">APPLY</button>
-                                        </div>
-                                        <div id="couponMessage" class="mt-2 text-xs"></div>
-                                        <input type="hidden" id="coupon_code_hidden" name="coupon_code">
+                        <!-- Right Column: Sticky Summary & Payment -->
+                        <div class="lg:col-span-4">
+                            <div class="sticky top-20 space-y-5">
+                                <!-- Coupon -->
+                                <div class="bg-slate-900 border border-slate-800 rounded-lg p-5 space-y-3">
+                                    <label for="coupon_code" class="block text-xs font-semibold text-slate-300 uppercase tracking-wider">Kode Kupon</label>
+                                    <div class="flex gap-2">
+                                        <input type="text" id="coupon_code" value="{{ old('coupon_code') }}" placeholder="Masukkan kode promo" class="flex-1 bg-slate-950 border border-slate-700 rounded-md px-3 py-2 text-sm text-white uppercase font-mono-num placeholder-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400">
+                                        <button type="button" id="applyCoupon" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white text-xs font-bold rounded-md border border-slate-700 transition duration-150">Pakai</button>
                                     </div>
+                                    <div id="couponMessage" class="text-xs"></div>
+                                    <input type="hidden" id="coupon_code_hidden" name="coupon_code">
+                                </div>
 
-                                    <div class="bg-gradient-to-b from-slate-800 to-slate-900 border border-slate-700 rounded-3xl p-6 shadow-2xl relative overflow-hidden">
-                                        <div class="absolute top-0 right-0 p-4 opacity-10">
-                                            <svg class="w-24 h-24 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+                                <!-- Summary + Payment -->
+                                <div class="bg-slate-900 border border-slate-800 rounded-lg p-6 space-y-5">
+                                    <h3 class="text-base font-bold text-white">Ringkasan Pembayaran</h3>
+
+                                    <dl class="space-y-2.5 text-sm border-b border-slate-800 pb-4">
+                                        <div class="flex justify-between text-slate-300">
+                                            <dt>Subtotal</dt>
+                                            <dd id="subtotal" class="font-mono-num text-white font-semibold">Rp 0</dd>
                                         </div>
-                                        
-                                        <h3 class="text-lg font-bold text-white mb-6">RINGKASAN</h3>
-                                        <div class="space-y-3 mb-6 border-b border-slate-700 pb-6">
-                                        <div class="flex justify-between text-sm text-slate-400">
-                                            <span>Subtotal</span>
-                                            <span id="subtotal" class="font-mono text-white">Rp 0</span>
+                                        <div id="feeRow" class="flex justify-between text-slate-300 {{ ($event->platform_fee ?? 0) > 0 ? '' : 'hidden' }}">
+                                            <dt>Biaya Layanan</dt>
+                                            <dd id="feeAmount" class="font-mono-num text-white font-semibold">Rp 0</dd>
                                         </div>
-                                        <div id="feeRow" class="flex justify-between text-sm text-slate-400 {{ $event->platform_fee > 0 ? '' : 'hidden' }}">
-                                            <span>Biaya Admin</span>
-                                            <span id="feeAmount" class="font-mono text-white">Rp 0</span>
+                                        <div id="discountRow" class="flex justify-between text-emerald-400 hidden">
+                                            <dt>Diskon Kupon</dt>
+                                            <dd id="discountAmount" class="font-mono-num font-semibold">-Rp 0</dd>
                                         </div>
-                                        <div id="discountRow" class="flex justify-between text-sm text-green-400 hidden">
-                                            <span>Diskon</span>
-                                            <span id="discountAmount" class="font-mono">-Rp 0</span>
-                                        </div>
-                                    </div>
+                                    </dl>
 
-                                    <div class="mb-6">
-                                        <h4 class="text-sm font-bold text-slate-300 mb-3">METODE PEMBAYARAN</h4>
-                                        <div class="space-y-3">
-                                            @php
-                                                $paymentConfig = $event->payment_config ?? [];
-                                                
-                                                // Support both new (allowed_methods) and legacy (direct keys) structures
-                                                if (isset($paymentConfig['allowed_methods']) && is_array($paymentConfig['allowed_methods'])) {
-                                                    $allowed = $paymentConfig['allowed_methods'];
-                                                    $showMidtrans = in_array('midtrans', $allowed) || in_array('all', $allowed);
-                                                    $showMoota = in_array('moota', $allowed) || in_array('all', $allowed);
-                                                    $showManualTransfer = in_array('manual_transfer', $allowed) || in_array('all', $allowed);
-                                                } else {
-                                                    $showMidtrans = $paymentConfig['midtrans'] ?? true;
-                                                    $showMoota = $paymentConfig['moota'] ?? false;
-                                                    $showManualTransfer = $paymentConfig['manual_transfer'] ?? false;
-                                                }
-
-                                                if (!$showMidtrans && !$showMoota && !$showManualTransfer) {
-                                                    $showMidtrans = true;
-                                                }
-
-                                                // Default selection logic
-                                                $defaultMidtrans = $showMidtrans ? 'checked' : '';
-                                                $defaultMoota = (!$showMidtrans && $showMoota) ? 'checked' : '';
-                                                $defaultManual = (!$showMidtrans && !$showMoota && $showManualTransfer) ? 'checked' : '';
-                                            @endphp
-
-                                            @if($showMidtrans)
-                                            <label class="flex items-center justify-between p-4 bg-slate-800/50 border border-slate-700 rounded-xl cursor-pointer hover:border-slate-500 transition-colors group">
-                                                <div class="flex items-center gap-3">
-                                                    <input type="radio" name="payment_method" value="midtrans" {{ $defaultMidtrans }} class="w-4 h-4 text-neon focus:ring-neon bg-slate-700 border-slate-600">
-                                                    <div class="flex flex-col">
-                                                        <span class="text-white text-sm font-bold">QRIS / E-Wallet / Virtual Account</span>
-                                                        <span class="text-xs text-slate-400">Verifikasi Otomatis (Midtrans)</span>
-                                                    </div>
-                                                </div>
+                                    <div class="space-y-2.5">
+                                        <p class="text-xs font-semibold text-slate-300 uppercase tracking-wider">Metode Pembayaran</p>
+                                        @if($showMidtrans)
+                                            <label class="flex items-start gap-3 p-3 bg-slate-950 border border-slate-800 hover:border-slate-600 rounded-md">
+                                                <input type="radio" name="payment_method" value="midtrans" {{ $defaultPayment === 'midtrans' ? 'checked' : '' }} class="mt-0.5 text-lime-400 bg-slate-900 border-slate-600 focus:ring-lime-400">
+                                                <span class="text-xs">
+                                                    <span class="block font-bold text-white">QRIS / E-Wallet / Virtual Account</span>
+                                                    <span class="text-slate-400">Verifikasi otomatis via Midtrans</span>
+                                                </span>
                                             </label>
-                                            @endif
-                                            
-                                            @if($showMoota)
-                                            <label class="flex items-center justify-between p-4 bg-slate-800/50 border border-slate-700 rounded-xl cursor-pointer hover:border-slate-500 transition-colors group">
-                                                <div class="flex items-center gap-3">
-                                                    <input type="radio" name="payment_method" value="moota" {{ $defaultMoota }} class="w-4 h-4 text-neon focus:ring-neon bg-slate-700 border-slate-600">
-                                                    <div class="flex flex-col">
-                                                        <span class="text-white text-sm font-bold">Transfer Bank (Moota)</span>
-                                                        <span class="text-xs text-slate-400">Verifikasi Otomatis</span>
-                                                    </div>
-                                                </div>
+                                        @endif
+                                        @if($showMoota)
+                                            <label class="flex items-start gap-3 p-3 bg-slate-950 border border-slate-800 hover:border-slate-600 rounded-md">
+                                                <input type="radio" name="payment_method" value="moota" {{ $defaultPayment === 'moota' ? 'checked' : '' }} class="mt-0.5 text-lime-400 bg-slate-900 border-slate-600 focus:ring-lime-400">
+                                                <span class="text-xs">
+                                                    <span class="block font-bold text-white">Transfer Bank Otomatis (Moota)</span>
+                                                    <span class="text-slate-400">Konfirmasi otomatis dengan kode unik</span>
+                                                </span>
                                             </label>
-                                            @endif
-
-                                            @if($showManualTransfer)
-                                            <label class="flex items-center justify-between p-4 bg-slate-800/50 border border-slate-700 rounded-xl cursor-pointer hover:border-slate-500 transition-colors group">
-                                                <div class="flex items-center gap-3">
-                                                    <input type="radio" name="payment_method" value="manual_transfer" {{ $defaultManual }} class="w-4 h-4 text-neon focus:ring-neon bg-slate-700 border-slate-600">
-                                                    <div class="flex flex-col">
-                                                        <span class="text-white text-sm font-bold">Transfer Rekening EO</span>
-                                                        <span class="text-xs text-slate-400">Transfer manual ke rekening EO dengan kode unik & upload bukti</span>
-                                                    </div>
-                                                </div>
+                                        @endif
+                                        @if($showManualTransfer)
+                                            <label class="flex items-start gap-3 p-3 bg-slate-950 border border-slate-800 hover:border-slate-600 rounded-md">
+                                                <input type="radio" name="payment_method" value="manual_transfer" {{ $defaultPayment === 'manual_transfer' ? 'checked' : '' }} class="mt-0.5 text-lime-400 bg-slate-900 border-slate-600 focus:ring-lime-400">
+                                                <span class="text-xs">
+                                                    <span class="block font-bold text-white">Transfer Rekening Panitia (EO)</span>
+                                                    <span class="text-slate-400">Transfer manual + upload bukti pembayaran{{ $manualTransferWaiveFee ? ' (bebas biaya layanan)' : '' }}</span>
+                                                </span>
                                             </label>
-                                            @endif
-                                        </div>
+                                        @endif
+                                        @if($showCod)
+                                            <label class="flex items-start gap-3 p-3 bg-slate-950 border border-slate-800 hover:border-slate-600 rounded-md">
+                                                <input type="radio" name="payment_method" value="cod" {{ $defaultPayment === 'cod' ? 'checked' : '' }} class="mt-0.5 text-lime-400 bg-slate-900 border-slate-600 focus:ring-lime-400">
+                                                <span class="text-xs">
+                                                    <span class="block font-bold text-white">Bayar di Tempat (COD)</span>
+                                                    <span class="text-slate-400">Pembayaran langsung ke panitia</span>
+                                                </span>
+                                            </label>
+                                        @endif
                                     </div>
 
                                     @if($event->terms_and_conditions)
-                                    <div class="mb-6">
-                                        <label class="flex items-start gap-3 cursor-pointer group">
-                                            <input type="checkbox" name="terms_agreed" required class="mt-1 w-4 h-4 rounded border-slate-600 bg-slate-800 text-neon focus:ring-neon cursor-pointer">
-                                            <span class="text-xs text-slate-400 group-hover:text-slate-300 transition-colors">
-                                                Saya menyetujui <button type="button" onclick="document.getElementById('termsModal').classList.remove('hidden')" class="text-neon hover:underline font-bold">Syarat & Ketentuan</button> yang berlaku untuk event ini.
+                                        <label class="flex items-start gap-2.5 text-xs text-slate-300">
+                                            <input type="checkbox" name="terms_agreed" id="terms_agreed" required class="mt-0.5 rounded border-slate-600 bg-slate-950 text-lime-400 focus:ring-lime-400">
+                                            <span>
+                                                Saya menyetujui <button type="button" onclick="openTermsModal()" class="accent-text underline font-semibold">Syarat & Ketentuan</button> event ini.
                                             </span>
                                         </label>
-                                    </div>
                                     @endif
 
-                                    @if(env('RECAPTCHA_SITE_KEY'))
-                                        <input type="hidden" name="g-recaptcha-response" id="recaptchaToken">
-                                    @endif
+                                    <input type="hidden" name="g-recaptcha-response" id="recaptchaToken">
 
-                                    <div class="flex justify-between items-end mb-6">
-                                        <span class="text-slate-300 text-sm font-bold">TOTAL BAYAR</span>
-                                        <span id="totalAmount" class="text-3xl font-mono font-bold text-white tracking-tight">Rp 0</span>
+                                    <div class="flex items-baseline justify-between pt-2 border-t border-slate-800">
+                                        <span class="text-sm font-bold text-slate-200">Total Bayar</span>
+                                        <span id="totalAmount" class="text-2xl font-extrabold font-mono-num text-white">Rp 0</span>
                                     </div>
-                                    <button type="submit" id="submitBtn" class="w-full py-4 bg-neon text-dark font-black text-lg rounded-xl hover:bg-white hover:scale-[1.02] transition shadow-lg">
-                                        BAYAR SEKARANG
+
+                                    <button type="submit" id="submitBtn" class="w-full py-3.5 px-5 accent-bg font-bold text-base rounded-md transition duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white disabled:opacity-60">
+                                        Lanjutkan Pembayaran
                                     </button>
-                                    <div class="text-center mt-4 flex items-center justify-center gap-2 opacity-50">
-                                        <span class="text-[10px] text-slate-400">Powered by Midtrans</span>
-                                    </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </form>
-            @endif
-        </div>
-    </section>
-
-    <!-- Terms Modal -->
-    @if($event->terms_and_conditions)
-    <div id="termsModal" class="fixed inset-0 z-[100] hidden">
-        <div class="absolute inset-0 bg-black/80 backdrop-blur-sm" onclick="document.getElementById('termsModal').classList.add('hidden')"></div>
-        <div class="absolute inset-0 flex items-center justify-center p-4">
-            <div class="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-2xl max-h-[80vh] flex flex-col shadow-2xl relative">
-                <div class="p-6 border-b border-slate-800 flex justify-between items-center">
-                    <h3 class="text-xl font-bold text-white">Syarat & Ketentuan</h3>
-                    <button type="button" onclick="document.getElementById('termsModal').classList.add('hidden')" class="text-slate-400 hover:text-white">
-                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                    </button>
-                </div>
-                <div class="p-6 overflow-y-auto prose prose-invert prose-sm max-w-none">
-                    {!! $event->terms_and_conditions !!}
-                </div>
-                <div class="p-6 border-t border-slate-800 bg-slate-900/50 rounded-b-2xl">
-                    <button type="button" onclick="document.getElementById('termsModal').classList.add('hidden')" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-white font-bold rounded-xl transition">
-                        Tutup
-                    </button>
-                </div>
+                    </form>
+                @endif
             </div>
-        </div>
-    </div>
-    @endif
+        </section>
 
-        <section class="py-24 bg-card relative overflow-hidden">
-          <div class="absolute inset-0 opacity-5" style="background-image: radial-gradient(#ccff00 1px, transparent 1px); background-size: 30px 30px;"></div>
-
-          <div class="max-w-7xl mx-auto px-4 relative z-10">
-              <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  
-                  @if($showSection('rpc'))
-                  <div class="bg-dark border border-slate-700 rounded-3xl p-8 reveal">
-                      <div class="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center text-blue-400 mb-6 border border-slate-600">
-                          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" /></svg>
-                      </div>
-                      <h3 class="text-xl font-bold text-white mb-4">RACE PACK COLLECTION</h3>
-                      <div class="space-y-4 text-sm text-slate-300">
-                          <div class="flex gap-3">
-                              <svg class="w-5 h-5 text-slate-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-                              <div>
-                                  <p class="font-bold text-white">Jadwal Pengambilan:</p>
-                                  <p>H-3 s.d H-1 Sebelum Race Day</p>
-                                  <p class="text-xs text-slate-500 mt-1">(Detail jam diinformasikan via email)</p>
-                              </div>
-                          </div>
-                          <div class="flex gap-3">
-                              <svg class="w-5 h-5 text-slate-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-                              <div>
-                                  <p class="font-bold text-white">Lokasi RPC:</p>
-                                  <p>{{ $event->rpc_location_name ?? $event->location_name . ' (Lobby Area)' }}</p>
-                                  @if($event->rpc_location_address)
-                                  <p class="text-xs text-slate-500 mt-1">{{ $event->rpc_location_address }}</p>
-                                  @endif
-                              </div>
-                          </div>
-                          <div class="bg-slate-800/50 p-3 rounded-lg border border-slate-700 mt-4">
-                              <p class="text-xs text-slate-400">
-                                  <strong class="text-neon block mb-1">Syarat Pengambilan:</strong>
-                                  Wajib membawa E-Voucher (dari email) dan kartu identitas asli (KTP/SIM).
-                              </p>
-                          </div>
-                      </div>
-                  </div>
-                  @endif
-
-                  @if($showSection('venue'))
-                  <div class="bg-dark border border-slate-700 rounded-3xl p-8 reveal delay-100">
-                      <div class="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center text-orange-400 mb-6 border border-slate-600">
-                          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                      </div>
-                      <h3 class="text-xl font-bold text-white mb-4">VENUE & PARKING INFO</h3>
-                      <div class="space-y-4 text-sm text-slate-300">
-                          <div class="flex gap-3">
-                              <svg class="w-5 h-5 text-slate-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg>
-                              <div>
-                                  <p class="font-bold text-white">Akses Transportasi:</p>
-                                  <p>Disarankan menggunakan transportasi umum (MRT/Transjakarta) untuk menghindari macet.</p>
-                              </div>
-                          </div>
-                          <div class="flex gap-3">
-                              <svg class="w-5 h-5 text-slate-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
-                              <div>
-                                  <p class="font-bold text-white">Area Parkir:</p>
-                                  @if(isset($pa['venue']['parking_info']) && !empty($pa['venue']['parking_info']))
-                                      <p>{{ $pa['venue']['parking_info'] }}</p>
-                                  @else
-                                      <p>Parkir tersedia terbatas di area venue.</p>
-                                      <p class="text-xs text-red-400 mt-1">*Jangan parkir di bahu jalan raya.</p>
-                                  @endif
-                              </div>
-                          </div>
-                      </div>
-                  </div>
-                  @endif
-
-                  @if($showSection('what_to_bring'))
-                  <div class="bg-dark border border-slate-700 rounded-3xl p-8 reveal delay-200">
-                      <div class="w-12 h-12 bg-slate-800 rounded-xl flex items-center justify-center text-neon mb-6 border border-slate-600">
-                          <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" /></svg>
-                      </div>
-                      <h3 class="text-xl font-bold text-white mb-4">WHAT TO BRING</h3>
-                      <ul class="space-y-3">
-                          @if(isset($pa['what_to_bring']['items']) && !empty($pa['what_to_bring']['items']))
-                              @foreach($pa['what_to_bring']['items'] as $item)
-                                  @if(!empty($item))
-                                  <li class="flex items-center gap-3 text-sm text-slate-300">
-                                      <svg class="w-5 h-5 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                                      {{ $item }}
-                                  </li>
-                                  @endif
-                              @endforeach
-                          @else
-                              <li class="flex items-center gap-3 text-sm text-slate-300">
-                                  <svg class="w-5 h-5 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                                  BIB Number (Wajib dipakai)
-                              </li>
-                              <li class="flex items-center gap-3 text-sm text-slate-300">
-                                  <svg class="w-5 h-5 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                                  Pakaian Lari Nyaman & Sepatu Lari
-                              </li>
-                              <li class="flex items-center gap-3 text-sm text-slate-300">
-                                  <svg class="w-5 h-5 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                                  Identitas Diri (KTP/SIM)
-                              </li>
-                              <li class="flex items-center gap-3 text-sm text-slate-300">
-                                  <svg class="w-5 h-5 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                                  Uang Tunai secukupnya (untuk F&B area)
-                              </li>
-                              <li class="flex items-center gap-3 text-sm text-slate-300">
-                                  <svg class="w-5 h-5 text-neon" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
-                                  Obat-obatan Pribadi (Jika perlu)
-                              </li>
-                          @endif
-                      </ul>
-                  </div>
-                  @endif
-
-              </div>
-          </div>
-      </section>
-
-        @if($showSection('faq'))
-        <section id="faq" class="py-24 bg-card border-t border-slate-800">
-            <div class="max-w-3xl mx-auto px-4">
-                <div class="text-center mb-16 reveal">
-                    <h2 class="text-3xl font-black text-white mb-4">FREQUENTLY ASKED <span class="text-neon">QUESTIONS</span></h2>
-                </div>
-
-                <div class="space-y-4 reveal">
-                    @if(isset($pa['faq']['items']) && count($pa['faq']['items']) > 0)
-                        @foreach($pa['faq']['items'] as $faq)
-                            @if(!empty($faq['question']) && !empty($faq['answer']))
-                            <div class="bg-dark border border-slate-700 rounded-2xl overflow-hidden">
-                                <button class="accordion-btn w-full px-6 py-5 text-left flex justify-between items-center bg-dark hover:bg-slate-800/50 transition" aria-expanded="false">
-                                    <span class="font-bold text-slate-200">{{ $faq['question'] }}</span>
-                                    <svg class="w-5 h-5 text-slate-500 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                                </button>
-                                <div class="accordion-content bg-slate-900/50">
-                                    <div class="px-6 pb-6 text-slate-400 text-sm leading-relaxed border-t border-slate-800/50 pt-4">
-                                        {!! nl2br(e($faq['answer'])) !!}
-                                    </div>
-                                </div>
-                            </div>
+        <!-- Logistics: RPC, Venue, What to Bring (only when enabled) -->
+        @if($hasLogistics)
+        <section class="py-16 bg-slate-950 border-b border-slate-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-white mb-8">Informasi Race Day & Pengambilan Race Pack</h2>
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    @if($showSection('rpc'))
+                        <div class="bg-slate-900 border border-slate-800 rounded-lg p-6 space-y-3">
+                            <h3 class="text-base font-bold text-white">Race Pack Collection (RPC)</h3>
+                            <p class="text-sm text-slate-300">{{ $event->rpc_location_name ?? ($event->location_name ?? 'Akan diinformasikan panitia') }}</p>
+                            @if($event->rpc_location_address)
+                                <p class="text-xs text-slate-400">{{ $event->rpc_location_address }}</p>
                             @endif
-                        @endforeach
-                    @else
-                        <div class="bg-dark border border-slate-700 rounded-2xl overflow-hidden">
-                            <button class="accordion-btn w-full px-6 py-5 text-left flex justify-between items-center bg-dark hover:bg-slate-800/50 transition" aria-expanded="false">
-                                <span class="font-bold text-slate-200">Bagaimana cara mendaftar event ini?</span>
-                                <svg class="w-5 h-5 text-slate-500 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                            </button>
-                            <div class="accordion-content bg-slate-900/50">
-                                <div class="px-6 pb-6 text-slate-400 text-sm leading-relaxed border-t border-slate-800/50 pt-4">
-                                    Pilih tombol "Daftar Sekarang", isi formulir data diri (PIC dan Peserta), lalu lakukan pembayaran melalui metode yang tersedia (QRIS, Virtual Account, dll). Konfirmasi akan dikirim ke email Anda.
-                                </div>
-                            </div>
+                            @if(!empty($pa['rpc']['schedule']))
+                                <p class="text-xs text-slate-300 pt-2 border-t border-slate-800">{{ $pa['rpc']['schedule'] }}</p>
+                            @endif
                         </div>
+                    @endif
 
-                        <div class="bg-dark border border-slate-700 rounded-2xl overflow-hidden">
-                            <button class="accordion-btn w-full px-6 py-5 text-left flex justify-between items-center bg-dark hover:bg-slate-800/50 transition" aria-expanded="false">
-                                <span class="font-bold text-slate-200">Kapan pengambilan Race Pack?</span>
-                                <svg class="w-5 h-5 text-slate-500 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                            </button>
-                            <div class="accordion-content bg-slate-900/50">
-                                <div class="px-6 pb-6 text-slate-400 text-sm leading-relaxed border-t border-slate-800/50 pt-4">
-                                    Pengambilan Race Pack (RPC) akan diinformasikan melalui email dan Instagram resmi H-7 acara. Biasanya dilakukan 2-3 hari sebelum hari lomba di lokasi yang ditentukan.
-                                </div>
-                            </div>
+                    @if($showSection('venue'))
+                        <div class="bg-slate-900 border border-slate-800 rounded-lg p-6 space-y-3">
+                            <h3 class="text-base font-bold text-white">Venue & Parkir</h3>
+                            <p class="text-sm text-slate-300">{{ $event->location_name ?? '-' }}</p>
+                            @if(!empty($pa['venue']['parking_info']))
+                                <p class="text-xs text-slate-300">{{ $pa['venue']['parking_info'] }}</p>
+                            @endif
                         </div>
+                    @endif
 
-                        <div class="bg-dark border border-slate-700 rounded-2xl overflow-hidden">
-                            <button class="accordion-btn w-full px-6 py-5 text-left flex justify-between items-center bg-dark hover:bg-slate-800/50 transition" aria-expanded="false">
-                                <span class="font-bold text-slate-200">Apakah tiket bisa di-refund?</span>
-                                <svg class="w-5 h-5 text-slate-500 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" /></svg>
-                            </button>
-                            <div class="accordion-content bg-slate-900/50">
-                                <div class="px-6 pb-6 text-slate-400 text-sm leading-relaxed border-t border-slate-800/50 pt-4">
-                                    Sesuai peraturan event, tiket yang sudah dibeli tidak dapat dikembalikan (non-refundable). Namun, nama peserta mungkin bisa diubah dalam periode tertentu dengan biaya administrasi.
-                                </div>
-                            </div>
+                    @if($showSection('what_to_bring') && count($whatToBring) > 0)
+                        <div class="bg-slate-900 border border-slate-800 rounded-lg p-6 space-y-3">
+                            <h3 class="text-base font-bold text-white">Perlengkapan yang Dibawa</h3>
+                            <ul class="space-y-2 text-sm text-slate-300 list-disc pl-5">
+                                @foreach($whatToBring as $item)
+                                    <li>{{ $item }}</li>
+                                @endforeach
+                            </ul>
                         </div>
                     @endif
                 </div>
@@ -1229,1147 +917,676 @@
         </section>
         @endif
 
-        <section id="results" class="py-24 bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900 border-t border-slate-700 relative">
-            <div class="max-w-7xl mx-auto px-4" id="resultsApp">
-                
-                <div class="flex flex-col md:flex-row justify-between items-end gap-6 mb-10 reveal">
-                    <div>
-                        <span class="text-neon font-mono font-bold uppercase tracking-widest text-sm">Leaderboard</span>
-                        <h2 class="text-3xl md:text-4xl font-black text-white mt-2">RACE <span class="text-slate-300">RESULTS</span></h2>
+        <!-- Location & Route -->
+        @if($hasRouteSection)
+        <section id="lokasi" class="py-16 bg-slate-950 border-b border-slate-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                    <div class="lg:col-span-5 space-y-3">
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-white">Lokasi & Rute</h2>
+                        @if($event->location_name)
+                            <p class="text-base font-semibold text-white">{{ $event->location_name }}</p>
+                        @endif
+                        @if($event->location_address)
+                            <p class="text-sm text-slate-300 leading-relaxed">{{ $event->location_address }}</p>
+                        @endif
                     </div>
-                    
-                    <div class="w-full md:w-auto flex flex-col md:flex-row gap-3">
-                        <div class="relative group w-full md:w-auto">
-                            <input type="text" v-model="search" placeholder="Cari Nama atau BIB..." 
-                                class="w-full md:w-64 bg-slate-700 border-2 border-slate-500 rounded-xl py-2.5 pl-10 pr-4 text-sm text-white focus:border-neon focus:ring-2 focus:ring-neon/50 outline-none transition placeholder-slate-400">
-                            <svg class="w-4 h-4 text-slate-300 absolute left-3 top-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                        </div>
-                        
-                        <select v-model="filterCategory" class="w-full md:w-auto bg-slate-700 border-2 border-slate-500 rounded-xl py-2.5 px-4 text-sm text-white focus:border-neon focus:ring-2 focus:ring-neon/50 outline-none cursor-pointer">
+                    <div class="lg:col-span-7">
+                        @if(!empty($event->route_map_image))
+                            <img src="{{ asset('storage/' . $event->route_map_image) }}" alt="Peta Rute {{ $event->name }}" width="800" height="450" loading="lazy" class="lightbox-trigger w-full rounded-lg border border-slate-800 cursor-zoom-in">
+                        @elseif(!empty($event->map_embed_url))
+                            <div class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden aspect-[16/9]">
+                                <iframe src="{{ $event->map_embed_url }}" title="Peta Lokasi {{ $event->name }}" class="w-full h-full border-0" loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+                            </div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+        </section>
+        @endif
+
+        <!-- FAQ (Only when EO has added real FAQ items) -->
+        @if($showSection('faq') && count($faqItems) > 0)
+        <section id="faq" class="py-16 bg-slate-950 border-b border-slate-800">
+            <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
+                <h2 class="text-2xl sm:text-3xl font-extrabold text-white mb-8">Pertanyaan Umum (FAQ)</h2>
+                <div class="space-y-3">
+                    @foreach($faqItems as $faq)
+                        <details class="bg-slate-900 border border-slate-800 rounded-lg group">
+                            <summary class="px-5 py-4 text-sm font-bold text-white list-none flex items-center justify-between gap-4">
+                                <span>{{ $faq['question'] }}</span>
+                                <span class="text-slate-400 text-xs shrink-0">+</span>
+                            </summary>
+                            <div class="px-5 pb-4 pt-1 text-sm text-slate-300 border-t border-slate-800 leading-relaxed">
+                                {!! nl2br(e($faq['answer'])) !!}
+                            </div>
+                        </details>
+                    @endforeach
+                </div>
+            </div>
+        </section>
+        @endif
+
+        <!-- Race Results (Lightweight Vanilla JS, auto-hidden if empty) -->
+        <section id="results" class="hidden py-16 bg-slate-950 border-b border-slate-800">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
+                    <div>
+                        <h2 class="text-2xl sm:text-3xl font-extrabold text-white">Hasil Lomba (Race Results)</h2>
+                        <p class="text-sm text-slate-300 mt-1">Cari berdasarkan nama peserta atau nomor BIB.</p>
+                    </div>
+                    <div class="flex flex-wrap gap-2.5">
+                        <input type="search" id="resultSearch" placeholder="Cari nama atau BIB..." aria-label="Cari hasil lomba" class="bg-slate-900 border border-slate-700 rounded-md px-3.5 py-2 text-sm text-white placeholder-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400">
+                        <select id="resultCategory" aria-label="Filter kategori hasil lomba" class="bg-slate-900 border border-slate-700 rounded-md px-3 py-2 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400">
                             <option value="All">Semua Kategori</option>
                             @foreach($categories as $cat)
-                                <option value="{{ $cat->code ?? $cat->name }}">{{ $cat->name }} ({{ $cat->code ?? 'N/A' }})</option>
+                                <option value="{{ $cat->code ?? $cat->name }}">{{ $cat->name }}</option>
                             @endforeach
                         </select>
-
-                        <select v-model="filterGender" class="w-full md:w-auto bg-slate-700 border-2 border-slate-500 rounded-xl py-2.5 px-4 text-sm text-white focus:border-neon focus:ring-2 focus:ring-neon/50 outline-none cursor-pointer">
+                        <select id="resultGender" aria-label="Filter gender hasil lomba" class="bg-slate-900 border border-slate-700 rounded-md px-3 py-2 text-sm text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-lime-400">
                             <option value="All">Semua Gender</option>
-                            <option value="M">Laki-laki (M)</option>
-                            <option value="F">Perempuan (F)</option>
+                            <option value="M">Laki-laki</option>
+                            <option value="F">Perempuan</option>
                         </select>
                     </div>
                 </div>
 
-                <div class="bg-slate-800 border-2 border-slate-500 rounded-3xl overflow-hidden shadow-2xl reveal delay-100 min-h-[400px]">
-                    
-                    <div v-if="loading" class="p-20 text-center flex flex-col items-center justify-center h-[400px]">
-                        <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-neon mb-4"></div>
-                        <p class="text-white animate-pulse font-semibold">Mengambil data hasil lomba...</p>
-                    </div>
-
-                    <div v-else-if="error" class="p-20 text-center flex flex-col items-center justify-center h-[400px] bg-slate-700/50 rounded-lg border-2 border-red-500/50">
-                        <svg class="w-16 h-16 text-red-400 mb-4 opacity-90" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /></svg>
-                        <p class="text-red-200 mb-2 font-semibold">@{{ error }}</p>
-                        <button @click="fetchResults" class="mt-4 px-4 py-2 bg-slate-600 hover:bg-slate-500 rounded-lg text-white transition text-sm font-semibold">Coba Lagi</button>
-                    </div>
-
-                    <div v-else>
-                        <!-- Debug warning if data exists but filtered is empty -->
-                        <div v-if="results.length > 0 && filteredResults.length === 0" class="p-4 bg-yellow-500/20 border border-yellow-500/50 rounded-lg mb-4 mx-4 mt-4">
-                            <p class="text-yellow-300 text-sm font-semibold mb-1">⚠️ Data ada tapi tidak tampil karena filter</p>
-                            <p class="text-yellow-200 text-xs">
-                                Total data: @{{ results.length }} | 
-                                Filter: Category="@{{ filterCategory }}", Gender="@{{ filterGender }}", Search="@{{ search }}"
-                            </p>
-                            <p class="text-yellow-200 text-xs mt-1">
-                                Categories available: @{{ [...new Set(results.map(r => r.category))].join(', ') }}
-                            </p>
-                            <button @click="resetFilters" class="mt-2 px-3 py-1 bg-yellow-500/30 hover:bg-yellow-500/50 text-white rounded text-xs font-semibold transition">Reset Filter</button>
-                        </div>
-                        
-                        <!-- Desktop Table -->
-                        <div v-if="filteredResults && filteredResults.length > 0" class="hidden md:block overflow-x-auto">
-                            <table class="w-full text-left border-collapse">
-                                <thead>
-                                    <tr class="bg-slate-700 border-b-2 border-slate-500 text-xs uppercase tracking-wider">
-                                        <th class="p-5 font-bold text-center w-24 text-white">Rank</th>
-                                        <th class="p-5 font-bold text-white">Runner Name</th>
-                                        <th class="p-5 font-bold text-white">BIB</th>
-                                        <th class="p-5 font-bold text-white">Category</th>
-                                        <th class="p-5 font-bold text-right text-white">Gun Time</th>
-                                        <th class="p-5 font-bold text-right text-neon">Chip Time</th>
-                                        <th class="p-5 font-bold text-center text-white">Pace</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="divide-y divide-slate-600 text-sm">
-                                    <tr v-for="(runner, index) in filteredResults" :key="`${runner.bib}-${index}`" class="hover:bg-slate-700/60 transition duration-150 group border-b border-slate-600/50 bg-slate-800/30">
-                                        <td class="p-5 text-center font-mono font-bold text-white">
-                                            <div v-if="runner.rank === 1" class="mx-auto flex items-center justify-center w-10 h-10 rounded-full bg-yellow-500/30 text-yellow-300 border-2 border-yellow-400 shadow-lg shadow-yellow-500/30 font-bold">1</div>
-                                            <div v-else-if="runner.rank === 2" class="mx-auto flex items-center justify-center w-10 h-10 rounded-full bg-slate-300/30 text-white border-2 border-slate-300 shadow-lg shadow-slate-300/30 font-bold">2</div>
-                                            <div v-else-if="runner.rank === 3" class="mx-auto flex items-center justify-center w-10 h-10 rounded-full bg-orange-500/30 text-orange-200 border-2 border-orange-400 shadow-lg shadow-orange-500/30 font-bold">3</div>
-                                            <span v-else class="text-white font-semibold">#@{{ runner.rank }}</span>
-                                        </td>
-                                        
-                                        <td class="p-5">
-                                            <div class="font-bold text-white group-hover:text-neon transition cursor-pointer flex items-center gap-2" @click="openCertificate(runner)">
-                                                @{{ runner.name }} 
-                                                <svg class="w-4 h-4 text-yellow-500 opacity-0 group-hover:opacity-100 transition" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
-                                            </div>
-                                            <div class="text-[10px] text-slate-300 mt-0.5">@{{ runner.gender === 'M' ? 'Male' : 'Female' }} • @{{ runner.nationality }}</div>
-                                        </td>
-                                        
-                                        <td class="p-5 font-mono text-white font-semibold">@{{ runner.bib }}</td>
-                                        
-                                        <td class="p-5">
-                                            <span class="px-3 py-1.5 rounded-lg bg-slate-600 border border-slate-500 text-[10px] font-bold text-white uppercase tracking-wide">
-                                                @{{ runner.category }}
-                                            </span>
-                                        </td>
-                                        
-                                        <td class="p-5 text-right font-mono text-white">@{{ runner.gunTime }}</td>
-                                        <td class="p-5 text-right font-mono font-bold text-neon group-hover:text-white transition">@{{ runner.chipTime }}</td>
-                                        <td class="p-5 text-center font-mono text-white">@{{ runner.pace }}</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-
-                        <!-- Mobile View -->
-                        <div v-if="filteredResults && filteredResults.length > 0" class="md:hidden divide-y divide-slate-600">
-                            <div v-for="(runner, index) in filteredResults" :key="`mobile-${runner.bib}-${index}`" class="p-5 hover:bg-slate-700/50 transition border-b border-slate-600 bg-slate-800/30">
-                                <div class="flex justify-between items-start mb-4">
-                                    <div class="flex items-center gap-3">
-                                        <div class="font-mono font-bold text-lg w-10 text-center">
-                                            <div v-if="runner.rank === 1" class="w-8 h-8 rounded-full bg-yellow-500/30 text-yellow-300 border-2 border-yellow-400 flex items-center justify-center mx-auto font-bold">1</div>
-                                            <div v-else-if="runner.rank === 2" class="w-8 h-8 rounded-full bg-slate-300/30 text-white border-2 border-slate-300 flex items-center justify-center mx-auto font-bold">2</div>
-                                            <div v-else-if="runner.rank === 3" class="w-8 h-8 rounded-full bg-orange-500/30 text-orange-200 border-2 border-orange-400 flex items-center justify-center mx-auto font-bold">3</div>
-                                            <span v-else class="text-white font-semibold">#@{{ runner.rank }}</span>
-                                        </div>
-                                        <div>
-                                            <h4 class="font-bold text-white text-base cursor-pointer hover:text-neon flex items-center gap-2" @click="openCertificate(runner)">
-                                                @{{ runner.name }}
-                                                <svg class="w-4 h-4 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z" /></svg>
-                                            </h4>
-                                            <p class="text-xs text-slate-300 mt-0.5">@{{ runner.category }} • BIB @{{ runner.bib }} • @{{ runner.gender }}</p>
-                                        </div>
-                                    </div>
-                                </div>
-                                
-                                <div class="grid grid-cols-3 gap-2 bg-slate-700/60 p-3 rounded-xl border border-slate-500">
-                                    <div class="text-center border-r border-slate-500">
-                                        <p class="text-[9px] text-slate-300 uppercase font-bold mb-1">Gun Time</p>
-                                        <p class="font-mono text-xs text-white">@{{ runner.gunTime }}</p>
-                                    </div>
-                                    <div class="text-center border-r border-slate-500">
-                                        <p class="text-[9px] text-slate-300 uppercase font-bold mb-1">Chip Time</p>
-                                        <p class="font-mono text-sm font-bold text-neon">@{{ runner.chipTime }}</p>
-                                    </div>
-                                    <div class="text-center">
-                                        <p class="text-[9px] text-slate-300 uppercase font-bold mb-1">Pace</p>
-                                        <p class="font-mono text-xs text-white">@{{ runner.pace }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Empty states -->
-                        <div v-if="!loading && !error && filteredResults.length === 0 && results.length === 0" class="p-16 text-center">
-                            <div class="bg-slate-700 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-slate-500">
-                                <svg class="w-8 h-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            </div>
-                            <h3 class="text-white font-bold mb-1">Belum Ada Race Results</h3>
-                            <p class="text-slate-300 text-sm mb-4">Admin dapat mengupload data race results melalui halaman admin.</p>
-                        </div>
-                        <div v-else-if="!loading && !error && filteredResults.length === 0 && results.length > 0" class="p-16 text-center">
-                            <div class="bg-slate-700 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-slate-500">
-                                <svg class="w-8 h-8 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            </div>
-                            <h3 class="text-white font-bold mb-1">Data Tidak Ditemukan</h3>
-                            <p class="text-slate-300 text-sm mb-4">Coba sesuaikan kata kunci atau filter kategori Anda.</p>
-                            <button @click="resetFilters" class="px-4 py-2 bg-slate-600 hover:bg-slate-500 text-white rounded-lg text-sm font-semibold transition">Reset Filter</button>
-                        </div>
-
-                        <!-- Footer with results count -->
-                        <div v-if="filteredResults.length > 0" class="p-4 bg-slate-700 border-t-2 border-slate-500 flex justify-between items-center text-xs">
-                            <span class="text-white font-semibold">Menampilkan @{{ filteredResults.length }} hasil</span>
-                            <div class="flex gap-2 opacity-50 cursor-not-allowed">
-                                <span class="px-3 py-1.5 bg-slate-600 rounded-lg text-white">Prev</span>
-                                <span class="px-3 py-1.5 bg-neon text-dark font-bold rounded-lg">1</span>
-                                <span class="px-3 py-1.5 bg-slate-600 rounded-lg text-white">Next</span>
-                            </div>
-                        </div>
-                        
-                        <!-- Certificate Modal -->
-                        <div v-if="showCertificate" class="fixed inset-0 z-50 flex items-center justify-center p-4" style="background-color: rgba(0,0,0,0.8);">
-                            <div class="bg-white text-dark rounded-lg shadow-2xl max-w-md w-full overflow-hidden relative animate-fade-in" @click.stop>
-                                <button @click="showCertificate = false" class="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition">
-                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                                </button>
-                                
-                                <div class="p-8 text-center bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]">
-                                    @if($event->logo_image)
-                                        <img src="{{ asset('storage/' . $event->logo_image) }}" class="h-16 mx-auto mb-6" alt="Event Logo">
-                                    @else
-                                        <h2 class="text-2xl font-black uppercase tracking-tighter mb-6 text-neon-600">{{ $event->name }}</h2>
-                                    @endif
-                                    
-                                    <h3 class="text-xl font-bold text-gray-400 uppercase tracking-widest mb-2">CONGRATULATIONS</h3>
-                                    
-                                    <h1 class="text-3xl font-black text-slate-800 mb-4 break-words leading-tight">@{{ selectedRunner.name }}</h1>
-                                    
-                                    <p class="text-gray-500 text-sm mb-1">Telah menyelesaikan race kategori</p>
-                                    <p class="text-xl font-bold text-neon-600 mb-6">@{{ selectedRunner.category }}</p>
-                                    
-                                    <div class="inline-block border-2 border-slate-800 rounded-lg px-6 py-3 bg-slate-50">
-                                        <p class="text-xs text-gray-500 uppercase font-bold mb-1">Catatan Waktu</p>
-                                        <p class="text-3xl font-mono font-bold text-slate-900">@{{ selectedRunner.chipTime }}</p>
-                                    </div>
-                                    
-                                    <div class="mt-8 pt-6 border-t border-gray-200">
-                                        <p class="text-xs text-gray-400 font-mono">Official E-Certificate • {{ $event->name }}</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
+                <div class="bg-slate-900 border border-slate-800 rounded-lg overflow-x-auto">
+                    <table class="w-full text-left text-sm">
+                        <thead class="bg-slate-950 text-slate-300 text-xs uppercase border-b border-slate-800">
+                            <tr>
+                                <th class="px-4 py-3">Rank</th>
+                                <th class="px-4 py-3">BIB</th>
+                                <th class="px-4 py-3">Nama</th>
+                                <th class="px-4 py-3">Kategori</th>
+                                <th class="px-4 py-3">Gender</th>
+                                <th class="px-4 py-3 text-right">Waktu</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsTableBody" class="divide-y divide-slate-800 text-slate-200"></tbody>
+                    </table>
                 </div>
             </div>
         </section>
-
-        <section id="lokasi" class="py-24 bg-dark border-t border-slate-800">
-            <div class="max-w-7xl mx-auto px-4">
-                <div class="bg-card border border-slate-700 rounded-3xl p-1 overflow-hidden relative reveal">
-                    <div class="absolute top-6 left-6 z-10 bg-dark/90 backdrop-blur border border-slate-600 p-4 rounded-xl shadow-2xl">
-                        <p class="text-xs text-slate-400 uppercase font-bold">Venue</p>
-                        <p class="text-white font-bold text-lg">{{ $event->location_name }}</p>
-                        <a href="https://maps.google.com/?q={{ $event->location_name }}" target="_blank" class="text-neon text-xs font-bold hover:underline mt-1 block">Buka di Google Maps &rarr;</a>
-                    </div>
-                    
-                    @if($event->map_embed_url)
-                        <iframe src="{{ $event->map_embed_url }}" width="100%" height="500" style="border:0;" allowfullscreen="" loading="lazy" class="rounded-2xl grayscale hover:grayscale-0 transition duration-700"></iframe>
-                    @else
-                        <div class="w-full h-[500px] bg-slate-800 flex items-center justify-center text-slate-600 rounded-2xl">
-                            Peta tidak tersedia
-                        </div>
-                    @endif
-                </div>
-            </div>
-        </section>
-
-        <!-- Sponsor Carousel -->
-        @include('events.partials.sponsor-carousel', [
-            'gradientFrom' => 'from-dark',
-            'titleColor' => 'text-slate-400',
-            'containerClass' => 'bg-slate-800/50 border border-slate-700/50',
-            'sectionClass' => 'py-12 bg-dark border-t border-slate-800'
-        ])
-
     </main>
 
-    <footer class="bg-slate-950 border-t border-slate-900 py-12 text-sm text-slate-500">
-        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-6">
-            <div>&copy; {{ date('Y') }} <strong class="text-white">{{ $event->name }}</strong>. Official Event.</div>
-            <div class="flex gap-6">
-                <a href="#" class="hover:text-neon transition">Syarat & Ketentuan</a>
-                <a href="#" class="hover:text-neon transition">Kebijakan Privasi</a>
-                <a href="#" class="hover:text-neon transition">Kontak Panitia</a>
-            </div>
+    <footer class="bg-slate-950 border-t border-slate-800 py-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+            <p class="font-semibold text-slate-200">{{ $event->name }}</p>
+            <p>&copy; {{ date('Y') }} {{ $event->name }}. Didukung oleh <a href="{{ url('/') }}" class="text-slate-200 hover:underline">RuangLari</a>.</p>
         </div>
     </footer>
 
+    <!-- Terms Modal -->
+    @if($event->terms_and_conditions)
+    <div id="termsModal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true" aria-labelledby="termsModalTitle">
+        <div class="fixed inset-0 bg-black/80" onclick="closeTermsModal()"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <div class="relative bg-slate-900 border border-slate-700 rounded-lg w-full max-w-2xl max-h-[80vh] flex flex-col">
+                <div class="px-6 py-4 border-b border-slate-800 flex items-center justify-between">
+                    <h3 id="termsModalTitle" class="text-base font-bold text-white">Syarat & Ketentuan</h3>
+                    <button type="button" onclick="closeTermsModal()" aria-label="Tutup syarat dan ketentuan" class="w-9 h-9 inline-flex items-center justify-center rounded-md text-slate-300 hover:bg-slate-800">
+                        <svg class="w-5 h-5" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+                <div class="p-6 overflow-y-auto prose prose-invert prose-sm max-w-none text-slate-200">
+                    {!! $event->terms_and_conditions !!}
+                </div>
+                <div class="px-6 py-4 border-t border-slate-800">
+                    <button type="button" onclick="closeTermsModal()" class="w-full py-2.5 bg-slate-800 hover:bg-slate-700 text-white text-sm font-semibold rounded-md">Tutup</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
+
+    <!-- Lightbox Modal -->
+    <div id="lightboxModal" class="fixed inset-0 z-[100] hidden" role="dialog" aria-modal="true" aria-label="Pratinjau gambar">
+        <div class="fixed inset-0 bg-black/90" onclick="closeLightbox()"></div>
+        <div class="fixed inset-0 flex items-center justify-center p-4">
+            <button type="button" onclick="closeLightbox()" aria-label="Tutup pratinjau gambar" class="absolute top-4 right-4 z-20 w-11 h-11 inline-flex items-center justify-center rounded-md bg-slate-900 text-white border border-slate-700 hover:bg-slate-800">
+                <svg class="w-6 h-6" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+            </button>
+            <img id="lightboxImage" src="" alt="Pratinjau gambar penuh" class="relative z-10 max-w-full max-h-[85vh] object-contain rounded-lg border border-slate-800">
+        </div>
+    </div>
+
+    @include('events.partials.moota-payment-modal', [
+        'modalPanelClass' => 'bg-slate-900 text-slate-100 border border-slate-700',
+        'modalTitleClass' => 'text-white',
+        'modalAccentClass' => 'accent-text',
+        'modalCloseClass' => 'accent-bg',
+    ])
+    @include('events.partials.floating-whatsapp')
+
     <script>
-        // --- 1. Reveal Animation on Scroll ---
-        const observerOptions = { root: null, rootMargin: '0px', threshold: 0.1 };
-        const observer = new IntersectionObserver((entries, observer) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('active');
-                    observer.unobserve(entry.target);
-                }
-            });
-        }, observerOptions);
-        document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
-        // --- 2. FAQ Accordion Logic ---
-        document.querySelectorAll('.accordion-btn').forEach(button => {
-            button.addEventListener('click', () => {
-                const content = button.nextElementSibling;
-                const expanded = button.getAttribute('aria-expanded') === 'true';
-                
-                // Close all others
-                document.querySelectorAll('.accordion-btn').forEach(b => {
-                    b.setAttribute('aria-expanded', 'false');
-                    b.nextElementSibling.style.maxHeight = null;
-                });
-
-                if (!expanded) {
-                    button.setAttribute('aria-expanded', 'true');
-                    content.style.maxHeight = content.scrollHeight + "px";
-                }
-            });
-        });
-
-        // --- 3. Navbar Scroll Effect ---
-        window.addEventListener('scroll', () => {
-            const nav = document.getElementById('navbar');
-            if(window.scrollY > 50) {
-                nav.classList.add('shadow-lg', 'bg-dark/95');
-                nav.classList.remove('bg-dark/80');
-            } else {
-                nav.classList.remove('shadow-lg', 'bg-dark/95');
-                nav.classList.add('bg-dark/80');
-            }
-        });
-
-        // --- 4. Mobile Menu ---
-        document.getElementById('navToggle').addEventListener('click', () => {
-            document.getElementById('mobileMenu').classList.toggle('hidden');
-        });
-
-        // --- 5. Registration Form Logic (Preserved functionality with Tailwind classes) ---
         (function() {
-            // Validation: Unique Email Check & ReCAPTCHA v3
-            const registrationForm = document.getElementById('registrationForm');
-            if (registrationForm) {
-                registrationForm.addEventListener('submit', function(e) {
-                    e.preventDefault();
+            const eventId = {{ (int) $event->id }};
+            const eventSlug = @json($event->slug);
+            const platformFee = {{ (int) ($event->platform_fee ?? 0) }};
+            const manualTransferWaiveFee = {{ $manualTransferWaiveFee ? 'true' : 'false' }};
+            const promoBuyX = {{ (int) ($event->promo_buy_x ?? 0) }};
+            const recaptchaSiteKey = @json(env('RECAPTCHA_SITE_KEY_v3') ?: '');
+            const formatId = (num) => new Intl.NumberFormat('id-ID').format(Math.round(num || 0));
 
-                    const emails = [];
-                    const emailInputs = document.querySelectorAll('input[type="email"][name^="participants"]');
-                    let hasDuplicate = false;
-                    let firstDuplicateInput = null;
-
-                    // Reset error styles
-                    emailInputs.forEach(input => {
-                        input.classList.remove('border-red-500', 'ring-1', 'ring-red-500');
+            // Mobile nav toggle
+            const navToggle = document.getElementById('navToggle');
+            const mobileMenu = document.getElementById('mobileMenu');
+            if (navToggle && mobileMenu) {
+                navToggle.addEventListener('click', () => {
+                    const isOpen = !mobileMenu.classList.contains('hidden');
+                    mobileMenu.classList.toggle('hidden');
+                    navToggle.setAttribute('aria-expanded', String(!isOpen));
+                });
+                mobileMenu.querySelectorAll('.mobile-nav-link').forEach(link => {
+                    link.addEventListener('click', () => {
+                        mobileMenu.classList.add('hidden');
+                        navToggle.setAttribute('aria-expanded', 'false');
                     });
-
-                    emailInputs.forEach(input => {
-                        const email = input.value.trim().toLowerCase();
-                        if (email) {
-                            if (emails.includes(email)) {
-                                hasDuplicate = true;
-                                input.classList.add('border-red-500', 'ring-1', 'ring-red-500');
-                                if (!firstDuplicateInput) firstDuplicateInput = input;
-                            } else {
-                                emails.push(email);
-                            }
-                        }
-                    });
-
-                    if (hasDuplicate) {
-                        alert('Mohon maaf, email setiap peserta harus berbeda (unik) dalam satu pendaftaran.');
-                        if (firstDuplicateInput) {
-                            firstDuplicateInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                            firstDuplicateInput.focus();
-                        }
-                        return;
-                    }
-
-                    // ReCAPTCHA v3
-                    @if(env('RECAPTCHA_SITE_KEY_v3'))
-                        if (typeof grecaptcha === 'undefined') {
-                            console.warn('reCAPTCHA not loaded.');
-                            registrationForm.submit();
-                            return;
-                        }
-                        grecaptcha.ready(function() {
-                            grecaptcha.execute('{{ env('RECAPTCHA_SITE_KEY_v3') }}', {action: 'event_register'})
-                            .then(function(token) {
-                                let el = document.getElementById('recaptchaToken');
-                                if (!el) {
-                                    el = document.createElement('input');
-                                    el.type = 'hidden';
-                                    el.name = 'g-recaptcha-response';
-                                    el.id = 'recaptchaToken';
-                                    registrationForm.appendChild(el);
-                                }
-                                el.value = token;
-                                registrationForm.submit();
-                            })
-                            .catch(function(err) {
-                                console.error('reCAPTCHA error:', err);
-                                registrationForm.submit();
-                            });
-                        });
-                    @else
-                        registrationForm.submit();
-                    @endif
                 });
             }
 
-            let participantIndex = 1;
-            const participantsWrapper = document.getElementById('participantsWrapper');
-            const addParticipantBtn = document.getElementById('addParticipant');
-            // Clone template from the first item
-            const template = participantsWrapper ? participantsWrapper.querySelector('.participant-item').cloneNode(true) : null;
-            const eventId = {{ $event->id }};
-            const eventSlug = '{{ $event->slug }}';
-            const platformFee = {{ $event->platform_fee ?? 0 }};
-            const manualTransferWaiveFee = {{ ! empty($event->payment_config['manual_transfer_waive_fee']) ? 'true' : 'false' }};
-            const promoBuyX = {{ (int) ($event->promo_buy_x ?? 0) }};
-            let appliedCoupon = null;
+            // Modals + Escape key
+            window.openTermsModal = function() {
+                const m = document.getElementById('termsModal');
+                if (m) m.classList.remove('hidden');
+            };
+            window.closeTermsModal = function() {
+                const m = document.getElementById('termsModal');
+                if (m) m.classList.add('hidden');
+            };
+            window.openLightbox = function(src) {
+                const m = document.getElementById('lightboxModal');
+                const img = document.getElementById('lightboxImage');
+                if (m && img && src) {
+                    img.src = src;
+                    m.classList.remove('hidden');
+                    document.body.style.overflow = 'hidden';
+                }
+            };
+            window.closeLightbox = function() {
+                const m = document.getElementById('lightboxModal');
+                const img = document.getElementById('lightboxImage');
+                if (m) m.classList.add('hidden');
+                if (img) img.src = '';
+                document.body.style.overflow = '';
+            };
+            document.querySelectorAll('.lightbox-trigger').forEach(el => {
+                el.addEventListener('click', () => window.openLightbox(el.getAttribute('src')));
+            });
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    window.closeTermsModal();
+                    window.closeLightbox();
+                    if (mobileMenu && !mobileMenu.classList.contains('hidden')) {
+                        mobileMenu.classList.add('hidden');
+                        if (navToggle) navToggle.setAttribute('aria-expanded', 'false');
+                    }
+                }
+            });
+
+            // Countdown
+            @if($event->start_at)
+            const targetTs = new Date(@json($event->start_at->toIso8601String())).getTime();
+            const cdTimer = document.getElementById('countdown-timer');
+            if (cdTimer && !Number.isNaN(targetTs)) {
+                const tick = () => {
+                    const diff = targetTs - Date.now();
+                    if (diff <= 0) {
+                        cdTimer.innerHTML = '<div class="col-span-4 text-sm font-bold accent-text py-2">Race Day Dimulai</div>';
+                        return false;
+                    }
+                    document.getElementById('cd-days').textContent = String(Math.floor(diff / 86400000)).padStart(2, '0');
+                    document.getElementById('cd-hours').textContent = String(Math.floor((diff % 86400000) / 3600000)).padStart(2, '0');
+                    document.getElementById('cd-minutes').textContent = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+                    document.getElementById('cd-seconds').textContent = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+                    return true;
+                };
+                if (tick()) setInterval(tick, 1000);
+            }
+            @endif
+
+            // Registration Logic
+            const wrapper = document.getElementById('participantsWrapper');
+            const addBtn = document.getElementById('addParticipant');
+            const firstItem = wrapper ? wrapper.querySelector('.participant-item') : null;
+            const template = firstItem ? firstItem.cloneNode(true) : null;
             let discountAmount = 0;
-            const formatCurrency = (num) => new Intl.NumberFormat('id-ID').format(Math.round(num));
+
+            function reindexParticipants() {
+                if (!wrapper) return;
+                const items = wrapper.querySelectorAll('.participant-item');
+                items.forEach((item, idx) => {
+                    item.dataset.index = String(idx);
+                    const title = item.querySelector('.participant-title');
+                    if (title) title.textContent = `Peserta #${idx + 1}`;
+                    const removeBtn = item.querySelector('.remove-participant');
+                    if (removeBtn) removeBtn.classList.toggle('hidden', items.length <= 1);
+                    const copyPrevBtn = item.querySelector('.copy-prev-btn');
+                    if (copyPrevBtn) copyPrevBtn.classList.toggle('hidden', idx === 0);
+
+                    item.querySelectorAll('input, select, textarea').forEach(el => {
+                        const name = el.getAttribute('name');
+                        if (name && name.includes('participants[')) {
+                            el.setAttribute('name', name.replace(/participants\[\d+\]/, `participants[${idx}]`));
+                        }
+                    });
+                });
+            }
 
             function resetCoupon() {
-                if (appliedCoupon || discountAmount > 0) {
-                    appliedCoupon = null;
+                if (discountAmount > 0) {
                     discountAmount = 0;
-                    const codeInput = document.getElementById('coupon_code');
-                    const codeHidden = document.getElementById('coupon_code_hidden');
-                    const couponMsg = document.getElementById('couponMessage');
-                    if (codeInput) codeInput.value = '';
-                    if (codeHidden) codeHidden.value = '';
-                    if (couponMsg) couponMsg.innerHTML = '';
+                    const cIn = document.getElementById('coupon_code');
+                    const cHid = document.getElementById('coupon_code_hidden');
+                    const cMsg = document.getElementById('couponMessage');
+                    if (cIn) cIn.value = '';
+                    if (cHid) cHid.value = '';
+                    if (cMsg) cMsg.textContent = '';
                 }
             }
 
-            // Add Participant
-            if(addParticipantBtn && template) {
-                addParticipantBtn.addEventListener('click', () => {
-                    resetCoupon();
-                    const newItem = template.cloneNode(true);
-                    const idx = participantIndex++;
-                    newItem.setAttribute('data-index', idx);
-                    newItem.querySelector('strong').textContent = `Peserta #${idx + 1}`;
-                    newItem.querySelectorAll('input, select').forEach(el => {
-                        const name = el.getAttribute('name');
-                        if(name) {
-                            el.setAttribute('name', name.replace(/participants\[\d+\]/, `participants[${idx}]`));
-                            el.value = '';
-                        }
-                    });
-                    const catInfo = newItem.querySelector('.category-info');
-                    if(catInfo) { catInfo.textContent = ''; catInfo.setAttribute('data-index', idx); }
-                    const catSelect = newItem.querySelector('.category-select');
-                    catSelect.setAttribute('data-index', idx);
-                    catSelect.addEventListener('change', handleCategoryChange);
-                    newItem.querySelector('.remove-participant').classList.remove('hidden');
-                    
-                    // Show/Hide Copy Prev Button
-                    const copyPrevBtn = newItem.querySelector('.copy-prev-btn');
-                    if (idx > 0) {
-                        copyPrevBtn.classList.remove('hidden');
-                    } else {
-                        copyPrevBtn.classList.add('hidden');
-                    }
-
-                    participantsWrapper.appendChild(newItem);
-                    updatePriceSummary();
-                });
-            }
-
-            // Remove Participant
-            if(participantsWrapper) {
-                participantsWrapper.addEventListener('click', (e) => {
-                    if(e.target.classList.contains('remove-participant')) {
-                        if(participantsWrapper.querySelectorAll('.participant-item').length > 1) {
-                            e.target.closest('.participant-item').remove();
-                            resetCoupon();
-                            updatePriceSummary();
-                        }
-                    }
-                });
-            }
-
-            // Category Change
-            function handleCategoryChange(e) {
-                resetCoupon();
-                const select = e.target;
-                const idx = select.getAttribute('data-index');
-                const option = select.options[select.selectedIndex];
-                const infoEl = document.querySelector(`.category-info[data-index="${idx}"]`);
-                
-                if(!option.value) {
-                    if(infoEl) infoEl.textContent = '';
-                    select.setAttribute('data-active-price', 0);
-                    updatePriceSummary();
-                    return;
-                }
-
-                const pEarly = parseFloat(option.dataset.priceEarly || 0);
-                const pReg = parseFloat(option.dataset.priceRegular || 0);
-                const pLate = parseFloat(option.dataset.priceLate || 0);
-
-                let currentPrice = pReg;
-                if (pEarly > 0) {
-                    currentPrice = pEarly;
-                } else if (pLate > 0) {
-                    currentPrice = pLate;
-                }
-
-                if (infoEl) {
-                    if (currentPrice !== pReg && pReg > 0) {
-                        infoEl.innerHTML = `Harga: <span class="line-through opacity-70">Rp ${formatCurrency(pReg)}</span> <span class="font-bold">Rp ${formatCurrency(currentPrice)}</span> | Sisa Kuota: ${option.dataset.quota}`;
-                    } else {
-                        infoEl.textContent = `Harga: Rp ${formatCurrency(currentPrice)} | Sisa Kuota: ${option.dataset.quota}`;
-                    }
-                }
-                select.setAttribute('data-active-price', currentPrice);
-                updatePriceSummary();
-            }
-
-            // Attach initial listeners
-            document.querySelectorAll('.category-select').forEach(el => el.addEventListener('change', handleCategoryChange));
-            document.querySelectorAll('input[name="payment_method"]').forEach(el => el.addEventListener('change', updatePriceSummary));
-
-            // Update Total
-            function updatePriceSummary() {
-                const categoryCounts = new Map();
-                const categoryPrices = new Map();
+            function computeSubtotal() {
+                const catCounts = new Map();
+                const catPrices = new Map();
                 let count = 0;
-                document.querySelectorAll('.category-select').forEach(el => {
-                    if (!el.value) return;
-                    count++;
-                    const categoryId = String(el.value);
-                    const price = parseFloat(el.getAttribute('data-active-price') || 0);
-                    categoryCounts.set(categoryId, (categoryCounts.get(categoryId) || 0) + 1);
-                    categoryPrices.set(categoryId, price);
+                let addonsTotal = 0;
+
+                if (!wrapper) return { subtotal: 0, count: 0 };
+
+                wrapper.querySelectorAll('.participant-item').forEach(item => {
+                    const sel = item.querySelector('.category-select');
+                    const opt = sel ? sel.options[sel.selectedIndex] : null;
+                    if (sel && sel.value && opt) {
+                        count++;
+                        const cid = String(sel.value);
+                        const price = parseFloat(opt.dataset.price || '0');
+                        catCounts.set(cid, (catCounts.get(cid) || 0) + 1);
+                        catPrices.set(cid, price);
+                    }
+                    item.querySelectorAll('.addon-checkbox:checked').forEach(cb => {
+                        addonsTotal += parseFloat(cb.dataset.addonPrice || '0');
+                    });
                 });
 
-                let subtotal = 0;
-                categoryCounts.forEach((qty, categoryId) => {
-                    const price = categoryPrices.get(categoryId) || 0;
+                let ticketSubtotal = 0;
+                catCounts.forEach((qty, cid) => {
+                    const price = catPrices.get(cid) || 0;
                     let paidQty = qty;
                     if (promoBuyX > 0) {
-                        const bundleSize = promoBuyX + 1;
-                        const freeCount = Math.floor(qty / bundleSize);
-                        paidQty = qty - freeCount;
+                        paidQty = qty - Math.floor(qty / (promoBuyX + 1));
                     }
-                    subtotal += price * paidQty;
+                    ticketSubtotal += price * paidQty;
                 });
-                
-                const selectedPaymentMethod = document.querySelector('input[name="payment_method"]:checked')?.value || '';
-                const isManualFeeWaived = manualTransferWaiveFee && selectedPaymentMethod === 'manual_transfer';
-                const totalFee = (subtotal - discountAmount <= 0 || isManualFeeWaived) ? 0 : (count * platformFee);
-                document.getElementById('subtotal').textContent = `Rp ${formatCurrency(subtotal)}`;
-                
-                if (platformFee > 0) {
-                    document.getElementById('feeAmount').textContent = `Rp ${formatCurrency(totalFee)}`;
-                }
 
-                let total = subtotal + totalFee - discountAmount;
-                if (total < 0) total = 0;
-
-                const discountRow = document.getElementById('discountRow');
-                if (discountRow) {
-                    if (discountAmount > 0) discountRow.classList.remove('hidden');
-                    else discountRow.classList.add('hidden');
-                }
-                const discountAmountEl = document.getElementById('discountAmount');
-                if (discountAmountEl) {
-                    discountAmountEl.textContent = discountAmount > 0 ? `-Rp ${formatCurrency(discountAmount)}` : '-Rp 0';
-                }
-
-                document.getElementById('totalAmount').textContent = `Rp ${formatCurrency(total)}`;
+                return { subtotal: ticketSubtotal + addonsTotal, count };
             }
 
-            // Coupon Logic (Frontend Trigger)
-            const couponBtn = document.getElementById('applyCoupon');
-            if(couponBtn) {
-                couponBtn.addEventListener('click', () => {
-                    const code = document.getElementById('coupon_code').value;
-                    let subtotal = 0;
-                    const categoryCounts = new Map();
-                    const categoryPrices = new Map();
-                    document.querySelectorAll('.category-select').forEach(el => {
-                        if (!el.value) return;
-                        const categoryId = String(el.value);
-                        const price = parseFloat(el.getAttribute('data-active-price') || 0);
-                        categoryCounts.set(categoryId, (categoryCounts.get(categoryId) || 0) + 1);
-                        categoryPrices.set(categoryId, price);
-                    });
-                    categoryCounts.forEach((qty, categoryId) => {
-                        const price = categoryPrices.get(categoryId) || 0;
-                        let paidQty = qty;
-                        if (promoBuyX > 0) {
-                            const bundleSize = promoBuyX + 1;
-                            const freeCount = Math.floor(qty / bundleSize);
-                            paidQty = qty - freeCount;
-                        }
-                        subtotal += price * paidQty;
-                    });
-                    
-                    if(subtotal === 0) {
-                         alert("Pilih kategori peserta terlebih dahulu"); return;
-                    }
+            function updateSummary() {
+                const { subtotal, count } = computeSubtotal();
+                const payMethod = document.querySelector('input[name="payment_method"]:checked')?.value || '';
+                const feeWaived = manualTransferWaiveFee && payMethod === 'manual_transfer';
+                const totalFee = (subtotal - discountAmount <= 0 || feeWaived) ? 0 : (count * platformFee);
+                const total = Math.max(0, subtotal + totalFee - discountAmount);
 
-                    // AJAX Call to Laravel
-                    fetch(`/events/${eventSlug}/register/coupon`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                        },
-                        body: JSON.stringify({ event_id: eventId, coupon_code: code, total_amount: subtotal })
-                    })
-                    .then(r => r.json())
-                    .then(data => {
-                        if(data.success) {
-                            appliedCoupon = data.coupon;
-                            discountAmount = data.discount_amount;
+                const subEl = document.getElementById('subtotal');
+                const feeEl = document.getElementById('feeAmount');
+                const feeRow = document.getElementById('feeRow');
+                const discRow = document.getElementById('discountRow');
+                const discEl = document.getElementById('discountAmount');
+                const totEl = document.getElementById('totalAmount');
+
+                if (subEl) subEl.textContent = `Rp ${formatId(subtotal)}`;
+                if (feeEl) feeEl.textContent = `Rp ${formatId(totalFee)}`;
+                if (feeRow) feeRow.classList.toggle('hidden', platformFee <= 0);
+                if (discRow) discRow.classList.toggle('hidden', discountAmount <= 0);
+                if (discEl) discEl.textContent = `-Rp ${formatId(discountAmount)}`;
+                if (totEl) totEl.textContent = `Rp ${formatId(total)}`;
+            }
+
+            function bindParticipantEvents(item) {
+                const sel = item.querySelector('.category-select');
+                if (sel) {
+                    sel.addEventListener('change', () => {
+                        resetCoupon();
+                        const opt = sel.options[sel.selectedIndex];
+                        const info = item.querySelector('.category-info');
+                        if (info) {
+                            if (opt && opt.value) {
+                                const price = parseFloat(opt.dataset.price || '0');
+                                const quota = opt.dataset.quota ? ` | Kuota: ${opt.dataset.quota}` : '';
+                                info.textContent = `Biaya: ${price > 0 ? 'Rp ' + formatId(price) : 'Gratis'}${quota}`;
+                            } else {
+                                info.textContent = '';
+                            }
+                        }
+                        updateSummary();
+                    });
+                }
+                item.querySelectorAll('.addon-checkbox').forEach(cb => {
+                    cb.addEventListener('change', () => {
+                        resetCoupon();
+                        updateSummary();
+                    });
+                });
+            }
+
+            if (firstItem) bindParticipantEvents(firstItem);
+
+            if (addBtn && template && wrapper) {
+                addBtn.addEventListener('click', () => {
+                    resetCoupon();
+                    const clone = template.cloneNode(true);
+                    clone.querySelectorAll('input, select, textarea').forEach(el => {
+                        if (el.type === 'checkbox' || el.type === 'radio') el.checked = false;
+                        else if (el.type !== 'hidden') el.value = '';
+                    });
+                    const info = clone.querySelector('.category-info');
+                    if (info) info.textContent = '';
+                    wrapper.appendChild(clone);
+                    reindexParticipants();
+                    bindParticipantEvents(clone);
+                    updateSummary();
+                });
+
+                wrapper.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('remove-participant')) {
+                        if (wrapper.querySelectorAll('.participant-item').length > 1) {
+                            e.target.closest('.participant-item').remove();
+                            resetCoupon();
+                            reindexParticipants();
+                            updateSummary();
+                        }
+                    }
+                });
+            }
+
+            document.querySelectorAll('input[name="payment_method"]').forEach(r => r.addEventListener('change', updateSummary));
+
+            window.selectCategoryAndScroll = function(categoryId) {
+                const regSec = document.getElementById('registrasi');
+                if (regSec) regSec.scrollIntoView({ behavior: 'smooth' });
+                const firstSel = wrapper ? wrapper.querySelector('.participant-item .category-select') : null;
+                if (firstSel) {
+                    firstSel.value = String(categoryId);
+                    firstSel.dispatchEvent(new Event('change'));
+                }
+            };
+
+            window.copyFromPic = function(btn) {
+                const item = btn.closest('.participant-item');
+                if (!item) return;
+                const map = {
+                    name: document.getElementById('pic_name')?.value || '',
+                    email: document.getElementById('pic_email')?.value || '',
+                    phone: document.getElementById('pic_phone')?.value || '',
+                };
+                Object.entries(map).forEach(([field, val]) => {
+                    const input = item.querySelector(`[data-field="${field}"]`);
+                    if (input && val) input.value = val;
+                });
+            };
+
+            window.copyFromPrev = function(btn) {
+                const item = btn.closest('.participant-item');
+                const prev = item ? item.previousElementSibling : null;
+                if (!item || !prev) return;
+                ['emergency_contact_name', 'emergency_contact_number', 'emergency_contact_relation'].forEach(field => {
+                    const prevEl = prev.querySelector(`[data-field="${field}"]`);
+                    const currEl = item.querySelector(`[data-field="${field}"]`);
+                    if (prevEl && currEl && prevEl.value) currEl.value = prevEl.value;
+                });
+            };
+
+            // Coupon
+            const couponBtn = document.getElementById('applyCoupon');
+            if (couponBtn) {
+                couponBtn.addEventListener('click', async () => {
+                    const code = (document.getElementById('coupon_code')?.value || '').trim();
+                    const msgEl = document.getElementById('couponMessage');
+                    const { subtotal } = computeSubtotal();
+                    if (!code) {
+                        if (msgEl) msgEl.innerHTML = '<span class="text-rose-400">Masukkan kode kupon terlebih dahulu.</span>';
+                        return;
+                    }
+                    if (subtotal <= 0) {
+                        if (msgEl) msgEl.innerHTML = '<span class="text-rose-400">Pilih kategori peserta terlebih dahulu.</span>';
+                        return;
+                    }
+                    couponBtn.disabled = true;
+                    couponBtn.textContent = '...';
+                    try {
+                        const res = await fetch(`{{ route('events.register.coupon', $event->slug) }}`, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                'Accept': 'application/json'
+                            },
+                            body: JSON.stringify({ event_id: eventId, coupon_code: code, total_amount: subtotal })
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                            discountAmount = parseFloat(data.discount_amount || '0');
                             document.getElementById('coupon_code_hidden').value = data.coupon.code;
                             document.getElementById('coupon_code').value = data.coupon.code;
-                            document.getElementById('discountRow').classList.remove('hidden');
-                            document.getElementById('discountAmount').textContent = `-Rp ${formatCurrency(data.discount_amount)}`;
-                            document.getElementById('couponMessage').innerHTML = '<span class="text-neon">Kupon berhasil digunakan!</span>';
-                            updatePriceSummary();
+                            if (msgEl) msgEl.innerHTML = '<span class="text-emerald-400">Kupon berhasil diterapkan.</span>';
                         } else {
-                            appliedCoupon = null;
                             discountAmount = 0;
                             document.getElementById('coupon_code_hidden').value = '';
-                            document.getElementById('couponMessage').innerHTML = `<span class="text-red-400">${data.message}</span>`;
-                            updatePriceSummary();
+                            if (msgEl) msgEl.innerHTML = `<span class="text-rose-400">${data.message || 'Kupon tidak valid.'}</span>`;
                         }
-                    });
+                        updateSummary();
+                    } catch (err) {
+                        if (msgEl) msgEl.innerHTML = '<span class="text-rose-400">Gagal memeriksa kupon. Coba lagi.</span>';
+                    } finally {
+                        couponBtn.disabled = false;
+                        couponBtn.textContent = 'Pakai';
+                    }
                 });
             }
 
             // Form Submit
-        const form = document.getElementById('registrationForm');
-
-        // Add Copy Helpers to Global Scope
-        window.copyFromPic = function(btn) {
-            const participantItem = btn.closest('.participant-item');
-            const picName = document.querySelector('input[name="pic_name"]').value;
-            const picEmail = document.querySelector('input[name="pic_email"]').value;
-            const picPhone = document.querySelector('input[name="pic_phone"]').value;
-
-            if (picName) participantItem.querySelector('input[name*="[name]"]').value = picName;
-            if (picEmail) participantItem.querySelector('input[name*="[email]"]').value = picEmail;
-            if (picPhone) participantItem.querySelector('input[name*="[phone]"]').value = picPhone;
-        };
-
-        window.copyFromPrev = function(btn) {
-            const currentItem = btn.closest('.participant-item');
-            const currentIndex = parseInt(currentItem.dataset.index);
-            
-            if (currentIndex > 0) {
-                const prevItem = document.querySelector(`.participant-item[data-index="${currentIndex - 1}"]`);
-                if (prevItem) {
-                    const fields = ['emergency_contact_name', 'emergency_contact_number']; 
-                    
-                    fields.forEach(field => {
-                        const prevValue = prevItem.querySelector(`input[name*="[${field}]"]`).value;
-                        if (prevValue) {
-                            currentItem.querySelector(`input[name*="[${field}]"]`).value = prevValue;
-                        }
-                    });
-                }
+            const form = document.getElementById('registrationForm');
+            const alertBanner = document.getElementById('formAlertBanner');
+            function showFormBanner(type, message) {
+                if (!alertBanner) return;
+                alertBanner.className = type === 'error'
+                    ? 'mb-6 rounded-md p-4 text-sm border bg-rose-950 border-rose-700 text-rose-200'
+                    : 'mb-6 rounded-md p-4 text-sm border bg-emerald-950 border-emerald-700 text-emerald-200';
+                alertBanner.textContent = message;
+                alertBanner.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }
-        };
 
-        if(form) {
-                // Disable browser validation
-                form.setAttribute('novalidate', true);
-
+            if (form) {
                 form.addEventListener('submit', (e) => {
                     e.preventDefault();
-                    
-                    // --- Client-side Validation ---
-                    let isValid = true;
-                    let firstError = null;
+                    if (alertBanner) alertBanner.classList.add('hidden');
 
-                    // Helper to show error
-                    const showError = (input, msg) => {
-                        // Remove existing error
-                        const existing = input.parentElement.querySelector('.text-red-500');
-                        if(existing) existing.remove();
-                        
-                        // Add red border
-                        input.classList.add('border-red-500');
-                        input.classList.remove('border-slate-700');
-                        
-                        // Add message
-                        const p = document.createElement('p');
-                        p.className = 'text-xs text-red-500 mt-1 font-bold';
-                        p.innerText = msg;
-                        input.parentElement.appendChild(p);
-
-                        if(!firstError) firstError = input;
-                        isValid = false;
-                    };
-
-                    // Clear previous errors
-                    form.querySelectorAll('.border-red-500').forEach(el => {
-                        el.classList.remove('border-red-500');
+                    // Clear prior error borders
+                    form.querySelectorAll('.border-rose-500').forEach(el => {
+                        el.classList.remove('border-rose-500');
                         el.classList.add('border-slate-700');
                     });
-                    form.querySelectorAll('.text-red-500').forEach(el => el.remove());
 
-                    // Validate PIC
-                    const picName = form.querySelector('[name="pic_name"]');
-                    if(!picName.value.trim()) showError(picName, 'Nama wajib diisi');
+                    let firstInvalid = null;
+                    const markInvalid = (el) => {
+                        el.classList.remove('border-slate-700');
+                        el.classList.add('border-rose-500');
+                        if (!firstInvalid) firstInvalid = el;
+                    };
 
-                    const picEmail = form.querySelector('[name="pic_email"]');
-                    if(!picEmail.value.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(picEmail.value)) showError(picEmail, 'Email tidak valid');
-
-                    const picPhone = form.querySelector('[name="pic_phone"]');
-                    if(!picPhone.value.trim() || !/^\d{8,15}$/.test(picPhone.value.replace(/\D/g,''))) showError(picPhone, 'Nomor HP tidak valid (min 8 digit)');
-
-                    // Validate Participants
-                    form.querySelectorAll('.participant-item').forEach((item, idx) => {
-                        const pName = item.querySelector(`[name="participants[${idx}][name]"]`);
-                        if(pName && !pName.value.trim()) showError(pName, 'Nama peserta wajib diisi');
-
-                        const pEmail = item.querySelector(`[name="participants[${idx}][email]"]`);
-                        if(pEmail && (!pEmail.value.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(pEmail.value))) showError(pEmail, 'Email peserta tidak valid');
-
-                        const pPhone = item.querySelector(`[name="participants[${idx}][phone]"]`);
-                        if(pPhone && (!pPhone.value.trim() || !/^\d{8,15}$/.test(pPhone.value.replace(/\D/g,'')))) showError(pPhone, 'Nomor HP tidak valid');
-
-                        const pId = item.querySelector(`[name="participants[${idx}][id_card]"]`);
-                        if(pId && (!pId.value.trim() || !/^\d+$/.test(pId.value))) showError(pId, 'ID Card harus angka');
-                        
-                        const pEmergencyName = item.querySelector(`[name="participants[${idx}][emergency_contact_name]"]`);
-                        if(pEmergencyName && !pEmergencyName.value.trim()) showError(pEmergencyName, 'Nama kontak darurat wajib diisi');
-
-                        const pEmergencyNumber = item.querySelector(`[name="participants[${idx}][emergency_contact_number]"]`);
-                        if(pEmergencyNumber && !pEmergencyNumber.value.trim()) showError(pEmergencyNumber, 'Nomor kontak darurat wajib diisi');
-
-                        const pCat = item.querySelector(`[name="participants[${idx}][category_id]"]`);
-                        if(pCat && !pCat.value) showError(pCat, 'Pilih kategori');
+                    form.querySelectorAll('[required]').forEach(el => {
+                        if (el.type === 'checkbox') {
+                            if (!el.checked) markInvalid(el);
+                        } else if (!String(el.value || '').trim()) {
+                            markInvalid(el);
+                        }
                     });
 
-                    if(!isValid) {
-                        if(firstError) firstError.scrollIntoView({behavior: 'smooth', block: 'center'});
+                    // Check unique participant emails
+                    const seenEmails = new Set();
+                    let duplicateEmail = false;
+                    form.querySelectorAll('[data-field="email"]').forEach(el => {
+                        const val = el.value.trim().toLowerCase();
+                        if (val) {
+                            if (seenEmails.has(val)) {
+                                duplicateEmail = true;
+                                markInvalid(el);
+                            }
+                            seenEmails.add(val);
+                        }
+                    });
+
+                    if (firstInvalid) {
+                        showFormBanner('error', duplicateEmail
+                            ? 'Email setiap peserta harus berbeda dalam satu transaksi.'
+                            : 'Mohon lengkapi semua kolom wajib yang ditandai merah.');
+                        firstInvalid.focus();
                         return;
                     }
 
-                    if (typeof grecaptcha !== 'undefined') {
-                        const recaptchaResponse = grecaptcha.getResponse();
-                        if (!recaptchaResponse) {
-                            alert('Silakan verifikasi reCAPTCHA terlebih dahulu.');
-                            return;
-                        }
-                    }
+                    const submitBtn = document.getElementById('submitBtn');
+                    const originalText = submitBtn.textContent;
+                    submitBtn.disabled = true;
+                    submitBtn.textContent = 'Memproses pendaftaran...';
 
-                    // --- AJAX Submit ---
-                    const btn = document.getElementById('submitBtn');
-                    const originalText = btn.innerHTML;
-                    
-                    // Loading Spinner
-                    btn.innerHTML = `
-                        <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-dark inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                        </svg>
-                        MEMPROSES...
-                    `;
-                    btn.disabled = true;
-
-                    const formData = new FormData(form);
-                    fetch(form.action, {
-                        method: 'POST',
-                        headers: { 'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content, 'Accept': 'application/json' },
-                        body: formData
-                    })
-                    .then(r => r.json())
-                    .then(data => {
-                        if(data.success) {
-                            if(data.snap_token) {
-                                snap.pay(data.snap_token, {
-                                    onSuccess: function(result){ window.location.href = `{{ route("events.show", $event->slug) }}?payment=success`; },
-                                    onPending: function(result){ window.location.href = `{{ route("events.show", $event->slug) }}?payment=pending`; },
-                                    onError: function(result){ alert("Pembayaran gagal"); btn.disabled=false; btn.innerHTML=originalText; },
-                                    onClose: function(){ btn.disabled=false; btn.innerHTML=originalText; }
-                                });
-                            } else if (data.payment_gateway === 'moota') {
-                                if (window.RuangLariMoota && typeof window.RuangLariMoota.open === 'function' && data.transaction_id) {
-                                    btn.disabled = false;
-                                    btn.innerHTML = originalText;
-
+                    const sendRequest = async () => {
+                        try {
+                            const res = await fetch(form.action, {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                                    'Accept': 'application/json'
+                                },
+                                body: new FormData(form)
+                            });
+                            const data = await res.json();
+                            if (data.success) {
+                                if (data.snap_token && typeof window.snap !== 'undefined') {
+                                    window.snap.pay(data.snap_token, {
+                                        onSuccess: () => { window.location.href = `{{ route('events.show', $event->slug) }}?payment=success`; },
+                                        onPending: () => { window.location.href = `{{ route('events.show', $event->slug) }}?payment=pending`; },
+                                        onError: () => {
+                                            showFormBanner('error', 'Pembayaran gagal diproses. Silakan coba lagi.');
+                                            submitBtn.disabled = false;
+                                            submitBtn.textContent = originalText;
+                                        },
+                                        onClose: () => {
+                                            submitBtn.disabled = false;
+                                            submitBtn.textContent = originalText;
+                                        }
+                                    });
+                                } else if (data.payment_gateway === 'moota' && window.RuangLariMoota && typeof window.RuangLariMoota.open === 'function' && data.transaction_id) {
+                                    submitBtn.disabled = false;
+                                    submitBtn.textContent = originalText;
                                     window.RuangLariMoota.open({
                                         transaction_id: data.transaction_id,
                                         registration_id: data.registration_id,
                                         final_amount: data.final_amount,
                                         unique_code: data.unique_code,
-                                        phone: picPhone ? picPhone.value : '',
-                                        name: picName ? picName.value : '',
+                                        phone: document.getElementById('pic_phone')?.value || '',
+                                        name: document.getElementById('pic_name')?.value || '',
                                     });
                                 } else if (data.redirect_url) {
                                     window.location.href = data.redirect_url;
                                 } else {
-                                    alert('Registrasi berhasil, namun data pembayaran tidak lengkap.');
-                                    btn.disabled=false; btn.innerHTML=originalText;
+                                    window.location.href = `{{ route('events.show', $event->slug) }}?payment=success`;
                                 }
-                            } else if (data.redirect_url) {
-                                window.location.href = data.redirect_url;
                             } else {
-                                // COD or Free - Show Success Message immediately
-                                const successDiv = document.createElement('div');
-                                successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-bounce';
-                                successDiv.innerHTML = `
-                                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                    <div>
-                                        <h4 class="font-bold">Registrasi Berhasil!</h4>
-                                        <p class="text-xs">Cek email Anda untuk konfirmasi.</p>
-                                    </div>
-                                `;
-                                document.body.appendChild(successDiv);
-
-                                setTimeout(() => {
-                                    window.location.href = `{{ route("events.show", $event->slug) }}?success=true`;
-                                }, 2000);
+                                let msg = data.message || 'Validasi gagal. Periksa kembali data Anda.';
+                                if (data.errors) {
+                                    const firstErr = Object.values(data.errors).flat()[0];
+                                    if (firstErr) msg = firstErr;
+                                }
+                                showFormBanner('error', msg);
+                                submitBtn.disabled = false;
+                                submitBtn.textContent = originalText;
                             }
-                        } else {
-                            const failureDiv = document.createElement('div');
-                            failureDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-bounce';
-                            failureDiv.innerHTML = `
-                                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                <div>
-                                    <h4 class="font-bold">Registrasi Gagal!</h4>
-                                    <p class="text-xs">${data.message || 'Terjadi kesalahan'}</p>
-                                </div>
-                            `;
-                            document.body.appendChild(failureDiv);
-                            setTimeout(() => failureDiv.remove(), 5000);
-                            
-                            btn.disabled=false; btn.innerHTML=originalText;
+                        } catch (err) {
+                            showFormBanner('error', 'Gagal terhubung ke server. Periksa koneksi internet Anda dan coba lagi.');
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = originalText;
+                        }
+                    };
+
+                    if (recaptchaSiteKey && typeof grecaptcha !== 'undefined' && typeof grecaptcha.ready === 'function') {
+                        let done = false;
+                        const timer = setTimeout(() => { if (!done) { done = true; sendRequest(); } }, 4000);
+                        grecaptcha.ready(() => {
+                            grecaptcha.execute(recaptchaSiteKey, { action: 'event_register' })
+                                .then(token => {
+                                    if (done) return;
+                                    done = true;
+                                    clearTimeout(timer);
+                                    const tokEl = document.getElementById('recaptchaToken');
+                                    if (tokEl) tokEl.value = token;
+                                    sendRequest();
+                                })
+                                .catch(() => {
+                                    if (done) return;
+                                    done = true;
+                                    clearTimeout(timer);
+                                    sendRequest();
+                                });
+                        });
+                    } else {
+                        sendRequest();
+                    }
+                });
+            }
+
+            // Lightweight Vanilla JS Race Results (auto-shows section only if data exists)
+            const resultsSection = document.getElementById('results');
+            const resultsBody = document.getElementById('resultsTableBody');
+            if (resultsSection && resultsBody) {
+                let allResults = [];
+                const renderResults = () => {
+                    const q = (document.getElementById('resultSearch')?.value || '').trim().toLowerCase();
+                    const cat = document.getElementById('resultCategory')?.value || 'All';
+                    const gen = document.getElementById('resultGender')?.value || 'All';
+
+                    const filtered = allResults.filter(r => {
+                        const mQ = !q || (r.name && r.name.toLowerCase().includes(q)) || (r.bib && String(r.bib).toLowerCase().includes(q));
+                        const rCat = r.category || r.category_code || '';
+                        const mC = cat === 'All' || rCat.toLowerCase() === cat.toLowerCase();
+                        const mG = gen === 'All' || (r.gender && r.gender.toUpperCase() === gen);
+                        return mQ && mC && mG;
+                    });
+
+                    if (filtered.length === 0) {
+                        resultsBody.innerHTML = '<tr><td colspan="6" class="px-4 py-8 text-center text-slate-400">Tidak ada peserta yang cocok dengan filter pencarian.</td></tr>';
+                        return;
+                    }
+                    resultsBody.innerHTML = filtered.slice(0, 200).map((r, i) => `
+                        <tr class="hover:bg-slate-800/50">
+                            <td class="px-4 py-3 font-mono-num text-slate-300">${r.rank || (i + 1)}</td>
+                            <td class="px-4 py-3 font-mono-num font-bold text-white">${r.bib || '-'}</td>
+                            <td class="px-4 py-3 font-medium text-white">${r.name || '-'}</td>
+                            <td class="px-4 py-3 text-slate-300">${r.category || r.category_code || '-'}</td>
+                            <td class="px-4 py-3 text-slate-300">${r.gender || '-'}</td>
+                            <td class="px-4 py-3 text-right font-mono-num font-bold accent-text">${r.net_time || r.gun_time || r.time || '-'}</td>
+                        </tr>
+                    `).join('');
+                };
+
+                fetch(`{{ url('/api/events') }}/${encodeURIComponent(eventSlug)}/results`)
+                    .then(r => r.ok ? r.json() : null)
+                    .then(payload => {
+                        if (payload && payload.success && Array.isArray(payload.data) && payload.data.length > 0) {
+                            allResults = payload.data;
+                            resultsSection.classList.remove('hidden');
+                            renderResults();
                         }
                     })
-                    .catch(err => {
-                        console.error(err);
-                        const failureDiv = document.createElement('div');
-                        failureDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-bounce';
-                        failureDiv.innerHTML = `
-                            <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            <div>
-                                <h4 class="font-bold">Gagal Menghubungi Server</h4>
-                                <p class="text-xs">Silakan coba lagi nanti.</p>
-                            </div>
-                        `;
-                        document.body.appendChild(failureDiv);
-                        setTimeout(() => failureDiv.remove(), 5000);
-                        
-                        btn.disabled=false; btn.innerHTML=originalText;
-                    });
+                    .catch(() => {});
+
+                ['resultSearch', 'resultCategory', 'resultGender'].forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.addEventListener(id === 'resultSearch' ? 'input' : 'change', renderResults);
                 });
             }
-        })();
-
-        // Race Results Vue App
-        (function() {
-            if (typeof Vue === 'undefined') {
-                console.error('Vue.js is not loaded!');
-                return;
-            }
-
-            const { createApp } = Vue;
-            const resultsApp = createApp({
-            data() {
-                return {
-                    search: '',
-                    filterCategory: 'All',
-                    filterGender: 'All',
-                    results: [],
-                    loading: true,
-                    error: null,
-                    showCertificate: false,
-                    selectedRunner: {},
-                    eventSlug: '{{ $event->slug }}',
-                    baseUrl: '{{ url("/") }}'
-                }
-            },
-            computed: {
-                filteredResults() {
-                    if (!this.results || !Array.isArray(this.results) || this.results.length === 0) {
-                        console.log('No results to filter');
-                        return [];
-                    }
-                    
-                    const filtered = this.results.filter(r => {
-                        if (!r) return false;
-                        
-                        // Filter Search (Name / BIB)
-                        const s = (this.search || '').toLowerCase().trim();
-                        const matchSearch = !s || 
-                            (r.name && r.name.toLowerCase().includes(s)) || 
-                            (r.bib && r.bib.toString().toLowerCase().includes(s));
-                        
-                        // Filter Category - check both category_code and category field
-                        const categoryMatch = r.category || r.category_code || '';
-                        const matchCat = this.filterCategory === 'All' || 
-                            categoryMatch === this.filterCategory ||
-                            categoryMatch.toLowerCase() === this.filterCategory.toLowerCase();
-                        
-                        // Filter Gender
-                        const matchGender = this.filterGender === 'All' || 
-                            (r.gender && r.gender.toUpperCase() === this.filterGender.toUpperCase());
-                        
-                        const passes = matchSearch && matchCat && matchGender;
-                        if (!passes && s) {
-                            console.log('Filtered out:', r.name, 'search:', matchSearch, 'cat:', matchCat, 'gender:', matchGender);
-                        }
-                        return passes;
-                    });
-                    
-                    console.log('Filtered results:', filtered.length, 'from', this.results.length, 'filters:', {
-                        category: this.filterCategory,
-                        gender: this.filterGender,
-                        search: this.search
-                    });
-                    return filtered;
-                }
-            },
-            methods: {
-                openCertificate(runner) {
-                    this.selectedRunner = runner;
-                    this.showCertificate = true;
-                },
-                resetFilters() {
-                    this.search = '';
-                    this.filterCategory = 'All';
-                    this.filterGender = 'All';
-                },
-                async fetchResults() {
-                    this.loading = true;
-                    this.error = null;
-                    try {
-                        // Don't send filters in initial fetch, let computed property handle filtering
-                        const params = new URLSearchParams();
-                        
-                        // Use Laravel url() helper to get correct base URL
-                        const apiUrl = `${this.baseUrl}/api/events/${encodeURIComponent(this.eventSlug)}/results?${params}`;
-                        console.log('Base URL:', this.baseUrl);
-                        console.log('Fetching from:', apiUrl);
-                        const response = await fetch(apiUrl);
-                        
-                        if (!response.ok) {
-                            throw new Error(`HTTP error! status: ${response.status}`);
-                        }
-                        
-                        const data = await response.json();
-                        
-                        if (data.success) {
-                            this.results = Array.isArray(data.data) ? data.data : [];
-                            console.log('✅ Race results loaded:', this.results.length);
-                            if (this.results.length > 0) {
-                                console.log('✅ First result sample:', this.results[0]);
-                                console.log('✅ Current filters - category:', this.filterCategory, 'gender:', this.filterGender, 'search:', this.search);
-                                
-                                // Use nextTick to ensure Vue reactivity
-                                this.$nextTick(() => {
-                                    console.log('✅ After nextTick - filteredResults:', this.filteredResults.length);
-                                    if (this.filteredResults.length > 0) {
-                                        console.log('✅ Filtered results sample:', this.filteredResults[0]);
-                                    } else {
-                                        console.warn('⚠️ Filtered results is empty! Check filters.');
-                                        console.log('All results categories:', [...new Set(this.results.map(r => r.category))]);
-                                    }
-                                });
-                            }
-                        } else {
-                            throw new Error(data.message || 'Failed to load results');
-                        }
-                    } catch (error) {
-                        console.error('Error fetching results:', error);
-                        this.error = error.message || 'Gagal memuat data race results. Silakan refresh halaman.';
-                        this.results = [];
-                    } finally {
-                        this.loading = false;
-                    }
-                }
-            },
-            watch: {
-                // Remove watchers - filtering is handled by computed property
-                // This prevents unnecessary API calls
-            },
-            mounted() {
-                console.log('Vue app mounted, event slug:', this.eventSlug);
-                console.log('Initial state - loading:', this.loading, 'results:', this.results.length);
-                this.fetchResults();
-                
-                // Debug: log state changes
-                this.$watch('loading', (newVal) => {
-                    console.log('Loading changed to:', newVal);
-                });
-                this.$watch('results', (newVal) => {
-                    console.log('Results changed, count:', newVal.length);
-                }, { deep: true });
-                this.$watch('filteredResults', (newVal) => {
-                    console.log('Filtered results changed, count:', newVal.length);
-                }, { deep: true });
-
-                // FIX: Re-initialize observer for elements inside Vue because Vue replaces the DOM elements
-                this.$nextTick(() => {
-                    const observer = new IntersectionObserver((entries) => {
-                        entries.forEach(entry => {
-                            if (entry.isIntersecting) {
-                                entry.target.classList.add('active');
-                                observer.unobserve(entry.target);
-                            }
-                        });
-                    }, { threshold: 0.1 });
-
-                    // Observe elements inside the Vue app root
-                    const appRoot = document.getElementById('resultsApp');
-                    if (appRoot) {
-                        appRoot.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-                    }
-                });
-            }
-        });
-        
-        // Mount Vue app
-        const resultsContainer = document.getElementById('resultsApp');
-        if (resultsContainer) {
-            resultsApp.mount('#resultsApp');
-            console.log('Race results Vue app initialized');
-        } else {
-            console.error('Results container #resultsApp not found!');
-        }
-        })();
-
-        
-    </script>
-    <!-- Lightbox Modal -->
-    <div id="lightboxModal" class="fixed inset-0 z-[100] hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-        <!-- Backdrop -->
-        <div class="fixed inset-0 bg-black/95 backdrop-blur-sm transition-opacity opacity-0" id="lightboxBackdrop"></div>
-
-        <div class="fixed inset-0 z-10 w-screen overflow-y-auto">
-            <div class="flex min-h-full items-center justify-center p-4 text-center sm:p-0">
-                
-                <!-- Close Button -->
-                <button type="button" id="lightboxClose" class="absolute top-6 right-6 z-20 text-slate-400 hover:text-white transition focus:outline-none">
-                    <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-
-                <!-- Image Container -->
-                <div class="relative transform overflow-hidden rounded-lg text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-5xl opacity-0 scale-95" id="lightboxContent">
-                    <img id="lightboxImage" src="" class="w-full h-auto max-h-[85vh] object-contain mx-auto rounded-lg shadow-2xl border border-white/10" alt="Full Preview">
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const lightbox = document.getElementById('lightboxModal');
-            const backdrop = document.getElementById('lightboxBackdrop');
-            const content = document.getElementById('lightboxContent');
-            const img = document.getElementById('lightboxImage');
-            const closeBtn = document.getElementById('lightboxClose');
-            const triggers = document.querySelectorAll('.lightbox-trigger');
-
-            function openLightbox(src) {
-                if(!src) return;
-                img.src = src;
-                lightbox.classList.remove('hidden');
-                
-                // Animation frame for transition
-                requestAnimationFrame(() => {
-                    backdrop.classList.remove('opacity-0');
-                    content.classList.remove('opacity-0', 'scale-95');
-                });
-                
-                document.body.style.overflow = 'hidden';
-            }
-
-            function closeLightbox() {
-                backdrop.classList.add('opacity-0');
-                content.classList.add('opacity-0', 'scale-95');
-                
-                setTimeout(() => {
-                    lightbox.classList.add('hidden');
-                    img.src = '';
-                }, 300); // Match transition duration
-                
-                document.body.style.overflow = '';
-            }
-
-            // Event Listeners
-            triggers.forEach(trigger => {
-                trigger.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Prevent bubbling if needed
-                    openLightbox(trigger.src);
-                });
-            });
-
-            closeBtn.addEventListener('click', closeLightbox);
-            
-            // Close on click outside (backdrop)
-            lightbox.addEventListener('click', (e) => {
-                if (e.target.closest('#lightboxContent')) return;
-                closeLightbox();
-            });
-
-            // Close on Escape key
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape' && !lightbox.classList.contains('hidden')) {
-                    closeLightbox();
-                }
-            });
-
-            // Check for payment success from URL
-            const urlParams = new URLSearchParams(window.location.search);
-            if (urlParams.get('payment') === 'success' || urlParams.get('success') === 'true') {
-                const successDiv = document.createElement('div');
-                successDiv.className = 'fixed top-4 right-4 bg-green-500 text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-bounce';
-                successDiv.innerHTML = `
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                    <div>
-                        <h4 class="font-bold">Registrasi Berhasil!</h4>
-                        <p class="text-xs">Cek email Anda untuk konfirmasi.</p>
-                    </div>
-                `;
-                document.body.appendChild(successDiv);
-                
-                // Clean URL
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
-
-            // Check for payment failure from URL
-            if (urlParams.get('payment') === 'failed' || urlParams.get('error') === 'true') {
-                const failureDiv = document.createElement('div');
-                failureDiv.className = 'fixed top-4 right-4 bg-red-500 text-white px-6 py-4 rounded-xl shadow-2xl z-50 flex items-center gap-3 animate-bounce';
-                failureDiv.innerHTML = `
-                    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <div>
-                        <h4 class="font-bold">Registrasi Gagal!</h4>
-                        <p class="text-xs">${urlParams.get('error_message') || 'Terjadi kesalahan saat melakukan registrasi.'}</p>
-                    </div>
-                `;
-                document.body.appendChild(failureDiv);
-                
-                // Clean URL
-                window.history.replaceState({}, document.title, window.location.pathname);
-            }
-        });
-
-        // Nominatim CORS Proxy Interceptor (Fetch & XHR)
-        (function() {
-            // 1. Fetch Interceptor
-            var originalFetch = window.fetch;
-            window.fetch = function(url, options) {
-                if (typeof url === 'string' && url.includes('nominatim.openstreetmap.org')) {
-                    var proxyUrl = '/image-proxy?url=' + encodeURIComponent(url);
-                    return originalFetch(proxyUrl, options);
-                }
-                return originalFetch(url, options);
-            };
-
-            // 2. XHR Interceptor
-            var originalOpen = XMLHttpRequest.prototype.open;
-            XMLHttpRequest.prototype.open = function(method, url, async, user, password) {
-                if (typeof url === 'string' && url.includes('nominatim.openstreetmap.org')) {
-                    url = '/image-proxy?url=' + encodeURIComponent(url);
-                }
-                return originalOpen.apply(this, arguments);
-            };
         })();
     </script>
-
-    @include('events.partials.moota-payment-modal', [
-        'modalPanelClass' => 'bg-slate-900 text-slate-100 border border-slate-700',
-        'modalTitleClass' => 'text-white',
-        'modalAccentClass' => 'text-neon',
-        'modalCloseClass' => 'bg-neon text-dark hover:bg-neonHover',
-    ])
 </body>
 </html>

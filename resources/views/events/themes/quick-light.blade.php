@@ -1032,6 +1032,7 @@
                                             @else
                                                 <input type="hidden" data-hidden-auto="date_of_birth" name="participants[0][date_of_birth]" value="">
                                             @endif
+                                            @include('events.partials.dynamic-extra-fields', ['mode' => 'light'])
 
                                             @if($showJersey)
                                                 <div>

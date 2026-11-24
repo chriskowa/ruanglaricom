@@ -15,6 +15,7 @@ class Participant extends Model
         'event_package_id',
         'race_category_id',
         'name',
+        'bib_name',
         'gender',
         'phone',
         'email',
@@ -24,12 +25,14 @@ class Participant extends Model
         'province',
         'postal_code',
         'emergency_contact_name',
+        'emergency_contact_relation',
         'emergency_contact_number',
         'date_of_birth',
         'target_time',
         'bib_number',
         'jersey_size',
         'blood_type',
+        'medical_history',
         'strava_url',
         'photo',
         'addons',
@@ -69,6 +72,11 @@ class Participant extends Model
     public function supports(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
         return $this->hasMany(ParticipantSupport::class);
+    }
+
+    public function getDisplayBibNameAttribute(): string
+    {
+        return trim((string) ($this->bib_name ?: $this->name));
     }
 
     /**

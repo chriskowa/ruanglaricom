@@ -2034,6 +2034,13 @@
                                          <input type="text" name="emergency_contact_number" id="edit_emergency_contact_number" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none placeholder-slate-500">
                                      </div>
 
+                                     <!-- Emergency Contact Relation -->
+                                     <div>
+                                         <div class="text-xs text-slate-500">Hubungan Kontak Darurat</div>
+                                         <div class="view-mode text-white" id="dm_emergency_contact_relation"></div>
+                                         <input type="text" name="emergency_contact_relation" id="edit_emergency_contact_relation" maxlength="50" placeholder="Orang Tua / Pasangan / Saudara" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none placeholder-slate-500">
+                                     </div>
+
                                     <!-- Address Info -->
                                     <div class="pt-2 border-t border-slate-700/50 mt-2">
                                         <div class="text-xs text-slate-500 mb-1">Full Address</div>
@@ -2106,6 +2113,12 @@
                                         <div class="view-mode text-white font-mono text-lg text-yellow-400" id="dm_bib"></div>
                                         <input type="text" name="bib_number" id="edit_bib_number" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none font-mono">
                                     </div>
+                                    <!-- Nama di BIB -->
+                                    <div>
+                                        <div class="text-xs text-slate-500">Nama di BIB</div>
+                                        <div class="view-mode text-white font-semibold" id="dm_bib_name"></div>
+                                        <input type="text" name="bib_name" id="edit_bib_name" maxlength="30" placeholder="Maks. 30 karakter" class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none">
+                                    </div>
                                     <!-- Jersey -->
                                     <div>
                                         <div class="text-xs text-slate-500">Jersey Size</div>
@@ -2123,6 +2136,12 @@
                                             <option value="AB">AB</option>
                                             <option value="O">O</option>
                                         </select>
+                                    </div>
+                                    <!-- Riwayat Penyakit -->
+                                    <div class="col-span-2">
+                                        <div class="text-xs text-slate-500">Riwayat Penyakit / Alergi</div>
+                                        <div class="view-mode text-white text-xs whitespace-pre-line" id="dm_medical_history"></div>
+                                        <textarea name="medical_history" id="edit_medical_history" rows="2" maxlength="500" placeholder="Tidak ada / Asma / Alergi obat..." class="edit-mode hidden w-full bg-slate-700 border border-slate-600 rounded px-2 py-1 text-white text-sm focus:border-blue-500 focus:outline-none"></textarea>
                                     </div>
                                     <!-- Age Group -->
                                     <div><div class="text-xs text-slate-500">Age Group</div><div class="text-white" id="dm_age_group"></div></div>
@@ -3536,6 +3555,7 @@
         setValue('edit_id_card', d.id_card);
         setValue('edit_emergency_contact_name', d.emergency_contact_name);
         setValue('edit_emergency_contact_number', d.emergency_contact_number);
+        setValue('edit_emergency_contact_relation', d.emergency_contact_relation);
         setValue('edit_gender', d.gender || 'male');
         setValue('edit_pic_name', d.pic_name);
         setValue('edit_pic_phone', d.pic_phone);
@@ -3561,8 +3581,10 @@
         setValue('edit_race_category_id', catId);
         
         setValue('edit_bib_number', d.bib_number);
+        setValue('edit_bib_name', d.bib_name);
         setValue('edit_jersey_size', d.jersey_size);
         setValue('edit_blood_type', d.blood_type);
+        setValue('edit_medical_history', d.medical_history);
         setValue('edit_strava_url', d.strava_url);
         setValue('edit_target_time', d.target_time);
 
@@ -3880,11 +3902,13 @@
         // Collect Form Data
         var formData = {
             name: document.getElementById('edit_name').value.trim(),
+            bib_name: document.getElementById('edit_bib_name') ? document.getElementById('edit_bib_name').value.trim() : '',
             email: document.getElementById('edit_email').value.trim(),
             phone: document.getElementById('edit_phone').value.trim(),
             id_card: document.getElementById('edit_id_card').value.trim(),
             emergency_contact_name: document.getElementById('edit_emergency_contact_name').value.trim(),
             emergency_contact_number: document.getElementById('edit_emergency_contact_number').value.trim(),
+            emergency_contact_relation: document.getElementById('edit_emergency_contact_relation') ? document.getElementById('edit_emergency_contact_relation').value.trim() : '',
             gender: document.getElementById('edit_gender').value,
             date_of_birth: document.getElementById('edit_date_of_birth').value,
             address: document.getElementById('edit_address').value.trim(),
@@ -3898,6 +3922,7 @@
             bib_number: document.getElementById('edit_bib_number').value.trim(),
             jersey_size: document.getElementById('edit_jersey_size').value.trim(),
             blood_type: document.getElementById('edit_blood_type').value,
+            medical_history: document.getElementById('edit_medical_history') ? document.getElementById('edit_medical_history').value.trim() : '',
             strava_url: document.getElementById('edit_strava_url').value.trim(),
             target_time: document.getElementById('edit_target_time').value.trim(),
             coupon_id: document.getElementById('edit_coupon_id').value,
@@ -4081,6 +4106,8 @@
                 document.getElementById('dm_id_card').textContent = res.data.id_card || '-';
                 document.getElementById('dm_emergency_contact_name').textContent = res.data.emergency_contact_name || '-';
                 document.getElementById('dm_emergency_contact_number').textContent = res.data.emergency_contact_number || '-';
+                var dmRelEl = document.getElementById('dm_emergency_contact_relation');
+                if (dmRelEl) dmRelEl.textContent = res.data.emergency_contact_relation || '-';
                 document.getElementById('dm_gender').textContent = res.data.gender ? (res.data.gender.charAt(0).toUpperCase() + res.data.gender.slice(1)) : '-';
                 document.getElementById('dm_dob').textContent = formatDateId(res.data.date_of_birth);
                 document.getElementById('dm_address').textContent = res.data.address || '-';
@@ -4091,8 +4118,12 @@
                 // Race Info Updates
                 document.getElementById('dm_category').textContent = res.data.category_name;
                 document.getElementById('dm_bib').textContent = res.data.bib_number || '-';
+                var dmBibNameEl = document.getElementById('dm_bib_name');
+                if (dmBibNameEl) dmBibNameEl.textContent = res.data.bib_name || '-';
                 document.getElementById('dm_jersey').textContent = res.data.jersey_size || '-';
                 document.getElementById('dm_blood_type').textContent = res.data.blood_type || '-';
+                var dmMedEl = document.getElementById('dm_medical_history');
+                if (dmMedEl) dmMedEl.textContent = res.data.medical_history || '-';
                 document.getElementById('dm_target_time').textContent = res.data.target_time || '-';
                 document.getElementById('dm_age_group').textContent = res.data.age_group || '-';
 
@@ -4240,6 +4271,8 @@
 
         document.getElementById('dm_emergency_contact_name').textContent = data.emergency_contact_name || '-';
         document.getElementById('dm_emergency_contact_number').textContent = data.emergency_contact_number || '-';
+        var dmRelOpenEl = document.getElementById('dm_emergency_contact_relation');
+        if (dmRelOpenEl) dmRelOpenEl.textContent = data.emergency_contact_relation || '-';
         
         document.getElementById('dm_age_group').textContent = data.age_group || '-';
         document.getElementById('dm_notes').textContent = data.notes || '-';
@@ -4260,9 +4293,13 @@
         document.getElementById('dm_category').textContent = data.category;
         
         document.getElementById('dm_bib').textContent = data.bib_number || '-';
+        var dmBibNameOpenEl = document.getElementById('dm_bib_name');
+        if (dmBibNameOpenEl) dmBibNameOpenEl.textContent = data.bib_name || '-';
         
         document.getElementById('dm_jersey').textContent = data.jersey_size || '-';
         document.getElementById('dm_blood_type').textContent = data.blood_type || '-';
+        var dmMedOpenEl = document.getElementById('dm_medical_history');
+        if (dmMedOpenEl) dmMedOpenEl.textContent = data.medical_history || '-';
         document.getElementById('dm_target_time').textContent = data.target_time || '-';
         
         var stravaEl = document.getElementById('dm_strava_url');

@@ -57,9 +57,9 @@
     <!-- Form Fields Configuration -->
     <div class="mt-8 border-t border-slate-700/50 pt-6">
         <h4 class="text-lg font-bold text-white mb-3">Pendaftaran - Form Fields</h4>
-        <p class="text-xs text-slate-400 mb-4">Pilih field data peserta mana saja yang ingin ditampilkan dan wajib diisi pada form pendaftaran (khusus tema Quick Light):</p>
+        <p class="text-xs text-slate-400 mb-4">Pilih field data peserta yang ingin ditampilkan pada form pendaftaran. Field standar berlaku khusus tema Quick Light, sedangkan Nama di BIB, Hubungan Kontak Darurat, dan Riwayat Penyakit berlaku di semua tema:</p>
         
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-900/50 border border-slate-800 p-4 rounded-xl">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-900 border border-slate-800 p-4 rounded-lg">
             <label class="flex items-center gap-3 cursor-pointer group">
                 <input type="checkbox" name="premium_amenities[form_fields][id_card]" value="1" 
                     {{ old('premium_amenities.form_fields.id_card', ($event->premium_amenities['form_fields']['id_card'] ?? 0)) == 1 ? 'checked' : '' }}
@@ -137,6 +137,36 @@
                 <div>
                     <span class="text-sm font-semibold text-slate-200 group-hover:text-white transition-colors">Strava Activity / Link Strava</span>
                     <p class="text-[10px] text-slate-500">Meminta link aktivitas Strava peserta (misal untuk kualifikasi/verifikasi race)</p>
+                </div>
+            </label>
+
+            <label class="flex items-center gap-3 cursor-pointer group">
+                <input type="checkbox" name="premium_amenities[form_fields][bib_name]" value="1" 
+                    {{ old('premium_amenities.form_fields.bib_name', ($event->premium_amenities['form_fields']['bib_name'] ?? 0)) == 1 ? 'checked' : '' }}
+                    class="rounded bg-slate-800 border-slate-700 text-yellow-500 focus:ring-yellow-500">
+                <div>
+                    <span class="text-sm font-semibold text-slate-200 group-hover:text-white transition-colors">Nama di BIB</span>
+                    <p class="text-[10px] text-slate-400">Nama panggilan yang dicetak di nomor dada (maks. 20 karakter, semua tema)</p>
+                </div>
+            </label>
+
+            <label class="flex items-center gap-3 cursor-pointer group">
+                <input type="checkbox" name="premium_amenities[form_fields][emergency_contact_relation]" value="1" 
+                    {{ old('premium_amenities.form_fields.emergency_contact_relation', ($event->premium_amenities['form_fields']['emergency_contact_relation'] ?? 0)) == 1 ? 'checked' : '' }}
+                    class="rounded bg-slate-800 border-slate-700 text-yellow-500 focus:ring-yellow-500">
+                <div>
+                    <span class="text-sm font-semibold text-slate-200 group-hover:text-white transition-colors">Hubungan Kontak Darurat</span>
+                    <p class="text-[10px] text-slate-400">Status hubungan: Orang Tua, Pasangan, Saudara, atau Teman (semua tema)</p>
+                </div>
+            </label>
+
+            <label class="flex items-center gap-3 cursor-pointer group">
+                <input type="checkbox" name="premium_amenities[form_fields][medical_history]" value="1" 
+                    {{ old('premium_amenities.form_fields.medical_history', ($event->premium_amenities['form_fields']['medical_history'] ?? 0)) == 1 ? 'checked' : '' }}
+                    class="rounded bg-slate-800 border-slate-700 text-yellow-500 focus:ring-yellow-500">
+                <div>
+                    <span class="text-sm font-semibold text-slate-200 group-hover:text-white transition-colors">Riwayat Penyakit / Alergi</span>
+                    <p class="text-[10px] text-slate-400">Catatan medis atau alergi peserta untuk kesiapsiagaan tim medis (semua tema)</p>
                 </div>
             </label>
         </div>

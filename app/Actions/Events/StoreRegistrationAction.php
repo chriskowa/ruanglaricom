@@ -63,6 +63,24 @@ class StoreRegistrationAction
                     $cleanedEmergency = preg_replace('/[^0-9]/', '', (string) $p['emergency_contact_number']);
                     $p['emergency_contact_number'] = $cleanedEmergency !== '' ? $cleanedEmergency : null;
                 }
+                if (isset($p['bib_name'])) {
+                    $p['bib_name'] = trim((string) $p['bib_name']);
+                    if ($p['bib_name'] === '') {
+                        $p['bib_name'] = null;
+                    }
+                }
+                if (isset($p['emergency_contact_relation'])) {
+                    $p['emergency_contact_relation'] = trim((string) $p['emergency_contact_relation']);
+                    if ($p['emergency_contact_relation'] === '') {
+                        $p['emergency_contact_relation'] = null;
+                    }
+                }
+                if (isset($p['medical_history'])) {
+                    $p['medical_history'] = trim((string) $p['medical_history']);
+                    if ($p['medical_history'] === '') {
+                        $p['medical_history'] = null;
+                    }
+                }
                 if (isset($p['date_of_birth'])) {
                     $p['date_of_birth'] = trim((string) $p['date_of_birth']);
                     if ($p['date_of_birth'] === '') {
@@ -110,6 +128,7 @@ class StoreRegistrationAction
 
         $formFields = $event->premium_amenities['form_fields'] ?? null;
         $isQuickLight = ($event->theme ?? '') === 'quick-light' || ($event->template ?? '') === 'quick-light';
+        $isLightClean = ($event->theme ?? '') === 'light-clean' || ($event->template ?? '') === 'light-clean';
 
         $emergencyRequired = true;
         $addressRequired = true;
@@ -117,18 +136,22 @@ class StoreRegistrationAction
         $dobRequired = true;
         $jerseyRequired = true;
 
-        if ($formFields !== null && is_array($formFields)) {
-            $emergencyRequired = ! empty($formFields['emergency_contact']);
-            $addressRequired = ! empty($formFields['address']);
-            $idCardRequired = ! empty($formFields['id_card']);
-            $dobRequired = ! empty($formFields['date_of_birth']);
-            $jerseyRequired = ! empty($formFields['jersey_size']);
-        } elseif ($isQuickLight) {
-            $emergencyRequired = false;
-            $addressRequired = false;
-            $idCardRequired = false;
-            $dobRequired = false;
-            $jerseyRequired = false;
+        if ($isQuickLight) {
+            $ff = is_array($formFields) ? $formFields : [];
+            $emergencyRequired = ! empty($ff['emergency_contact']);
+            $addressRequired = ! empty($ff['address']);
+            $idCardRequired = ! empty($ff['id_card']);
+            $dobRequired = ! empty($ff['date_of_birth']);
+            $jerseyRequired = ! empty($ff['jersey_size']);
+        } elseif ($isLightClean && is_array($formFields)) {
+            $hasStandardFieldConfig = isset($formFields['id_card'])
+                || isset($formFields['address'])
+                || isset($formFields['date_of_birth'])
+                || isset($formFields['emergency_contact'])
+                || isset($formFields['jersey_size']);
+            if ($hasStandardFieldConfig) {
+                $jerseyRequired = ! empty($formFields['jersey_size']);
+            }
         }
 
         // Validate input
@@ -138,6 +161,7 @@ class StoreRegistrationAction
             'pic_phone' => 'required|string|min:10|max:15|regex:/^[0-9]+$/',
             'participants' => 'required|array|min:1',
             'participants.*.name' => 'required|string|max:255',
+            'participants.*.bib_name' => 'nullable|string|max:30',
             'participants.*.gender' => 'required|in:male,female',
             'participants.*.email' => 'required|email|max:255',
             'participants.*.phone' => 'required|string|min:10|max:15|regex:/^[0-9]+$/',
@@ -155,11 +179,13 @@ class StoreRegistrationAction
                 },
             ],
             'participants.*.emergency_contact_name' => $emergencyRequired ? 'required|string|max:255' : 'nullable|string|max:255',
+            'participants.*.emergency_contact_relation' => 'nullable|string|max:50',
             'participants.*.emergency_contact_number' => $emergencyRequired ? 'required|string|min:10|max:15|regex:/^[0-9]+$/' : 'nullable|string|max:20',
             'participants.*.date_of_birth' => $dobRequired ? 'required|date|before:today' : 'nullable|date|before:today',
             'participants.*.target_time' => ['nullable', 'string', 'regex:/^(?:[01]\d|2[0-3]):[0-5]\d:[0-5]\d$/'],
             'participants.*.jersey_size' => $jerseyRequired ? 'required|string|max:10' : 'nullable|string|max:10',
             'participants.*.blood_type' => 'nullable|string|in:A,B,AB,O',
+            'participants.*.medical_history' => 'nullable|string|max:500',
             'participants.*.strava_url' => 'nullable|string|max:500',
             'participants.*.strava_activity' => 'nullable|string|max:500',
             'coupon_code' => 'nullable|string|exists:coupons,code',
@@ -663,17 +689,20 @@ class StoreRegistrationAction
                     'transaction_id' => $transaction->id,
                     'race_category_id' => $categoryId,
                     'name' => $participantData['name'],
+                    'bib_name' => ! empty($participantData['bib_name']) ? mb_substr(trim((string) $participantData['bib_name']), 0, 30) : null,
                     'gender' => $participantData['gender'],
                     'phone' => $participantData['phone'],
                     'email' => $participantData['email'],
                     'id_card' => $idCard,
                     'address' => $address,
                     'emergency_contact_name' => $emName,
+                    'emergency_contact_relation' => ! empty($participantData['emergency_contact_relation']) ? mb_substr(trim((string) $participantData['emergency_contact_relation']), 0, 50) : null,
                     'emergency_contact_number' => $emPhone,
                     'date_of_birth' => ! empty($participantData['date_of_birth']) ? $participantData['date_of_birth'] : null,
                     'target_time' => ! empty($participantData['target_time']) ? $participantData['target_time'] : null,
                     'jersey_size' => $jerseySize,
                     'blood_type' => $participantData['blood_type'] ?? null,
+                    'medical_history' => ! empty($participantData['medical_history']) ? mb_substr(trim((string) $participantData['medical_history']), 0, 500) : null,
                     'strava_url' => ! empty($participantData['strava_url']) ? $participantData['strava_url'] : (! empty($participantData['strava_activity']) ? $participantData['strava_activity'] : null),
                     'photo' => $photoPath,
                     'addons' => $participantsWithAddons[$pIndex] ?? [],
