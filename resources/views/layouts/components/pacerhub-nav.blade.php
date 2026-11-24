@@ -656,7 +656,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const defaultTools = [
             { title: 'Buat Program Lari AI (Coach Ruang Lari)', subtitle: 'Susun jadwal latihan personal VDOT ke kalender', url: @json(route('programs.realistic')), badge: 'Tool' },
             { title: 'Kalkulator Pace & VDOT', subtitle: 'Hitung pace target, race predictor & zona latihan', url: @json(route('calculator')), badge: 'Tool' },
-            { title: 'Kalender Pelari Studio (Cetak PDF)', subtitle: 'Desain kalender meja/dinding dengan foto lari 300 DPI', url: @json(route('kalender-pelari.landing')), badge: 'Tool' },
+            { title: 'Kalender Pelari Studio (Cetak PDF)', subtitle: 'Desain kalender meja/dinding dengan foto lari 300 DPI', url: @json(\Illuminate\Support\Facades\Route::has('kalender-pelari.landing') ? route('kalender-pelari.landing') : url('/kalender-pelari')), badge: 'Tool' },
             { title: 'Pace Pro Strategy', subtitle: 'Rencana strategi pace per kilometer & elevasi GPX', url: @json(route('tools.pace-pro')), badge: 'Tool' },
             { title: 'Buat Rute Lari & GPX', subtitle: 'Gambar rute lari dan ekspor file GPX', url: @json(route('tools.buat-rute-lari')), badge: 'Tool' },
             { title: 'Kalender Event Lari', subtitle: 'Jadwal lomba lari nasional & komunitas', url: @json(route('calendar.public')), badge: 'Tool' }
