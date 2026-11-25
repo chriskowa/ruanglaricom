@@ -1211,11 +1211,11 @@
                                 <div class="grid grid-cols-2 gap-2">
                                     <div>
                                         <label class="text-[10px] text-slate-400 block mb-1">Mulai Dari (From)</label>
-                                        <input type="number" id="bibCustomFrom" min="0" placeholder="Contoh: 1" oninput="toggleBibPreview()" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white">
+                                        <input type="number" id="bibCustomFrom" min="0" placeholder="Contoh: 1" oninput="toggleBibPreview(); syncBibSimTotalFromInputs();" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white">
                                     </div>
                                     <div>
                                         <label class="text-[10px] text-slate-400 block mb-1">Sampai (To)</label>
-                                        <input type="number" id="bibCustomTo" min="0" placeholder="Contoh: 100" oninput="toggleBibPreview()" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white">
+                                        <input type="number" id="bibCustomTo" min="0" placeholder="Contoh: 100" oninput="toggleBibPreview(); syncBibSimTotalFromInputs();" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white">
                                     </div>
                                 </div>
                                 <div class="text-[10px] text-slate-500 italic">Mencetak nomor berurutan dengan increment 1.</div>
@@ -1252,19 +1252,68 @@
                                 <button type="button" onclick="addBibQr()" class="px-2 py-1 bg-yellow-600/30 hover:bg-yellow-600/50 border border-yellow-500/40 rounded text-xs text-yellow-200 transition" title="Tambahkan QR Code berisi nomor BIB lengkap">[qr] (QR BIB)</button>
                             </div>
                         </div>
-                        <div>
-                            <label class="block text-sm font-bold text-slate-300 mb-2">4. Preset Desain</label>
-                            <div class="flex gap-2">
-                                <button type="button" onclick="saveBibPreset()" class="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5">
-                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" /></svg>
-                                    Simpan Desain
-                                </button>
-                                <button type="button" onclick="loadBibPreset()" class="flex-1 px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-xs font-bold transition flex items-center justify-center gap-1.5">
-                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
-                                    Muat Desain
-                                </button>
+                            <div>
+                                <label class="block text-sm font-bold text-slate-300 mb-2">4. Preset Desain</label>
+                                <div class="flex gap-2">
+                                    <button type="button" onclick="saveBibPreset()" class="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-xs font-bold transition">
+                                        Simpan Desain
+                                    </button>
+                                    <button type="button" onclick="loadBibPreset()" class="flex-1 px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-md text-xs font-bold transition">
+                                        Muat Desain
+                                    </button>
+                                </div>
                             </div>
-                        </div>
+
+                            <div class="border-t border-slate-700 pt-3 space-y-3">
+                                <label class="block text-sm font-bold text-slate-200">5. Imposition Percetakan</label>
+                                <div>
+                                    <label class="text-xs text-slate-300 block mb-1">Mode Imposition</label>
+                                    <select id="bibImpMode" onchange="onBibImpositionChange()" class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-xs text-white focus:outline-none focus:border-yellow-500">
+                                        <option value="single">1. Single (1 BIB / Halaman)</option>
+                                        <option value="step-repeat">2. Step &amp; Repeat (Identik / Lembar)</option>
+                                        <option value="vdp">3. VDP (Urut Kiri-Kanan per Lembar)</option>
+                                        <option value="cut-stack">4. Cut &amp; Stack (Urut Tumpuk Potong)</option>
+                                    </select>
+                                </div>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <div>
+                                        <label class="text-xs text-slate-300 block mb-1">Ukuran Kertas</label>
+                                        <select id="bibImpPaper" onchange="onBibImpositionChange()" class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-xs text-white focus:outline-none focus:border-yellow-500">
+                                            <option value="ORIGINAL" id="bibImpPaperOrigOpt">Ukuran Desain Asli</option>
+                                            <option value="A3">A3 (420 &times; 297 mm)</option>
+                                            <option value="A3+">A3+ (480 &times; 320 mm)</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label class="text-xs text-slate-300 block mb-1">Orientasi Lembar</label>
+                                        <select id="bibImpOrientation" onchange="onBibImpositionChange()" class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-xs text-white focus:outline-none focus:border-yellow-500">
+                                            <option value="auto">Otomatis Optimal</option>
+                                            <option value="L">Landscape</option>
+                                            <option value="P">Portrait</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div id="bibImpGridFields" class="hidden space-y-2.5 bg-slate-900 p-3 rounded-lg border border-slate-800">
+                                    <div class="grid grid-cols-3 gap-2">
+                                        <div>
+                                            <label class="text-xs text-slate-300 block mb-1">Baris</label>
+                                            <input type="number" id="bibImpRows" value="2" min="1" max="10" oninput="onBibImpositionChange()" class="w-full bg-slate-950 border border-slate-700 rounded-md p-1.5 text-xs text-white font-mono">
+                                        </div>
+                                        <div>
+                                            <label class="text-xs text-slate-300 block mb-1">Kolom</label>
+                                            <input type="number" id="bibImpCols" value="2" min="1" max="10" oninput="onBibImpositionChange()" class="w-full bg-slate-950 border border-slate-700 rounded-md p-1.5 text-xs text-white font-mono">
+                                        </div>
+                                        <div>
+                                            <label class="text-xs text-slate-300 block mb-1">Jarak (mm)</label>
+                                            <input type="number" id="bibImpGap" value="0" min="0" max="30" step="0.5" oninput="onBibImpositionChange()" class="w-full bg-slate-950 border border-slate-700 rounded-md p-1.5 text-xs text-white font-mono">
+                                        </div>
+                                    </div>
+                                </div>
+                                <label id="bibImpCropMarksWrap" class="hidden items-center gap-2 text-xs text-slate-200 cursor-pointer">
+                                    <input type="checkbox" id="bibImpCropMarks" checked onchange="onBibImpositionChange()" class="rounded border-slate-700 bg-slate-900 text-yellow-500 focus:ring-yellow-500/50">
+                                    <span>Sertakan Garis Potong (Crop Marks)</span>
+                                </label>
+                            </div>
                         <div id="bibTextSettings" class="hidden space-y-3 bg-slate-900/50 p-3 rounded-lg border border-slate-700">
                             <label class="block text-xs font-bold text-slate-300">Pengaturan Teks Terpilih</label>
                             <div class="flex gap-2">
@@ -1334,6 +1383,31 @@
                         <div class="bg-slate-900 border border-slate-700 rounded-lg p-2 flex justify-center items-center overflow-auto relative" style="min-height: 400px;" id="bibCanvasContainer">
                             <span id="bibCanvasPlaceholder" class="text-slate-500 text-sm absolute pointer-events-none z-0">Upload gambar background terlebih dahulu</span>
                             <canvas id="bibCanvas" class="z-10"></canvas>
+                        </div>
+
+                        <!-- Live Imposition Sheet Simulator -->
+                        <div id="bibImpPreviewPanel" class="hidden bg-slate-900 border border-slate-800 rounded-lg p-4 space-y-3">
+                            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-2.5">
+                                <div>
+                                    <h4 class="text-xs font-bold uppercase tracking-wider text-white">Simulasi Mapping Lembar Cetak</h4>
+                                    <p id="bibImpSummaryText" class="text-xs text-slate-300 mt-0.5 font-mono">-</p>
+                                </div>
+                                <div class="flex flex-wrap items-center gap-2">
+                                    <label class="text-xs text-slate-300 flex items-center gap-1.5">
+                                        <span>Total BIB:</span>
+                                        <input type="number" id="bibImpSimTotal" value="{{ max(1, (int) ($participants->total() ?? 100)) }}" min="1" max="50000" oninput="onBibSimTotalInput()" class="w-20 bg-slate-950 border border-slate-700 rounded-md px-2 py-1 text-xs text-white font-mono">
+                                    </label>
+                                    <button type="button" onclick="generateBibPdf(this, false, true)" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-md text-xs font-semibold transition">
+                                        Test PDF Lembar #1
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="flex items-center justify-between gap-2">
+                                <button type="button" onclick="stepImpPreviewSheet(-1)" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-md text-xs font-semibold border border-slate-700">&larr; Lembar Sebelumnya</button>
+                                <span id="bibImpSheetIndicator" class="text-xs font-mono font-bold text-yellow-400">Sheet 1 / 1</span>
+                                <button type="button" onclick="stepImpPreviewSheet(1)" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-md text-xs font-semibold border border-slate-700">Lembar Berikutnya &rarr;</button>
+                            </div>
+                            <div id="bibImpSheetGrid" class="grid gap-2 bg-slate-950 border border-slate-800 rounded-md p-3"></div>
                         </div>
 
                         <!-- Temporary Form Editor -->
@@ -6107,6 +6181,213 @@
             window.loadBibParticipant(window.activeParticipantIndex || 0);
         }
         toggleBibPreview();
+        if (typeof window.syncBibSimTotalFromInputs === 'function') {
+            window.syncBibSimTotalFromInputs();
+        }
+    };
+
+    /**
+     * Generate print imposition mapping for BIB sheets.
+     * @param {Object} params - { paperSize: "ORIGINAL|A3|A3+", rows: number, cols: number, mode: "single|step-repeat|vdp|cut-stack", totalBib: number }
+     */
+    window.generateImpositionMapping = function({
+        paperSize = 'A3+',
+        rows = 2,
+        cols = 2,
+        mode = 'single',
+        totalBib = 0
+    } = {}) {
+        const validModes = ['single', 'step-repeat', 'vdp', 'cut-stack'];
+        const safeMode = validModes.includes(mode) ? mode : 'single';
+        const r = safeMode === 'single' ? 1 : Math.max(1, parseInt(rows, 10) || 1);
+        const c = safeMode === 'single' ? 1 : Math.max(1, parseInt(cols, 10) || 1);
+        const slotsPerSheet = r * c;
+        const total = Math.max(0, parseInt(totalBib, 10) || 0);
+
+        if (total === 0) {
+            return { paperSize, rows: r, cols: c, mode: safeMode, totalBib: 0, slotsPerSheet, totalSheets: 0, sheets: [] };
+        }
+
+        const sheets = [];
+        if (safeMode === 'single' || safeMode === 'step-repeat') {
+            for (let n = 1; n <= total; n++) {
+                sheets.push({
+                    sheet: n,
+                    slots: Array(slotsPerSheet).fill(n)
+                });
+            }
+        } else {
+            const totalSheets = Math.ceil(total / slotsPerSheet);
+            for (let n = 1; n <= totalSheets; n++) {
+                const slots = [];
+                for (let k = 0; k < slotsPerSheet; k++) {
+                    const pos = safeMode === 'cut-stack'
+                        ? (n + (k * totalSheets))
+                        : ((n - 1) * slotsPerSheet + k + 1);
+                    slots.push(pos <= total ? pos : null);
+                }
+                sheets.push({ sheet: n, slots });
+            }
+        }
+
+        return {
+            paperSize,
+            rows: r,
+            cols: c,
+            mode: safeMode,
+            totalBib: total,
+            slotsPerSheet,
+            totalSheets: sheets.length,
+            sheets
+        };
+    };
+
+    window.bibImpActiveSheetIdx = 0;
+
+    window.getBibImpositionConfig = function() {
+        const modeEl = document.getElementById('bibImpMode');
+        const paperEl = document.getElementById('bibImpPaper');
+        const orientEl = document.getElementById('bibImpOrientation');
+        const rowsEl = document.getElementById('bibImpRows');
+        const colsEl = document.getElementById('bibImpCols');
+        const gapEl = document.getElementById('bibImpGap');
+        const cropEl = document.getElementById('bibImpCropMarks');
+        const simTotalEl = document.getElementById('bibImpSimTotal');
+
+        const mode = modeEl ? modeEl.value : 'single';
+        let paperSize = paperEl ? paperEl.value : 'ORIGINAL';
+        if (mode !== 'single' && paperSize === 'ORIGINAL') {
+            paperSize = 'A3+';
+            if (paperEl) paperEl.value = 'A3+';
+        }
+
+        return {
+            paperSize: paperSize,
+            orientation: orientEl ? orientEl.value : 'auto',
+            rows: mode === 'single' ? 1 : Math.max(1, parseInt(rowsEl?.value || '2', 10) || 2),
+            cols: mode === 'single' ? 1 : Math.max(1, parseInt(colsEl?.value || '2', 10) || 2),
+            mode: mode,
+            gapMm: mode === 'single' ? 0 : Math.max(0, parseFloat(gapEl?.value || '0') || 0),
+            cropMarks: paperSize !== 'ORIGINAL' ? Boolean(cropEl ? cropEl.checked : true) : false,
+            totalBib: Math.max(1, parseInt(simTotalEl?.value || '1', 10) || 1)
+        };
+    };
+
+    window.syncBibSimTotalFromInputs = function() {
+        const simEl = document.getElementById('bibImpSimTotal');
+        if (!simEl) return;
+        const isCustom = document.getElementById('bibCustomRangeMode')?.checked;
+        if (isCustom) {
+            const f = parseInt(document.getElementById('bibCustomFrom')?.value || '0', 10);
+            const t = parseInt(document.getElementById('bibCustomTo')?.value || '0', 10);
+            if (!Number.isNaN(f) && !Number.isNaN(t) && t >= f && t > 0) {
+                simEl.value = String((t - f) + 1);
+            }
+        }
+        window.renderBibImpositionPreview();
+    };
+
+    window.onBibSimTotalInput = function() {
+        window.bibImpActiveSheetIdx = 0;
+        window.renderBibImpositionPreview();
+    };
+
+    window.stepImpPreviewSheet = function(delta) {
+        const cfg = window.getBibImpositionConfig();
+        const plan = window.generateImpositionMapping(cfg);
+        if (plan.totalSheets <= 0) return;
+        let next = window.bibImpActiveSheetIdx + delta;
+        if (next < 0) next = plan.totalSheets - 1;
+        if (next >= plan.totalSheets) next = 0;
+        window.bibImpActiveSheetIdx = next;
+        window.renderBibImpositionPreview();
+    };
+
+    window.onBibImpositionChange = function() {
+        const modeEl = document.getElementById('bibImpMode');
+        const paperEl = document.getElementById('bibImpPaper');
+        const origOpt = document.getElementById('bibImpPaperOrigOpt');
+        const gridFields = document.getElementById('bibImpGridFields');
+        const cropWrap = document.getElementById('bibImpCropMarksWrap');
+
+        const mode = modeEl ? modeEl.value : 'single';
+        if (origOpt) {
+            origOpt.disabled = (mode !== 'single');
+        }
+        if (mode !== 'single' && paperEl && paperEl.value === 'ORIGINAL') {
+            paperEl.value = 'A3+';
+        }
+        const paper = paperEl ? paperEl.value : 'ORIGINAL';
+
+        if (gridFields) {
+            gridFields.classList.toggle('hidden', mode === 'single');
+        }
+        if (cropWrap) {
+            cropWrap.classList.toggle('hidden', paper === 'ORIGINAL');
+            cropWrap.classList.toggle('flex', paper !== 'ORIGINAL');
+        }
+
+        window.bibImpActiveSheetIdx = 0;
+        window.renderBibImpositionPreview();
+    };
+
+    window.renderBibImpositionPreview = function() {
+        const panel = document.getElementById('bibImpPreviewPanel');
+        const summaryEl = document.getElementById('bibImpSummaryText');
+        const indicatorEl = document.getElementById('bibImpSheetIndicator');
+        const gridEl = document.getElementById('bibImpSheetGrid');
+        if (!panel || !summaryEl || !indicatorEl || !gridEl) return;
+
+        const cfg = window.getBibImpositionConfig();
+        const showPanel = cfg.mode !== 'single' || cfg.paperSize !== 'ORIGINAL';
+        panel.classList.toggle('hidden', !showPanel);
+        if (!showPanel) return;
+
+        const plan = window.generateImpositionMapping(cfg);
+        if (window.bibImpActiveSheetIdx >= plan.totalSheets) {
+            window.bibImpActiveSheetIdx = Math.max(0, plan.totalSheets - 1);
+        }
+
+        // Estimate physical BIB mm on sheet
+        let sizeEstText = '';
+        if (cfg.paperSize === 'A3' || cfg.paperSize === 'A3+') {
+            const [shortMm, longMm] = cfg.paperSize === 'A3+' ? [320, 480] : [297, 420];
+            const marginMm = cfg.cropMarks ? 6 : 4;
+            const bgImg = bibCanvas && bibCanvas.backgroundImage ? bibCanvas.backgroundImage : null;
+            const aspectW = bgImg ? bgImg.width : 200;
+            const aspectH = bgImg ? bgImg.height : 150;
+            const fitMm = (wMm, hMm) => {
+                const avW = Math.max(10, wMm - 2 * marginMm - (plan.cols - 1) * cfg.gapMm);
+                const avH = Math.max(10, hMm - 2 * marginMm - (plan.rows - 1) * cfg.gapMm);
+                const sc = Math.min(avW / (plan.cols * aspectW), avH / (plan.rows * aspectH));
+                return { bibW: Math.round(aspectW * sc), bibH: Math.round(aspectH * sc), area: (aspectW * sc) * (aspectH * sc), sheetLabel: `${wMm}×${hMm} mm` };
+            };
+            const land = fitMm(longMm, shortMm);
+            const port = fitMm(shortMm, longMm);
+            const chosen = cfg.orientation === 'L' ? land : (cfg.orientation === 'P' ? port : (port.area > land.area ? port : land));
+            sizeEstText = ` • Kertas ${cfg.paperSize} (${chosen.sheetLabel}) • Est. BIB ~${chosen.bibW}×${chosen.bibH} mm`;
+        }
+
+        summaryEl.textContent = `Total: ${plan.totalBib} BIB • Layout: ${plan.rows}×${plan.cols} (${plan.slotsPerSheet}-up) • Hasil: ${plan.totalSheets} Lembar${sizeEstText}`;
+
+        const currentSheet = plan.sheets[window.bibImpActiveSheetIdx] || { sheet: 1, slots: [] };
+        indicatorEl.textContent = `Sheet ${currentSheet.sheet} / ${plan.totalSheets}`;
+
+        gridEl.style.gridTemplateColumns = `repeat(${plan.cols}, minmax(0, 1fr))`;
+        gridEl.innerHTML = currentSheet.slots.map((pos, k) => {
+            const r = Math.floor(k / plan.cols) + 1;
+            const c = (k % plan.cols) + 1;
+            if (pos === null) {
+                return `<div class="rounded border border-slate-800 bg-slate-900/40 p-2.5 text-center">
+                    <span class="block text-[10px] text-slate-400 font-mono">Slot R${r}C${c}</span>
+                    <span class="block text-xs font-mono text-slate-400 mt-0.5">KOSONG</span>
+                </div>`;
+            }
+            return `<div class="rounded border border-slate-700 bg-slate-900 p-2.5 text-center">
+                <span class="block text-[10px] text-slate-400 font-mono">Slot #${k + 1} (R${r}C${c})</span>
+                <span class="block text-sm font-mono font-bold text-white mt-0.5">Urut #${pos}</span>
+            </div>`;
+        }).join('');
     };
 
     function saveBibPreset(quiet = false) {
@@ -6150,6 +6431,7 @@
             take_last: document.getElementById('bibTakeLast').value,
             prefix: document.getElementById('bibPrefix').value,
             max_name_length: document.getElementById('bibMaxNameLength').value,
+            imposition: window.getBibImpositionConfig ? window.getBibImpositionConfig() : undefined,
             texts: textElements
         };
 
@@ -6194,6 +6476,32 @@
             }
             if (preset.max_name_length !== undefined) {
                 document.getElementById('bibMaxNameLength').value = preset.max_name_length;
+            }
+            if (preset.imposition && typeof preset.imposition === 'object') {
+                if (preset.imposition.mode && document.getElementById('bibImpMode')) {
+                    document.getElementById('bibImpMode').value = preset.imposition.mode;
+                }
+                if (preset.imposition.paperSize && document.getElementById('bibImpPaper')) {
+                    document.getElementById('bibImpPaper').value = preset.imposition.paperSize;
+                }
+                if (preset.imposition.orientation && document.getElementById('bibImpOrientation')) {
+                    document.getElementById('bibImpOrientation').value = preset.imposition.orientation;
+                }
+                if (preset.imposition.rows && document.getElementById('bibImpRows')) {
+                    document.getElementById('bibImpRows').value = preset.imposition.rows;
+                }
+                if (preset.imposition.cols && document.getElementById('bibImpCols')) {
+                    document.getElementById('bibImpCols').value = preset.imposition.cols;
+                }
+                if (preset.imposition.gapMm !== undefined && document.getElementById('bibImpGap')) {
+                    document.getElementById('bibImpGap').value = preset.imposition.gapMm;
+                }
+                if (preset.imposition.cropMarks !== undefined && document.getElementById('bibImpCropMarks')) {
+                    document.getElementById('bibImpCropMarks').checked = Boolean(preset.imposition.cropMarks);
+                }
+                if (typeof window.onBibImpositionChange === 'function') {
+                    window.onBibImpositionChange();
+                }
             }
 
             // Clear existing texts and QR codes
@@ -6844,10 +7152,12 @@
             setTimeout(function() {
                 loadBibPreset(true);
                 window.loadBibParticipant(window.activeParticipantIndex || 0);
+                if (typeof window.onBibImpositionChange === 'function') window.onBibImpositionChange();
                 preloadBibFonts();
             }, 100);
         } else {
             window.loadBibParticipant(window.activeParticipantIndex || 0);
+            if (typeof window.onBibImpositionChange === 'function') window.onBibImpositionChange();
             preloadBibFonts();
         }
     }
@@ -7281,7 +7591,7 @@
         }
     }
 
-    function generateBibPdf(btn, isSingle = false) {
+    function generateBibPdf(btn, isSingle = false, previewFirstSheetOnly = false) {
         if (!bibImageBase64) {
             alert('Silakan upload background gambar BIB terlebih dahulu.');
             return;
@@ -7325,6 +7635,29 @@
             };
         });
 
+        const impCfg = window.getBibImpositionConfig ? window.getBibImpositionConfig() : {
+            paperSize: 'ORIGINAL',
+            orientation: 'auto',
+            rows: 1,
+            cols: 1,
+            mode: 'single',
+            gapMm: 0,
+            cropMarks: false
+        };
+
+        const effectiveImposition = isSingle
+            ? {
+                ...impCfg,
+                mode: impCfg.mode === 'step-repeat' ? 'step-repeat' : 'single',
+                rows: impCfg.mode === 'step-repeat' ? impCfg.rows : 1,
+                cols: impCfg.mode === 'step-repeat' ? impCfg.cols : 1,
+                previewFirstSheetOnly: false
+            }
+            : {
+                ...impCfg,
+                previewFirstSheetOnly: Boolean(previewFirstSheetOnly)
+            };
+
         const bgScale = bibCanvas.backgroundImage.scaleX;
         const payload = {
             image_base64: bibImageBase64,
@@ -7335,7 +7668,8 @@
             take_last: document.getElementById('bibTakeLast').value,
             prefix: document.getElementById('bibPrefix').value,
             max_name_length: document.getElementById('bibMaxNameLength').value,
-            overrides: window.bibOverrides || {}
+            overrides: window.bibOverrides || {},
+            imposition: effectiveImposition
         };
 
         const isCustomMode = document.getElementById('bibCustomRangeMode') && document.getElementById('bibCustomRangeMode').checked;

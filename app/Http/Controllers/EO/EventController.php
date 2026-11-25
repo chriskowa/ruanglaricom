@@ -3234,14 +3234,23 @@ class EventController extends Controller
             'custom_to' => 'nullable|integer|min:0',
             'start_date' => 'nullable|date',
             'end_date' => 'nullable|date',
+            'imposition' => 'nullable|array',
+            'imposition.paperSize' => 'nullable|string|in:ORIGINAL,A3,A3+',
+            'imposition.orientation' => 'nullable|string|in:auto,L,P',
+            'imposition.rows' => 'nullable|integer|min:1|max:10',
+            'imposition.cols' => 'nullable|integer|min:1|max:10',
+            'imposition.mode' => 'nullable|string|in:single,step-repeat,vdp,cut-stack',
+            'imposition.gapMm' => 'nullable|numeric|min:0|max:30',
+            'imposition.cropMarks' => 'nullable|boolean',
+            'imposition.previewFirstSheetOnly' => 'nullable|boolean',
         ]);
 
         if ($request->boolean('is_custom_range')) {
             $from = (int) $request->custom_from;
             $to = (int) $request->custom_to;
 
-            if (($to - $from) > 1000) {
-                return response()->json(['success' => false, 'message' => 'Rentang kustom maksimal adalah 1000 nomor BIB sekali cetak.']);
+            if (($to - $from) > 5000) {
+                return response()->json(['success' => false, 'message' => 'Rentang kustom maksimal adalah 5000 nomor BIB sekali cetak.']);
             }
 
             $participants = collect();
@@ -3410,8 +3419,85 @@ class EventController extends Controller
         }
         
         try {
+            $impositionInput = is_array($request->input('imposition')) ? $request->input('imposition') : [];
+            $impMode = (string) ($impositionInput['mode'] ?? 'single');
+            if (!in_array($impMode, ['single', 'step-repeat', 'vdp', 'cut-stack'], true)) {
+                $impMode = 'single';
+            }
+            $impPaper = (string) ($impositionInput['paperSize'] ?? ($impMode === 'single' ? 'ORIGINAL' : 'A3+'));
+            if ($impMode !== 'single' && $impPaper === 'ORIGINAL') {
+                $impPaper = 'A3+';
+            }
+            $impOrientation = (string) ($impositionInput['orientation'] ?? 'auto');
+            $impRows = $impMode === 'single' ? 1 : max(1, (int) ($impositionInput['rows'] ?? 2));
+            $impCols = $impMode === 'single' ? 1 : max(1, (int) ($impositionInput['cols'] ?? 2));
+            $impGapMm = $impMode === 'single' ? 0.0 : max(0.0, (float) ($impositionInput['gapMm'] ?? 0));
+            $impCropMarks = $impPaper !== 'ORIGINAL'
+                ? (array_key_exists('cropMarks', $impositionInput) ? (bool) $impositionInput['cropMarks'] : true)
+                : false;
+            $previewFirstSheetOnly = !empty($impositionInput['previewFirstSheetOnly']);
+
+            $mmToPt = 72.0 / 25.4;
+            $useSheetPaper = in_array($impPaper, ['A3', 'A3+'], true);
+
+            if ($useSheetPaper) {
+                // Physical sheet sizes in mm: A3 = 297x420, A3+ = 320x480
+                [$shortMm, $longMm] = $impPaper === 'A3+' ? [320.0, 480.0] : [297.0, 420.0];
+                $marginMm = $impCropMarks ? 6.0 : 4.0;
+                $marginPt = $marginMm * $mmToPt;
+                $gapPt = $impGapMm * $mmToPt;
+
+                $calcScale = function (float $wPt, float $hPt) use ($marginPt, $gapPt, $impCols, $impRows, $canvasWidthPx, $canvasHeightPx): float {
+                    $availW = max(10.0, $wPt - (2.0 * $marginPt) - (($impCols - 1) * $gapPt));
+                    $availH = max(10.0, $hPt - (2.0 * $marginPt) - (($impRows - 1) * $gapPt));
+                    return min($availW / ($impCols * $canvasWidthPx), $availH / ($impRows * $canvasHeightPx));
+                };
+
+                $landW = $longMm * $mmToPt;
+                $landH = $shortMm * $mmToPt;
+                $portW = $shortMm * $mmToPt;
+                $portH = $longMm * $mmToPt;
+
+                if ($impOrientation === 'L') {
+                    $sheetWidthPt = $landW;
+                    $sheetHeightPt = $landH;
+                } elseif ($impOrientation === 'P') {
+                    $sheetWidthPt = $portW;
+                    $sheetHeightPt = $portH;
+                } else {
+                    $scaleLand = $calcScale($landW, $landH);
+                    $scalePort = $calcScale($portW, $portH);
+                    if ($scalePort > $scaleLand) {
+                        $sheetWidthPt = $portW;
+                        $sheetHeightPt = $portH;
+                    } else {
+                        $sheetWidthPt = $landW;
+                        $sheetHeightPt = $landH;
+                    }
+                }
+
+                $slotScale = $calcScale($sheetWidthPt, $sheetHeightPt);
+                $bibWidthPt = $canvasWidthPx * $slotScale;
+                $bibHeightPt = $canvasHeightPx * $slotScale;
+                $gridTotalW = ($impCols * $bibWidthPt) + (($impCols - 1) * $gapPt);
+                $gridTotalH = ($impRows * $bibHeightPt) + (($impRows - 1) * $gapPt);
+                $gridStartX = ($sheetWidthPt - $gridTotalW) / 2.0;
+                $gridStartY = ($sheetHeightPt - $gridTotalH) / 2.0;
+            } else {
+                $sheetWidthPt = (float) $canvasWidthPx;
+                $sheetHeightPt = (float) $canvasHeightPx;
+                $slotScale = 1.0;
+                $gapPt = 0.0;
+                $bibWidthPt = (float) $canvasWidthPx;
+                $bibHeightPt = (float) $canvasHeightPx;
+                $gridStartX = 0.0;
+                $gridStartY = 0.0;
+            }
+
+            $pageOrientation = $sheetWidthPt >= $sheetHeightPt ? 'L' : 'P';
+
             // Enable diskcache (6th parameter = true) to prevent memory issues with large numbers of pages
-            $pdf = new SafeTCPDF('L', 'pt', [$canvasWidthPx, $canvasHeightPx], true, 'UTF-8', true);
+            $pdf = new SafeTCPDF($pageOrientation, 'pt', [$sheetWidthPt, $sheetHeightPt], true, 'UTF-8', true);
             $pdf->SetCreator(PDF_CREATOR);
             $pdf->SetAuthor('RuangLari');
             $pdf->SetTitle('BIBs - ' . $event->name);
@@ -3425,209 +3511,245 @@ class EventController extends Controller
             $maxNameLength = $request->input('max_name_length') !== null ? (int)$request->input('max_name_length') : 18;
             $texts = $request->texts;
             $overrides = $request->input('overrides', []);
+            $isCustomRange = $request->boolean('is_custom_range');
 
-            foreach ($participants as $p) {
-                $pdf->AddPage('L', [$canvasWidthPx, $canvasHeightPx]);
-                $pdf->Image($tempImgPath, 0, 0, $canvasWidthPx, $canvasHeightPx, '', '', '', false, 300, '', false, false, 0);
-                
-                // Get override for this participant if any
-                $pOverride = isset($overrides[$p->id]) ? $overrides[$p->id] : [];
-                
-                $bibNum = isset($pOverride['bib_number']) ? $pOverride['bib_number'] : $p->bib_number;
-                $dynamicBib = $bibNum;
-                $takeLastTrimmed = $takeLast !== null ? trim((string) $takeLast) : '';
+            $participantsList = $participants->values();
+            $sheets = $this->buildImpositionSheets($impMode, $impRows, $impCols, $participantsList->count());
+            if ($previewFirstSheetOnly && count($sheets) > 1) {
+                $sheets = [$sheets[0]];
+            }
 
-                if ($dynamicBib) {
-                    if ($takeLastTrimmed !== '' && !is_numeric($takeLastTrimmed)) {
-                        // Text-strip mode: remove exact substring (e.g. "PAOLORUNFE-2026-")
-                        $dynamicBib = str_replace($takeLastTrimmed, '', $dynamicBib);
-                    } elseif (strpos($dynamicBib, '-') !== false) {
-                        $parts = explode('-', $dynamicBib);
-                        $dynamicBib = end($parts);
-                    }
+            foreach ($sheets as $sheetSlots) {
+                $pdf->AddPage($pageOrientation, [$sheetWidthPt, $sheetHeightPt]);
 
-                    // Apply quota zero-padding before slicing last N characters
-                    if ($p->category && $p->category->quota > 0) {
-                        $padLength = strlen((string) $p->category->quota);
-                        if (is_numeric($dynamicBib)) {
-                            $dynamicBib = str_pad($dynamicBib, $padLength, '0', STR_PAD_LEFT);
-                        }
-                    }
-
-                    if ($takeLastTrimmed !== '' && is_numeric($takeLastTrimmed)) {
-                        $numChars = (int) $takeLastTrimmed;
-                        if ($numChars > 0) {
-                            $dynamicBib = substr($dynamicBib, -$numChars);
-                        }
-                    }
+                if ($impCropMarks && $useSheetPaper) {
+                    $this->drawSheetCropMarks(
+                        $pdf,
+                        $gridStartX,
+                        $gridStartY,
+                        $bibWidthPt,
+                        $bibHeightPt,
+                        $impRows,
+                        $impCols,
+                        $gapPt,
+                        $mmToPt
+                    );
                 }
 
-                // Prepend prefix cleanly without overwriting participant BIB digits
-                if ($prefix !== '') {
-                    $dynamicBib = $prefix . $dynamicBib;
-                }
-                $dynamicBib = trim($dynamicBib ?? '') === '' ? '-' : $dynamicBib;
-                $fullBibNumber = $request->boolean('is_custom_range')
-                    ? (string) $dynamicBib
-                    : (trim((string) ($bibNum ?? '')) !== '' ? (string) $bibNum : (string) $dynamicBib);
-                
-                $gender = isset($pOverride['gender']) ? $pOverride['gender'] : $p->gender;
-                $genderVal = '';
-                if (!empty($gender)) {
-                    $gLower = strtolower(trim($gender));
-                    if (in_array($gLower, ['male', 'm', 'laki-laki', 'l', 'men', 'man', 'laki - laki'])) {
-                        $genderVal = 'M';
-                    } elseif (in_array($gLower, ['female', 'f', 'perempuan', 'p', 'women', 'woman'])) {
-                        $genderVal = 'F';
-                    } else {
-                        $genderVal = strtoupper(substr($gender, 0, 1));
-                    }
-                }
-                $genderVal = trim($genderVal ?? '') === '' ? '-' : $genderVal;
-
-                $pName = isset($pOverride['name']) ? $pOverride['name'] : $p->display_bib_name;
-                $pName = trim($pName ?? '') === '' ? '-' : $pName;
-                if ($pName !== '-') {
-                    $pName = $this->formatBibName($pName, $maxNameLength);
-                }
-                
-                $pCategory = isset($pOverride['category']) ? $pOverride['category'] : ($p->category->name ?? '');
-                $pCategory = trim($pCategory ?? '') === '' ? '-' : $pCategory;
-                
-                $pBloodType = isset($pOverride['blood_type']) ? $pOverride['blood_type'] : $p->blood_type;
-                $pBloodType = trim($pBloodType ?? '') === '' ? '-' : $pBloodType;
-                
-                $pEmergencyNumber = isset($pOverride['emergency_contact_number']) ? $pOverride['emergency_contact_number'] : $p->emergency_contact_number;
-                $pEmergencyNumber = trim($pEmergencyNumber ?? '') === '' ? '-' : $pEmergencyNumber;
-                
-                $pEmergencyName = isset($pOverride['emergency_contact_name']) ? $pOverride['emergency_contact_name'] : $p->emergency_contact_name;
-                $pEmergencyName = trim($pEmergencyName ?? '') === '' ? '-' : $pEmergencyName;
-                
-                $pGroup = isset($pOverride['age_group']) ? $pOverride['age_group'] : $p->getAgeGroup($event->start_at ?: now());
-                $pGroup = trim($pGroup ?? '') === '' ? '-' : $pGroup;
-                
-                $couponCodeDefault = ($p->transaction && $p->transaction->coupon) ? $p->transaction->coupon->code : '';
-                $pCouponCode = isset($pOverride['coupon_code']) ? $pOverride['coupon_code'] : $couponCodeDefault;
-                $pCouponCode = trim($pCouponCode ?? '') === '' ? '-' : $pCouponCode;
-
-                foreach ($texts as $t) {
-                    if ((isset($t['type']) && $t['type'] === 'qr') || trim($t['text'] ?? '') === '[qr]') {
-                        $qrSize = isset($t['size']) ? (float) $t['size'] : (float) ($t['fontSize'] ?? 90);
-                        $qrX = (float) ($t['left'] ?? 0);
-                        $qrY = (float) ($t['top'] ?? 0);
-                        if (isset($t['originX']) && $t['originX'] === 'center') {
-                            $qrX -= ($qrSize / 2);
-                        }
-                        if (isset($t['originY']) && $t['originY'] === 'center') {
-                            $qrY -= ($qrSize / 2);
-                        }
-                        $qrStyle = [
-                            'border' => 0,
-                            'vpadding' => 2,
-                            'hpadding' => 2,
-                            'fgcolor' => [0, 0, 0],
-                            'bgcolor' => [255, 255, 255],
-                            'module_width' => 1,
-                            'module_height' => 1,
-                        ];
-                        $pdf->write2DBarcode((string) $fullBibNumber, 'QRCODE,M', $qrX, $qrY, $qrSize, $qrSize, $qrStyle, 'N');
+                foreach ($sheetSlots as $slotIdx => $participantIdx) {
+                    if ($participantIdx === null || !isset($participantsList[$participantIdx])) {
                         continue;
                     }
 
-                    $textValue = str_replace(
-                        [
-                            '{emergency_contact_number}', '[E#]',
-                            '{emergency_contact_name}', '[EN]',
-                            '{bib_number}', '#',
-                            '{bib_name}',
-                            '{name}', '[N]',
-                            '{category}', '[C]',
-                            '{blood_type}', '[B]',
-                            '{gender}', '[G]',
-                            '{age_group}', '[GR]',
-                            '{coupon_code}', '[KP]'
-                        ],
-                        [
-                            $pEmergencyNumber, $pEmergencyNumber,
-                            $pEmergencyName, $pEmergencyName,
-                            $dynamicBib, $dynamicBib,
-                            $pName,
-                            $pName, $pName,
-                            $pCategory, $pCategory,
-                            $pBloodType, $pBloodType,
-                            $genderVal, $genderVal,
-                            $pGroup, $pGroup,
-                            $pCouponCode, $pCouponCode
-                        ],
-                        $t['text']
-                    );
-                    
-                    $hex = ltrim($t['fill'], '#');
-                    $r = hexdec(substr($hex, 0, 2));
-                    $g = hexdec(substr($hex, 2, 2));
-                    $b = hexdec(substr($hex, 4, 2));
-                    $pdf->SetTextColor($r, $g, $b);
-                    
-                    $fontStyle = '';
-                    if (isset($t['fontWeight']) && $t['fontWeight'] === 'bold') {
-                        $fontStyle .= 'B';
-                    }
-                    if (isset($t['fontStyle']) && $t['fontStyle'] === 'italic') {
-                        $fontStyle .= 'I';
-                    }
-                    $fontSizePt = $t['fontSize'];
-                    $fontFamily = strtolower($t['fontFamily'] ?? 'helvetica');
-                    
-                    if (in_array($fontFamily, ['times new roman', 'times', 'serif'])) {
-                        $fontFamily = 'times';
-                    } elseif ($fontFamily === 'montserrat extrabold') {
-                        $fontFamily = 'montserratextrab';
-                        $fontStyle = ''; // ExtraBold is built into the font family
-                    } elseif (in_array($fontFamily, ['bebas neue', 'bebasneue'])) {
-                        $fontFamily = 'bebasneue';
-                        $fontStyle = ''; // Usually only one weight
-                    } elseif ($fontFamily === 'anton') {
-                        $fontFamily = 'anton';
-                        $fontStyle = ''; // Usually only one weight
-                    } elseif ($fontFamily === 'montserrat') {
-                        $fontFamily = 'montserrat';
-                    } elseif (in_array($fontFamily, ['courier', 'courier new', 'monospace'])) {
-                        $fontFamily = 'courier';
-                    } elseif (in_array($fontFamily, ['helvetica', 'arial', 'sans-serif'])) {
-                        $fontFamily = 'helvetica';
-                    } else {
-                        $fontFamily = 'helvetica';
+                    $p = $participantsList[$participantIdx];
+                    $rowIdx = intdiv($slotIdx, $impCols);
+                    $colIdx = $slotIdx % $impCols;
+                    $offsetX = $gridStartX + ($colIdx * ($bibWidthPt + $gapPt));
+                    $offsetY = $gridStartY + ($rowIdx * ($bibHeightPt + $gapPt));
+
+                    $pdf->Image($tempImgPath, $offsetX, $offsetY, $bibWidthPt, $bibHeightPt, '', '', '', false, 300, '', false, false, 0);
+
+                    // Get override for this participant if any
+                    $pOverride = isset($overrides[$p->id]) ? $overrides[$p->id] : [];
+
+                    $bibNum = isset($pOverride['bib_number']) ? $pOverride['bib_number'] : $p->bib_number;
+                    $dynamicBib = $bibNum;
+                    $takeLastTrimmed = $takeLast !== null ? trim((string) $takeLast) : '';
+
+                    if ($dynamicBib) {
+                        if ($takeLastTrimmed !== '' && !is_numeric($takeLastTrimmed)) {
+                            $dynamicBib = str_replace($takeLastTrimmed, '', $dynamicBib);
+                        } elseif (strpos($dynamicBib, '-') !== false) {
+                            $parts = explode('-', $dynamicBib);
+                            $dynamicBib = end($parts);
+                        }
+
+                        if ($p->category && $p->category->quota > 0) {
+                            $padLength = strlen((string) $p->category->quota);
+                            if (is_numeric($dynamicBib)) {
+                                $dynamicBib = str_pad($dynamicBib, $padLength, '0', STR_PAD_LEFT);
+                            }
+                        }
+
+                        if ($takeLastTrimmed !== '' && is_numeric($takeLastTrimmed)) {
+                            $numChars = (int) $takeLastTrimmed;
+                            if ($numChars > 0) {
+                                $dynamicBib = substr($dynamicBib, -$numChars);
+                            }
+                        }
                     }
 
-                    $pdf->SetFont($fontFamily, $fontStyle, $fontSizePt);
-                    
-                    $textWidth = $pdf->GetStringWidth($textValue);
-                    $textHeight = $fontSizePt;
-                    
-                    $x = $t['left'];
-                    $y = $t['top'];
-                    
-                    if (isset($t['originX']) && $t['originX'] === 'center') {
-                        $x -= ($textWidth / 2);
+                    if ($prefix !== '') {
+                        $dynamicBib = $prefix . $dynamicBib;
                     }
-                    if (isset($t['originY']) && $t['originY'] === 'center') {
-                        $y -= ($textHeight / 2);
+                    $dynamicBib = trim($dynamicBib ?? '') === '' ? '-' : $dynamicBib;
+                    $fullBibNumber = $isCustomRange
+                        ? (string) $dynamicBib
+                        : (trim((string) ($bibNum ?? '')) !== '' ? (string) $bibNum : (string) $dynamicBib);
+
+                    $gender = isset($pOverride['gender']) ? $pOverride['gender'] : $p->gender;
+                    $genderVal = '';
+                    if (!empty($gender)) {
+                        $gLower = strtolower(trim($gender));
+                        if (in_array($gLower, ['male', 'm', 'laki-laki', 'l', 'men', 'man', 'laki - laki'])) {
+                            $genderVal = 'M';
+                        } elseif (in_array($gLower, ['female', 'f', 'perempuan', 'p', 'women', 'woman'])) {
+                            $genderVal = 'F';
+                        } else {
+                            $genderVal = strtoupper(substr($gender, 0, 1));
+                        }
                     }
-                    
-                    $pdf->Text($x, $y, $textValue);
+                    $genderVal = trim($genderVal ?? '') === '' ? '-' : $genderVal;
+
+                    $pName = isset($pOverride['name']) ? $pOverride['name'] : $p->display_bib_name;
+                    $pName = trim($pName ?? '') === '' ? '-' : $pName;
+                    if ($pName !== '-') {
+                        $pName = $this->formatBibName($pName, $maxNameLength);
+                    }
+
+                    $pCategory = isset($pOverride['category']) ? $pOverride['category'] : ($p->category->name ?? '');
+                    $pCategory = trim($pCategory ?? '') === '' ? '-' : $pCategory;
+
+                    $pBloodType = isset($pOverride['blood_type']) ? $pOverride['blood_type'] : $p->blood_type;
+                    $pBloodType = trim($pBloodType ?? '') === '' ? '-' : $pBloodType;
+
+                    $pEmergencyNumber = isset($pOverride['emergency_contact_number']) ? $pOverride['emergency_contact_number'] : $p->emergency_contact_number;
+                    $pEmergencyNumber = trim($pEmergencyNumber ?? '') === '' ? '-' : $pEmergencyNumber;
+
+                    $pEmergencyName = isset($pOverride['emergency_contact_name']) ? $pOverride['emergency_contact_name'] : $p->emergency_contact_name;
+                    $pEmergencyName = trim($pEmergencyName ?? '') === '' ? '-' : $pEmergencyName;
+
+                    $pGroup = isset($pOverride['age_group']) ? $pOverride['age_group'] : $p->getAgeGroup($event->start_at ?: now());
+                    $pGroup = trim($pGroup ?? '') === '' ? '-' : $pGroup;
+
+                    $couponCodeDefault = ($p->transaction && $p->transaction->coupon) ? $p->transaction->coupon->code : '';
+                    $pCouponCode = isset($pOverride['coupon_code']) ? $pOverride['coupon_code'] : $couponCodeDefault;
+                    $pCouponCode = trim($pCouponCode ?? '') === '' ? '-' : $pCouponCode;
+
+                    foreach ($texts as $t) {
+                        if ((isset($t['type']) && $t['type'] === 'qr') || trim($t['text'] ?? '') === '[qr]') {
+                            $rawQrSize = isset($t['size']) ? (float) $t['size'] : (float) ($t['fontSize'] ?? 90);
+                            $qrSize = $rawQrSize * $slotScale;
+                            $qrX = $offsetX + ((float) ($t['left'] ?? 0) * $slotScale);
+                            $qrY = $offsetY + ((float) ($t['top'] ?? 0) * $slotScale);
+                            if (isset($t['originX']) && $t['originX'] === 'center') {
+                                $qrX -= ($qrSize / 2.0);
+                            }
+                            if (isset($t['originY']) && $t['originY'] === 'center') {
+                                $qrY -= ($qrSize / 2.0);
+                            }
+                            $qrStyle = [
+                                'border' => 0,
+                                'vpadding' => 2,
+                                'hpadding' => 2,
+                                'fgcolor' => [0, 0, 0],
+                                'bgcolor' => [255, 255, 255],
+                                'module_width' => 1,
+                                'module_height' => 1,
+                            ];
+                            $pdf->write2DBarcode((string) $fullBibNumber, 'QRCODE,M', $qrX, $qrY, $qrSize, $qrSize, $qrStyle, 'N');
+                            continue;
+                        }
+
+                        $textValue = str_replace(
+                            [
+                                '{emergency_contact_number}', '[E#]',
+                                '{emergency_contact_name}', '[EN]',
+                                '{bib_number}', '#',
+                                '{bib_name}',
+                                '{name}', '[N]',
+                                '{category}', '[C]',
+                                '{blood_type}', '[B]',
+                                '{gender}', '[G]',
+                                '{age_group}', '[GR]',
+                                '{coupon_code}', '[KP]'
+                            ],
+                            [
+                                $pEmergencyNumber, $pEmergencyNumber,
+                                $pEmergencyName, $pEmergencyName,
+                                $dynamicBib, $dynamicBib,
+                                $pName,
+                                $pName, $pName,
+                                $pCategory, $pCategory,
+                                $pBloodType, $pBloodType,
+                                $genderVal, $genderVal,
+                                $pGroup, $pGroup,
+                                $pCouponCode, $pCouponCode
+                            ],
+                            $t['text']
+                        );
+
+                        $hex = ltrim($t['fill'], '#');
+                        $r = hexdec(substr($hex, 0, 2));
+                        $g = hexdec(substr($hex, 2, 2));
+                        $b = hexdec(substr($hex, 4, 2));
+                        $pdf->SetTextColor($r, $g, $b);
+
+                        $fontStyle = '';
+                        if (isset($t['fontWeight']) && $t['fontWeight'] === 'bold') {
+                            $fontStyle .= 'B';
+                        }
+                        if (isset($t['fontStyle']) && $t['fontStyle'] === 'italic') {
+                            $fontStyle .= 'I';
+                        }
+                        $fontSizePt = (float) $t['fontSize'] * $slotScale;
+                        $fontFamily = strtolower($t['fontFamily'] ?? 'helvetica');
+
+                        if (in_array($fontFamily, ['times new roman', 'times', 'serif'])) {
+                            $fontFamily = 'times';
+                        } elseif ($fontFamily === 'montserrat extrabold') {
+                            $fontFamily = 'montserratextrab';
+                            $fontStyle = '';
+                        } elseif (in_array($fontFamily, ['bebas neue', 'bebasneue'])) {
+                            $fontFamily = 'bebasneue';
+                            $fontStyle = '';
+                        } elseif ($fontFamily === 'anton') {
+                            $fontFamily = 'anton';
+                            $fontStyle = '';
+                        } elseif ($fontFamily === 'montserrat') {
+                            $fontFamily = 'montserrat';
+                        } elseif (in_array($fontFamily, ['courier', 'courier new', 'monospace'])) {
+                            $fontFamily = 'courier';
+                        } elseif (in_array($fontFamily, ['helvetica', 'arial', 'sans-serif'])) {
+                            $fontFamily = 'helvetica';
+                        } else {
+                            $fontFamily = 'helvetica';
+                        }
+
+                        $pdf->SetFont($fontFamily, $fontStyle, $fontSizePt);
+
+                        $textWidth = $pdf->GetStringWidth($textValue);
+                        $textHeight = $fontSizePt;
+
+                        $x = $offsetX + ((float) $t['left'] * $slotScale);
+                        $y = $offsetY + ((float) $t['top'] * $slotScale);
+
+                        if (isset($t['originX']) && $t['originX'] === 'center') {
+                            $x -= ($textWidth / 2.0);
+                        }
+                        if (isset($t['originY']) && $t['originY'] === 'center') {
+                            $y -= ($textHeight / 2.0);
+                        }
+
+                        $pdf->Text($x, $y, $textValue);
+                    }
                 }
             }
             
             @unlink($tempImgPath);
             
-            if ($request->boolean('is_custom_range')) {
-                $pdfFilename = 'BIB_Custom_' . $from . '_to_' . $to . '_' . $event->slug . '_' . time() . '.pdf';
+            $modeSuffix = $impMode !== 'single' ? ('_' . strtoupper($impMode) . '_' . $impPaper . '_' . $impRows . 'x' . $impCols) : '';
+            if ($previewFirstSheetOnly) {
+                $modeSuffix .= '_Sheet1';
+            }
+            if ($isCustomRange) {
+                $pdfFilename = 'BIB_Custom_' . $from . '_to_' . $to . $modeSuffix . '_' . $event->slug . '_' . time() . '.pdf';
             } elseif ($request->filled('single_participant_id') && $participants->count() === 1) {
                 $singleParticipant = $participants->first();
                 $cleanName = Str::slug($singleParticipant->name);
-                $pdfFilename = 'BIB_' . $cleanName . '_' . $event->slug . '_' . time() . '.pdf';
+                $pdfFilename = 'BIB_' . $cleanName . $modeSuffix . '_' . $event->slug . '_' . time() . '.pdf';
             } else {
-                $pdfFilename = 'BIB_Export_' . $event->slug . '_' . time() . '.pdf';
+                $pdfFilename = 'BIB_Export' . $modeSuffix . '_' . $event->slug . '_' . time() . '.pdf';
             }
             
             // Ensure storage path exists
@@ -3658,6 +3780,102 @@ class EventController extends Controller
                 'success' => false,
                 'message' => 'Gagal menghasilkan PDF: ' . $e->getMessage()
             ], 500);
+        }
+    }
+
+    /**
+     * Map participant indices (0-based) into sheet slot arrays for print imposition.
+     * Supports: single, step-repeat, vdp, cut-stack.
+     */
+    public function buildImpositionSheets(string $mode, int $rows, int $cols, int $totalBib): array
+    {
+        if ($totalBib <= 0) {
+            return [];
+        }
+
+        $r = $mode === 'single' ? 1 : max(1, $rows);
+        $c = $mode === 'single' ? 1 : max(1, $cols);
+        $slotsPerSheet = $r * $c;
+        $sheets = [];
+
+        if ($mode === 'single' || $mode === 'step-repeat') {
+            for ($n = 1; $n <= $totalBib; $n++) {
+                $sheets[] = array_fill(0, $slotsPerSheet, $n - 1);
+            }
+
+            return $sheets;
+        }
+
+        $totalSheets = (int) ceil($totalBib / $slotsPerSheet);
+
+        for ($n = 1; $n <= $totalSheets; $n++) {
+            $slots = [];
+            for ($k = 0; $k < $slotsPerSheet; $k++) {
+                $pos = ($mode === 'cut-stack')
+                    ? ($n + ($k * $totalSheets))
+                    : (($n - 1) * $slotsPerSheet + $k + 1);
+
+                $slots[] = ($pos <= $totalBib) ? ($pos - 1) : null;
+            }
+            $sheets[] = $slots;
+        }
+
+        return $sheets;
+    }
+
+    /**
+     * Draw registration hairlines (crop marks) outside the BIB grid for guillotine cutting.
+     */
+    private function drawSheetCropMarks(
+        \TCPDF $pdf,
+        float $startX,
+        float $startY,
+        float $bibW,
+        float $bibH,
+        int $rows,
+        int $cols,
+        float $gapPt,
+        float $mmToPt
+    ): void {
+        $gridW = ($cols * $bibW) + (($cols - 1) * $gapPt);
+        $gridH = ($rows * $bibH) + (($rows - 1) * $gapPt);
+        $offsetPt = 1.5 * $mmToPt;
+        $lenPt = 3.5 * $mmToPt;
+
+        $xCuts = [];
+        for ($c = 0; $c < $cols; $c++) {
+            $left = $startX + ($c * ($bibW + $gapPt));
+            $right = $left + $bibW;
+            $xCuts[] = round($left, 2);
+            $xCuts[] = round($right, 2);
+        }
+        $xCuts = array_values(array_unique($xCuts));
+
+        $yCuts = [];
+        for ($r = 0; $r < $rows; $r++) {
+            $top = $startY + ($r * ($bibH + $gapPt));
+            $bottom = $top + $bibH;
+            $yCuts[] = round($top, 2);
+            $yCuts[] = round($bottom, 2);
+        }
+        $yCuts = array_values(array_unique($yCuts));
+
+        $style = [
+            'width' => 0.3,
+            'cap' => 'butt',
+            'join' => 'miter',
+            'dash' => 0,
+            'color' => [0, 0, 0],
+        ];
+
+        foreach ($xCuts as $x) {
+            $pdf->Line($x, max(0.0, $startY - $offsetPt - $lenPt), $x, max(0.0, $startY - $offsetPt), $style);
+            $pdf->Line($x, $startY + $gridH + $offsetPt, $x, $startY + $gridH + $offsetPt + $lenPt, $style);
+        }
+
+        foreach ($yCuts as $y) {
+            $pdf->Line(max(0.0, $startX - $offsetPt - $lenPt), $y, max(0.0, $startX - $offsetPt), $y, $style);
+            $pdf->Line($startX + $gridW + $offsetPt, $y, $startX + $gridW + $offsetPt + $lenPt, $y, $style);
         }
     }
 
