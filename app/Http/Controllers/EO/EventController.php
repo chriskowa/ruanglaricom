@@ -3510,6 +3510,9 @@ class EventController extends Controller
             
             $takeLast = $request->filled('take_last') ? $request->take_last : null;
             $prefix = $request->filled('prefix') ? $request->prefix : '';
+            $autoFormatNumber = $request->has('auto_format_number')
+                ? $request->boolean('auto_format_number')
+                : true;
             $maxNameLength = $request->input('max_name_length') !== null ? (int)$request->input('max_name_length') : 0;
             $autoFormatName = $request->has('auto_format_name')
                 ? $request->boolean('auto_format_name')
@@ -3557,11 +3560,22 @@ class EventController extends Controller
                     // Get override for this participant if any
                     $pOverride = isset($overrides[$p->id]) ? $overrides[$p->id] : [];
 
-                    $bibNum = isset($pOverride['bib_number']) ? $pOverride['bib_number'] : $p->bib_number;
+                    $hasOverrideBib = array_key_exists('bib_number', $pOverride);
+                    $bibNum = $hasOverrideBib ? trim((string) ($pOverride['bib_number'] ?? '')) : trim((string) ($p->bib_number ?? ''));
                     $dynamicBib = $bibNum;
                     $takeLastTrimmed = $takeLast !== null ? trim((string) $takeLast) : '';
 
-                    if ($dynamicBib) {
+                    if ($dynamicBib !== '' && $isCustomRange && $autoFormatNumber) {
+                        if ($takeLastTrimmed !== '' && is_numeric($takeLastTrimmed)) {
+                            $numChars = (int) $takeLastTrimmed;
+                            if ($numChars > 0) {
+                                $dynamicBib = substr($dynamicBib, -$numChars);
+                            }
+                        }
+                        if ($prefix !== '') {
+                            $dynamicBib = $prefix . $dynamicBib;
+                        }
+                    } elseif ($dynamicBib !== '' && !$hasOverrideBib && $autoFormatNumber) {
                         if ($takeLastTrimmed !== '' && !is_numeric($takeLastTrimmed)) {
                             $dynamicBib = str_replace($takeLastTrimmed, '', $dynamicBib);
                         } elseif (strpos($dynamicBib, '-') !== false) {
@@ -3582,15 +3596,16 @@ class EventController extends Controller
                                 $dynamicBib = substr($dynamicBib, -$numChars);
                             }
                         }
+
+                        if ($prefix !== '') {
+                            $dynamicBib = $prefix . $dynamicBib;
+                        }
                     }
 
-                    if ($prefix !== '') {
-                        $dynamicBib = $prefix . $dynamicBib;
-                    }
-                    $dynamicBib = trim($dynamicBib ?? '') === '' ? '-' : $dynamicBib;
+                    $dynamicBib = trim((string) ($dynamicBib ?? '')) === '' ? '-' : trim((string) $dynamicBib);
                     $fullBibNumber = $isCustomRange
                         ? (string) $dynamicBib
-                        : (trim((string) ($bibNum ?? '')) !== '' ? (string) $bibNum : (string) $dynamicBib);
+                        : ($bibNum !== '' ? (string) $bibNum : (string) $dynamicBib);
 
                     $gender = isset($pOverride['gender']) ? $pOverride['gender'] : $p->gender;
                     $genderVal = '';

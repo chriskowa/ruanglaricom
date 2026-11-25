@@ -1299,23 +1299,29 @@
                         <span class="block text-xs font-bold uppercase tracking-wider text-slate-200">3. Format Nomor &amp; Nama</span>
                         <div>
                             <label class="text-xs text-slate-300 block mb-1">Potong Teks / X Karakter Terakhir</label>
-                            <input type="text" id="bibTakeLast" value="4" placeholder="Misal: PAOLORUNFE-2026- atau 4" class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-xs text-white">
+                            <input type="text" id="bibTakeLast" value="4" placeholder="Misal: PAOLORUNFE-2026- atau 4" class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-xs text-white disabled:opacity-50">
                         </div>
                         <div class="grid grid-cols-2 gap-2">
                             <div>
                                 <label class="text-xs text-slate-300 block mb-1">Prefix Baru</label>
-                                <input type="text" id="bibPrefix" placeholder="Misal: 5" class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-xs text-white font-mono">
+                                <input type="text" id="bibPrefix" placeholder="Misal: 5" class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-xs text-white font-mono disabled:opacity-50">
                             </div>
                             <div>
                                 <label class="text-xs text-slate-300 block mb-1">Maks Karakter (0 = Bebas)</label>
                                 <input type="number" id="bibMaxNameLength" value="18" min="0" max="255" class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-xs text-white font-mono disabled:opacity-50">
                             </div>
                         </div>
-                        <label class="inline-flex items-center gap-2 text-xs text-slate-300 cursor-pointer pt-0.5">
-                            <input type="checkbox" id="bibAutoFormatName" onchange="onBibNameFormatModeChange()" class="rounded border-slate-700 bg-slate-900 text-yellow-500 focus:ring-yellow-500/50">
-                            <span>Auto-singkat &amp; batasi karakter nama</span>
-                        </label>
-                        <p class="text-[11px] text-slate-400">Nonaktifkan agar nama custom &amp; edit sementara di preview dicetak apa adanya.</p>
+                        <div class="space-y-1.5 pt-0.5">
+                            <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                                <input type="checkbox" id="bibAutoFormatNumber" checked onchange="onBibNumberFormatModeChange()" class="rounded border-slate-700 bg-slate-900 text-yellow-500 focus:ring-yellow-500/50">
+                                <span>Auto-potong &amp; tambah prefix nomor BIB</span>
+                            </label>
+                            <label class="flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                                <input type="checkbox" id="bibAutoFormatName" onchange="onBibNameFormatModeChange()" class="rounded border-slate-700 bg-slate-900 text-yellow-500 focus:ring-yellow-500/50">
+                                <span>Auto-singkat &amp; batasi karakter nama</span>
+                            </label>
+                        </div>
+                        <p class="text-[11px] text-slate-400">Nonaktifkan untuk mencetak nomor/nama apa adanya. Edit sementara di preview selalu dicetak sesuai input tanpa mengubah database.</p>
                     </div>
 
                     <!-- 4. Mode Cetak Kustom Tanpa Data -->
@@ -6185,6 +6191,16 @@
         toggleBibPreview();
     };
 
+    window.onBibNumberFormatModeChange = function() {
+        const autoChk = document.getElementById('bibAutoFormatNumber');
+        const takeLastInput = document.getElementById('bibTakeLast');
+        const prefixInput = document.getElementById('bibPrefix');
+        const enabled = autoChk ? autoChk.checked : true;
+        if (takeLastInput) takeLastInput.disabled = !enabled;
+        if (prefixInput) prefixInput.disabled = !enabled;
+        updateBibPreviewIfActive();
+    };
+
     window.onBibNameFormatModeChange = function() {
         const autoChk = document.getElementById('bibAutoFormatName');
         const maxLenInput = document.getElementById('bibMaxNameLength');
@@ -6475,6 +6491,7 @@
         const preset = {
             take_last: document.getElementById('bibTakeLast').value,
             prefix: document.getElementById('bibPrefix').value,
+            auto_format_number: document.getElementById('bibAutoFormatNumber')?.checked ?? true,
             max_name_length: document.getElementById('bibMaxNameLength').value,
             auto_format_name: document.getElementById('bibAutoFormatName')?.checked ?? false,
             canvas_width: bibCanvas.width || null,
@@ -6523,6 +6540,13 @@
             }
             if (preset.max_name_length !== undefined) {
                 document.getElementById('bibMaxNameLength').value = preset.max_name_length;
+            }
+            const autoNumEl = document.getElementById('bibAutoFormatNumber');
+            if (autoNumEl) {
+                autoNumEl.checked = preset.auto_format_number !== undefined ? Boolean(preset.auto_format_number) : true;
+                if (typeof window.onBibNumberFormatModeChange === 'function') {
+                    window.onBibNumberFormatModeChange();
+                }
             }
             const autoFormatEl = document.getElementById('bibAutoFormatName');
             if (autoFormatEl) {
@@ -6708,7 +6732,8 @@
         const isCustom = document.getElementById('bibCustomRangeMode') && document.getElementById('bibCustomRangeMode').checked;
         if (isCustom) {
             const customFromVal = document.getElementById('bibCustomFrom').value || '1';
-            const prefixVal = document.getElementById('bibPrefix').value || '';
+            const autoFormatNumber = document.getElementById('bibAutoFormatNumber')?.checked ?? true;
+            const prefixVal = autoFormatNumber ? (document.getElementById('bibPrefix').value || '') : '';
             const paddedTo = document.getElementById('bibCustomTo').value || '1';
             
             const padLength = paddedTo.length;
@@ -6776,10 +6801,14 @@
 
                 const stripVal = (document.getElementById('bibTakeLast').value || '').trim();
                 const prefixVal = document.getElementById('bibPrefix').value || '';
-                let bibNum = overrides.bib_number !== undefined ? overrides.bib_number : (data.bib_number || '-');
+                const autoFormatNumber = document.getElementById('bibAutoFormatNumber')?.checked ?? true;
+                const hasOverrideBib = overrides.bib_number !== undefined;
+                let rawBibNum = hasOverrideBib ? String(overrides.bib_number) : String(data.bib_number || '-');
+                rawBibNum = rawBibNum.trim() === '' ? '-' : rawBibNum.trim();
+                let bibNum = rawBibNum;
                 const categoryQuota = parseInt(overrides.category_quota !== undefined ? overrides.category_quota : (data.category_quota || 0), 10);
 
-                if (bibNum !== '-') {
+                if (bibNum !== '-' && !hasOverrideBib && autoFormatNumber) {
                     if (stripVal !== '' && !/^\d+$/.test(stripVal)) {
                         // Text-strip mode: remove exact substring (e.g. "PAOLORUNFE-2026-")
                         bibNum = bibNum.replaceAll(stripVal, '');
@@ -6804,7 +6833,7 @@
                     bibNum = bibNum.trim() === '' ? '-' : prefixVal + bibNum;
                 }
 
-                const fullBibNum = overrides.bib_number !== undefined ? overrides.bib_number : (data.bib_number || bibNum);
+                const fullBibNum = rawBibNum;
                 const combinedEmergency = `Emergency contact: ${emergency_contact_name} - ${emergency_contact_number}`;
 
                 return {
@@ -6835,16 +6864,19 @@
 
         const stripVal = document.getElementById('bibTakeLast').value;
         const prefixVal = document.getElementById('bibPrefix').value || '';
+        const autoFormatNumber = document.getElementById('bibAutoFormatNumber')?.checked ?? true;
         let bibNum = '10234';
-        if (stripVal) {
-            if (/^\d+$/.test(stripVal)) {
-                const numChars = parseInt(stripVal, 10);
-                bibNum = bibNum.slice(-numChars);
-            } else {
-                bibNum = bibNum.replace(stripVal, '');
+        if (autoFormatNumber) {
+            if (stripVal) {
+                if (/^\d+$/.test(stripVal)) {
+                    const numChars = parseInt(stripVal, 10);
+                    bibNum = bibNum.slice(-numChars);
+                } else {
+                    bibNum = bibNum.replace(stripVal, '');
+                }
             }
+            bibNum = prefixVal + bibNum;
         }
-        bibNum = prefixVal + bibNum;
 
         var dummyName = 'BUDI SANTOSO';
         if ((document.getElementById('bibAutoFormatName')?.checked ?? false)) {
@@ -7249,8 +7281,9 @@
         const q = String(query || '').trim().toLowerCase();
         if (!q || !window.currentParticipantsList || window.currentParticipantsList.length === 0) return;
         const idx = window.currentParticipantsList.findIndex(p => {
-            const nameMatch = (p.name && p.name.toLowerCase().includes(q)) || (p.full_name && p.full_name.toLowerCase().includes(q));
-            const bibMatch = p.bib_number && String(p.bib_number).toLowerCase().includes(q);
+            const ov = (window.bibOverrides && window.bibOverrides[p.id]) ? window.bibOverrides[p.id] : {};
+            const nameMatch = (p.name && p.name.toLowerCase().includes(q)) || (p.full_name && p.full_name.toLowerCase().includes(q)) || (ov.name && String(ov.name).toLowerCase().includes(q));
+            const bibMatch = (p.bib_number && String(p.bib_number).toLowerCase().includes(q)) || (ov.bib_number && String(ov.bib_number).toLowerCase().includes(q));
             return Boolean(nameMatch || bibMatch);
         });
         if (idx !== -1) {
@@ -7313,6 +7346,9 @@
             const bibMaxNameLengthInput = document.getElementById('bibMaxNameLength');
             if (bibMaxNameLengthInput) {
                 bibMaxNameLengthInput.addEventListener('input', updateBibPreviewIfActive);
+            }
+            if (typeof window.onBibNumberFormatModeChange === 'function') {
+                window.onBibNumberFormatModeChange();
             }
             if (typeof window.onBibNameFormatModeChange === 'function') {
                 window.onBibNameFormatModeChange();
@@ -7897,6 +7933,7 @@
             texts: textElements,
             take_last: document.getElementById('bibTakeLast').value,
             prefix: document.getElementById('bibPrefix').value,
+            auto_format_number: document.getElementById('bibAutoFormatNumber')?.checked ? 1 : 0,
             max_name_length: parseInt(document.getElementById('bibMaxNameLength')?.value || '0', 10) || 0,
             auto_format_name: document.getElementById('bibAutoFormatName')?.checked ? 1 : 0,
             overrides: window.bibOverrides || {},
