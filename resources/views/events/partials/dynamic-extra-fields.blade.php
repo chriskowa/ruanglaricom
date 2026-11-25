@@ -17,7 +17,7 @@
     @if($showBibName)
     <div>
         <label class="{{ $labelClass }}">Nama di BIB (Opsional)</label>
-        <input type="text" data-field="bib_name" name="participants[0][bib_name]" maxlength="20" placeholder="Contoh: BUDI (maks. 20 karakter)" class="{{ $inputClass }}">
+        <input type="text" data-field="bib_name" name="participants[0][bib_name]" maxlength="30" placeholder="Contoh: BUDI RUNNER (maks. 30 karakter)" class="{{ $inputClass }}">
         <p class="{{ $hintClass }}">Kosongkan jika ingin memakai nama lengkap.</p>
     </div>
     @endif

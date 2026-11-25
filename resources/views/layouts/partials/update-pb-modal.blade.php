@@ -415,7 +415,7 @@
                             <div class="grid grid-cols-2 md:grid-cols-3 gap-2" id="feeling-btn-group">
                                 <button type="button" onclick="selectFeeling('strong')" data-feeling="strong" aria-pressed="false" class="feeling-btn">
                                     <div class="flex items-center gap-2">
-                                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+                                        <span class="w-1.5 h-1.5 rounded-full bg-green-400"></span>
                                         <span class="feeling-title text-[11px] font-black text-white">Sangat Prima</span>
                                     </div>
                                     <div class="mt-2 text-[9px] leading-snug text-white/28">Energi tinggi, siap sesi kualitas.</div>
@@ -774,7 +774,7 @@
                         <div class="bg-[#121c2e] border border-[#23354d] p-4 rounded-lg flex flex-col justify-between">
                             <div>
                                 <div class="flex items-center justify-between gap-2">
-                                    <span class="text-[9px] font-black uppercase tracking-wider text-emerald-400">Pilar 03 / Endurance</span>
+                                    <span class="text-[9px] font-black uppercase tracking-wider text-green-400">Pilar 03 / Endurance</span>
                                     <span class="text-[9.5px] font-mono text-slate-400">Max 25–30% Volume</span>
                                 </div>
                                 <h4 class="text-xs font-bold text-white mt-1.5">Jarak & Pacing Long Run</h4>
@@ -1247,7 +1247,7 @@
             const res = await resp.json();
 
             if (res.success || resp.ok) {
-                alertBox.className = 'p-3.5 bg-emerald-950/80 border border-emerald-500/50 text-emerald-200 text-xs font-semibold rounded-md block';
+                alertBox.className = 'p-3.5 bg-green-950 border border-green-700 text-green-200 text-xs font-semibold rounded-md block';
                 alertBox.textContent = res.message || 'Program aktif berhasil disesuaikan!';
 
                 setTimeout(() => {

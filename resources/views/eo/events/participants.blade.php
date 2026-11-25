@@ -154,8 +154,8 @@
                                 <svg class="w-3.5 h-3.5 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
                                 Print BIB
                             </button>
-                            <a href="{{ route('events.bib-check', $event->slug) }}" target="_blank" rel="noopener" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 font-bold text-xs flex items-center gap-1.5 transition-colors" title="Buka Layar TV BIB Check">
-                                <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
+                            <a href="{{ route('events.bib-check', $event->slug) }}" target="_blank" rel="noopener" class="px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs flex items-center gap-1.5 transition-colors" title="Buka Layar BIB Check">
+                                <svg class="w-3.5 h-3.5 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
                                 BIB Check
                             </a>
                             <button type="button" onclick="openDoorprizeModal()" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 font-bold text-xs flex items-center gap-1.5 transition-colors">
@@ -210,8 +210,8 @@
 
     <!-- Financial Summary -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8 relative z-10 print:hidden">
-        <div class="bg-emerald-900/20 backdrop-blur border border-emerald-500/30 rounded-xl p-4">
-            <p class="text-emerald-400 text-xs font-bold uppercase mb-1">Gross Revenue</p>
+        <div class="bg-slate-900 border border-slate-800 rounded-lg p-4">
+            <p class="text-green-400 text-xs font-bold uppercase mb-1">Gross Revenue</p>
             <h3 class="text-2xl font-black text-white">IDR {{ number_format($financials['gross_revenue'], 0, ',', '.') }}</h3>
             <p class="text-xs text-slate-400 mt-1">Total Paid Transactions</p>
         </div>
@@ -355,7 +355,7 @@
                                 <span class="text-slate-300 font-bold print:text-black">{{ $size }}</span>
                                 <span class="text-right text-slate-400 font-mono print:text-gray-600">{{ $quota !== null ? number_format($quota) : '∞' }}</span>
                                 <span class="text-right font-mono font-bold text-white print:text-black" id="repJerseySize_{{ $size }}">{{ $used }}</span>
-                                <span class="text-right font-mono font-bold print:text-black {{ $sisa !== null && $sisa == 0 ? 'text-red-400' : ($sisa !== null && $sisa <= 5 ? 'text-yellow-400' : 'text-emerald-400') }}">
+                                <span class="text-right font-mono font-bold print:text-black {{ $sisa !== null && $sisa == 0 ? 'text-red-400' : ($sisa !== null && $sisa <= 5 ? 'text-yellow-400' : 'text-green-400') }}">
                                     {{ $sisa !== null ? $sisa : '∞' }}
                                 </span>
                             </div>
@@ -370,7 +370,7 @@
                             <span class="text-slate-400 font-bold text-xs uppercase print:text-gray-500">TOTAL</span>
                             <span class="text-right font-mono font-bold text-slate-300 print:text-black">{{ $totalQuota !== null ? number_format($totalQuota) : '∞' }}</span>
                             <span class="text-right font-mono font-bold text-white print:text-black">{{ $totalUsed }}</span>
-                            <span class="text-right font-mono font-bold text-emerald-400 print:text-black">{{ $totalSisa !== null ? $totalSisa : '∞' }}</span>
+                            <span class="text-right font-mono font-bold text-green-400 print:text-black">{{ $totalSisa !== null ? $totalSisa : '∞' }}</span>
                         </div>
                     </div>
                 </div>
@@ -809,8 +809,8 @@
                                     @endif
 
                                     @if($hasProof)
-                                        <button type="button" onclick="event.stopPropagation(); openPhotoViewer('{{ asset('storage/' . $participant->transaction->payment_proof) }}')" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-950/80 text-emerald-300 border border-emerald-600/40 hover:bg-emerald-900 transition" title="Lihat Bukti Transfer">
-                                            <svg class="w-3 h-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Bukti
+                                        <button type="button" onclick="event.stopPropagation(); openPhotoViewer('{{ asset('storage/' . $participant->transaction->payment_proof) }}')" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-green-950 text-green-300 border border-green-800 hover:bg-green-900 transition" title="Lihat Bukti Transfer">
+                                            <svg class="w-3 h-3 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Bukti
                                         </button>
                                     @endif
                                 </div>
@@ -845,8 +845,8 @@
                                     Rejected
                                 </span>
                             @elseif($participant->isApproved && $isPaid)
-                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-950 text-emerald-300 border border-emerald-700/60">
-                                    <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
+                                <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-bold bg-green-950 text-green-300 border border-green-800">
+                                    <svg class="w-3.5 h-3.5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
                                     Approved
                                 </span>
                             @elseif($participant->isApproved && !$isPaid)
@@ -861,7 +861,7 @@
                                         Pending Review
                                     </span>
                                     <div class="flex items-center gap-1">
-                                        <button type="button" onclick="approveParticipant({{ $participant->id }}, '{{ addslashes($participant->name) }}')" class="px-2 py-1 bg-emerald-700 hover:bg-emerald-600 text-white rounded text-[11px] font-bold transition-colors flex items-center gap-1 shadow-sm" title="Setujui & Kirim E-Tiket">
+                                        <button type="button" onclick="approveParticipant({{ $participant->id }}, '{{ addslashes($participant->name) }}')" class="px-2 py-1 bg-green-700 hover:bg-green-600 text-white rounded text-[11px] font-bold transition-colors flex items-center gap-1 shadow-sm" title="Setujui & Kirim E-Tiket">
                                             <svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
                                             Approve
                                         </button>
@@ -942,28 +942,28 @@
                 </div>
                 <div class="flex items-center gap-1">
                     <a href="{{ $participants->url(1) }}" data-role="first"
-                       class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800 {{ $participants->onFirstPage() ? 'opacity-40 cursor-not-allowed pointer-events-none' : '' }}">
-                        « First
+                       class="px-2 py-1 text-xs rounded-md border border-slate-700 text-slate-300 hover:bg-slate-800 {{ $participants->onFirstPage() ? 'opacity-40 cursor-not-allowed pointer-events-none' : '' }}">
+                        Awal
                     </a>
                     <a href="{{ $participants->previousPageUrl() ?: $participants->url(1) }}" data-role="prev"
-                       class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800 {{ $participants->onFirstPage() ? 'opacity-40 cursor-not-allowed pointer-events-none' : '' }}">
-                        ‹ Prev
+                       class="px-2 py-1 text-xs rounded-md border border-slate-700 text-slate-300 hover:bg-slate-800 {{ $participants->onFirstPage() ? 'opacity-40 cursor-not-allowed pointer-events-none' : '' }}">
+                        Sebelumnya
                     </a>
 
                     @foreach ($participants->getUrlRange(max(1, $participants->currentPage() - 2), min($participants->lastPage(), $participants->currentPage() + 2)) as $page => $url)
                         <a href="{{ $url }}" data-page="{{ $page }}"
-                           class="px-3 py-1 text-xs rounded-lg border {{ $page == $participants->currentPage() ? 'border-yellow-500 bg-yellow-500 text-black font-bold' : 'border-slate-700 text-slate-300 hover:bg-slate-800' }}">
+                           class="px-3 py-1 text-xs rounded-md border {{ $page == $participants->currentPage() ? 'border-yellow-500 bg-yellow-500 text-black font-bold' : 'border-slate-700 text-slate-300 hover:bg-slate-800' }}">
                             {{ $page }}
                         </a>
                     @endforeach
 
                     <a href="{{ $participants->nextPageUrl() ?: $participants->url($participants->lastPage()) }}" data-role="next"
-                       class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800 {{ $participants->currentPage() == $participants->lastPage() ? 'opacity-40 cursor-not-allowed pointer-events-none' : '' }}">
-                        Next ›
+                       class="px-2 py-1 text-xs rounded-md border border-slate-700 text-slate-300 hover:bg-slate-800 {{ $participants->currentPage() == $participants->lastPage() ? 'opacity-40 cursor-not-allowed pointer-events-none' : '' }}">
+                        Berikutnya
                     </a>
                     <a href="{{ $participants->url($participants->lastPage()) }}" data-role="last"
-                       class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800 {{ $participants->currentPage() == $participants->lastPage() ? 'opacity-40 cursor-not-allowed pointer-events-none' : '' }}">
-                        Last »
+                       class="px-2 py-1 text-xs rounded-md border border-slate-700 text-slate-300 hover:bg-slate-800 {{ $participants->currentPage() == $participants->lastPage() ? 'opacity-40 cursor-not-allowed pointer-events-none' : '' }}">
+                        Akhir
                     </a>
                 </div>
             </div>
@@ -971,13 +971,13 @@
         @endif
         
         <!-- Bulk Action Toolbar -->
-        <div id="bulkActionToolbar" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-slate-900 border border-slate-700 rounded-xl shadow-2xl px-3.5 py-2 z-50 flex items-center gap-1.5 flex-wrap max-w-[95vw] hidden transition-all duration-200">
+        <div id="bulkActionToolbar" class="fixed bottom-5 left-1/2 transform -translate-x-1/2 bg-slate-900 border border-slate-700 rounded-lg shadow-xl px-3.5 py-2 z-50 flex items-center gap-1.5 flex-wrap max-w-[95vw] hidden transition-all duration-200">
             <div class="text-xs font-semibold text-slate-300 pr-2.5 mr-0.5 border-r border-slate-700 flex items-center gap-1.5 whitespace-nowrap">
                 <span id="selectedCount" class="font-bold text-white bg-slate-800 px-1.5 py-0.5 rounded border border-slate-700 text-[11px]">0</span>
                 <span class="text-slate-400 text-xs">terpilih</span>
             </div>
-            <button onclick="bulkApprove(this)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 hover:text-emerald-300 border border-slate-700 hover:border-emerald-700/50 text-xs font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap" title="Setujui dan kirim e-tiket">
-                <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
+            <button onclick="bulkApprove(this)" class="px-2.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-green-400 hover:text-green-300 border border-slate-700 hover:border-green-700 text-xs font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap" title="Setujui dan kirim e-tiket">
+                <svg class="w-3.5 h-3.5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
                 Approve
             </button>
             <button onclick="bulkReject(this)" class="px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-rose-400 hover:text-rose-300 border border-slate-700 hover:border-rose-700/50 text-xs font-medium flex items-center gap-1.5 transition-colors whitespace-nowrap" title="Tolak pendaftaran terpilih">
@@ -1159,13 +1159,13 @@
     <div class="fixed inset-0" style="background-color: rgba(2, 6, 23, 0.85);" onclick="closeBibModal()"></div>
     <div class="fixed inset-0 z-10 flex items-center justify-center p-3 sm:p-5 overflow-hidden">
         <div class="relative w-full max-w-6xl flex flex-col overflow-hidden rounded-lg bg-slate-950 border border-slate-800 text-left shadow-xl" style="width: min(94vw, 1320px); height: 90vh; max-height: 90vh;">
-            <!-- Studio Header -->
+            <!-- Modal Header -->
             <div class="px-5 py-3 bg-slate-900 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 shrink-0">
                 <div class="flex flex-wrap items-center gap-3">
                     <h3 id="bibModalTitle" class="text-lg font-bold text-white" style="font-family: 'Inter Tight', 'Sora', sans-serif; letter-spacing: -0.03em;">
-                        Print BIB Studio
+                        Desain &amp; Cetak BIB
                     </h3>
-                    <span id="bibEligibleCountBadge" class="px-2.5 py-1 rounded bg-emerald-950 text-emerald-300 text-xs font-semibold font-mono">
+                    <span id="bibEligibleCountBadge" class="px-2.5 py-1 rounded bg-slate-800 border border-slate-700 text-slate-200 text-xs font-semibold font-mono">
                         Memuat peserta Paid &amp; Approved...
                     </span>
                 </div>
@@ -1180,16 +1180,16 @@
                             @endforeach
                         </select>
                     </label>
-                    <a href="{{ route('events.bib-check', $event->slug) }}" target="_blank" rel="noopener" class="px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-emerald-300 transition duration-150">
-                        Layar TV BIB Check
+                    <a href="{{ route('events.bib-check', $event->slug) }}" target="_blank" rel="noopener" class="px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-200 transition duration-150">
+                        Layar BIB Check
                     </a>
-                    <button type="button" onclick="closeBibModal()" aria-label="Tutup Print BIB Studio" class="w-9 h-9 inline-flex items-center justify-center rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition duration-150">
+                    <button type="button" onclick="closeBibModal()" aria-label="Tutup Desain dan Cetak BIB" class="w-9 h-9 inline-flex items-center justify-center rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition duration-150">
                         <svg class="w-5 h-5" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                 </div>
             </div>
 
-            <!-- Studio Split Workspace -->
+            <!-- Modal Workspace -->
             <div class="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 overflow-y-auto lg:overflow-hidden" style="min-width: 0;">
                 <!-- Left Control Rail -->
                 <div class="lg:col-span-4 lg:h-full lg:overflow-y-auto p-4 space-y-4 bg-slate-900 border-b lg:border-b-0 lg:border-r border-slate-800" style="min-width: 0;">
@@ -1205,7 +1205,7 @@
                                 Muat Desain
                             </button>
                         </div>
-                        <button type="button" onclick="saveBibCheckSettings(this)" class="w-full px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-emerald-300 transition duration-150">
+                        <button type="button" onclick="saveBibCheckSettings(this)" class="w-full px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-200 transition duration-150">
                             Simpan Desain ke Layar BIB Check
                         </button>
                     </div>
@@ -1227,7 +1227,7 @@
                             <button type="button" onclick="addBibText('[B]')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-md text-xs text-white font-medium transition duration-150" title="Golongan Darah">[B] (Darah)</button>
                             <button type="button" onclick="addBibText('[E#]')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-md text-xs text-white font-medium transition duration-150" title="No Darurat">[E#] (No. Darurat)</button>
                             <button type="button" onclick="addBibText('[EN]')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-md text-xs text-white font-medium transition duration-150" title="Nama Kontak Darurat">[EN] (Nama Darurat)</button>
-                            <button type="button" onclick="addBibText('Emergency contact: [EN] - [E#]', 18)" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-md text-xs text-emerald-300 font-semibold transition duration-150" title="Emergency contact: [Nama] - [nomor darurat]">[EC] (Emergency Gabung)</button>
+                            <button type="button" onclick="addBibText('Emergency contact: [EN] - [E#]', 18)" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-md text-xs text-white font-medium transition duration-150" title="Emergency contact: [Nama] - [nomor darurat]">[EC] (Emergency Gabung)</button>
                             <button type="button" onclick="addBibText('[GR]')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-md text-xs text-white font-medium transition duration-150" title="Kelompok Umur">[GR] (Group)</button>
                             <button type="button" onclick="addBibText('[KP]')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-md text-xs text-white font-medium transition duration-150" title="Kode Kupon">[KP] (Kupon)</button>
                             <button type="button" onclick="addBibQr()" class="px-2.5 py-1.5 bg-yellow-500 text-slate-950 hover:bg-yellow-400 rounded-md text-xs font-bold transition duration-150" title="QR Code Nomor BIB">[qr] (QR BIB)</button>
@@ -1307,10 +1307,15 @@
                                 <input type="text" id="bibPrefix" placeholder="Misal: 5" class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-xs text-white font-mono">
                             </div>
                             <div>
-                                <label class="text-xs text-slate-300 block mb-1">Maks Karakter Nama</label>
-                                <input type="number" id="bibMaxNameLength" value="18" min="5" max="100" class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-xs text-white font-mono">
+                                <label class="text-xs text-slate-300 block mb-1">Maks Karakter (0 = Bebas)</label>
+                                <input type="number" id="bibMaxNameLength" value="18" min="0" max="255" class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-xs text-white font-mono disabled:opacity-50">
                             </div>
                         </div>
+                        <label class="inline-flex items-center gap-2 text-xs text-slate-300 cursor-pointer pt-0.5">
+                            <input type="checkbox" id="bibAutoFormatName" onchange="onBibNameFormatModeChange()" class="rounded border-slate-700 bg-slate-900 text-yellow-500 focus:ring-yellow-500/50">
+                            <span>Auto-singkat &amp; batasi karakter nama</span>
+                        </label>
+                        <p class="text-[11px] text-slate-400">Nonaktifkan agar nama custom &amp; edit sementara di preview dicetak apa adanya.</p>
                     </div>
 
                     <!-- 4. Mode Cetak Kustom Tanpa Data -->
@@ -1406,9 +1411,9 @@
                                 </div>
                             </div>
                             <div class="flex items-center justify-between gap-2">
-                                <button type="button" onclick="stepImpPreviewSheet(-1)" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-md text-xs font-semibold border border-slate-700">&larr; Prev Sheet</button>
-                                <span id="bibImpSheetIndicator" class="text-xs font-mono font-bold text-yellow-400">Sheet 1 / 1</span>
-                                <button type="button" onclick="stepImpPreviewSheet(1)" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-md text-xs font-semibold border border-slate-700">Next Sheet &rarr;</button>
+                                <button type="button" onclick="stepImpPreviewSheet(-1)" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-md text-xs font-semibold border border-slate-700">Lembar Sebelumnya</button>
+                                <span id="bibImpSheetIndicator" class="text-xs font-mono font-bold text-yellow-400">Lembar 1 / 1</span>
+                                <button type="button" onclick="stepImpPreviewSheet(1)" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-md text-xs font-semibold border border-slate-700">Lembar Berikutnya</button>
                             </div>
                             <div id="bibImpSheetGrid" class="grid gap-2 bg-slate-950 border border-slate-800 rounded-md p-2.5"></div>
                         </div>
@@ -1417,9 +1422,9 @@
                     <!-- Navigation & Quick Participant Search -->
                     <div id="bibNormalNavControls" class="flex flex-wrap items-center justify-between gap-3 bg-slate-900 border border-slate-800 rounded-lg p-3">
                         <div class="flex flex-wrap items-center gap-2.5">
-                            <button type="button" onclick="prevBibParticipant()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white rounded-md text-xs font-bold transition duration-150">&larr; Prev</button>
+                            <button type="button" onclick="prevBibParticipant()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white rounded-md text-xs font-semibold transition duration-150">Sebelumnya</button>
                             <span id="bibParticipantInfo" class="text-xs text-white font-semibold">Memuat peserta...</span>
-                            <button type="button" onclick="nextBibParticipant()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white rounded-md text-xs font-bold transition duration-150">Next &rarr;</button>
+                            <button type="button" onclick="nextBibParticipant()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white rounded-md text-xs font-semibold transition duration-150">Berikutnya</button>
                         </div>
                         <div class="flex flex-wrap items-center gap-2">
                             <input type="search" id="bibModalSearchInput" oninput="onBibModalQuickSearch(this.value)" placeholder="Cari nama / nomor BIB..." class="w-48 sm:w-56 bg-slate-950 border border-slate-700 rounded-md px-3 py-1.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-yellow-500">
@@ -1437,8 +1442,11 @@
 
                     <!-- Temporary Print Override Form -->
                     <div id="bibTemporaryFormEditor" class="bg-slate-900 border border-slate-800 rounded-lg p-4 space-y-3">
-                        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-200">Edit Data Cetak Sementara (Tanpa Ubah Database)</h4>
+                        <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-800 pb-2">
+                            <div class="flex items-center gap-2">
+                                <h4 class="text-xs font-bold uppercase tracking-wider text-slate-200">Edit Data Cetak Sementara (Tanpa Ubah Database)</h4>
+                                <span id="bibOverrideActiveBadge" class="hidden px-2 py-0.5 rounded bg-amber-950 text-amber-300 text-[11px] font-semibold">Custom Preview Aktif</span>
+                            </div>
                             <button type="button" onclick="resetActiveParticipantOverride()" class="text-xs text-rose-400 hover:text-rose-300 underline font-semibold">Reset ke Default</button>
                         </div>
                         <div class="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-5 gap-3">
@@ -1483,10 +1491,10 @@
                 </div>
             </div>
 
-            <!-- Sticky Studio Footer -->
+            <!-- Modal Footer -->
             <div class="px-5 py-3.5 bg-slate-900 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 shrink-0">
                 <p class="text-xs text-slate-300">
-                    Data otomatis difilter khusus peserta berstatus <strong class="text-emerald-300">Paid &amp; Approved</strong> (kecuali Mode Rentang Kustom aktif).
+                    Data otomatis difilter khusus peserta berstatus <strong class="text-white">Paid &amp; Approved</strong> (kecuali Mode Rentang Kustom aktif).
                 </p>
                 <div class="flex flex-wrap items-center gap-2.5">
                     <button type="button" onclick="closeBibModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white rounded-md text-xs sm:text-sm font-semibold transition duration-150">
@@ -1824,13 +1832,13 @@
 </div>
 
 <div id="participantsActionsModal" class="fixed inset-0 z-50 hidden" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div class="fixed inset-0 bg-slate-950/80 transition-opacity" onclick="closeParticipantsActionsModal()"></div>
+    <div class="fixed inset-0 transition-opacity" style="background-color: rgba(2, 6, 23, 0.85);" onclick="closeParticipantsActionsModal()"></div>
     <div class="fixed inset-0 z-10 overflow-y-auto">
         <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-            <div class="relative w-full sm:max-w-md transform overflow-hidden rounded-xl bg-slate-900 border border-slate-700 text-left shadow-2xl transition-all">
+            <div class="relative w-full sm:max-w-md transform overflow-hidden rounded-lg bg-slate-900 border border-slate-800 text-left shadow-xl transition-all">
                 <div class="px-5 py-3.5 border-b border-slate-800 flex items-center justify-between">
-                    <div class="text-white font-bold text-xs uppercase tracking-wider">Menu Aksi Peserta</div>
-                    <button type="button" onclick="closeParticipantsActionsModal()" class="text-slate-400 hover:text-white p-1">
+                    <div class="text-white font-semibold text-sm">Menu Aksi Peserta</div>
+                    <button type="button" onclick="closeParticipantsActionsModal()" aria-label="Tutup Menu Aksi Peserta" class="text-slate-300 hover:text-white p-1">
                         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
                     </button>
                 </div>
@@ -1838,34 +1846,27 @@
                 <div class="p-4 space-y-4 max-h-[75vh] overflow-y-auto">
                     <!-- Manajemen Data -->
                     <div>
-                        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 px-1">Manajemen Peserta</div>
+                        <div class="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 px-1">Manajemen Peserta</div>
                         <div class="grid grid-cols-2 gap-2">
-                            <button type="button" onclick="closeParticipantsActionsModal(); openAddParticipantModal();" class="w-full px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium flex items-center gap-2 transition-colors">
-                                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-                                Tambah Peserta
+                            <button type="button" onclick="closeParticipantsActionsModal(); openAddParticipantModal();" class="w-full px-3 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium text-left transition-colors">
+                                + Tambah Peserta
                             </button>
-                            <button type="button" onclick="closeParticipantsActionsModal(); openImportCsvModal();" class="w-full px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium flex items-center gap-2 transition-colors">
-                                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" /></svg>
+                            <button type="button" onclick="closeParticipantsActionsModal(); openImportCsvModal();" class="w-full px-3 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium text-left transition-colors">
                                 Import CSV
                             </button>
-                            <button type="button" onclick="closeParticipantsActionsModal(); openQrScanModal();" class="w-full px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium flex items-center gap-2 transition-colors">
-                                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h3v3H7V7zm7 0h3v3h-3V7zM7 14h3v3H7v-3zm7 0h3v3h-3v-3z" /></svg>
+                            <button type="button" onclick="closeParticipantsActionsModal(); openQrScanModal();" class="w-full px-3 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium text-left transition-colors">
                                 Scan QR
                             </button>
-                            <a href="{{ route('eo.events.participants.export', $event) }}{{ request()->getQueryString() ? '?' . request()->getQueryString() : '' }}" class="export-link-btn w-full px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium flex items-center gap-2 transition-colors">
-                                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+                            <a href="{{ route('eo.events.participants.export', $event) }}{{ request()->getQueryString() ? '?' . request()->getQueryString() : '' }}" class="export-link-btn w-full px-3 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium text-left transition-colors block">
                                 Export CSV
                             </a>
-                            <button type="button" onclick="closeParticipantsActionsModal(); openBibModal();" class="w-full px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium flex items-center gap-2 transition-colors">
-                                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-                                Print BIB
+                            <button type="button" onclick="closeParticipantsActionsModal(); openBibModal();" class="w-full px-3 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium text-left transition-colors">
+                                Desain &amp; Cetak BIB
                             </button>
-                            <a href="{{ route('events.bib-check', $event->slug) }}" target="_blank" rel="noopener" onclick="closeParticipantsActionsModal()" class="w-full px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 border border-slate-700 text-xs font-medium flex items-center gap-2 transition-colors">
-                                <svg class="w-4 h-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" /></svg>
-                                Layar TV BIB Check
+                            <a href="{{ route('events.bib-check', $event->slug) }}" target="_blank" rel="noopener" onclick="closeParticipantsActionsModal()" class="w-full px-3 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium text-left transition-colors block">
+                                Layar BIB Check
                             </a>
-                            <button type="button" onclick="closeParticipantsActionsModal(); openDoorprizeModal();" class="w-full px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium flex items-center gap-2 transition-colors">
-                                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5a2 2 0 10-2 2h2zm0 0H4m8 0h8m-8 0a2 2 0 102 2h-2zm0 0a2 2 0 11-2 2h2z" /></svg>
+                            <button type="button" onclick="closeParticipantsActionsModal(); openDoorprizeModal();" class="w-full px-3 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium text-left transition-colors">
                                 Doorprize
                             </button>
                         </div>
@@ -1873,45 +1874,39 @@
 
                     <!-- Komunikasi & Laporan -->
                     <div class="border-t border-slate-800 pt-3">
-                        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 px-1">Komunikasi & Info</div>
+                        <div class="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 px-1">Komunikasi &amp; Laporan</div>
                         <div class="space-y-2">
-                            <a href="{{ route('eo.events.community.index', $event) }}" class="w-full px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium flex items-center gap-2 transition-colors">
-                                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-                                Community
+                            <a href="{{ route('eo.events.community.index', $event) }}" class="w-full px-3 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium text-left transition-colors block">
+                                Komunitas Event
                             </a>
-                            <button type="button" onclick="closeParticipantsActionsModal(); copyReportLink();" class="w-full px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium flex items-center gap-2 transition-colors">
-                                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
-                                Copy Report Link
+                            <button type="button" onclick="closeParticipantsActionsModal(); copyReportLink();" class="w-full px-3 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 text-xs font-medium text-left transition-colors">
+                                Salin Link Laporan
                             </button>
-                            <button type="button" onclick="closeParticipantsActionsModal(); regenerateReportLink(this);" class="w-full px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-amber-950/50 text-amber-300 border border-amber-500/30 text-xs font-medium flex items-center gap-2 transition-colors">
-                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" /></svg>
-                                Generate Ulang Report Link
+                            <button type="button" onclick="closeParticipantsActionsModal(); regenerateReportLink(this);" class="w-full px-3 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-amber-300 border border-slate-700 text-xs font-medium text-left transition-colors">
+                                Buat Ulang Link Laporan
                             </button>
-                            <button type="button" onclick="closeParticipantsActionsModal(); sendBulkPendingReminder(this);" class="w-full px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 text-xs font-medium flex items-center gap-2 transition-colors">
-                                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" /></svg>
-                                Kirim Reminder Pending (> 1 Hari)
+                            <button type="button" onclick="closeParticipantsActionsModal(); sendBulkPendingReminder(this);" class="w-full px-3 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white border border-slate-700 text-xs font-medium text-left transition-colors">
+                                Kirim Pengingat Pending (&gt; 1 Hari)
                             </button>
                         </div>
                     </div>
 
                     <!-- Pembersihan Data -->
                     <div class="border-t border-slate-800 pt-3">
-                        <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2 px-1">Pembersihan Data</div>
+                        <div class="text-xs font-semibold text-slate-300 uppercase tracking-wider mb-2 px-1">Pembersihan Data</div>
                         <div class="grid grid-cols-2 gap-2">
-                            <button type="button" onclick="closeParticipantsActionsModal(); clearParticipants(this, false);" class="w-full px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-red-950/40 text-slate-300 hover:text-red-300 border border-slate-700 hover:border-red-700/50 text-xs font-medium flex items-center gap-1.5 transition-colors">
-                                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
-                                Clear Non-Paid
+                            <button type="button" onclick="closeParticipantsActionsModal(); clearParticipants(this, false);" class="w-full px-3 py-2 rounded-md bg-slate-800 hover:bg-rose-950 text-slate-200 hover:text-rose-200 border border-slate-700 hover:border-rose-800 text-xs font-medium text-left transition-colors">
+                                Hapus Non-Paid
                             </button>
-                            <button type="button" onclick="closeParticipantsActionsModal(); clearParticipants(this, true);" class="w-full px-3 py-2.5 rounded-lg bg-slate-800 hover:bg-red-950/60 text-slate-400 hover:text-red-400 border border-slate-700 hover:border-red-800/50 text-xs font-medium flex items-center gap-1.5 transition-colors">
-                                <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M5.07 19h13.86c1.54 0 2.5-1.67 1.73-3L13.73 4c-.77-1.33-2.69-1.33-3.46 0L3.34 16c-.77 1.33.19 3 1.73 3z" /></svg>
-                                Clear ALL
+                            <button type="button" onclick="closeParticipantsActionsModal(); clearParticipants(this, true);" class="w-full px-3 py-2 rounded-md bg-slate-800 hover:bg-rose-950 text-rose-300 border border-slate-700 hover:border-rose-800 text-xs font-medium text-left transition-colors">
+                                Hapus Semua Peserta
                             </button>
                         </div>
                     </div>
                 </div>
 
                 <div class="bg-slate-950 px-4 py-3 flex justify-end border-t border-slate-800">
-                    <button type="button" onclick="closeParticipantsActionsModal()" class="px-3.5 py-1.5 rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800 text-xs font-semibold">Tutup</button>
+                    <button type="button" onclick="closeParticipantsActionsModal()" class="px-3.5 py-1.5 rounded-md border border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 text-xs font-semibold">Tutup</button>
                 </div>
             </div>
         </div>
@@ -2331,7 +2326,7 @@
                                                 </button>
                                                 <div id="dm_payment_dropdown" class="absolute right-0 mt-1 w-36 bg-slate-900 border border-slate-700 rounded-lg shadow-xl hidden z-30 py-1">
                                                     <button type="button" class="w-full text-left px-3 py-1.5 text-xs hover:bg-slate-800 text-yellow-400" onclick="quickChangePaymentFromModal('pending')">Pending</button>
-                                                    <button type="button" class="w-full text-left px-3 py-1.5 text-xs hover:bg-slate-800 text-emerald-400" onclick="quickChangePaymentFromModal('paid')">Paid</button>
+                                                    <button type="button" class="w-full text-left px-3 py-1.5 text-xs hover:bg-slate-800 text-green-400" onclick="quickChangePaymentFromModal('paid')">Paid</button>
                                                     <button type="button" class="w-full text-left px-3 py-1.5 text-xs hover:bg-slate-800 text-rose-400" onclick="quickChangePaymentFromModal('failed')">Failed</button>
                                                     <button type="button" class="w-full text-left px-3 py-1.5 text-xs hover:bg-slate-800 text-slate-400" onclick="quickChangePaymentFromModal('expired')">Expired</button>
                                                     <button type="button" class="w-full text-left px-3 py-1.5 text-xs hover:bg-slate-800 text-blue-400" onclick="quickChangePaymentFromModal('cod')">COD</button>
@@ -2381,7 +2376,7 @@
                                                             <span class="text-[10px] {{ ($remaining !== null && $remaining <= 0) ? 'text-rose-400' : 'text-slate-400' }}">Sisa: {{ $remaining }}</span>
                                                         @endif
                                                         @if($addonPrice > 0)
-                                                            <span class="text-[11px] font-mono text-emerald-400">+Rp {{ number_format($addonPrice, 0, ',', '.') }}</span>
+                                                            <span class="text-[11px] font-mono text-green-400">+Rp {{ number_format($addonPrice, 0, ',', '.') }}</span>
                                                         @endif
                                                     </span>
                                                 </label>
@@ -2404,7 +2399,7 @@
                                     <img id="dm_proof_img" src="" alt="Bukti Transfer" class="w-20 h-20 rounded-md object-cover border border-slate-700 shrink-0 cursor-pointer hover:opacity-80 transition" onclick="openPhotoViewer(this.src)">
                                     <div class="min-w-0 flex-1 space-y-1.5">
                                         <p id="dm_proof_notes" class="text-xs text-slate-300 italic"></p>
-                                        <button type="button" onclick="openPhotoViewer(document.getElementById('dm_proof_img').src)" class="text-xs text-emerald-400 hover:underline flex items-center gap-1 font-semibold">
+                                        <button type="button" onclick="openPhotoViewer(document.getElementById('dm_proof_img').src)" class="text-xs text-green-400 hover:underline flex items-center gap-1 font-semibold">
                                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
                                             Lihat Bukti Resolusi Penuh
                                         </button>
@@ -2418,8 +2413,8 @@
                 <!-- Footer -->
                 <div class="bg-slate-900 px-6 py-4 flex flex-wrap items-center justify-between gap-2 border-t border-slate-800">
                     <div class="view-mode flex items-center gap-2">
-                        <button type="button" id="btn_detail_approve" onclick="approveParticipant(currentParticipantData.id, currentParticipantData.name)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-emerald-400 hover:text-emerald-300 border border-slate-700 hover:border-emerald-700/50 text-xs font-semibold flex items-center gap-1.5 transition-colors" title="Setujui dan kirim e-tiket">
-                            <svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
+                        <button type="button" id="btn_detail_approve" onclick="approveParticipant(currentParticipantData.id, currentParticipantData.name)" class="px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-green-400 hover:text-green-300 border border-slate-700 hover:border-green-700 text-xs font-semibold flex items-center gap-1.5 transition-colors" title="Setujui dan kirim e-tiket">
+                            <svg class="w-3.5 h-3.5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>
                             Approve
                         </button>
                         <button type="button" id="btn_detail_reject" onclick="rejectParticipant(currentParticipantData.id, currentParticipantData.name)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-rose-400 hover:text-rose-300 border border-slate-700 hover:border-rose-700/50 text-xs font-semibold flex items-center gap-1.5 transition-colors" title="Tolak pendaftaran peserta">
@@ -2444,7 +2439,7 @@
                     </div>
                     <div class="edit-mode hidden flex gap-2 w-full justify-end">
                         <button type="button" onclick="cancelEdit()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-700 text-xs font-semibold transition-colors">Batal</button>
-                        <button type="button" onclick="saveParticipant()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-950/60 text-emerald-400 border border-slate-700 hover:border-emerald-700/50 text-xs font-semibold transition-colors flex items-center gap-1.5">
+                        <button type="button" onclick="saveParticipant()" class="px-3 py-1.5 rounded-md bg-slate-800 hover:bg-green-950 text-green-400 border border-slate-700 hover:border-green-700 text-xs font-semibold transition-colors flex items-center gap-1.5">
                             <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" /></svg>
                             Simpan Perubahan
                         </button>
@@ -2976,14 +2971,14 @@
                 } else if (isCancelled) {
                     approvalBadge = '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-rose-950 text-rose-300 border border-rose-700/60" title="'+ escapeHtml(p.notes || '') +'"><svg class="w-3.5 h-3.5 text-rose-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg>Rejected</span>';
                 } else if (isApproved && isPaid) {
-                    approvalBadge = '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-emerald-950 text-emerald-300 border border-emerald-700/60"><svg class="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>Approved</span>';
+                    approvalBadge = '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded text-xs font-bold bg-green-950 text-green-300 border border-green-800"><svg class="w-3.5 h-3.5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>Approved</span>';
                 } else if (isApproved && !isPaid) {
                     approvalBadge = '<span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold bg-amber-950 text-amber-300 border border-amber-700/60" title="Data registrasi disetujui, menunggu pembayaran lunas"><svg class="w-3.5 h-3.5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>Awaiting Payment</span>';
                 } else {
                     approvalBadge = '<div class="flex flex-col gap-1.5 items-start">' +
                         '<span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-bold bg-amber-950 text-amber-300 border border-amber-700/60"><svg class="w-3 h-3 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>Pending Review</span>' +
                         '<div class="flex items-center gap-1">' +
-                            '<button type="button" onclick="approveParticipant('+ p.id +', \''+ safeName +'\')" class="px-2 py-1 bg-emerald-700 hover:bg-emerald-600 text-white rounded text-[11px] font-bold transition-colors flex items-center gap-1 shadow-sm" title="Setujui & Kirim E-Tiket"><svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>Approve</button>' +
+                            '<button type="button" onclick="approveParticipant('+ p.id +', \''+ safeName +'\')" class="px-2 py-1 bg-green-700 hover:bg-green-600 text-white rounded text-[11px] font-bold transition-colors flex items-center gap-1 shadow-sm" title="Setujui & Kirim E-Tiket"><svg class="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>Approve</button>' +
                             '<button type="button" onclick="rejectParticipant('+ p.id +', \''+ safeName +'\')" class="px-1.5 py-1 bg-slate-800 hover:bg-rose-900/60 text-slate-300 hover:text-rose-200 border border-slate-700 rounded text-[11px] font-bold transition-colors shadow-sm" title="Tolak Peserta"><svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" /></svg></button>' +
                         '</div>' +
                     '</div>';
@@ -2997,7 +2992,7 @@
                 }
                 var proofBtn = '';
                 if (p.payment_proof) {
-                    proofBtn = '<button type="button" onclick="event.stopPropagation(); openPhotoViewer(\''+ p.payment_proof +'\')" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-emerald-950/80 text-emerald-300 border border-emerald-600/40 hover:bg-emerald-900 transition" title="Lihat Bukti Transfer"><svg class="w-3 h-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Bukti</button>';
+                    proofBtn = '<button type="button" onclick="event.stopPropagation(); openPhotoViewer(\''+ p.payment_proof +'\')" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] font-semibold bg-green-950 text-green-300 border border-green-800 hover:bg-green-900 transition" title="Lihat Bukti Transfer"><svg class="w-3 h-3 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg> Bukti</button>';
                 }
                 var amountText = '';
                 if (p.payment_method === 'manual_transfer' && p.final_amount) {
@@ -3146,8 +3141,8 @@
                     Page <span class="font-semibold text-slate-200">${current}</span> of <span class="font-semibold text-slate-200">${last}</span>
                 </div>
                 <div class="flex items-center gap-1">
-                    <a href="?page=1" data-role="first" class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800 ${current <= 1 ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}">« First</a>
-                    <a href="?page=${current - 1}" data-role="prev" class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800 ${current <= 1 ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}">‹ Prev</a>
+                    <a href="?page=1" data-role="first" class="px-2 py-1 text-xs rounded-md border border-slate-700 text-slate-300 hover:bg-slate-800 ${current <= 1 ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}">Awal</a>
+                    <a href="?page=${current - 1}" data-role="prev" class="px-2 py-1 text-xs rounded-md border border-slate-700 text-slate-300 hover:bg-slate-800 ${current <= 1 ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}">Sebelumnya</a>
             `;
 
             var startPage = Math.max(1, current - 2);
@@ -3155,15 +3150,15 @@
 
             for (var i = startPage; i <= endPage; i++) {
                 if (i === current) {
-                    html += `<a href="?page=${i}" data-page="${i}" class="px-3 py-1 text-xs rounded-lg border border-yellow-500 bg-yellow-500 text-black font-bold">${i}</a>`;
+                    html += `<a href="?page=${i}" data-page="${i}" class="px-3 py-1 text-xs rounded-md border border-yellow-500 bg-yellow-500 text-black font-bold">${i}</a>`;
                 } else {
-                    html += `<a href="?page=${i}" data-page="${i}" class="px-3 py-1 text-xs rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800">${i}</a>`;
+                    html += `<a href="?page=${i}" data-page="${i}" class="px-3 py-1 text-xs rounded-md border border-slate-700 text-slate-300 hover:bg-slate-800">${i}</a>`;
                 }
             }
 
             html += `
-                    <a href="?page=${current + 1}" data-role="next" class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800 ${current >= last ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}">Next ›</a>
-                    <a href="?page=${last}" data-role="last" class="px-2 py-1 text-xs rounded-lg border border-slate-700 text-slate-300 hover:bg-slate-800 ${current >= last ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}">Last »</a>
+                    <a href="?page=${current + 1}" data-role="next" class="px-2 py-1 text-xs rounded-md border border-slate-700 text-slate-300 hover:bg-slate-800 ${current >= last ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}">Berikutnya</a>
+                    <a href="?page=${last}" data-role="last" class="px-2 py-1 text-xs rounded-md border border-slate-700 text-slate-300 hover:bg-slate-800 ${current >= last ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''}">Akhir</a>
                 </div>
             </div>`;
             
@@ -3808,7 +3803,7 @@
         if (!badge) return;
         badge.className = 'inline-flex items-center px-2.5 py-1 rounded text-xs font-bold border uppercase';
         if (status === 'paid') {
-            badge.className += ' bg-emerald-950 text-emerald-300 border-emerald-700/60';
+            badge.className += ' bg-green-950 text-green-300 border-green-800';
         } else if (status === 'pending') {
             badge.className += ' bg-amber-950 text-amber-300 border-amber-700/60';
         } else if (status === 'cod') {
@@ -4343,7 +4338,7 @@
                 if (photoViewBtn) photoViewBtn.classList.remove('hidden');
                 if (photoBadge) {
                     photoBadge.textContent = 'Foto Tersedia';
-                    photoBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-700/60';
+                    photoBadge.className = 'text-[10px] font-bold px-2 py-0.5 rounded bg-green-950 text-green-300 border border-green-800';
                 }
                 if (photoHelp) photoHelp.textContent = 'Foto verifikasi identitas / COD saat registrasi.';
             } else {
@@ -5546,7 +5541,7 @@
             if (btnApprove) btnApprove.classList.remove('hidden');
             if (btnReject) btnReject.classList.add('hidden');
         } else if (isApproved && isPaid) {
-            approvalBadge.innerHTML = '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-bold bg-emerald-950 text-emerald-300 border border-emerald-700/60"><svg class="w-3 h-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>Approved</span>';
+            approvalBadge.innerHTML = '<span class="inline-flex items-center gap-1 px-2.5 py-0.5 rounded text-xs font-bold bg-green-950 text-green-300 border border-green-800"><svg class="w-3 h-3 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7" /></svg>Approved</span>';
             if (btnApprove) btnApprove.classList.add('hidden');
             if (btnReject) btnReject.classList.remove('hidden');
         } else if (isApproved && !isPaid) {
@@ -6125,6 +6120,10 @@
         }
         
         const overrides = window.bibOverrides[p.id] || {};
+        const overrideBadge = document.getElementById('bibOverrideActiveBadge');
+        if (overrideBadge) {
+            overrideBadge.classList.toggle('hidden', Object.keys(overrides).length === 0);
+        }
         
         const nameInput = document.getElementById('bibEditName');
         if (nameInput) nameInput.value = overrides.name !== undefined ? overrides.name : (p.name || '');
@@ -6177,8 +6176,22 @@
             window.bibOverrides[p.id] = {};
         }
         window.bibOverrides[p.id][field] = value;
-        
+
+        const overrideBadge = document.getElementById('bibOverrideActiveBadge');
+        if (overrideBadge) {
+            overrideBadge.classList.remove('hidden');
+        }
+
         toggleBibPreview();
+    };
+
+    window.onBibNameFormatModeChange = function() {
+        const autoChk = document.getElementById('bibAutoFormatName');
+        const maxLenInput = document.getElementById('bibMaxNameLength');
+        if (maxLenInput && autoChk) {
+            maxLenInput.disabled = !autoChk.checked;
+        }
+        updateBibPreviewIfActive();
     };
 
     window.resetActiveParticipantOverride = function() {
@@ -6403,7 +6416,7 @@
         summaryEl.textContent = `Total: ${plan.totalBib} BIB • Layout: ${plan.rows}×${plan.cols} (${plan.slotsPerSheet}-up) • Hasil: ${plan.totalSheets} Lembar${sizeEstText}`;
 
         const currentSheet = plan.sheets[window.bibImpActiveSheetIdx] || { sheet: 1, slots: [] };
-        indicatorEl.textContent = `Sheet ${currentSheet.sheet} / ${plan.totalSheets}`;
+        indicatorEl.textContent = `Lembar ${currentSheet.sheet} / ${plan.totalSheets}`;
 
         gridEl.style.gridTemplateColumns = `repeat(${plan.cols}, minmax(0, 1fr))`;
         gridEl.innerHTML = currentSheet.slots.map((pos, k) => {
@@ -6463,6 +6476,7 @@
             take_last: document.getElementById('bibTakeLast').value,
             prefix: document.getElementById('bibPrefix').value,
             max_name_length: document.getElementById('bibMaxNameLength').value,
+            auto_format_name: document.getElementById('bibAutoFormatName')?.checked ?? false,
             canvas_width: bibCanvas.width || null,
             imposition: window.getBibImpositionConfig ? window.getBibImpositionConfig() : undefined,
             texts: textElements
@@ -6509,6 +6523,13 @@
             }
             if (preset.max_name_length !== undefined) {
                 document.getElementById('bibMaxNameLength').value = preset.max_name_length;
+            }
+            const autoFormatEl = document.getElementById('bibAutoFormatName');
+            if (autoFormatEl) {
+                autoFormatEl.checked = preset.auto_format_name !== undefined ? Boolean(preset.auto_format_name) : false;
+                if (typeof window.onBibNameFormatModeChange === 'function') {
+                    window.onBibNameFormatModeChange();
+                }
             }
             if (preset.imposition && typeof preset.imposition === 'object') {
                 if (preset.imposition.mode && document.getElementById('bibImpMode')) {
@@ -6724,9 +6745,12 @@
             if (data) {
                 const overrides = window.bibOverrides[data.id] || {};
                 
-                var rawName = overrides.name !== undefined ? overrides.name : (data.name || '-');
-                if (rawName !== '-') {
-                    var maxLen = parseInt(document.getElementById('bibMaxNameLength').value || 18, 10);
+                const hasOverrideName = overrides.name !== undefined;
+                var rawName = hasOverrideName ? String(overrides.name) : String(data.name || '-');
+                rawName = rawName.trim() === '' ? '-' : rawName.trim();
+                const autoFormatName = document.getElementById('bibAutoFormatName')?.checked ?? false;
+                var maxLen = parseInt(document.getElementById('bibMaxNameLength')?.value || '0', 10) || 0;
+                if (rawName !== '-' && !hasOverrideName && autoFormatName && maxLen > 0) {
                     rawName = formatBibName(rawName, maxLen);
                 }
                 const name = rawName;
@@ -6823,8 +6847,12 @@
         bibNum = prefixVal + bibNum;
 
         var dummyName = 'BUDI SANTOSO';
-        var maxLen = parseInt(document.getElementById('bibMaxNameLength').value || 18, 10);
-        dummyName = formatBibName(dummyName, maxLen);
+        if ((document.getElementById('bibAutoFormatName')?.checked ?? false)) {
+            var dummyMaxLen = parseInt(document.getElementById('bibMaxNameLength').value || 18, 10);
+            if (dummyMaxLen > 0) {
+                dummyName = formatBibName(dummyName, dummyMaxLen);
+            }
+        }
 
         return {
             '[EC]': 'Emergency contact: SITI AMINAH - 08123456789',
@@ -7285,6 +7313,9 @@
             const bibMaxNameLengthInput = document.getElementById('bibMaxNameLength');
             if (bibMaxNameLengthInput) {
                 bibMaxNameLengthInput.addEventListener('input', updateBibPreviewIfActive);
+            }
+            if (typeof window.onBibNameFormatModeChange === 'function') {
+                window.onBibNameFormatModeChange();
             }
 
             setTimeout(function() {
@@ -7866,7 +7897,8 @@
             texts: textElements,
             take_last: document.getElementById('bibTakeLast').value,
             prefix: document.getElementById('bibPrefix').value,
-            max_name_length: document.getElementById('bibMaxNameLength').value,
+            max_name_length: parseInt(document.getElementById('bibMaxNameLength')?.value || '0', 10) || 0,
+            auto_format_name: document.getElementById('bibAutoFormatName')?.checked ? 1 : 0,
             overrides: window.bibOverrides || {},
             imposition: effectiveImposition
         };

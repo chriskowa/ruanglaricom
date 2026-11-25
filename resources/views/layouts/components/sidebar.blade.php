@@ -33,7 +33,7 @@
                         <span class="nav-text">Menu Manager</span>
                     </a></li>
                     <li><a class="ai-icon" href="{{ route('admin.integration.settings') }}?tab=whatsapp" aria-expanded="false">
-                        <i class="fab fa-whatsapp text-emerald-400"></i>
+                        <i class="fab fa-whatsapp text-green-400"></i>
                         <span class="nav-text">WhatsApp Gateway</span>
                     </a></li>
                     <li><a class="ai-icon" href="{{ route('admin.integration.settings') }}" aria-expanded="false">
@@ -101,7 +101,7 @@
                 @endif
                 <li class="menu-title">Finance</li>
                 <li><a class="ai-icon" href="{{ route('wallet.index', ['action' => 'deposit']) }}" aria-expanded="false">
-                    <i class="flaticon-381-credit-card text-emerald-400"></i>
+                    <i class="flaticon-381-credit-card text-green-400"></i>
                     <span class="nav-text">Deposit</span>
                 </a></li>
                 <li><a class="ai-icon" href="{{ route('wallet.index', ['action' => 'withdraw']) }}#withdraw-form" aria-expanded="false">

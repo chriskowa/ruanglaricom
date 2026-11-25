@@ -3226,7 +3226,8 @@ class EventController extends Controller
             'texts' => 'required|array',
             'take_last' => 'nullable|string',
             'prefix' => 'nullable|string',
-            'max_name_length' => 'nullable|integer',
+            'max_name_length' => 'nullable|integer|min:0|max:255',
+            'auto_format_name' => 'nullable|boolean',
             'overrides' => 'nullable|array',
             'single_participant_id' => 'nullable|integer|exists:participants,id',
             'is_custom_range' => 'nullable|boolean',
@@ -3509,7 +3510,10 @@ class EventController extends Controller
             
             $takeLast = $request->filled('take_last') ? $request->take_last : null;
             $prefix = $request->filled('prefix') ? $request->prefix : '';
-            $maxNameLength = $request->input('max_name_length') !== null ? (int)$request->input('max_name_length') : 18;
+            $maxNameLength = $request->input('max_name_length') !== null ? (int)$request->input('max_name_length') : 0;
+            $autoFormatName = $request->has('auto_format_name')
+                ? $request->boolean('auto_format_name')
+                : ($maxNameLength > 0);
             $texts = $request->texts;
             $overrides = $request->input('overrides', []);
             $isCustomRange = $request->boolean('is_custom_range');
@@ -3602,9 +3606,10 @@ class EventController extends Controller
                     }
                     $genderVal = trim($genderVal ?? '') === '' ? '-' : $genderVal;
 
-                    $pName = isset($pOverride['name']) ? $pOverride['name'] : $p->display_bib_name;
-                    $pName = trim($pName ?? '') === '' ? '-' : $pName;
-                    if ($pName !== '-') {
+                    $hasOverrideName = array_key_exists('name', $pOverride);
+                    $rawName = $hasOverrideName ? (string) ($pOverride['name'] ?? '') : (string) $p->display_bib_name;
+                    $pName = trim($rawName) === '' ? '-' : trim($rawName);
+                    if ($pName !== '-' && !$hasOverrideName && $autoFormatName && $maxNameLength > 0) {
                         $pName = $this->formatBibName($pName, $maxNameLength);
                     }
 

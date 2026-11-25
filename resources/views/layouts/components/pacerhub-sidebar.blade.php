@@ -74,7 +74,7 @@
                                         $readyPrintCount = \App\Models\KalenderPelari\CalendarProject::where('status', \App\Models\KalenderPelari\CalendarProject::STATUS_PRODUCTION_ACTIVE)->count();
                                     @endphp
                                     @if($readyPrintCount > 0)
-                                        <span class="ml-auto text-[10px] font-bold bg-emerald-500 text-white rounded-md px-1.5 py-0.5" title="{{ $readyPrintCount }} siap dicetak">{{ $readyPrintCount }}</span>
+                                        <span class="ml-auto text-[10px] font-bold bg-green-600 text-white rounded-md px-1.5 py-0.5" title="{{ $readyPrintCount }} siap dicetak">{{ $readyPrintCount }}</span>
                                     @endif
                                 </a>
                             </li>
@@ -441,7 +441,7 @@
                                             <span class="flex items-center justify-between w-full">
                                                 <span class="text-white">Integrasi Akun</span>
                                                 @if(auth()->user()->strava_access_token)
-                                                    <span class="text-[9px] bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-1.5 py-0.5 rounded font-bold font-mono">Connected</span>
+                                                    <span class="text-[9px] bg-green-950 text-green-300 border border-green-800 px-1.5 py-0.5 rounded font-bold font-mono">Connected</span>
                                                 @endif
                                             </span>
                                         </a>

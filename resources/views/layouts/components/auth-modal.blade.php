@@ -36,7 +36,7 @@
         <div class="p-6 overflow-y-auto flex-grow">
             <!-- Error & Success Alert -->
             <div x-show="errorMessage" x-text="errorMessage" class="mb-4 p-3 rounded-xl bg-red-950/40 border border-red-800/60 text-red-200 text-xs" x-cloak></div>
-            <div x-show="successMessage" x-text="successMessage" class="mb-4 p-3 rounded-xl bg-emerald-950/40 border border-emerald-800/60 text-emerald-200 text-xs" x-cloak></div>
+            <div x-show="successMessage" x-text="successMessage" class="mb-4 p-3 rounded-md bg-green-950 border border-green-800 text-green-200 text-xs" x-cloak></div>
 
             <!-- Login Form Tab -->
             <div x-show="tab === 'login'" class="space-y-4">
