@@ -3270,19 +3270,19 @@ class EventController extends Controller
                 $participants->push($virtualParticipant);
             }
         } else {
-            $query = \App\Models\Participant::whereHas('transaction', function ($q) use ($event) {
-                $q->where('event_id', $event->id);
-            })->with(['transaction', 'category']);
+            // Print BIB hanya mengambil peserta yang sudah Paid & Approved (bukan cancelled/rejected)
+            $query = \App\Models\Participant::where('participants.isApproved', 1)
+                ->whereNotIn('participants.status', ['cancelled', 'rejected'])
+                ->whereHas('transaction', function ($q) use ($event) {
+                    $q->where('event_id', $event->id)
+                        ->whereIn('payment_status', ['paid', 'settlement', 'capture']);
+                })
+                ->with(['transaction.coupon', 'category']);
 
             if ($request->filled('single_participant_id')) {
-                $query->where('id', $request->single_participant_id);
+                $query->where('participants.id', $request->single_participant_id);
             } else {
-                // Filters
-                if ($request->filled('payment_status')) {
-                    $query->whereHas('transaction', function ($q) use ($request) {
-                        $q->where('payment_status', $request->payment_status);
-                    });
-                }
+                // Filters (payment_status diabaikan agar tetap terkunci pada Paid & Approved)
                 if ($request->has('is_picked_up') && $request->is_picked_up !== '') {
                     $query->where('is_picked_up', $request->is_picked_up == '1');
                 }
@@ -3371,7 +3371,7 @@ class EventController extends Controller
             $participants = $query->orderBy('bib_number')->get();
 
             if ($participants->isEmpty()) {
-                return response()->json(['success' => false, 'message' => 'Tidak ada peserta yang cocok dengan filter.']);
+                return response()->json(['success' => false, 'message' => 'Tidak ada peserta berstatus Paid & Approved yang cocok untuk dicetak.']);
             }
         }
 
@@ -3626,6 +3626,8 @@ class EventController extends Controller
                     $pCouponCode = isset($pOverride['coupon_code']) ? $pOverride['coupon_code'] : $couponCodeDefault;
                     $pCouponCode = trim($pCouponCode ?? '') === '' ? '-' : $pCouponCode;
 
+                    $pEmergencyCombined = 'Emergency contact: ' . $pEmergencyName . ' - ' . $pEmergencyNumber;
+
                     foreach ($texts as $t) {
                         if ((isset($t['type']) && $t['type'] === 'qr') || trim($t['text'] ?? '') === '[qr]') {
                             $rawQrSize = isset($t['size']) ? (float) $t['size'] : (float) ($t['fontSize'] ?? 90);
@@ -3653,6 +3655,7 @@ class EventController extends Controller
 
                         $textValue = str_replace(
                             [
+                                '{emergency_contact}', '[EC]',
                                 '{emergency_contact_number}', '[E#]',
                                 '{emergency_contact_name}', '[EN]',
                                 '{bib_number}', '#',
@@ -3665,6 +3668,7 @@ class EventController extends Controller
                                 '{coupon_code}', '[KP]'
                             ],
                             [
+                                $pEmergencyCombined, $pEmergencyCombined,
                                 $pEmergencyNumber, $pEmergencyNumber,
                                 $pEmergencyName, $pEmergencyName,
                                 $dynamicBib, $dynamicBib,
@@ -3894,6 +3898,54 @@ class EventController extends Controller
         return response()->json([
             'success' => true,
             'data' => $participants
+        ]);
+    }
+
+    /**
+     * Return all Paid & Approved participants eligible for BIB printing (supports category filter).
+     */
+    public function bibParticipantsList(Request $request, Event $event)
+    {
+        $this->authorizeEvent($event);
+
+        $query = \App\Models\Participant::where('participants.isApproved', 1)
+            ->whereNotIn('participants.status', ['cancelled', 'rejected'])
+            ->whereHas('transaction', function ($q) use ($event) {
+                $q->where('event_id', $event->id)
+                    ->whereIn('payment_status', ['paid', 'settlement', 'capture']);
+            })
+            ->with(['transaction.coupon', 'category']);
+
+        if ($request->filled('category_id')) {
+            $query->where('participants.race_category_id', $request->query('category_id'));
+        }
+
+        $items = $query->orderBy('bib_number')->orderBy('id')->get()->map(function ($p) use ($event) {
+            return [
+                'id' => $p->id,
+                'name' => $p->display_bib_name,
+                'full_name' => $p->name,
+                'bib_name' => $p->bib_name,
+                'bib_number' => $p->bib_number,
+                'gender' => $p->gender,
+                'blood_type' => $p->blood_type,
+                'emergency_contact_name' => $p->emergency_contact_name,
+                'emergency_contact_number' => $p->emergency_contact_number,
+                'race_category_id' => $p->race_category_id,
+                'category' => $p->category ? $p->category->name : '-',
+                'category_quota' => $p->category ? (int) $p->category->quota : 0,
+                'age_group' => $p->getAgeGroup($event->start_at ?: now()),
+                'coupon_code' => $p->transaction?->coupon?->code ?? null,
+                'payment_status' => 'paid',
+                'isApproved' => true,
+                'status' => $p->status,
+            ];
+        })->values();
+
+        return response()->json([
+            'success' => true,
+            'total' => $items->count(),
+            'data' => $items,
         ]);
     }
 

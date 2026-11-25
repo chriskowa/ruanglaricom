@@ -1507,6 +1507,7 @@ Route::middleware('auth')->group(function () {
         Route::get('events/{event}/participants/export', [App\Http\Controllers\EO\EventController::class, 'exportParticipants'])->name('events.participants.export');
         Route::get('events/{event}/participants/export-xlsx', [App\Http\Controllers\EO\EventController::class, 'exportParticipantsXlsx'])->name('events.participants.export-xlsx');
         Route::post('events/{event}/participants/print-bib', [App\Http\Controllers\EO\EventController::class, 'printBibPdf'])->name('events.participants.print-bib');
+        Route::get('events/{event}/participants/bib-list', [App\Http\Controllers\EO\EventController::class, 'bibParticipantsList'])->name('events.participants.bib-list');
         Route::post('events/{event}/participants/bib-check-settings', [App\Http\Controllers\EO\EventController::class, 'saveBibCheckSettings'])->name('events.participants.bib-check-settings');
         Route::get('events/{event}/participants/doorprize-list', [App\Http\Controllers\EO\EventController::class, 'doorprizeList'])->name('events.participants.doorprize-list');
         Route::post('events/{event}/participants/{participant}/status', [App\Http\Controllers\EO\EventController::class, 'updateParticipantStatus'])->name('events.participants.status');

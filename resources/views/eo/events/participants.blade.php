@@ -1155,190 +1155,121 @@
 </div>
 
 <!-- Print BIB Modal -->
-<div id="bibModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true">
-    <div class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm transition-opacity" onclick="closeBibModal()"></div>
-    <div class="fixed inset-0 z-10 overflow-y-auto">
-        <div class="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
-            <div class="relative transform overflow-hidden rounded-2xl bg-slate-800 border border-slate-700 text-left shadow-xl transition-all sm:my-8 sm:w-full sm:max-w-4xl p-6">
-                <div class="flex justify-between items-start mb-6">
-                    <div>
-                        <h3 class="text-xl font-bold text-white flex items-center gap-2">
-                            <svg class="w-6 h-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
-                            Print BIB Designer
-                        </h3>
-                        <p class="text-xs text-slate-400 mt-1">Desain letak teks BIB dan cetak ke format PDF.</p>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <a href="{{ route('events.bib-check', $event->slug) }}" target="_blank" rel="noopener" class="px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-emerald-400 transition">
-                            Buka Layar TV BIB Check
-                        </a>
-                        <button type="button" onclick="closeBibModal()" class="text-slate-400 hover:text-white transition-colors">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
-                        </button>
-                    </div>
+<div id="bibModal" class="fixed inset-0 z-50 hidden" role="dialog" aria-modal="true" aria-labelledby="bibModalTitle">
+    <div class="fixed inset-0" style="background-color: rgba(2, 6, 23, 0.85);" onclick="closeBibModal()"></div>
+    <div class="fixed inset-0 z-10 flex items-center justify-center p-3 sm:p-5 overflow-hidden">
+        <div class="relative w-full max-w-6xl flex flex-col overflow-hidden rounded-lg bg-slate-950 border border-slate-800 text-left shadow-xl" style="width: min(94vw, 1320px); height: 90vh; max-height: 90vh;">
+            <!-- Studio Header -->
+            <div class="px-5 py-3 bg-slate-900 border-b border-slate-800 flex flex-wrap items-center justify-between gap-3 shrink-0">
+                <div class="flex flex-wrap items-center gap-3">
+                    <h3 id="bibModalTitle" class="text-lg font-bold text-white" style="font-family: 'Inter Tight', 'Sora', sans-serif; letter-spacing: -0.03em;">
+                        Print BIB Studio
+                    </h3>
+                    <span id="bibEligibleCountBadge" class="px-2.5 py-1 rounded bg-emerald-950 text-emerald-300 text-xs font-semibold font-mono">
+                        Memuat peserta Paid &amp; Approved...
+                    </span>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div class="md:col-span-1 space-y-4">
-                        <div>
-                            <label class="block text-sm font-bold text-slate-300 mb-2">1. Upload Background BIB (JPG/PNG)</label>
-                            <input type="file" id="bibBackgroundImage" accept="image/png, image/jpeg" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-slate-200 focus:outline-none focus:border-yellow-500">
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-slate-300 mb-2">2. Format Nomor BIB</label>
-                            <div class="space-y-2">
-                                <div>
-                                    <label class="text-xs text-slate-400">Potong Teks / Ambil X Karakter Terakhir</label>
-                                    <input type="text" id="bibTakeLast" value="4" placeholder="Misal: PAOLORUNFE-2026- atau 4" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white mt-1">
-                                </div>
-                                <div>
-                                    <label class="text-xs text-slate-400">Prefix / Awalan Baru</label>
-                                    <input type="text" id="bibPrefix" placeholder="Misal: 5" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white mt-1">
-                                </div>
-                                <div class="text-xs text-slate-500 italic mt-1">Contoh: PAOLORUNFE-2026-01 &rarr; 01 (jika diisi "PAOLORUNFE-2026-")</div>
-                                <button type="button" onclick="saveBibCheckSettings(this)" class="w-full mt-1 px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-emerald-400 transition">
-                                    Simpan Desain & Format ke BIB Check
-                                </button>
-                            </div>
-                        </div>
-                        <div class="border-t border-slate-700 pt-3">
-                            <label class="block text-sm font-bold text-slate-300 mb-2">Cetak Kustom Tanpa Data</label>
-                            <label class="inline-flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer hover:text-slate-200 transition mb-2">
-                                <input type="checkbox" id="bibCustomRangeMode" onchange="toggleCustomRangeMode()" class="rounded border-slate-700 bg-slate-900 text-yellow-500 focus:ring-yellow-500/50 cursor-pointer">
-                                Aktifkan Mode Kustom (Range)
-                            </label>
-                            <div id="bibCustomRangeFields" class="hidden space-y-2 bg-slate-900/50 p-2.5 rounded-lg border border-slate-700">
-                                <div class="grid grid-cols-2 gap-2">
-                                    <div>
-                                        <label class="text-[10px] text-slate-400 block mb-1">Mulai Dari (From)</label>
-                                        <input type="number" id="bibCustomFrom" min="0" placeholder="Contoh: 1" oninput="toggleBibPreview(); syncBibSimTotalFromInputs();" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white">
-                                    </div>
-                                    <div>
-                                        <label class="text-[10px] text-slate-400 block mb-1">Sampai (To)</label>
-                                        <input type="number" id="bibCustomTo" min="0" placeholder="Contoh: 100" oninput="toggleBibPreview(); syncBibSimTotalFromInputs();" class="w-full bg-slate-900 border border-slate-700 rounded p-1.5 text-xs text-white">
-                                    </div>
-                                </div>
-                                <div class="text-[10px] text-slate-500 italic">Mencetak nomor berurutan dengan increment 1.</div>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-bold text-slate-300 mb-2">Format Nama di BIB</label>
-                            <div class="space-y-2">
-                                <div>
-                                    <label class="text-xs text-slate-400">Panjang Maksimal Karakter Nama</label>
-                                    <input type="number" id="bibMaxNameLength" value="18" min="5" max="100" class="w-full bg-slate-900 border border-slate-700 rounded-lg p-2 text-sm text-white mt-1">
-                                </div>
-                                <div class="text-xs text-slate-500 italic mt-1">Mengubah ke Title Case, maks 2 kata penuh, sisa kata disingkat. Contoh: Dafid Sandi Eka Pratama &rarr; Dafid Sandi E. P.</div>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="flex justify-between items-center mb-2">
-                                <label class="block text-sm font-bold text-slate-300">3. Tambahkan Teks</label>
-                                <label class="inline-flex items-center gap-1.5 text-xs text-slate-400 cursor-pointer hover:text-slate-200 transition">
-                                    <input type="checkbox" id="bibPreviewData" checked onchange="toggleBibPreview()" class="rounded border-slate-700 bg-slate-900 text-yellow-500 focus:ring-yellow-500/50 cursor-pointer">
-                                    Preview Data
-                                </label>
-                            </div>
-                            <div class="flex flex-wrap gap-2">
-                                <button type="button" onclick="addBibText('#')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition" title="Nomor BIB"># (BIB)</button>
-                                <button type="button" onclick="addBibText('[N]')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition" title="Nama Peserta">[N] (Nama)</button>
-                                <button type="button" onclick="addBibText('[C]')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition" title="Kategori Lomba">[C] (Kategori)</button>
-                                <button type="button" onclick="addBibText('[G]')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition" title="Jenis Kelamin (M/F)">[G] (Gender)</button>
-                                <button type="button" onclick="addBibText('[B]')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition" title="Golongan Darah">[B] (Darah)</button>
-                                <button type="button" onclick="addBibText('[E#]')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition" title="No Darurat">[E#] (No. Darurat)</button>
-                                <button type="button" onclick="addBibText('[EN]')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition" title="Nama Kontak Darurat">[EN] (Nama Darurat)</button>
-                                <button type="button" onclick="addBibText('[GR]')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition" title="Group (Kategori Umur)">[GR] (Group)</button>
-                                <button type="button" onclick="addBibText('[KP]')" class="px-2 py-1 bg-slate-700 hover:bg-slate-600 rounded text-xs text-white transition" title="Kode Kupon">[KP] (Kupon)</button>
-                                <button type="button" onclick="addBibQr()" class="px-2 py-1 bg-yellow-600/30 hover:bg-yellow-600/50 border border-yellow-500/40 rounded text-xs text-yellow-200 transition" title="Tambahkan QR Code berisi nomor BIB lengkap">[qr] (QR BIB)</button>
-                            </div>
-                        </div>
-                            <div>
-                                <label class="block text-sm font-bold text-slate-300 mb-2">4. Preset Desain</label>
-                                <div class="flex gap-2">
-                                    <button type="button" onclick="saveBibPreset()" class="flex-1 px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-xs font-bold transition">
-                                        Simpan Desain
-                                    </button>
-                                    <button type="button" onclick="loadBibPreset()" class="flex-1 px-3 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-md text-xs font-bold transition">
-                                        Muat Desain
-                                    </button>
-                                </div>
-                            </div>
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <label class="flex items-center gap-2 text-xs text-slate-300">
+                        <span class="hidden sm:inline">Filter Kategori Cetak:</span>
+                        <select id="bibModalCategoryFilter" onchange="onBibModalCategoryChange()" class="bg-slate-950 border border-slate-700 rounded-md px-2.5 py-1.5 text-xs text-white focus:outline-none focus:border-yellow-500">
+                            <option value="">Semua Kategori (Paid &amp; Approved)</option>
+                            @foreach($event->categories as $cat)
+                                <option value="{{ $cat->id }}">{{ $cat->name }}</option>
+                            @endforeach
+                        </select>
+                    </label>
+                    <a href="{{ route('events.bib-check', $event->slug) }}" target="_blank" rel="noopener" class="px-3 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-emerald-300 transition duration-150">
+                        Layar TV BIB Check
+                    </a>
+                    <button type="button" onclick="closeBibModal()" aria-label="Tutup Print BIB Studio" class="w-9 h-9 inline-flex items-center justify-center rounded-md bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 transition duration-150">
+                        <svg class="w-5 h-5" aria-hidden="true" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                    </button>
+                </div>
+            </div>
 
-                            <div class="border-t border-slate-700 pt-3 space-y-3">
-                                <label class="block text-sm font-bold text-slate-200">5. Imposition Percetakan</label>
+            <!-- Studio Split Workspace -->
+            <div class="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 overflow-y-auto lg:overflow-hidden" style="min-width: 0;">
+                <!-- Left Control Rail -->
+                <div class="lg:col-span-4 lg:h-full lg:overflow-y-auto p-4 space-y-4 bg-slate-900 border-b lg:border-b-0 lg:border-r border-slate-800" style="min-width: 0;">
+                    <!-- 1. Background & Preset -->
+                    <div class="bg-slate-950 border border-slate-800 rounded-lg p-3.5 space-y-3">
+                        <label for="bibBackgroundImage" class="block text-xs font-bold uppercase tracking-wider text-slate-200">1. Desain Background &amp; Preset</label>
+                        <input type="file" id="bibBackgroundImage" accept="image/png, image/jpeg" class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-xs text-slate-200 focus:outline-none focus:border-yellow-500">
+                        <div class="grid grid-cols-2 gap-2">
+                            <button type="button" onclick="saveBibPreset()" class="px-3 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-xs font-semibold transition duration-150">
+                                Simpan Desain
+                            </button>
+                            <button type="button" onclick="loadBibPreset()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-white border border-slate-700 rounded-md text-xs font-semibold transition duration-150">
+                                Muat Desain
+                            </button>
+                        </div>
+                        <button type="button" onclick="saveBibCheckSettings(this)" class="w-full px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-emerald-300 transition duration-150">
+                            Simpan Desain ke Layar BIB Check
+                        </button>
+                    </div>
+
+                    <!-- 2. Elemen Teks & QR -->
+                    <div class="bg-slate-950 border border-slate-800 rounded-lg p-3.5 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-200">2. Elemen Teks &amp; QR</span>
+                            <label class="inline-flex items-center gap-1.5 text-xs text-slate-300 cursor-pointer">
+                                <input type="checkbox" id="bibPreviewData" checked onchange="toggleBibPreview()" class="rounded border-slate-700 bg-slate-900 text-yellow-500 focus:ring-yellow-500/50">
+                                <span>Preview Data</span>
+                            </label>
+                        </div>
+                        <div class="flex flex-wrap gap-1.5">
+                            <button type="button" onclick="addBibText('#')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-md text-xs text-white font-medium transition duration-150" title="Nomor BIB"># (BIB)</button>
+                            <button type="button" onclick="addBibText('[N]')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-md text-xs text-white font-medium transition duration-150" title="Nama Peserta / Nama di BIB">[N] (Nama)</button>
+                            <button type="button" onclick="addBibText('[C]')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-md text-xs text-white font-medium transition duration-150" title="Kategori Lomba">[C] (Kategori)</button>
+                            <button type="button" onclick="addBibText('[G]')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-md text-xs text-white font-medium transition duration-150" title="Jenis Kelamin (M/F)">[G] (Gender)</button>
+                            <button type="button" onclick="addBibText('[B]')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-md text-xs text-white font-medium transition duration-150" title="Golongan Darah">[B] (Darah)</button>
+                            <button type="button" onclick="addBibText('[E#]')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-md text-xs text-white font-medium transition duration-150" title="No Darurat">[E#] (No. Darurat)</button>
+                            <button type="button" onclick="addBibText('[EN]')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-md text-xs text-white font-medium transition duration-150" title="Nama Kontak Darurat">[EN] (Nama Darurat)</button>
+                            <button type="button" onclick="addBibText('Emergency contact: [EN] - [E#]', 18)" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-md text-xs text-emerald-300 font-semibold transition duration-150" title="Emergency contact: [Nama] - [nomor darurat]">[EC] (Emergency Gabung)</button>
+                            <button type="button" onclick="addBibText('[GR]')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-md text-xs text-white font-medium transition duration-150" title="Kelompok Umur">[GR] (Group)</button>
+                            <button type="button" onclick="addBibText('[KP]')" class="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-md text-xs text-white font-medium transition duration-150" title="Kode Kupon">[KP] (Kupon)</button>
+                            <button type="button" onclick="addBibQr()" class="px-2.5 py-1.5 bg-yellow-500 text-slate-950 hover:bg-yellow-400 rounded-md text-xs font-bold transition duration-150" title="QR Code Nomor BIB">[qr] (QR BIB)</button>
+                        </div>
+
+                        <!-- Selected Element Inspector -->
+                        <div id="bibTextSettings" class="hidden pt-3 border-t border-slate-800 space-y-3">
+                            <span class="block text-xs font-bold text-yellow-400">Properti Elemen Terpilih</span>
+                            <div class="grid grid-cols-2 gap-2">
                                 <div>
-                                    <label class="text-xs text-slate-300 block mb-1">Mode Imposition</label>
-                                    <select id="bibImpMode" onchange="onBibImpositionChange()" class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-xs text-white focus:outline-none focus:border-yellow-500">
-                                        <option value="single">1. Single (1 BIB / Halaman)</option>
-                                        <option value="step-repeat">2. Step &amp; Repeat (Identik / Lembar)</option>
-                                        <option value="vdp">3. VDP (Urut Kiri-Kanan per Lembar)</option>
-                                        <option value="cut-stack">4. Cut &amp; Stack (Urut Tumpuk Potong)</option>
-                                    </select>
+                                    <label class="text-xs text-slate-300 block mb-1">Ukuran</label>
+                                    <input type="number" id="bibFontSize" class="w-full bg-slate-900 border border-slate-700 rounded-md p-1.5 text-xs text-white font-mono">
                                 </div>
-                                <div class="grid grid-cols-2 gap-2">
-                                    <div>
-                                        <label class="text-xs text-slate-300 block mb-1">Ukuran Kertas</label>
-                                        <select id="bibImpPaper" onchange="onBibImpositionChange()" class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-xs text-white focus:outline-none focus:border-yellow-500">
-                                            <option value="ORIGINAL" id="bibImpPaperOrigOpt">Ukuran Desain Asli</option>
-                                            <option value="A3">A3 (420 &times; 297 mm)</option>
-                                            <option value="A3+">A3+ (480 &times; 320 mm)</option>
-                                        </select>
-                                    </div>
-                                    <div>
-                                        <label class="text-xs text-slate-300 block mb-1">Orientasi Lembar</label>
-                                        <select id="bibImpOrientation" onchange="onBibImpositionChange()" class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-xs text-white focus:outline-none focus:border-yellow-500">
-                                            <option value="auto">Otomatis Optimal</option>
-                                            <option value="L">Landscape</option>
-                                            <option value="P">Portrait</option>
-                                        </select>
-                                    </div>
-                                </div>
-                                <div id="bibImpGridFields" class="hidden space-y-2.5 bg-slate-900 p-3 rounded-lg border border-slate-800">
-                                    <div class="grid grid-cols-3 gap-2">
-                                        <div>
-                                            <label class="text-xs text-slate-300 block mb-1">Baris</label>
-                                            <input type="number" id="bibImpRows" value="2" min="1" max="10" oninput="onBibImpositionChange()" class="w-full bg-slate-950 border border-slate-700 rounded-md p-1.5 text-xs text-white font-mono">
-                                        </div>
-                                        <div>
-                                            <label class="text-xs text-slate-300 block mb-1">Kolom</label>
-                                            <input type="number" id="bibImpCols" value="2" min="1" max="10" oninput="onBibImpositionChange()" class="w-full bg-slate-950 border border-slate-700 rounded-md p-1.5 text-xs text-white font-mono">
-                                        </div>
-                                        <div>
-                                            <label class="text-xs text-slate-300 block mb-1">Jarak (mm)</label>
-                                            <input type="number" id="bibImpGap" value="0" min="0" max="30" step="0.5" oninput="onBibImpositionChange()" class="w-full bg-slate-950 border border-slate-700 rounded-md p-1.5 text-xs text-white font-mono">
-                                        </div>
-                                    </div>
-                                </div>
-                                <label id="bibImpCropMarksWrap" class="hidden items-center gap-2 text-xs text-slate-200 cursor-pointer">
-                                    <input type="checkbox" id="bibImpCropMarks" checked onchange="onBibImpositionChange()" class="rounded border-slate-700 bg-slate-900 text-yellow-500 focus:ring-yellow-500/50">
-                                    <span>Sertakan Garis Potong (Crop Marks)</span>
-                                </label>
-                            </div>
-                        <div id="bibTextSettings" class="hidden space-y-3 bg-slate-900/50 p-3 rounded-lg border border-slate-700">
-                            <label class="block text-xs font-bold text-slate-300">Pengaturan Teks Terpilih</label>
-                            <div class="flex gap-2">
-                                <div class="flex-1">
-                                    <label class="text-[10px] text-slate-400 block mb-1">Ukuran Font</label>
-                                    <input type="number" id="bibFontSize" class="w-full bg-slate-800 border border-slate-600 rounded p-1 text-sm text-white">
-                                </div>
-                                <div class="flex-1">
-                                    <label class="text-[10px] text-slate-400 block mb-1">Warna</label>
-                                    <input type="color" id="bibFontColor" class="w-full bg-slate-800 border border-slate-600 rounded p-0 h-[28px] cursor-pointer">
+                                <div>
+                                    <label class="text-xs text-slate-300 block mb-1">Warna Teks</label>
+                                    <input type="color" id="bibFontColor" class="w-full bg-slate-900 border border-slate-700 rounded-md p-0.5 h-[32px] cursor-pointer">
                                 </div>
                             </div>
-                            <div class="flex gap-2">
-                                <div class="flex-1">
-                                    <label class="text-[10px] text-slate-400 block mb-1">Posisi X (Kiri)</label>
-                                    <input type="number" id="bibPosX" class="w-full bg-slate-800 border border-slate-600 rounded p-1 text-sm text-white">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="text-xs text-slate-300 block mb-1">Posisi X</label>
+                                    <input type="number" id="bibPosX" class="w-full bg-slate-900 border border-slate-700 rounded-md p-1.5 text-xs text-white font-mono">
                                 </div>
-                                <div class="flex-1">
-                                    <label class="text-[10px] text-slate-400 block mb-1">Posisi Y (Atas)</label>
-                                    <input type="number" id="bibPosY" class="w-full bg-slate-800 border border-slate-600 rounded p-1 text-sm text-white">
+                                <div>
+                                    <label class="text-xs text-slate-300 block mb-1">Posisi Y</label>
+                                    <input type="number" id="bibPosY" class="w-full bg-slate-900 border border-slate-700 rounded-md p-1.5 text-xs text-white font-mono">
                                 </div>
                             </div>
                             <div>
-                                <label class="text-[10px] text-slate-400 block mb-1">Jenis Font</label>
-                                <select id="bibFontFamily" class="w-full bg-slate-800 border border-slate-600 rounded p-1 text-sm text-white">
+                                <label class="text-xs text-slate-300 block mb-1">Tengahkan Posisi di Kanvas</label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button type="button" id="bibCenterHorizontal" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-md py-1.5 px-2 text-xs text-white font-medium transition duration-150">
+                                        Tengah Horizontal
+                                    </button>
+                                    <button type="button" id="bibCenterVertical" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-md py-1.5 px-2 text-xs text-white font-medium transition duration-150">
+                                        Tengah Vertikal
+                                    </button>
+                                </div>
+                            </div>
+                            <div>
+                                <label class="text-xs text-slate-300 block mb-1">Jenis Font</label>
+                                <select id="bibFontFamily" class="w-full bg-slate-900 border border-slate-700 rounded-md p-1.5 text-xs text-white">
                                     <option value="Helvetica">Helvetica / Arial</option>
                                     <option value="Times New Roman">Times New Roman</option>
                                     <option value="Courier">Courier</option>
@@ -1349,123 +1280,222 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="text-[10px] text-slate-400 block mb-1">Perataan</label>
-                                <div class="flex gap-2">
-                                    <button type="button" id="bibAlignLeft" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded p-1 text-xs text-white transition">Rata Kiri</button>
-                                    <button type="button" id="bibAlignCenter" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded p-1 text-xs text-white transition">Rata Tengah</button>
+                                <label class="text-xs text-slate-300 block mb-1">Perataan Anchor Teks</label>
+                                <div class="grid grid-cols-2 gap-2">
+                                    <button type="button" id="bibAlignLeft" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-md p-1.5 text-xs text-white transition duration-150">Rata Kiri</button>
+                                    <button type="button" id="bibAlignCenter" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-md p-1.5 text-xs text-white transition duration-150">Rata Tengah</button>
                                 </div>
                             </div>
-                            <div class="flex gap-2">
-                                <button type="button" id="bibFontBold" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded p-1 text-sm text-white font-bold transition">B</button>
-                                <button type="button" id="bibFontItalic" class="flex-1 bg-slate-800 hover:bg-slate-700 border border-slate-600 rounded p-1 text-sm text-white italic transition">I</button>
-                                <button type="button" onclick="deleteSelectedBibText()" class="flex-1 bg-red-900/50 hover:bg-red-800 border border-red-800 rounded p-1 text-sm text-red-200 transition">Hapus</button>
+                            <div class="grid grid-cols-3 gap-2">
+                                <button type="button" id="bibFontBold" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-md p-1.5 text-xs text-white font-bold transition duration-150">B</button>
+                                <button type="button" id="bibFontItalic" class="bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-md p-1.5 text-xs text-white italic transition duration-150">I</button>
+                                <button type="button" onclick="deleteSelectedBibText()" class="bg-rose-950 hover:bg-rose-900 border border-rose-800 rounded-md p-1.5 text-xs text-rose-200 font-semibold transition duration-150">Hapus</button>
                             </div>
                         </div>
                     </div>
-                    <div class="md:col-span-2 flex flex-col space-y-4">
-                        <!-- Navigation controls -->
-                        <div id="bibNormalNavControls" class="flex flex-col sm:flex-row gap-3 justify-between items-center bg-slate-900 border border-slate-700 rounded-lg p-3">
-                            <div class="flex items-center gap-3">
-                                <button type="button" onclick="prevBibParticipant()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs font-bold transition">&larr; Prev</button>
-                                <span id="bibParticipantInfo" class="text-xs text-slate-300 font-medium">No active participant</span>
-                                <button type="button" onclick="nextBibParticipant()" class="px-3 py-1.5 bg-slate-700 hover:bg-slate-600 text-white rounded text-xs font-bold transition">Next &rarr;</button>
+
+                    <!-- 3. Format Nomor & Nama BIB -->
+                    <div class="bg-slate-950 border border-slate-800 rounded-lg p-3.5 space-y-2.5">
+                        <span class="block text-xs font-bold uppercase tracking-wider text-slate-200">3. Format Nomor &amp; Nama</span>
+                        <div>
+                            <label class="text-xs text-slate-300 block mb-1">Potong Teks / X Karakter Terakhir</label>
+                            <input type="text" id="bibTakeLast" value="4" placeholder="Misal: PAOLORUNFE-2026- atau 4" class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-xs text-white">
+                        </div>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div>
+                                <label class="text-xs text-slate-300 block mb-1">Prefix Baru</label>
+                                <input type="text" id="bibPrefix" placeholder="Misal: 5" class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-xs text-white font-mono">
                             </div>
-                            <div class="flex items-center gap-3">
-                                <button type="button" onclick="generateBibPdf(this, true)" class="whitespace-nowrap px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded text-xs font-bold transition flex items-center gap-1.5">
-                                    <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
-                                    Download Preview
-                                </button>
-                                <div class="text-[10px] text-slate-500 italic">Klik kanan baris tabel untuk memuat langsung</div>
+                            <div>
+                                <label class="text-xs text-slate-300 block mb-1">Maks Karakter Nama</label>
+                                <input type="number" id="bibMaxNameLength" value="18" min="5" max="100" class="w-full bg-slate-900 border border-slate-700 rounded-md p-2 text-xs text-white font-mono">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. Mode Cetak Kustom Tanpa Data -->
+                    <div class="bg-slate-950 border border-slate-800 rounded-lg p-3.5 space-y-2.5">
+                        <span class="block text-xs font-bold uppercase tracking-wider text-slate-200">4. Cetak Kustom Tanpa Data</span>
+                        <label class="inline-flex items-center gap-2 text-xs text-slate-300 cursor-pointer">
+                            <input type="checkbox" id="bibCustomRangeMode" onchange="toggleCustomRangeMode()" class="rounded border-slate-700 bg-slate-900 text-yellow-500 focus:ring-yellow-500/50">
+                            <span>Aktifkan Mode Rentang Nomor (Range)</span>
+                        </label>
+                        <div id="bibCustomRangeFields" class="hidden space-y-2 pt-1">
+                            <div class="grid grid-cols-2 gap-2">
+                                <div>
+                                    <label class="text-xs text-slate-300 block mb-1">Mulai (From)</label>
+                                    <input type="number" id="bibCustomFrom" min="0" placeholder="1" oninput="toggleBibPreview(); syncBibSimTotalFromInputs();" class="w-full bg-slate-900 border border-slate-700 rounded-md p-1.5 text-xs text-white font-mono">
+                                </div>
+                                <div>
+                                    <label class="text-xs text-slate-300 block mb-1">Sampai (To)</label>
+                                    <input type="number" id="bibCustomTo" min="0" placeholder="430" oninput="toggleBibPreview(); syncBibSimTotalFromInputs();" class="w-full bg-slate-900 border border-slate-700 rounded-md p-1.5 text-xs text-white font-mono">
+                                </div>
+                            </div>
+                            <p class="text-[11px] text-slate-400">Mencetak urutan angka tanpa data peserta (maks. 5.000 BIB).</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Main Studio Workspace -->
+                <div class="lg:col-span-8 lg:h-full lg:overflow-y-auto p-4 sm:p-5 space-y-4 bg-slate-950" style="min-width: 0;">
+                    <!-- Imposition Percetakan (Directly Above BIB Preview) -->
+                    <div class="bg-slate-900 border border-slate-800 rounded-lg p-4 space-y-3">
+                        <div class="flex flex-wrap items-center justify-between gap-2">
+                            <span class="text-xs font-bold uppercase tracking-wider text-slate-200">Imposition Percetakan</span>
+                            <label id="bibImpCropMarksWrap" class="hidden items-center gap-2 text-xs text-slate-200 cursor-pointer">
+                                <input type="checkbox" id="bibImpCropMarks" checked onchange="onBibImpositionChange()" class="rounded border-slate-700 bg-slate-950 text-yellow-500 focus:ring-yellow-500/50">
+                                <span>Sertakan Garis Potong (Crop Marks)</span>
+                            </label>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                            <div>
+                                <label class="text-xs text-slate-300 block mb-1">Mode Imposition</label>
+                                <select id="bibImpMode" onchange="onBibImpositionChange()" class="w-full bg-slate-950 border border-slate-700 rounded-md p-2 text-xs text-white focus:outline-none focus:border-yellow-500">
+                                    <option value="single">1. Single (1 BIB / Halaman)</option>
+                                    <option value="step-repeat">2. Step &amp; Repeat (Identik / Lembar)</option>
+                                    <option value="vdp">3. VDP (Urut Kiri-Kanan per Lembar)</option>
+                                    <option value="cut-stack">4. Cut &amp; Stack (Urut Tumpuk Potong)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs text-slate-300 block mb-1">Ukuran Kertas</label>
+                                <select id="bibImpPaper" onchange="onBibImpositionChange()" class="w-full bg-slate-950 border border-slate-700 rounded-md p-2 text-xs text-white focus:outline-none focus:border-yellow-500">
+                                    <option value="ORIGINAL" id="bibImpPaperOrigOpt">Ukuran Desain Asli</option>
+                                    <option value="A3">A3 (420 &times; 297 mm)</option>
+                                    <option value="A3+">A3+ (480 &times; 320 mm)</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="text-xs text-slate-300 block mb-1">Orientasi Lembar</label>
+                                <select id="bibImpOrientation" onchange="onBibImpositionChange()" class="w-full bg-slate-950 border border-slate-700 rounded-md p-2 text-xs text-white focus:outline-none focus:border-yellow-500">
+                                    <option value="auto">Otomatis Optimal</option>
+                                    <option value="L">Landscape</option>
+                                    <option value="P">Portrait</option>
+                                </select>
                             </div>
                         </div>
 
-                        <!-- Canvas container -->
-                        <div class="bg-slate-900 border border-slate-700 rounded-lg p-2 flex justify-center items-center overflow-auto relative" style="min-height: 400px;" id="bibCanvasContainer">
-                            <span id="bibCanvasPlaceholder" class="text-slate-500 text-sm absolute pointer-events-none z-0">Upload gambar background terlebih dahulu</span>
-                            <canvas id="bibCanvas" class="z-10"></canvas>
+                        <div id="bibImpGridFields" class="hidden grid-cols-3 gap-3 pt-1">
+                            <div>
+                                <label class="text-xs text-slate-300 block mb-1">Baris</label>
+                                <input type="number" id="bibImpRows" value="2" min="1" max="10" oninput="onBibImpositionChange()" class="w-full bg-slate-950 border border-slate-700 rounded-md p-2 text-xs text-white font-mono">
+                            </div>
+                            <div>
+                                <label class="text-xs text-slate-300 block mb-1">Kolom</label>
+                                <input type="number" id="bibImpCols" value="2" min="1" max="10" oninput="onBibImpositionChange()" class="w-full bg-slate-950 border border-slate-700 rounded-md p-2 text-xs text-white font-mono">
+                            </div>
+                            <div>
+                                <label class="text-xs text-slate-300 block mb-1">Jarak Antar BIB (mm)</label>
+                                <input type="number" id="bibImpGap" value="0" min="0" max="30" step="0.5" oninput="onBibImpositionChange()" class="w-full bg-slate-950 border border-slate-700 rounded-md p-2 text-xs text-white font-mono">
+                            </div>
                         </div>
 
                         <!-- Live Imposition Sheet Simulator -->
-                        <div id="bibImpPreviewPanel" class="hidden bg-slate-900 border border-slate-800 rounded-lg p-4 space-y-3">
-                            <div class="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800 pb-2.5">
-                                <div>
-                                    <h4 class="text-xs font-bold uppercase tracking-wider text-white">Simulasi Mapping Lembar Cetak</h4>
-                                    <p id="bibImpSummaryText" class="text-xs text-slate-300 mt-0.5 font-mono">-</p>
-                                </div>
+                        <div id="bibImpPreviewPanel" class="hidden pt-3 border-t border-slate-800 space-y-2.5">
+                            <div class="flex flex-wrap items-center justify-between gap-2">
+                                <p id="bibImpSummaryText" class="text-xs text-slate-200 font-mono">-</p>
                                 <div class="flex flex-wrap items-center gap-2">
                                     <label class="text-xs text-slate-300 flex items-center gap-1.5">
-                                        <span>Total BIB:</span>
+                                        <span>Simulasi Total BIB:</span>
                                         <input type="number" id="bibImpSimTotal" value="{{ max(1, (int) ($participants->total() ?? 100)) }}" min="1" max="50000" oninput="onBibSimTotalInput()" class="w-20 bg-slate-950 border border-slate-700 rounded-md px-2 py-1 text-xs text-white font-mono">
                                     </label>
-                                    <button type="button" onclick="generateBibPdf(this, false, true)" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-md text-xs font-semibold transition">
+                                    <button type="button" onclick="generateBibPdf(this, false, true)" class="px-3 py-1 bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 rounded-md text-xs font-semibold transition duration-150">
                                         Test PDF Lembar #1
                                     </button>
                                 </div>
                             </div>
                             <div class="flex items-center justify-between gap-2">
-                                <button type="button" onclick="stepImpPreviewSheet(-1)" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-md text-xs font-semibold border border-slate-700">&larr; Lembar Sebelumnya</button>
+                                <button type="button" onclick="stepImpPreviewSheet(-1)" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-md text-xs font-semibold border border-slate-700">&larr; Prev Sheet</button>
                                 <span id="bibImpSheetIndicator" class="text-xs font-mono font-bold text-yellow-400">Sheet 1 / 1</span>
-                                <button type="button" onclick="stepImpPreviewSheet(1)" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-md text-xs font-semibold border border-slate-700">Lembar Berikutnya &rarr;</button>
+                                <button type="button" onclick="stepImpPreviewSheet(1)" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-white rounded-md text-xs font-semibold border border-slate-700">Next Sheet &rarr;</button>
                             </div>
-                            <div id="bibImpSheetGrid" class="grid gap-2 bg-slate-950 border border-slate-800 rounded-md p-3"></div>
+                            <div id="bibImpSheetGrid" class="grid gap-2 bg-slate-950 border border-slate-800 rounded-md p-2.5"></div>
                         </div>
+                    </div>
 
-                        <!-- Temporary Form Editor -->
-                        <div id="bibTemporaryFormEditor" class="bg-slate-900 border border-slate-700 rounded-lg p-4 space-y-3">
-                            <div class="flex items-center justify-between border-b border-slate-700 pb-2">
-                                <h4 class="text-xs font-bold uppercase tracking-wider text-yellow-500">Edit Data Cetak (Sementara / Tanpa Save DB)</h4>
-                                <button type="button" onclick="resetActiveParticipantOverride()" class="text-[10px] text-red-400 hover:text-red-300 underline font-semibold transition">Reset ke Default</button>
+                    <!-- Navigation & Quick Participant Search -->
+                    <div id="bibNormalNavControls" class="flex flex-wrap items-center justify-between gap-3 bg-slate-900 border border-slate-800 rounded-lg p-3">
+                        <div class="flex flex-wrap items-center gap-2.5">
+                            <button type="button" onclick="prevBibParticipant()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white rounded-md text-xs font-bold transition duration-150">&larr; Prev</button>
+                            <span id="bibParticipantInfo" class="text-xs text-white font-semibold">Memuat peserta...</span>
+                            <button type="button" onclick="nextBibParticipant()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white rounded-md text-xs font-bold transition duration-150">Next &rarr;</button>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <input type="search" id="bibModalSearchInput" oninput="onBibModalQuickSearch(this.value)" placeholder="Cari nama / nomor BIB..." class="w-48 sm:w-56 bg-slate-950 border border-slate-700 rounded-md px-3 py-1.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-yellow-500">
+                            <button type="button" onclick="generateBibPdf(this, true)" class="whitespace-nowrap px-3 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-xs font-bold transition duration-150">
+                                Download Preview Satuan
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Maximized BIB Canvas Preview -->
+                    <div class="w-full max-w-full bg-slate-900 border border-slate-800 rounded-lg p-3 flex justify-center items-center overflow-x-auto relative" style="min-height: 420px; min-width: 0;" id="bibCanvasContainer">
+                        <span id="bibCanvasPlaceholder" class="text-slate-400 text-sm absolute pointer-events-none z-0">Upload gambar background BIB di panel kiri terlebih dahulu</span>
+                        <canvas id="bibCanvas" class="z-10"></canvas>
+                    </div>
+
+                    <!-- Temporary Print Override Form -->
+                    <div id="bibTemporaryFormEditor" class="bg-slate-900 border border-slate-800 rounded-lg p-4 space-y-3">
+                        <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-200">Edit Data Cetak Sementara (Tanpa Ubah Database)</h4>
+                            <button type="button" onclick="resetActiveParticipantOverride()" class="text-xs text-rose-400 hover:text-rose-300 underline font-semibold">Reset ke Default</button>
+                        </div>
+                        <div class="grid grid-cols-1 sm:grid-cols-3 xl:grid-cols-5 gap-3">
+                            <div class="sm:col-span-2">
+                                <label class="text-xs text-slate-300 block mb-1">Nama di BIB</label>
+                                <input type="text" id="bibEditName" oninput="onBibOverrideChange('name', this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-md p-2 text-xs text-white">
                             </div>
-                            <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                                <div>
-                                    <label class="text-[10px] text-slate-400 block mb-1">Nama Lengkap</label>
-                                    <input type="text" id="bibEditName" oninput="onBibOverrideChange('name', this.value)" class="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-white">
-                                </div>
-                                <div>
-                                    <label class="text-[10px] text-slate-400 block mb-1">Nomor BIB</label>
-                                    <input type="text" id="bibEditBibNumber" oninput="onBibOverrideChange('bib_number', this.value)" class="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-white font-mono">
-                                </div>
-                                <div>
-                                    <label class="text-[10px] text-slate-400 block mb-1">Kategori Lomba</label>
-                                    <input type="text" id="bibEditCategory" oninput="onBibOverrideChange('category', this.value)" class="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-white">
-                                </div>
-                                <div>
-                                    <label class="text-[10px] text-slate-400 block mb-1">Gender (M/F)</label>
-                                    <input type="text" id="bibEditGender" oninput="onBibOverrideChange('gender', this.value)" class="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-white">
-                                </div>
-                                <div>
-                                    <label class="text-[10px] text-slate-400 block mb-1">Golongan Darah</label>
-                                    <input type="text" id="bibEditBloodType" oninput="onBibOverrideChange('blood_type', this.value)" class="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-white">
-                                </div>
-                                <div>
-                                    <label class="text-[10px] text-slate-400 block mb-1">Nama Kontak Darurat</label>
-                                    <input type="text" id="bibEditEmergencyName" oninput="onBibOverrideChange('emergency_contact_name', this.value)" class="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-white font-sans">
-                                </div>
-                                <div>
-                                    <label class="text-[10px] text-slate-400 block mb-1">No Kontak Darurat</label>
-                                    <input type="text" id="bibEditEmergencyPhone" oninput="onBibOverrideChange('emergency_contact_number', this.value)" class="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-white font-mono">
-                                </div>
-                                <div>
-                                    <label class="text-[10px] text-slate-400 block mb-1">Group / Umur</label>
-                                    <input type="text" id="bibEditAgeGroup" oninput="onBibOverrideChange('age_group', this.value)" class="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-white">
-                                </div>
-                                <div>
-                                    <label class="text-[10px] text-slate-400 block mb-1">Kode Kupon</label>
-                                    <input type="text" id="bibEditCouponCode" oninput="onBibOverrideChange('coupon_code', this.value)" class="w-full bg-slate-800 border border-slate-700 rounded p-1.5 text-xs text-white font-mono">
-                                </div>
+                            <div>
+                                <label class="text-xs text-slate-300 block mb-1">Nomor BIB</label>
+                                <input type="text" id="bibEditBibNumber" oninput="onBibOverrideChange('bib_number', this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-md p-2 text-xs text-white font-mono">
+                            </div>
+                            <div>
+                                <label class="text-xs text-slate-300 block mb-1">Kategori</label>
+                                <input type="text" id="bibEditCategory" oninput="onBibOverrideChange('category', this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-md p-2 text-xs text-white">
+                            </div>
+                            <div>
+                                <label class="text-xs text-slate-300 block mb-1">Gender (M/F)</label>
+                                <input type="text" id="bibEditGender" oninput="onBibOverrideChange('gender', this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-md p-2 text-xs text-white">
+                            </div>
+                            <div>
+                                <label class="text-xs text-slate-300 block mb-1">Golongan Darah</label>
+                                <input type="text" id="bibEditBloodType" oninput="onBibOverrideChange('blood_type', this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-md p-2 text-xs text-white">
+                            </div>
+                            <div>
+                                <label class="text-xs text-slate-300 block mb-1">Nama Kontak Darurat</label>
+                                <input type="text" id="bibEditEmergencyName" oninput="onBibOverrideChange('emergency_contact_name', this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-md p-2 text-xs text-white">
+                            </div>
+                            <div>
+                                <label class="text-xs text-slate-300 block mb-1">No. Kontak Darurat</label>
+                                <input type="text" id="bibEditEmergencyPhone" oninput="onBibOverrideChange('emergency_contact_number', this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-md p-2 text-xs text-white font-mono">
+                            </div>
+                            <div>
+                                <label class="text-xs text-slate-300 block mb-1">Group / Umur</label>
+                                <input type="text" id="bibEditAgeGroup" oninput="onBibOverrideChange('age_group', this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-md p-2 text-xs text-white">
+                            </div>
+                            <div>
+                                <label class="text-xs text-slate-300 block mb-1">Kode Kupon</label>
+                                <input type="text" id="bibEditCouponCode" oninput="onBibOverrideChange('coupon_code', this.value)" class="w-full bg-slate-950 border border-slate-700 rounded-md p-2 text-xs text-white font-mono">
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="mt-6 flex justify-end gap-3 border-t border-slate-700 pt-4">
-                    <button type="button" onclick="closeBibModal()" class="px-4 py-2 bg-slate-700 hover:bg-slate-600 text-white rounded-lg text-sm font-bold transition">Batal</button>
-                    <button type="button" onclick="generateBibPdf(this, true)" class="whitespace-nowrap px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-lg text-sm font-bold flex items-center gap-2 transition">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" /></svg>
+            <!-- Sticky Studio Footer -->
+            <div class="px-5 py-3.5 bg-slate-900 border-t border-slate-800 flex flex-wrap items-center justify-between gap-3 shrink-0">
+                <p class="text-xs text-slate-300">
+                    Data otomatis difilter khusus peserta berstatus <strong class="text-emerald-300">Paid &amp; Approved</strong> (kecuali Mode Rentang Kustom aktif).
+                </p>
+                <div class="flex flex-wrap items-center gap-2.5">
+                    <button type="button" onclick="closeBibModal()" class="px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-white rounded-md text-xs sm:text-sm font-semibold transition duration-150">
+                        Tutup
+                    </button>
+                    <button type="button" onclick="generateBibPdf(this, true)" class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white rounded-md text-xs sm:text-sm font-semibold transition duration-150">
                         Download BIB Satuan
                     </button>
-                    <button type="button" onclick="generateBibPdf(this)" class="px-4 py-2 bg-yellow-500 hover:bg-yellow-400 text-slate-900 rounded-lg text-sm font-bold flex items-center gap-2 transition">
-                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
+                    <button type="button" onclick="generateBibPdf(this)" class="px-5 py-2 bg-yellow-500 hover:bg-yellow-400 text-slate-950 rounded-md text-xs sm:text-sm font-bold transition duration-150">
                         Generate Semua BIB (PDF)
                     </button>
                 </div>
@@ -6090,7 +6120,8 @@
         
         const infoEl = document.getElementById('bibParticipantInfo');
         if (infoEl) {
-            infoEl.textContent = `Peserta ${index + 1} dari ${window.currentParticipantsList.length}: ${p.name}`;
+            const bibTag = p.bib_number ? ` (#${p.bib_number})` : '';
+            infoEl.textContent = `Peserta ${index + 1} dari ${window.currentParticipantsList.length}: ${p.name}${bibTag}`;
         }
         
         const overrides = window.bibOverrides[p.id] || {};
@@ -6321,6 +6352,7 @@
 
         if (gridFields) {
             gridFields.classList.toggle('hidden', mode === 'single');
+            gridFields.classList.toggle('grid', mode !== 'single');
         }
         if (cropWrap) {
             cropWrap.classList.toggle('hidden', paper === 'ORIGINAL');
@@ -6431,6 +6463,7 @@
             take_last: document.getElementById('bibTakeLast').value,
             prefix: document.getElementById('bibPrefix').value,
             max_name_length: document.getElementById('bibMaxNameLength').value,
+            canvas_width: bibCanvas.width || null,
             imposition: window.getBibImpositionConfig ? window.getBibImpositionConfig() : undefined,
             texts: textElements
         };
@@ -6508,9 +6541,16 @@
             const existingObjects = bibCanvas.getObjects().filter(obj => obj.type === 'text' || obj.isQrCode);
             existingObjects.forEach(obj => bibCanvas.remove(obj));
 
-            // Load texts and QR codes
-            if (Array.isArray(preset.texts)) {
-                preset.texts.forEach(t => {
+            const addPresetTexts = (ratio = 1) => {
+                if (!Array.isArray(preset.texts)) return;
+                preset.texts.forEach(rawT => {
+                    const t = {
+                        ...rawT,
+                        left: (rawT.left || 0) * ratio,
+                        top: (rawT.top || 0) * ratio,
+                        fontSize: (rawT.fontSize || 40) * ratio,
+                        size: rawT.size ? Math.round(rawT.size * ratio) : undefined
+                    };
                     if (t.type === 'qr' || t.text === '[qr]') {
                         addBibQr(t);
                         return;
@@ -6543,13 +6583,14 @@
 
                     bibCanvas.add(text);
                 });
-            }
+                bibCanvas.renderAll();
+            };
 
-            // Load background image
+            // Load background image first so canvas width & scaling ratio are exact
             if (preset.image_base64) {
                 bibImageBase64 = preset.image_base64;
                 fabric.Image.fromURL(preset.image_base64, function(img) {
-                    const containerWidth = document.getElementById('bibCanvasContainer').clientWidth - 20;
+                    const containerWidth = window.getSafeBibCanvasMaxWidth ? window.getSafeBibCanvasMaxWidth() : 680;
                     let scale = containerWidth / img.width;
                     if (scale > 1) scale = 1;
 
@@ -6559,7 +6600,13 @@
                     bibCanvas.setWidth(w);
                     bibCanvas.setHeight(h);
 
-                    bibCanvas.setBackgroundImage(img, bibCanvas.renderAll.bind(bibCanvas), {
+                    bibCanvas.setBackgroundImage(img, function() {
+                        const ratio = (preset.canvas_width && preset.canvas_width > 0) ? (w / preset.canvas_width) : 1;
+                        addPresetTexts(ratio);
+                        if (typeof window.renderBibImpositionPreview === 'function') {
+                            window.renderBibImpositionPreview();
+                        }
+                    }, {
                         scaleX: scale,
                         scaleY: scale
                     });
@@ -6567,6 +6614,7 @@
                     document.getElementById('bibCanvasPlaceholder').style.display = 'none';
                 });
             } else {
+                addPresetTexts(1);
                 if (!quiet) {
                     alert('Desain dimuat! Harap upload kembali gambar background jika diperlukan.');
                 }
@@ -6646,6 +6694,12 @@
             const bibNum = prefixVal + String(customFromVal).padStart(padLength, '0');
             
             return {
+                '[EC]': 'Emergency contact: - - -',
+                '{emergency_contact}': 'Emergency contact: - - -',
+                '[E#]': '-',
+                '{emergency_contact_number}': '-',
+                '[EN]': '-',
+                '{emergency_contact_name}': '-',
                 '#': bibNum,
                 '{bib_number}': bibNum,
                 '{full_bib}': bibNum,
@@ -6657,10 +6711,6 @@
                 '{gender}': '-',
                 '[B]': '-',
                 '{blood_type}': '-',
-                '[E#]': '-',
-                '{emergency_contact_number}': '-',
-                '[EN]': '-',
-                '{emergency_contact_name}': '-',
                 '[GR]': '-',
                 '{age_group}': '-',
                 '[KP]': '-',
@@ -6731,8 +6781,15 @@
                 }
 
                 const fullBibNum = overrides.bib_number !== undefined ? overrides.bib_number : (data.bib_number || bibNum);
+                const combinedEmergency = `Emergency contact: ${emergency_contact_name} - ${emergency_contact_number}`;
 
                 return {
+                    '[EC]': combinedEmergency,
+                    '{emergency_contact}': combinedEmergency,
+                    '[E#]': emergency_contact_number,
+                    '{emergency_contact_number}': emergency_contact_number,
+                    '[EN]': emergency_contact_name,
+                    '{emergency_contact_name}': emergency_contact_name,
                     '#': bibNum,
                     '{bib_number}': bibNum,
                     '{full_bib}': fullBibNum,
@@ -6744,10 +6801,6 @@
                     '{gender}': genderVal,
                     '[B]': blood_type,
                     '{blood_type}': blood_type,
-                    '[E#]': emergency_contact_number,
-                    '{emergency_contact_number}': emergency_contact_number,
-                    '[EN]': emergency_contact_name,
-                    '{emergency_contact_name}': emergency_contact_name,
                     '[GR]': age_group,
                     '{age_group}': age_group,
                     '[KP]': coupon_code,
@@ -6774,6 +6827,12 @@
         dummyName = formatBibName(dummyName, maxLen);
 
         return {
+            '[EC]': 'Emergency contact: SITI AMINAH - 08123456789',
+            '{emergency_contact}': 'Emergency contact: SITI AMINAH - 08123456789',
+            '[E#]': '08123456789',
+            '{emergency_contact_number}': '08123456789',
+            '[EN]': 'SITI AMINAH',
+            '{emergency_contact_name}': 'SITI AMINAH',
             '#': bibNum,
             '{bib_number}': bibNum,
             '{full_bib}': '10234',
@@ -6785,10 +6844,6 @@
             '{gender}': 'M',
             '[B]': 'O',
             '{blood_type}': 'O',
-            '[E#]': '08123456789',
-            '{emergency_contact_number}': '08123456789',
-            '[EN]': 'SITI AMINAH',
-            '{emergency_contact_name}': 'SITI AMINAH',
             '[GR]': 'Umum',
             '{age_group}': 'Umum',
             '[KP]': 'DISCOUNT10',
@@ -7103,8 +7158,88 @@
         document.body.removeChild(link);
     };
 
-    function openBibModal() {
+    window.isBibEligibleParticipant = function(p) {
+        if (!p) return false;
+        const pay = String(p.payment_status || '').toLowerCase();
+        const paidOk = ['paid', 'settlement', 'capture'].includes(pay);
+        const approvedOk = Boolean(p.isApproved === true || p.isApproved === 1 || p.isApproved === '1');
+        const statusStr = String(p.status || '').toLowerCase();
+        return paidOk && approvedOk && statusStr !== 'cancelled' && statusStr !== 'rejected';
+    };
+
+    window.fetchBibEligibleParticipants = function(targetParticipantId = null) {
+        const badgeEl = document.getElementById('bibEligibleCountBadge');
+        const catFilterEl = document.getElementById('bibModalCategoryFilter');
+        const categoryId = catFilterEl ? catFilterEl.value : '';
+        if (badgeEl) {
+            badgeEl.textContent = 'Memuat data Paid & Approved...';
+        }
+
+        const url = new URL(`{{ route('eo.events.participants.bib-list', $event) }}`, window.location.origin);
+        if (categoryId) {
+            url.searchParams.set('category_id', categoryId);
+        }
+
+        return fetch(url.toString(), { headers: { 'Accept': 'application/json' } })
+            .then(r => r.json())
+            .then(res => {
+                if (res && res.success && Array.isArray(res.data)) {
+                    window.currentParticipantsList = res.data;
+                    if (badgeEl) {
+                        badgeEl.textContent = `${res.data.length} Peserta Siap Cetak (Paid & Approved)`;
+                    }
+                    const isCustom = document.getElementById('bibCustomRangeMode')?.checked;
+                    const simTotalEl = document.getElementById('bibImpSimTotal');
+                    if (!isCustom && simTotalEl) {
+                        simTotalEl.value = String(Math.max(1, res.data.length));
+                    }
+                    let targetIdx = 0;
+                    if (targetParticipantId) {
+                        const found = res.data.findIndex(item => Number(item.id) === Number(targetParticipantId));
+                        if (found !== -1) targetIdx = found;
+                    }
+                    window.loadBibParticipant(targetIdx);
+                    if (typeof window.renderBibImpositionPreview === 'function') {
+                        window.renderBibImpositionPreview();
+                    }
+                }
+            })
+            .catch(err => {
+                console.error('Failed loading BIB participants list:', err);
+                if (badgeEl) {
+                    badgeEl.textContent = `${window.currentParticipantsList.length} Peserta (Paid & Approved)`;
+                }
+            });
+    };
+
+    window.onBibModalCategoryChange = function() {
+        window.activeParticipantIndex = 0;
+        window.fetchBibEligibleParticipants();
+    };
+
+    window.onBibModalQuickSearch = function(query) {
+        const q = String(query || '').trim().toLowerCase();
+        if (!q || !window.currentParticipantsList || window.currentParticipantsList.length === 0) return;
+        const idx = window.currentParticipantsList.findIndex(p => {
+            const nameMatch = (p.name && p.name.toLowerCase().includes(q)) || (p.full_name && p.full_name.toLowerCase().includes(q));
+            const bibMatch = p.bib_number && String(p.bib_number).toLowerCase().includes(q);
+            return Boolean(nameMatch || bibMatch);
+        });
+        if (idx !== -1) {
+            window.loadBibParticipant(idx);
+        }
+    };
+
+    window.getSafeBibCanvasMaxWidth = function() {
+        const container = document.getElementById('bibCanvasContainer');
+        const rawW = container ? (container.clientWidth - 32) : 680;
+        const viewportCap = Math.max(280, Math.floor(window.innerWidth * (window.innerWidth >= 1024 ? 0.56 : 0.84)));
+        return Math.max(280, Math.min(rawW > 0 ? rawW : viewportCap, viewportCap, 820));
+    };
+
+    function openBibModal(targetParticipantId = null) {
         document.getElementById('bibModal').classList.remove('hidden');
+        document.body.style.overflow = 'hidden';
         
         const customModeCheckbox = document.getElementById('bibCustomRangeMode');
         if (customModeCheckbox) {
@@ -7112,12 +7247,15 @@
             toggleCustomRangeMode();
         }
         
-        // Populate currentParticipantsList from DOM
+        // Initial quick fallback from DOM filtered strictly to Paid & Approved, then immediately fetch full server list
         const list = [];
         const rows = document.querySelectorAll('#participantsTableBody tr[data-json]');
         rows.forEach(function(row) {
             try {
-                list.push(JSON.parse(row.getAttribute('data-json')));
+                const parsed = JSON.parse(row.getAttribute('data-json'));
+                if (window.isBibEligibleParticipant(parsed)) {
+                    list.push(parsed);
+                }
             } catch(e) {
                 console.error("Error parsing row json:", e);
             }
@@ -7126,7 +7264,7 @@
         
         if (!bibCanvas) {
             bibCanvas = new fabric.Canvas('bibCanvas', {
-                width: document.getElementById('bibCanvasContainer').clientWidth - 20,
+                width: window.getSafeBibCanvasMaxWidth(),
                 height: 400
             });
             
@@ -7151,12 +7289,12 @@
 
             setTimeout(function() {
                 loadBibPreset(true);
-                window.loadBibParticipant(window.activeParticipantIndex || 0);
+                window.fetchBibEligibleParticipants(targetParticipantId);
                 if (typeof window.onBibImpositionChange === 'function') window.onBibImpositionChange();
                 preloadBibFonts();
             }, 100);
         } else {
-            window.loadBibParticipant(window.activeParticipantIndex || 0);
+            window.fetchBibEligibleParticipants(targetParticipantId);
             if (typeof window.onBibImpositionChange === 'function') window.onBibImpositionChange();
             preloadBibFonts();
         }
@@ -7164,7 +7302,17 @@
 
     function closeBibModal() {
         document.getElementById('bibModal').classList.add('hidden');
+        document.body.style.overflow = '';
     }
+
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const modal = document.getElementById('bibModal');
+            if (modal && !modal.classList.contains('hidden')) {
+                closeBibModal();
+            }
+        }
+    });
 
     document.getElementById('bibBackgroundImage').addEventListener('change', function(e) {
         const file = e.target.files[0];
@@ -7176,7 +7324,7 @@
             bibImageBase64 = data;
             
             fabric.Image.fromURL(data, function(img) {
-                const containerWidth = document.getElementById('bibCanvasContainer').clientWidth - 20;
+                const containerWidth = window.getSafeBibCanvasMaxWidth ? window.getSafeBibCanvasMaxWidth() : 680;
                 let scale = containerWidth / img.width;
                 if (scale > 1) scale = 1;
                 
@@ -7197,18 +7345,19 @@
         reader.readAsDataURL(file);
     });
 
-    function addBibText(textValue) {
+    function addBibText(textValue, initialFontSize = 40) {
         if (!bibCanvas) return;
         const text = new fabric.Text(textValue, {
-            left: bibCanvas.width / 2,
-            top: bibCanvas.height / 2,
+            left: Math.round(bibCanvas.width / 2),
+            top: Math.round(bibCanvas.height / 2),
             fontFamily: 'Helvetica',
-            fontSize: 40,
+            fontSize: initialFontSize,
             fill: '#000000',
             fontWeight: 'bold',
             fontStyle: 'normal',
             originX: 'center',
             originY: 'center',
+            textAlign: 'center',
             cornerSize: 12,
             transparentCorners: false
         });
@@ -7512,12 +7661,62 @@
                 const center = obj.getCenterPoint();
                 obj.set({ originX: 'center', textAlign: 'center' });
                 obj.setPositionByOrigin(center, 'center', 'center');
+                posXInput.value = Math.round(obj.left);
+                posYInput.value = Math.round(obj.top);
+                obj.setCoords();
                 bibCanvas.renderAll();
             }
             this.classList.add('bg-slate-700');
             alignLeftBtn.classList.remove('bg-slate-700');
         }
     });
+
+    const centerHorizBtn = document.getElementById('bibCenterHorizontal');
+    const centerVertBtn = document.getElementById('bibCenterVertical');
+
+    if (centerHorizBtn) {
+        centerHorizBtn.addEventListener('click', function() {
+            if (!bibCanvas) return;
+            const obj = bibCanvas.getActiveObject();
+            if (!obj || (obj.type !== 'text' && !obj.isQrCode)) return;
+
+            const centerX = Math.round(bibCanvas.width / 2);
+            if (obj.type === 'text') {
+                const prevCenterY = obj.getCenterPoint().y;
+                obj.set({ originX: 'center', textAlign: 'center', left: centerX });
+                if (obj.originY !== 'center') {
+                    obj.set({ originY: 'center', top: Math.round(prevCenterY) });
+                    posYInput.value = Math.round(obj.top);
+                }
+                alignCenterBtn.classList.add('bg-slate-700');
+                alignLeftBtn.classList.remove('bg-slate-700');
+            } else {
+                obj.set({ originX: 'center', left: centerX });
+            }
+            obj.setCoords();
+            posXInput.value = Math.round(obj.left);
+            bibCanvas.requestRenderAll();
+        });
+    }
+
+    if (centerVertBtn) {
+        centerVertBtn.addEventListener('click', function() {
+            if (!bibCanvas) return;
+            const obj = bibCanvas.getActiveObject();
+            if (!obj || (obj.type !== 'text' && !obj.isQrCode)) return;
+
+            const centerY = Math.round(bibCanvas.height / 2);
+            const prevCenterX = obj.getCenterPoint().x;
+            if (obj.originX !== 'center' && obj.originX !== 'left') {
+                obj.set({ originX: 'center', left: Math.round(prevCenterX) });
+            }
+            obj.set({ originY: 'center', top: centerY });
+            obj.setCoords();
+            posXInput.value = Math.round(obj.left);
+            posYInput.value = Math.round(obj.top);
+            bibCanvas.requestRenderAll();
+        });
+    }
 
     function deleteSelectedBibText() {
         const obj = bibCanvas.getActiveObject();
@@ -7713,10 +7912,14 @@
                 if (filtersForm) {
                     const formData = new FormData(filtersForm);
                     formData.forEach((value, key) => {
-                        if (value !== '') {
+                        if (value !== '' && key !== 'payment_status' && key !== 'approval_status') {
                             payload[key] = value;
                         }
                     });
+                }
+                const modalCatEl = document.getElementById('bibModalCategoryFilter');
+                if (modalCatEl && modalCatEl.value !== '') {
+                    payload.category_id = modalCatEl.value;
                 }
             }
         }
@@ -7777,28 +7980,13 @@
         
         try {
             var data = JSON.parse(tr.getAttribute('data-json'));
-            var participantId = data.id;
-            
-            // Populate window.currentParticipantsList from DOM first
-            var list = [];
-            var rows = document.querySelectorAll('#participantsTableBody tr[data-json]');
-            rows.forEach(function(row) {
-                try {
-                    list.push(JSON.parse(row.getAttribute('data-json')));
-                } catch(err) {
-                    console.error("Error parsing row json:", err);
-                }
-            });
-            window.currentParticipantsList = list;
-            
-            var idx = list.findIndex(function(p) { return p.id === participantId; });
-            if (idx !== -1) {
-                window.activeParticipantIndex = idx;
-                openBibModal();
-                setTimeout(function() {
-                    window.loadBibParticipant(idx);
-                }, 150);
+            if (typeof window.isBibEligibleParticipant === 'function' && !window.isBibEligibleParticipant(data)) {
+                alert('Peserta ini belum berstatus Paid & Approved sehingga belum dapat dicetak BIB-nya.');
+                return;
             }
+            var catFilterEl = document.getElementById('bibModalCategoryFilter');
+            if (catFilterEl) catFilterEl.value = '';
+            openBibModal(data.id);
         } catch (err) {
             console.error("Right click load failed:", err);
         }
