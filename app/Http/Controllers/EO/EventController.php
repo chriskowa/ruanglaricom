@@ -3505,6 +3505,7 @@ class EventController extends Controller
             $pdf->setPrintFooter(false);
             $pdf->SetAutoPageBreak(false, 0);
             $pdf->SetMargins(0, 0, 0);
+            $pdf->SetCellPadding(0);
             
             $takeLast = $request->filled('take_last') ? $request->take_last : null;
             $prefix = $request->filled('prefix') ? $request->prefix : '';
@@ -3723,19 +3724,31 @@ class EventController extends Controller
                         $pdf->SetFont($fontFamily, $fontStyle, $fontSizePt);
 
                         $textWidth = $pdf->GetStringWidth($textValue);
-                        $textHeight = $fontSizePt;
 
                         $x = $offsetX + ((float) $t['left'] * $slotScale);
-                        $y = $offsetY + ((float) $t['top'] * $slotScale);
+                        $yOrigin = $offsetY + ((float) $t['top'] * $slotScale);
 
-                        if (isset($t['originX']) && $t['originX'] === 'center') {
+                        $originX = $t['originX'] ?? 'left';
+                        if ($originX === 'center') {
                             $x -= ($textWidth / 2.0);
-                        }
-                        if (isset($t['originY']) && $t['originY'] === 'center') {
-                            $y -= ($textHeight / 2.0);
+                        } elseif ($originX === 'right') {
+                            $x -= $textWidth;
                         }
 
-                        $pdf->Text($x, $y, $textValue);
+                        // Match Fabric.js v5 text box metrics (_fontSizeMult = 1.13, _fontSizeFraction = 0.222)
+                        // and place TCPDF on the exact baseline (calign='L', valign='T') instead of cell top+M.
+                        $fabricBoxMult = 1.13;
+                        $fabricFraction = 0.222;
+                        $originY = $t['originY'] ?? 'top';
+                        if ($originY === 'center') {
+                            $baselineY = $yOrigin + ((0.5 - $fabricFraction) * $fabricBoxMult * $fontSizePt);
+                        } elseif ($originY === 'bottom') {
+                            $baselineY = $yOrigin - ($fabricFraction * $fabricBoxMult * $fontSizePt);
+                        } else {
+                            $baselineY = $yOrigin + ((1.0 - $fabricFraction) * $fabricBoxMult * $fontSizePt);
+                        }
+
+                        $pdf->Text($x, $baselineY, $textValue, 0, false, true, 0, 0, '', false, '', 0, false, 'L', 'T');
                     }
                 }
             }
