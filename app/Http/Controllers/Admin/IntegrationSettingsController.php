@@ -49,7 +49,7 @@ class IntegrationSettingsController extends Controller
 
             // Maps & Routing
             'map_provider' => AppSettings::get('map_provider', 'openstreetmap'),
-            'map_osm_style' => AppSettings::get('map_osm_style', 'osm'),
+            'map_osm_style' => AppSettings::get('map_osm_style', 'liberty'),
             'mapbox_token' => AppSettings::get('mapbox_token', ''),
             'env_mapbox_configured' => !empty(config('services.mapbox.token')),
         ];
@@ -98,7 +98,7 @@ class IntegrationSettingsController extends Controller
 
             // Maps & Routing
             'map_provider' => 'nullable|in:openstreetmap,mapbox',
-            'map_osm_style' => 'nullable|in:osm,carto_voyager,carto_dark',
+            'map_osm_style' => 'nullable|in:liberty,bright,positron,dark,fiord,osm',
             'mapbox_token' => 'nullable|string|max:500',
         ]);
 

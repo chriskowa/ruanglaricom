@@ -476,21 +476,24 @@
                             <label for="map_provider" class="block text-sm font-semibold text-slate-200">Provider Peta Utama</label>
                             <select id="map_provider" name="map_provider" x-model="mapProvider"
                                 class="w-full bg-slate-950 border border-slate-700 rounded-md px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-primary">
-                                <option value="openstreetmap">OpenStreetMap (Gratis, Tanpa Kuota Token)</option>
+                                <option value="openstreetmap">OpenFreeMap / OpenStreetMap (Gratis Komersial, Tanpa Token)</option>
                                 <option value="mapbox">Mapbox (Menggunakan Access Token)</option>
                             </select>
-                            <p class="text-xs text-slate-300">Jika memilih OpenStreetMap, seluruh peta memakai tile OSM/CARTO/Esri serta routing OSRM dan pencarian Nominatim.</p>
+                            <p class="text-xs text-slate-300">Mode OpenFreeMap / OpenStreetMap gratis untuk penggunaan komersial, memakai vector tile OpenFreeMap serta routing OSRM dan pencarian Nominatim.</p>
                         </div>
 
                         <div class="space-y-2">
-                            <label for="map_osm_style" class="block text-sm font-semibold text-slate-200">Gaya Peta OpenStreetMap Default</label>
+                            <label for="map_osm_style" class="block text-sm font-semibold text-slate-200">Gaya Peta OpenFreeMap / OSM Default</label>
                             <select id="map_osm_style" name="map_osm_style"
                                 class="w-full bg-slate-950 border border-slate-700 rounded-md px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-primary">
-                                <option value="osm" @selected(($settings['map_osm_style'] ?? 'osm') === 'osm')>OpenStreetMap Standard (tile.openstreetmap.org)</option>
-                                <option value="carto_voyager" @selected(($settings['map_osm_style'] ?? 'osm') === 'carto_voyager')>CARTO Voyager (Bersih &amp; Cepat)</option>
-                                <option value="carto_dark" @selected(($settings['map_osm_style'] ?? 'osm') === 'carto_dark')>CARTO Dark (Mode Gelap)</option>
+                                <option value="liberty" @selected(($settings['map_osm_style'] ?? 'liberty') === 'liberty')>OpenFreeMap Liberty (Tajam &amp; Detail - Default)</option>
+                                <option value="bright" @selected(($settings['map_osm_style'] ?? 'liberty') === 'bright')>OpenFreeMap Bright (Cerah &amp; Bersih)</option>
+                                <option value="positron" @selected(($settings['map_osm_style'] ?? 'liberty') === 'positron')>OpenFreeMap Positron (Minimalis Terang)</option>
+                                <option value="dark" @selected(($settings['map_osm_style'] ?? 'liberty') === 'dark')>OpenFreeMap Dark (Mode Gelap)</option>
+                                <option value="fiord" @selected(($settings['map_osm_style'] ?? 'liberty') === 'fiord')>OpenFreeMap Fiord (Dark Blue Modern)</option>
+                                <option value="osm" @selected(($settings['map_osm_style'] ?? 'liberty') === 'osm')>OpenStreetMap Standard Raster (tile.openstreetmap.org)</option>
                             </select>
-                            <p class="text-xs text-slate-300">Berlaku sebagai layer utama pada mode OpenStreetMap di seluruh halaman.</p>
+                            <p class="text-xs text-slate-300">Berlaku sebagai tampilan utama peta di seluruh halaman.</p>
                         </div>
                     </div>
 

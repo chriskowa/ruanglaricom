@@ -1428,10 +1428,10 @@
 
                             <div id="events-map-layer-menu" class="hidden absolute left-0 top-full mt-1.5 z-[9999] min-w-[170px] border border-[#232B3B] bg-[#12161F] rounded-md shadow-2xl overflow-hidden divide-y divide-[#232B3B]">
                                 @foreach([
-                                    'streets' => 'Streets (Default)',
-                                    'outdoors' => 'Outdoors Terrain',
-                                    'dark' => 'Dark Tactical',
-                                    'satellite' => 'Satelit',
+                                    'streets' => 'Liberty (Default)',
+                                    'outdoors' => 'Bright',
+                                    'dark' => 'Dark Mode',
+                                    'satellite' => 'Fiord (Dark Blue)',
                                 ] as $layerKey => $layerLabel)
                                     <button type="button"
                                             onclick="setEventsMapLayer('{{ $layerKey }}')"
@@ -1803,7 +1803,7 @@
 </div>
 
 @push('scripts')
-@include('partials.map-config')
+@include('partials.map-config', ['rlDeferMaplibrePlugin' => true])
 <script>
 document.addEventListener('DOMContentLoaded', function () {
     const mapboxToken = window.RL_MAPBOX_TOKEN || '';
@@ -1811,26 +1811,47 @@ document.addEventListener('DOMContentLoaded', function () {
     let mapboxLoadPromise = null;
     let leafletLoadPromise = null;
 
-    function loadLeafletAssets() {
-        if (typeof L !== 'undefined') {
-            return Promise.resolve();
-        }
-        if (leafletLoadPromise) return leafletLoadPromise;
-
-        leafletLoadPromise = new Promise(function (resolve, reject) {
-            if (!document.querySelector('link[href*="leaflet.css"]')) {
-                const link = document.createElement('link');
-                link.rel = 'stylesheet';
-                link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-                document.head.appendChild(link);
+    function loadScriptSequential(src) {
+        return new Promise(function (resolve, reject) {
+            const existing = document.querySelector('script[src="' + src + '"]');
+            if (existing) {
+                resolve();
+                return;
             }
             const script = document.createElement('script');
-            script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+            script.src = src;
             script.async = true;
             script.onload = resolve;
             script.onerror = reject;
             document.head.appendChild(script);
         });
+    }
+
+    function loadLeafletAssets() {
+        if (typeof L !== 'undefined' && typeof L.maplibreGL === 'function') {
+            return Promise.resolve();
+        }
+        if (leafletLoadPromise) return leafletLoadPromise;
+
+        if (!document.querySelector('link[href*="leaflet.css"]')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+            document.head.appendChild(link);
+        }
+        if (!document.querySelector('link[href*="maplibre-gl.css"]')) {
+            const mlCss = document.createElement('link');
+            mlCss.rel = 'stylesheet';
+            mlCss.href = 'https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css';
+            document.head.appendChild(mlCss);
+        }
+
+        leafletLoadPromise = loadScriptSequential('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js')
+            .then(function () { return loadScriptSequential('https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js'); })
+            .then(function () { return loadScriptSequential('https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js'); })
+            .catch(function (err) {
+                console.warn('MapLibre GL plugin fallback to raster OSM:', err);
+            });
 
         return leafletLoadPromise;
     }
@@ -2422,7 +2443,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
         const label = document.getElementById('label-events-active-layer');
         if (label) {
-            const labels = { streets: 'Streets', outdoors: 'Outdoors Terrain', dark: 'Dark Tactical', satellite: 'Satelit' };
+            const labels = useLeafletOsm
+                ? { streets: 'Liberty', outdoors: 'Bright', dark: 'Dark Mode', satellite: 'Fiord' }
+                : { streets: 'Streets', outdoors: 'Outdoors Terrain', dark: 'Dark Tactical', satellite: 'Satelit' };
             label.textContent = labels[layerKey] || layerKey;
         }
 

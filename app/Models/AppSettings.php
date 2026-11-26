@@ -37,9 +37,14 @@ class AppSettings extends Model
             $provider = 'openstreetmap';
         }
 
-        $osmStyle = strtolower(trim((string) self::get('map_osm_style', 'osm')));
-        if (!in_array($osmStyle, ['osm', 'carto_voyager', 'carto_dark'], true)) {
-            $osmStyle = 'osm';
+        $osmStyle = strtolower(trim((string) self::get('map_osm_style', 'liberty')));
+        if ($osmStyle === 'carto_voyager') {
+            $osmStyle = 'bright';
+        } elseif ($osmStyle === 'carto_dark') {
+            $osmStyle = 'dark';
+        }
+        if (!in_array($osmStyle, ['liberty', 'bright', 'positron', 'dark', 'fiord', 'osm'], true)) {
+            $osmStyle = 'liberty';
         }
 
         $rawToken = trim((string) self::get('mapbox_token', ''));

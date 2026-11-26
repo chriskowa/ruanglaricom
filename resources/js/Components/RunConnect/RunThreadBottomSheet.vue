@@ -6,7 +6,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import axios from 'axios';
 import RunThreadChat from './RunThreadChat.vue';
 import RunnerMiniProfile from './RunnerMiniProfile.vue';
-import { ensureLeafletLoaded, getOsmTileConfig } from '../../utils/osmMap';
+import { ensureLeafletLoaded, createOsmLayer } from '../../utils/osmMap';
 
 const props = defineProps({
     thread: {
@@ -31,7 +31,7 @@ const props = defineProps({
     },
     mapOsmStyle: {
         type: String,
-        default: 'osm'
+        default: 'liberty'
     }
 });
 
@@ -75,8 +75,7 @@ const renderGpxMap = async () => {
         try {
             const L = await ensureLeafletLoaded();
             const leafMap = L.map(containerId, { zoomControl: true }).setView([initialLat, initialLng], 13);
-            const tileCfg = getOsmTileConfig(props.theme, props.mapOsmStyle);
-            L.tileLayer(tileCfg.url, tileCfg.options).addTo(leafMap);
+            createOsmLayer(L, props.theme, props.mapOsmStyle).addTo(leafMap);
             gpxMap.value = leafMap;
             setTimeout(() => { if (gpxMap.value && typeof gpxMap.value.invalidateSize === 'function') gpxMap.value.invalidateSize(); }, 250);
         } catch (e) {

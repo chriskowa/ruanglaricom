@@ -29,7 +29,7 @@ const props = defineProps({
     },
     mapOsmStyle: {
         type: String,
-        default: 'osm'
+        default: 'liberty'
     },
     recaptchaSiteKey: {
         type: String,

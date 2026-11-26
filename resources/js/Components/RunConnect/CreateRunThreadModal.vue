@@ -3,7 +3,7 @@ import { ref, reactive, computed, watch, nextTick } from 'vue';
 import axios from 'axios';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { ensureLeafletLoaded, getOsmTileConfig, searchNominatim } from '../../utils/osmMap';
+import { ensureLeafletLoaded, createOsmLayer, searchNominatim } from '../../utils/osmMap';
 
 const props = defineProps({
     isOpen: {
@@ -24,7 +24,7 @@ const props = defineProps({
     },
     mapOsmStyle: {
         type: String,
-        default: 'osm'
+        default: 'liberty'
     },
     editThread: {
         type: Object,
@@ -168,8 +168,7 @@ const initMiniMap = async () => {
         const L = await ensureLeafletLoaded();
         if (!miniMapContainer.value || miniMap.value) return;
         const leafMap = L.map(miniMapContainer.value, { zoomControl: true }).setView([initialLat, initialLng], 14);
-        const tileCfg = getOsmTileConfig(props.theme, props.mapOsmStyle);
-        L.tileLayer(tileCfg.url, tileCfg.options).addTo(leafMap);
+        createOsmLayer(L, props.theme, props.mapOsmStyle).addTo(leafMap);
         const leafMarker = L.marker([initialLat, initialLng], { draggable: true }).addTo(leafMap);
         leafMarker.on('dragend', () => {
             const pos = leafMarker.getLatLng();

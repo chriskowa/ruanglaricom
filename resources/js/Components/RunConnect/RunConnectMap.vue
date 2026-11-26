@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
-import { ensureLeafletLoaded, getOsmTileConfig, searchNominatim } from '../../utils/osmMap';
+import { ensureLeafletLoaded, createOsmLayer, searchNominatim } from '../../utils/osmMap';
 
 const props = defineProps({
     mapboxToken: {
@@ -11,7 +11,7 @@ const props = defineProps({
     },
     mapOsmStyle: {
         type: String,
-        default: 'osm'
+        default: 'liberty'
     },
     userLocation: {
         type: Object,
@@ -150,8 +150,7 @@ const initMap = async () => {
         if (!mapContainer.value || map.value) return;
         const leafMap = L.map(mapContainer.value, { zoomControl: true, attributionControl: true })
             .setView([center[1], center[0]], 13);
-        const tileCfg = getOsmTileConfig(props.theme, props.mapOsmStyle);
-        leafletBaseLayer = L.tileLayer(tileCfg.url, tileCfg.options).addTo(leafMap);
+        leafletBaseLayer = createOsmLayer(L, props.theme, props.mapOsmStyle).addTo(leafMap);
         map.value = leafMap;
         updateUserMarker();
         updateThreadMarkers();
@@ -373,8 +372,7 @@ watch(() => props.theme, (newTheme) => {
     if (map.value) {
         if (!props.mapboxToken && window.L) {
             if (leafletBaseLayer) map.value.removeLayer(leafletBaseLayer);
-            const tileCfg = getOsmTileConfig(newTheme, props.mapOsmStyle);
-            leafletBaseLayer = window.L.tileLayer(tileCfg.url, tileCfg.options).addTo(map.value);
+            leafletBaseLayer = createOsmLayer(window.L, newTheme, props.mapOsmStyle).addTo(map.value);
             return;
         }
 

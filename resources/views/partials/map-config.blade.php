@@ -5,7 +5,13 @@
         'osmStyle' => $rlMapCfg['osm_style'],
         'mapboxToken' => $rlMapCfg['mapbox_token'],
     ];
+    $rlNeedMaplibrePlugin = ($rlMapCfg['provider'] !== 'mapbox' || $rlMapCfg['mapbox_token'] === '') && !($rlDeferMaplibrePlugin ?? false);
 @endphp
+@if($rlNeedMaplibrePlugin)
+<link rel="stylesheet" href="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css" />
+<script src="https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js"></script>
+<script src="https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js"></script>
+@endif
 <script>
 (function () {
     const cfg = @json($rlMapClientCfg);
@@ -13,35 +19,32 @@
     window.RL_MAP_CONFIG = cfg;
     window.RL_MAPBOX_TOKEN = cfg.mapboxToken || '';
 
-    function resolveOsmDefault() {
-        if (cfg.osmStyle === 'carto_voyager') {
-            return {
-                url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-                options: {
-                    maxZoom: 20,
-                    subdomains: ['a', 'b', 'c', 'd'],
-                    attribution: '&copy; OpenStreetMap &copy; CARTO',
-                },
-            };
+    const openFreeMapStyles = {
+        liberty: 'https://tiles.openfreemap.org/styles/liberty',
+        bright: 'https://tiles.openfreemap.org/styles/bright',
+        positron: 'https://tiles.openfreemap.org/styles/positron',
+        dark: 'https://tiles.openfreemap.org/styles/dark',
+        fiord: 'https://tiles.openfreemap.org/styles/fiord',
+    };
+
+    const osmRasterDef = {
+        type: 'raster',
+        url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        options: {
+            maxZoom: 19,
+            subdomains: ['a', 'b', 'c'],
+            attribution: '&copy; OpenStreetMap contributors',
+        },
+    };
+
+    function createOpenFreeMapLayer(styleId, extraOptions) {
+        if (typeof L !== 'undefined' && typeof L.maplibreGL === 'function' && openFreeMapStyles[styleId]) {
+            return L.maplibreGL(Object.assign({
+                style: openFreeMapStyles[styleId],
+                attribution: '&copy; <a href="https://openfreemap.org" target="_blank" rel="noopener">OpenFreeMap</a> &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>',
+            }, extraOptions || {}));
         }
-        if (cfg.osmStyle === 'carto_dark') {
-            return {
-                url: 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png',
-                options: {
-                    maxZoom: 20,
-                    subdomains: ['a', 'b', 'c', 'd'],
-                    attribution: '&copy; OpenStreetMap &copy; CARTO',
-                },
-            };
-        }
-        return {
-            url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            options: {
-                maxZoom: 19,
-                subdomains: ['a', 'b', 'c'],
-                attribution: '&copy; OpenStreetMap contributors',
-            },
-        };
+        return L.tileLayer(osmRasterDef.url, Object.assign({}, osmRasterDef.options, extraOptions || {}));
     }
 
     window.rlGetTileDefinition = function (styleKey) {
@@ -58,6 +61,7 @@
                 mapboxStyleId = 'mapbox/streets-v12';
             }
             return {
+                type: 'raster',
                 url: 'https://api.mapbox.com/styles/v1/' + mapboxStyleId + '/tiles/{z}/{x}/{y}?access_token=' + cfg.mapboxToken,
                 options: {
                     tileSize: 512,
@@ -68,51 +72,39 @@
             };
         }
 
-        if (key === 'satellite') {
-            return {
-                url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-                options: {
-                    maxZoom: 19,
-                    attribution: '&copy; Esri &copy; OpenStreetMap',
-                },
-            };
+        if (key === 'osm') {
+            return osmRasterDef;
         }
         if (key === 'dark') {
-            return {
-                url: 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png',
-                options: {
-                    maxZoom: 20,
-                    subdomains: ['a', 'b', 'c', 'd'],
-                    attribution: '&copy; OpenStreetMap &copy; CARTO',
-                },
-            };
+            return { type: 'vector', styleId: 'dark' };
         }
-        if (key === 'outdoors' || key === 'carto') {
-            return {
-                url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-                options: {
-                    maxZoom: 20,
-                    subdomains: ['a', 'b', 'c', 'd'],
-                    attribution: '&copy; OpenStreetMap &copy; CARTO',
-                },
-            };
+        if (key === 'fiord' || key === 'satellite') {
+            return { type: 'vector', styleId: 'fiord' };
         }
-        if (key === 'osm') {
-            return {
-                url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-                options: {
-                    maxZoom: 19,
-                    subdomains: ['a', 'b', 'c'],
-                    attribution: '&copy; OpenStreetMap contributors',
-                },
-            };
+        if (key === 'bright' || key === 'outdoors') {
+            return { type: 'vector', styleId: 'bright' };
+        }
+        if (key === 'positron' || key === 'light') {
+            return { type: 'vector', styleId: 'positron' };
+        }
+        if (key === 'liberty') {
+            return { type: 'vector', styleId: 'liberty' };
         }
 
-        return resolveOsmDefault();
+        if (cfg.osmStyle === 'osm') {
+            return osmRasterDef;
+        }
+        return {
+            type: 'vector',
+            styleId: openFreeMapStyles[cfg.osmStyle] ? cfg.osmStyle : 'liberty',
+        };
     };
 
     window.rlCreateTileLayer = function (styleKey, extraOptions) {
         const def = window.rlGetTileDefinition(styleKey);
+        if (def.type === 'vector') {
+            return createOpenFreeMapLayer(def.styleId, extraOptions);
+        }
         return L.tileLayer(def.url, Object.assign({}, def.options, extraOptions || {}));
     };
 
@@ -132,53 +124,40 @@
         }
 
         const primary = window.rlCreateTileLayer('street');
-        const osmStd = window.rlCreateTileLayer('osm');
-        const cartoVoyager = window.rlCreateTileLayer('carto');
-        const satellite = window.rlCreateTileLayer('satellite');
-        const dark = window.rlCreateTileLayer('dark');
+        const catalog = [
+            { id: 'liberty', label: 'OpenFreeMap Liberty' },
+            { id: 'bright', label: 'OpenFreeMap Bright' },
+            { id: 'positron', label: 'OpenFreeMap Positron' },
+            { id: 'dark', label: 'OpenFreeMap Dark' },
+            { id: 'fiord', label: 'OpenFreeMap Fiord' },
+            { id: 'osm', label: 'OSM Standard' },
+        ];
 
-        if (cfg.osmStyle === 'carto_voyager') {
-            return {
-                defaultLayer: primary,
-                layers: {
-                    'CARTO Voyager': primary,
-                    'OpenStreetMap': osmStd,
-                    'Satelit': satellite,
-                    'Mode Gelap': dark,
-                },
-            };
-        }
+        const layers = {};
+        const activeId = (cfg.osmStyle === 'osm' || openFreeMapStyles[cfg.osmStyle]) ? cfg.osmStyle : 'liberty';
+        const activeMeta = catalog.find((item) => item.id === activeId) || catalog[0];
+        layers[activeMeta.label] = primary;
 
-        if (cfg.osmStyle === 'carto_dark') {
-            return {
-                defaultLayer: primary,
-                layers: {
-                    'Mode Gelap': primary,
-                    'OpenStreetMap': osmStd,
-                    'CARTO Voyager': cartoVoyager,
-                    'Satelit': satellite,
-                },
-            };
-        }
+        catalog.forEach((item) => {
+            if (item.id !== activeId) {
+                layers[item.label] = window.rlCreateTileLayer(item.id);
+            }
+        });
 
         return {
             defaultLayer: primary,
-            layers: {
-                'OpenStreetMap': primary,
-                'CARTO Voyager': cartoVoyager,
-                'Satelit': satellite,
-                'Mode Gelap': dark,
-            },
+            layers: layers,
         };
     };
 
     window.rlResolveTileUrl = function (z, x, y, styleKey) {
         const def = window.rlGetTileDefinition(styleKey || 'street');
-        const subs = Array.isArray(def.options.subdomains)
-            ? def.options.subdomains
+        const target = def.type === 'raster' ? def : osmRasterDef;
+        const subs = Array.isArray(target.options.subdomains)
+            ? target.options.subdomains
             : ['a', 'b', 'c'];
         const sub = subs[Math.abs(parseInt(x, 10) + parseInt(y, 10)) % subs.length];
-        return def.url
+        return target.url
             .replace('{s}', sub)
             .replace('{z}', String(z))
             .replace('{x}', String(x))

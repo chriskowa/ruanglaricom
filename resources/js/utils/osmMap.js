@@ -1,61 +1,82 @@
 let leafletLoadPromise = null;
 
+const OPENFREEMAP_STYLES = {
+    liberty: 'https://tiles.openfreemap.org/styles/liberty',
+    bright: 'https://tiles.openfreemap.org/styles/bright',
+    positron: 'https://tiles.openfreemap.org/styles/positron',
+    dark: 'https://tiles.openfreemap.org/styles/dark',
+    fiord: 'https://tiles.openfreemap.org/styles/fiord',
+};
+
+function loadScriptOnce(src) {
+    return new Promise((resolve, reject) => {
+        const existing = document.querySelector(`script[src="${src}"]`);
+        if (existing) {
+            resolve();
+            return;
+        }
+        const script = document.createElement('script');
+        script.src = src;
+        script.async = true;
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+    });
+}
+
+function ensureCssOnce(href) {
+    if (!document.querySelector(`link[href="${href}"]`)) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = href;
+        document.head.appendChild(link);
+    }
+}
+
 export function ensureLeafletLoaded() {
-    if (typeof window !== 'undefined' && window.L) {
+    if (typeof window !== 'undefined' && window.L && typeof window.L.maplibreGL === 'function') {
         return Promise.resolve(window.L);
     }
     if (leafletLoadPromise) {
         return leafletLoadPromise;
     }
 
-    leafletLoadPromise = new Promise((resolve, reject) => {
-        if (!document.querySelector('link[href*="leaflet.css"]')) {
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
-            document.head.appendChild(link);
-        }
+    ensureCssOnce('https://unpkg.com/leaflet@1.9.4/dist/leaflet.css');
+    ensureCssOnce('https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.css');
 
-        const existingScript = document.querySelector('script[src*="leaflet.js"]');
-        if (existingScript) {
-            if (window.L) {
-                resolve(window.L);
-                return;
-            }
-            existingScript.addEventListener('load', () => resolve(window.L), { once: true });
-            existingScript.addEventListener('error', reject, { once: true });
-            return;
-        }
-
-        const script = document.createElement('script');
-        script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-        script.async = true;
-        script.onload = () => resolve(window.L);
-        script.onerror = reject;
-        document.head.appendChild(script);
-    });
+    leafletLoadPromise = loadScriptOnce('https://unpkg.com/leaflet@1.9.4/dist/leaflet.js')
+        .then(() => loadScriptOnce('https://unpkg.com/maplibre-gl@4.7.1/dist/maplibre-gl.js'))
+        .then(() => loadScriptOnce('https://unpkg.com/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js'))
+        .catch((err) => {
+            console.warn('MapLibre GL Leaflet load fallback to OSM raster:', err);
+        })
+        .then(() => window.L);
 
     return leafletLoadPromise;
 }
 
-export function getOsmTileConfig(theme = 'dark', osmStyle = 'osm') {
-    if (theme === 'light') {
-        if (osmStyle === 'carto_voyager') {
-            return {
-                url: 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',
-                options: { maxZoom: 20, subdomains: ['a', 'b', 'c', 'd'], attribution: '&copy; OpenStreetMap &copy; CARTO' },
-            };
-        }
-        return {
-            url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-            options: { maxZoom: 19, subdomains: ['a', 'b', 'c'], attribution: '&copy; OpenStreetMap contributors' },
-        };
+export function createOsmLayer(L, theme = 'dark', osmStyle = 'liberty') {
+    const normalized = String(osmStyle || 'liberty').toLowerCase();
+    let styleId = OPENFREEMAP_STYLES[normalized] ? normalized : 'liberty';
+
+    if (theme === 'dark' && normalized !== 'fiord' && normalized !== 'osm') {
+        styleId = 'dark';
+    } else if (theme === 'light' && (normalized === 'dark' || normalized === 'fiord')) {
+        styleId = 'liberty';
     }
 
-    return {
-        url: 'https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png',
-        options: { maxZoom: 20, subdomains: ['a', 'b', 'c', 'd'], attribution: '&copy; OpenStreetMap &copy; CARTO' },
-    };
+    if (normalized !== 'osm' && L && typeof L.maplibreGL === 'function' && OPENFREEMAP_STYLES[styleId]) {
+        return L.maplibreGL({
+            style: OPENFREEMAP_STYLES[styleId],
+            attribution: '&copy; OpenFreeMap &copy; OpenStreetMap contributors',
+        });
+    }
+
+    return L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        subdomains: ['a', 'b', 'c'],
+        attribution: '&copy; OpenStreetMap contributors',
+    });
 }
 
 export async function searchNominatim(query) {
