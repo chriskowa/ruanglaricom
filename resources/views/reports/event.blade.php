@@ -191,6 +191,17 @@
         min-height: 380px;
     }
 
+    /* Prevent ancestor overflow-x:hidden from breaking sticky positioning */
+    html, body {
+        overflow-x: clip !important;
+    }
+
+    body.theme-light #report-page-container #mobile-floating-search-dock {
+        background-color: #ffffff !important;
+        border-color: #cbd5e1 !important;
+        box-shadow: 0 12px 28px -6px rgba(15, 23, 42, 0.18) !important;
+    }
+
     /* Table View Modes (List Compact vs Stacked Cards) */
     .view-mode-list thead {
         display: table-header-group !important;
@@ -247,7 +258,7 @@
 @endpush
 
 @section('content')
-<div id="report-page-container" class="min-h-screen py-6 sm:py-8 px-4 sm:px-6 lg:px-8">
+<div id="report-page-container" class="min-h-screen pt-6 pb-28 sm:py-8 px-4 sm:px-6 lg:px-8">
     <div class="max-w-7xl mx-auto space-y-6">
 
         <!-- Header -->
@@ -444,31 +455,82 @@
         </div>
 
         <!-- Participants Section -->
-        <div class="bg-card border border-slate-800 rounded-lg p-5">
-            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
-                <div class="flex items-center gap-3">
+        <div id="participants-section-card" class="bg-card border border-slate-800 rounded-lg p-4 sm:p-5">
+            <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+                <div class="flex flex-wrap items-center justify-between gap-2">
                     <div>
                         <h2 class="font-brand-heading text-base font-bold text-white">Data Peserta</h2>
-                        <p class="text-xs text-slate-400 mt-0.5">Filter dinamis • Pagination server-side</p>
+                        <p class="text-xs text-slate-400 mt-0.5">Cari peserta, filter lanjutan, scan QR, dan ekspor data</p>
                     </div>
-                    <button type="button" id="toggle-filters-btn" onclick="toggleReportFilters()" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-semibold transition border border-slate-800">
-                        <i id="toggle-filters-icon" class="fa-solid fa-chevron-up text-xs"></i>
-                        <span id="toggle-filters-text">Sembunyikan Filter</span>
-                    </button>
+                    <div id="report-loading" class="hidden items-center gap-2 text-xs text-slate-400">
+                        <span class="loader"></span>
+                        <span>Memuat data&hellip;</span>
+                    </div>
                 </div>
-                <div id="report-loading" class="hidden items-center gap-2 text-xs text-slate-400">
-                    <span class="loader"></span>
-                    <span>Memuat data...</span>
+
+                <!-- Compact Action & Export Toolbar -->
+                <div class="flex flex-wrap items-center gap-2">
+                    <button type="button" onclick="openQrScanModal()" class="px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 text-xs font-semibold flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-qrcode text-xs text-slate-300" aria-hidden="true"></i>
+                        <span>Scan QR</span>
+                    </button>
+                    <button type="button" onclick="openActivityLogModal()" class="px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 text-xs font-semibold flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-clock-rotate-left text-xs text-slate-300" aria-hidden="true"></i>
+                        <span>Log</span>
+                        <span id="activity-log-badge" class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-200 text-[10px] font-mono font-bold">0</span>
+                    </button>
+                    <button type="button" onclick="openDoorprizeModal()" class="px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 text-xs font-semibold flex items-center gap-1.5 transition">
+                        <i class="fa-solid fa-gift text-xs text-slate-300" aria-hidden="true"></i>
+                        <span>Doorprize</span>
+                    </button>
+                    <a id="export-csv-btn" href="#" onclick="window.location.href=getExportUrl('csv'); return false;" class="px-3 py-1.5 rounded-md bg-green-700 hover:bg-green-600 text-white font-semibold text-xs transition flex items-center gap-1.5 border border-green-600">
+                        <i class="fa-solid fa-file-csv text-xs" aria-hidden="true"></i>
+                        <span>CSV</span>
+                    </a>
+                    <a id="export-xlsx-btn" href="#" onclick="window.location.href=getExportUrl('xlsx'); return false;" class="px-3 py-1.5 rounded-md bg-green-700 hover:bg-green-600 text-white font-semibold text-xs transition flex items-center gap-1.5 border border-green-600">
+                        <i class="fa-solid fa-file-excel text-xs" aria-hidden="true"></i>
+                        <span>XLSX</span>
+                    </a>
                 </div>
             </div>
 
-            <!-- Filter Form -->
-            <form id="report-filters" class="mt-4 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-                <div>
-                    <label class="text-xs font-semibold text-slate-300">Pencarian</label>
-                    <input name="search" value="{{ $filters['search'] ?? '' }}" placeholder="Nama, email, HP, BIB, ID..."
-                        class="mt-1 w-full rounded-md bg-slate-950 border border-slate-800 px-3 py-1.5 text-xs text-white outline-none focus:border-slate-600">
+            <!-- Sticky Quick Search, Filter Toggle & View Mode Switcher -->
+            <div id="report-quick-bar" class="mt-4 sticky top-[68px] z-20 bg-slate-900 border border-slate-800 p-2 rounded-lg shadow-md flex flex-wrap sm:flex-nowrap items-center gap-2">
+                <div class="relative flex-1 min-w-[180px]">
+                    <svg class="w-4 h-4 absolute left-3 top-3 text-slate-400 pointer-events-none" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                    <input type="text" id="quick-search-input" autocomplete="off" value="{{ $filters['search'] ?? '' }}" placeholder="Cari nama, BIB, email, HP, atau ID…" aria-label="Cari peserta"
+                        class="w-full min-h-[40px] bg-slate-950 border border-slate-800 rounded-md pl-9 pr-8 py-2 text-xs font-medium text-white placeholder-slate-400 focus-visible:ring-2 focus-visible:ring-slate-500 focus:outline-none transition-colors">
+                    <button type="button" id="quick-search-clear" onclick="clearQuickSearch()" aria-label="Bersihkan pencarian" class="{{ !empty($filters['search']) ? '' : 'hidden' }} absolute right-2 top-2 text-slate-300 hover:text-white text-xs font-bold bg-slate-800 rounded w-6 h-6 flex items-center justify-center transition">
+                        <i class="fa-solid fa-xmark text-xs" aria-hidden="true"></i>
+                    </button>
                 </div>
+
+                <div class="flex items-center gap-2 w-full sm:w-auto justify-between sm:justify-end">
+                    <button type="button" id="toggle-filters-btn" onclick="toggleReportFilters()" aria-expanded="false" aria-controls="report-filters" class="inline-flex items-center gap-1.5 min-h-[40px] px-3 py-1.5 rounded-md bg-slate-950 hover:bg-slate-800 text-slate-200 text-xs font-semibold transition border border-slate-800">
+                        <i id="toggle-filters-icon" class="fa-solid fa-sliders text-xs text-slate-300" aria-hidden="true"></i>
+                        <span id="toggle-filters-text">Filter</span>
+                        <span id="active-filters-count" class="hidden px-1.5 py-0.5 rounded bg-yellow-500 text-slate-950 text-[10px] font-mono font-bold">0</span>
+                    </button>
+
+                    <!-- View Mode Switcher -->
+                    <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-md border border-slate-800 shrink-0">
+                        <button type="button" id="btn-view-mode-list" onclick="setTableViewMode('list')" class="px-2.5 py-1.5 rounded-md text-xs font-semibold transition flex items-center gap-1.5 bg-slate-800 text-white" title="Tampilan List Ringkas">
+                            <i class="fa-solid fa-list-ul text-xs" aria-hidden="true"></i>
+                            <span class="text-[11px] uppercase tracking-wider">List</span>
+                        </button>
+                        <button type="button" id="btn-view-mode-stacked" onclick="setTableViewMode('stacked')" class="px-2.5 py-1.5 rounded-md text-xs font-semibold transition flex items-center gap-1.5 text-slate-400 hover:text-white" title="Tampilan Kartu">
+                            <i class="fa-solid fa-table-cells-large text-xs" aria-hidden="true"></i>
+                            <span class="text-[11px] uppercase tracking-wider">Kartu</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Collapsible Advanced Filter Form -->
+            <form id="report-filters" class="hidden mt-3 p-3.5 rounded-lg bg-slate-950 border border-slate-800 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                <input type="hidden" name="search" id="report-search-hidden" value="{{ $filters['search'] ?? '' }}">
                 <div>
                     <label class="text-xs font-semibold text-slate-300">Status Pembayaran</label>
                     <select name="payment_status" class="mt-1 w-full rounded-md bg-slate-950 border border-slate-800 px-3 py-1.5 text-xs text-white outline-none focus:border-slate-600">
@@ -585,72 +647,20 @@
                 </div>
 
                 <!-- Action Buttons Row -->
-                <div class="sm:col-span-2 md:col-span-3 lg:col-span-4 flex flex-wrap items-center justify-between gap-2 mt-3 pt-3 border-t border-slate-800">
+                <div class="sm:col-span-2 md:col-span-3 lg:col-span-4 flex flex-wrap items-center justify-between gap-2 mt-2 pt-3 border-t border-slate-800">
                     <div class="flex flex-wrap items-center gap-2">
-                        <button type="submit" class="px-3.5 py-1.5 rounded-md bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs border border-slate-700 transition flex items-center gap-1.5">
-                            <i class="fa-solid fa-filter text-xs"></i>
-                            <span>Terapkan Filter</span>
+                        <button type="submit" class="px-3.5 py-2 rounded-md bg-slate-800 hover:bg-slate-700 text-white font-semibold text-xs border border-slate-700 transition">
+                            Terapkan Filter
                         </button>
-                        <button id="report-reset" type="button" class="px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-slate-300 font-semibold text-xs transition border border-slate-800 flex items-center gap-1.5">
-                            <i class="fa-solid fa-rotate-left text-xs"></i>
-                            <span>Reset</span>
+                        <button id="report-reset" type="button" class="px-3.5 py-2 rounded-md bg-slate-900 hover:bg-slate-800 text-slate-200 font-semibold text-xs transition border border-slate-800">
+                            Reset Filter
                         </button>
                     </div>
-
-                    <div class="flex flex-wrap items-center gap-2">
-                        <button type="button" onclick="openQrScanModal()" class="px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 text-xs font-semibold flex items-center gap-1.5 transition">
-                            <i class="fa-solid fa-qrcode text-xs text-slate-300"></i>
-                            <span>Scan QR</span>
-                        </button>
-                        <button type="button" onclick="openActivityLogModal()" class="px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 text-xs font-semibold flex items-center gap-1.5 transition">
-                            <i class="fa-solid fa-clock-rotate-left text-xs text-slate-300"></i>
-                            <span>Log Aktivitas</span>
-                            <span id="activity-log-badge" class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-200 text-[10px] font-mono font-bold">0</span>
-                        </button>
-                        <button type="button" onclick="openDoorprizeModal()" class="px-3 py-1.5 rounded-md bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-800 text-xs font-semibold flex items-center gap-1.5 transition">
-                            <i class="fa-solid fa-gift text-xs text-slate-300"></i>
-                            <span>Doorprize</span>
-                        </button>
-
-                        <div class="h-4 w-px bg-slate-800 mx-1 hidden sm:block"></div>
-
-                        <a id="export-csv-btn" href="#" onclick="window.location.href=getExportUrl('csv'); return false;" class="px-3 py-1.5 rounded-md bg-emerald-700 hover:bg-emerald-600 text-white font-semibold text-xs transition flex items-center gap-1.5 border border-emerald-600">
-                            <i class="fa-solid fa-file-csv text-xs"></i>
-                            <span>CSV</span>
-                        </a>
-                        <a id="export-xlsx-btn" href="#" onclick="window.location.href=getExportUrl('xlsx'); return false;" class="px-3 py-1.5 rounded-md bg-emerald-700 hover:bg-emerald-600 text-white font-semibold text-xs transition flex items-center gap-1.5 border border-emerald-600">
-                            <i class="fa-solid fa-file-excel text-xs"></i>
-                            <span>XLSX</span>
-                        </a>
-                    </div>
+                    <button type="button" onclick="toggleReportFilters(false)" class="px-3 py-1.5 rounded-md text-xs font-semibold text-slate-300 hover:text-white transition">
+                        Tutup Panel Filter
+                    </button>
                 </div>
             </form>
-
-            <!-- Sticky Quick Search & View Mode Switcher -->
-            <div class="mt-4 sticky top-20 z-20 bg-slate-900 border border-slate-800 p-2.5 rounded-lg shadow-md flex flex-wrap sm:flex-nowrap items-center gap-2">
-                <div class="relative flex-1 min-w-[200px]">
-                    <svg class="w-4 h-4 absolute left-3 top-2.5 text-slate-400 pointer-events-none" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
-                    <input type="text" id="quick-search-input" value="{{ $filters['search'] ?? '' }}" placeholder="Cari cepat (Nama, BIB, Email, Telp, ID)..." 
-                        class="w-full bg-slate-950 border border-slate-800 rounded-md pl-9 pr-8 py-2 text-xs font-medium text-white placeholder-slate-500 outline-none focus:border-slate-600 transition-colors">
-                    <button type="button" id="quick-search-clear" onclick="clearQuickSearch()" class="{{ !empty($filters['search']) ? '' : 'hidden' }} absolute right-2.5 top-2.5 text-slate-400 hover:text-white text-[10px] font-bold bg-slate-800 rounded w-4 h-4 flex items-center justify-center transition">
-                        <i class="fa-solid fa-xmark text-[10px]"></i>
-                    </button>
-                </div>
-
-                <!-- View Mode Switcher -->
-                <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-md border border-slate-800 shrink-0">
-                    <button type="button" id="btn-view-mode-list" onclick="setTableViewMode('list')" class="px-2.5 py-1 rounded-md text-xs font-semibold transition flex items-center gap-1.5 bg-slate-800 text-white" title="Tampilan List Ringkas">
-                        <i class="fa-solid fa-list-ul text-xs"></i>
-                        <span class="text-[11px] uppercase tracking-wider">List</span>
-                    </button>
-                    <button type="button" id="btn-view-mode-stacked" onclick="setTableViewMode('stacked')" class="px-2.5 py-1 rounded-md text-xs font-semibold transition flex items-center gap-1.5 text-slate-400 hover:text-white" title="Tampilan Kartu">
-                        <i class="fa-solid fa-table-cells-large text-xs"></i>
-                        <span class="text-[11px] uppercase tracking-wider">Kartu</span>
-                    </button>
-                </div>
-            </div>
 
             <!-- Participants Table -->
             <div id="participants-table-wrapper" class="mt-4 overflow-x-auto border border-slate-800 rounded-lg view-mode-list">
@@ -849,6 +859,35 @@
             </div>
         </div>
 
+    </div>
+
+    <!-- Mobile Floating Search Dock (accessible anywhere while scrolling) -->
+    <div id="mobile-floating-search-dock"
+        class="md:hidden fixed inset-x-3 bottom-3 z-40 hidden bg-slate-900 border border-slate-700 rounded-lg p-2 shadow-xl transition-opacity duration-150"
+        style="padding-bottom: max(0.5rem, env(safe-area-inset-bottom));">
+        <div class="flex items-center gap-1.5">
+            <div class="relative flex-1 min-w-0">
+                <svg class="w-4 h-4 absolute left-3 top-3.5 text-slate-400 pointer-events-none" aria-hidden="true" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                </svg>
+                <input type="text" id="floating-search-input" autocomplete="off" value="{{ $filters['search'] ?? '' }}" placeholder="Cari nama, BIB, HP…" aria-label="Cari peserta cepat"
+                    class="w-full min-h-[44px] bg-slate-950 border border-slate-800 rounded-md pl-9 pr-8 py-2 text-xs font-medium text-white placeholder-slate-400 focus-visible:ring-2 focus-visible:ring-slate-500 focus:outline-none">
+                <button type="button" id="floating-search-clear" onclick="clearQuickSearch()" aria-label="Bersihkan pencarian"
+                    class="{{ !empty($filters['search']) ? '' : 'hidden' }} absolute right-2 top-2.5 text-slate-300 hover:text-white text-xs font-bold bg-slate-800 rounded w-6 h-6 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-xs" aria-hidden="true"></i>
+                </button>
+            </div>
+            <button type="button" onclick="openFiltersFromFloatingDock()" aria-label="Buka filter lanjutan"
+                class="relative shrink-0 min-h-[44px] px-3 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-slate-200 inline-flex items-center gap-1.5">
+                <i class="fa-solid fa-sliders text-xs" aria-hidden="true"></i>
+                <span>Filter</span>
+                <span id="floating-filter-count" class="hidden px-1.5 py-0.5 rounded bg-yellow-500 text-slate-950 text-[10px] font-mono font-bold">0</span>
+            </button>
+            <button type="button" onclick="openQrScanModal()" aria-label="Scan QR"
+                class="shrink-0 min-h-[44px] min-w-[44px] px-2.5 rounded-md bg-slate-800 hover:bg-slate-700 border border-slate-700 text-xs font-semibold text-white inline-flex items-center justify-center">
+                <i class="fa-solid fa-qrcode text-sm" aria-hidden="true"></i>
+            </button>
+        </div>
     </div>
 </div>
 
@@ -1379,6 +1418,8 @@
 <script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
 <script>
+    window.reportSalesChartInstance = null;
+
     // Theme Management (Dark / Light)
     function applyReportTheme(theme) {
         const isLight = theme === 'light';
@@ -1398,9 +1439,7 @@
             try { localStorage.setItem('ruanglari_report_theme', 'dark'); } catch(e) {}
         }
 
-        if (typeof salesChart !== 'undefined' && salesChart) {
-            updateSalesChartTheme(isLight);
-        }
+        updateSalesChartTheme(isLight);
     }
 
     function toggleReportTheme() {
@@ -1408,25 +1447,40 @@
         applyReportTheme(isLight ? 'dark' : 'light');
     }
 
+    function getReportSalesChart() {
+        if (window.reportSalesChartInstance && typeof window.reportSalesChartInstance.update === 'function') {
+            return window.reportSalesChartInstance;
+        }
+        if (typeof Chart !== 'undefined' && typeof Chart.getChart === 'function') {
+            const existing = Chart.getChart('salesChart');
+            if (existing && typeof existing.update === 'function') {
+                window.reportSalesChartInstance = existing;
+                return existing;
+            }
+        }
+        return null;
+    }
+
     function updateSalesChartTheme(isLight) {
-        if (!salesChart) return;
+        const chart = getReportSalesChart();
+        if (!chart) return;
         const textColor = isLight ? '#475569' : '#94a3b8';
         const gridColor = isLight ? 'rgba(0,0,0,0.06)' : 'rgba(148, 163, 184, 0.15)';
 
-        if (salesChart.options && salesChart.options.scales) {
-            if (salesChart.options.scales.x) {
-                salesChart.options.scales.x.ticks.color = textColor;
-                salesChart.options.scales.x.grid.color = gridColor;
+        if (chart.options && chart.options.scales) {
+            if (chart.options.scales.x) {
+                chart.options.scales.x.ticks.color = textColor;
+                chart.options.scales.x.grid.color = gridColor;
             }
-            if (salesChart.options.scales.y) {
-                salesChart.options.scales.y.ticks.color = textColor;
-                salesChart.options.scales.y.grid.color = gridColor;
+            if (chart.options.scales.y) {
+                chart.options.scales.y.ticks.color = textColor;
+                chart.options.scales.y.grid.color = gridColor;
             }
         }
-        if (salesChart.options && salesChart.options.plugins && salesChart.options.plugins.legend) {
-            salesChart.options.plugins.legend.labels.color = isLight ? '#0f172a' : '#e2e8f0';
+        if (chart.options && chart.options.plugins && chart.options.plugins.legend && chart.options.plugins.legend.labels) {
+            chart.options.plugins.legend.labels.color = isLight ? '#0f172a' : '#e2e8f0';
         }
-        salesChart.update();
+        chart.update();
     }
 
     // Auto-init theme preference
@@ -2386,7 +2440,7 @@
         let currentCouponText = '';
         let shouldShowCouponModal = false;
         const initialSales = @json($sales ?? null);
-        let salesChart = null;
+        let salesChartInstance = null;
 
         function debounce(func, wait) {
             let timeout;
@@ -2509,8 +2563,8 @@
                 pointRadius: 2,
             };
 
-            if (!salesChart) {
-                salesChart = new Chart(salesChartCanvas.getContext('2d'), {
+            if (!salesChartInstance) {
+                salesChartInstance = new Chart(salesChartCanvas.getContext('2d'), {
                     type: 'line',
                     data: {
                         labels: labels,
@@ -2541,9 +2595,11 @@
                         }
                     }
                 });
+                window.reportSalesChartInstance = salesChartInstance;
             } else {
-                salesChart.data.labels = labels;
-                salesChart.data.datasets = [datasetPaid, datasetPending];
+                salesChartInstance.data.labels = labels;
+                salesChartInstance.data.datasets = [datasetPaid, datasetPending];
+                window.reportSalesChartInstance = salesChartInstance;
                 updateSalesChartTheme(isLight);
             }
 
@@ -2835,7 +2891,7 @@
                 fetchReport(payload);
             });
 
-            form.querySelectorAll('select, input[type="date"]').forEach((el) => {
+            form.querySelectorAll('select, input[type="date"], input[type="number"]').forEach((el) => {
                 el.addEventListener('change', () => {
                     const couponSelect = form.querySelector('select[name="coupon_id"]');
                     const btnReport = document.getElementById('btn-show-coupon-report');
@@ -2854,6 +2910,10 @@
                             shouldShowCouponModal = true;
                             currentCouponText = el.options[el.selectedIndex]?.text || val;
                         }
+                    }
+
+                    if (typeof window.updateActiveFilterCount === 'function') {
+                        window.updateActiveFilterCount();
                     }
 
                     const payload = serializeAll();
@@ -2876,8 +2936,21 @@
             resetBtn.addEventListener('click', () => {
                 if (form) {
                     form.reset();
+                    const hiddenSearch = form.querySelector('input[name="search"]');
+                    if (hiddenSearch) hiddenSearch.value = '';
                     const btnReport = document.getElementById('btn-show-coupon-report');
                     if (btnReport) btnReport.classList.add('hidden');
+                }
+                const qInp = document.getElementById('quick-search-input');
+                const fInp = document.getElementById('floating-search-input');
+                const qClr = document.getElementById('quick-search-clear');
+                const fClr = document.getElementById('floating-search-clear');
+                if (qInp) qInp.value = '';
+                if (fInp) fInp.value = '';
+                if (qClr) qClr.classList.add('hidden');
+                if (fClr) fClr.classList.add('hidden');
+                if (typeof window.updateActiveFilterCount === 'function') {
+                    window.updateActiveFilterCount();
                 }
                 const payload = serializeAll();
                 payload.page = 1;
@@ -3275,22 +3348,56 @@
             document.body.removeChild(link);
         };
 
-        window.toggleReportFilters = function() {
-            const form = document.getElementById('report-filters');
+        window.toggleReportFilters = function(forceOpen) {
+            const formEl = document.getElementById('report-filters');
+            const toggleBtn = document.getElementById('toggle-filters-btn');
             const icon = document.getElementById('toggle-filters-icon');
             const text = document.getElementById('toggle-filters-text');
-            if (!form) return;
-            const isHidden = form.classList.contains('hidden');
-            if (isHidden) {
-                form.classList.remove('hidden');
-                if (icon) icon.className = 'fa-solid fa-chevron-up text-xs';
-                if (text) text.textContent = 'Sembunyikan Filter';
-                localStorage.setItem('reportFiltersCollapsed', '0');
+            if (!formEl) return;
+            const shouldOpen = typeof forceOpen === 'boolean' ? forceOpen : formEl.classList.contains('hidden');
+            if (shouldOpen) {
+                formEl.classList.remove('hidden');
+                if (icon) icon.className = 'fa-solid fa-chevron-up text-xs text-slate-300';
+                if (text) text.textContent = 'Tutup Filter';
+                if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'true');
+                try { localStorage.setItem('reportFiltersCollapsed', '0'); } catch(e) {}
             } else {
-                form.classList.add('hidden');
-                if (icon) icon.className = 'fa-solid fa-chevron-down text-xs';
-                if (text) text.textContent = 'Tampilkan Filter';
-                localStorage.setItem('reportFiltersCollapsed', '1');
+                formEl.classList.add('hidden');
+                if (icon) icon.className = 'fa-solid fa-sliders text-xs text-slate-300';
+                if (text) text.textContent = 'Filter';
+                if (toggleBtn) toggleBtn.setAttribute('aria-expanded', 'false');
+                try { localStorage.setItem('reportFiltersCollapsed', '1'); } catch(e) {}
+            }
+        };
+
+        window.updateActiveFilterCount = function() {
+            const formEl = document.getElementById('report-filters');
+            if (!formEl) return 0;
+            let count = 0;
+            const pay = formEl.querySelector('[name="payment_status"]')?.value || 'all';
+            if (pay !== 'all') count++;
+            ['is_picked_up', 'gender', 'category_id', 'coupon_id', 'addon', 'jersey_size', 'age_group', 'min_age', 'max_age', 'start_date', 'end_date'].forEach((name) => {
+                const val = formEl.querySelector(`[name="${name}"]`)?.value || '';
+                if (String(val).trim() !== '') count++;
+            });
+            const perPage = formEl.querySelector('[name="per_page"]')?.value || '25';
+            if (String(perPage) !== '25') count++;
+
+            ['active-filters-count', 'floating-filter-count'].forEach((id) => {
+                const badge = document.getElementById(id);
+                if (!badge) return;
+                badge.textContent = String(count);
+                badge.classList.toggle('hidden', count === 0);
+            });
+            return count;
+        };
+
+        window.openFiltersFromFloatingDock = function() {
+            window.toggleReportFilters(true);
+            const quickBar = document.getElementById('report-quick-bar');
+            if (quickBar) {
+                const y = quickBar.getBoundingClientRect().top + window.scrollY - 76;
+                window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
             }
         };
 
@@ -3393,50 +3500,90 @@
             });
         };
 
-        if (localStorage.getItem('reportFiltersCollapsed') === '1') {
-            window.toggleReportFilters();
+        const activeFilterCountOnLoad = typeof window.updateActiveFilterCount === 'function' ? window.updateActiveFilterCount() : 0;
+        const savedCollapsed = (() => {
+            try { return localStorage.getItem('reportFiltersCollapsed'); } catch(e) { return null; }
+        })();
+        if (savedCollapsed === '0' || (savedCollapsed === null && activeFilterCountOnLoad > 0)) {
+            window.toggleReportFilters(true);
         }
 
-        // Quick Search Synchronization
+        // Quick Search & Floating Mobile Search Synchronization
         const quickSearchInp = document.getElementById('quick-search-input');
+        const floatingSearchInp = document.getElementById('floating-search-input');
         const mainSearchInp = form ? form.querySelector('input[name="search"]') : null;
         const quickClearBtn = document.getElementById('quick-search-clear');
+        const floatingClearBtn = document.getElementById('floating-search-clear');
 
-        if (quickSearchInp && mainSearchInp) {
-            quickSearchInp.addEventListener('input', debounce(() => {
-                mainSearchInp.value = quickSearchInp.value;
-                if (quickClearBtn) {
-                    if (quickSearchInp.value.trim().length > 0) {
-                        quickClearBtn.classList.remove('hidden');
-                    } else {
-                        quickClearBtn.classList.add('hidden');
-                    }
-                }
-                const payload = serializeAll();
-                payload.page = 1;
-                fetchReport(payload);
-            }, 350));
+        function syncSearchInputs(val, sourceEl) {
+            if (quickSearchInp && sourceEl !== quickSearchInp) quickSearchInp.value = val;
+            if (floatingSearchInp && sourceEl !== floatingSearchInp) floatingSearchInp.value = val;
+            if (mainSearchInp && sourceEl !== mainSearchInp) mainSearchInp.value = val;
+            const hasVal = String(val || '').trim().length > 0;
+            if (quickClearBtn) quickClearBtn.classList.toggle('hidden', !hasVal);
+            if (floatingClearBtn) floatingClearBtn.classList.toggle('hidden', !hasVal);
+        }
 
-            mainSearchInp.addEventListener('input', () => {
-                quickSearchInp.value = mainSearchInp.value;
-                if (quickClearBtn) {
-                    if (mainSearchInp.value.trim().length > 0) {
-                        quickClearBtn.classList.remove('hidden');
-                    } else {
-                        quickClearBtn.classList.add('hidden');
+        const triggerSearchFetch = debounce(() => {
+            const payload = serializeAll();
+            payload.page = 1;
+            fetchReport(payload);
+        }, 350);
+
+        [quickSearchInp, floatingSearchInp].forEach((inp) => {
+            if (!inp) return;
+            inp.addEventListener('input', () => {
+                syncSearchInputs(inp.value, inp);
+                triggerSearchFetch();
+            });
+            inp.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const payload = serializeAll();
+                    payload.page = 1;
+                    fetchReport(payload);
+                    if (inp === floatingSearchInp) {
+                        const tableWrap = document.getElementById('participants-table-wrapper');
+                        if (tableWrap) {
+                            const y = tableWrap.getBoundingClientRect().top + window.scrollY - 128;
+                            window.scrollTo({ top: Math.max(0, y), behavior: 'smooth' });
+                        }
                     }
                 }
             });
-        }
+        });
 
         window.clearQuickSearch = function() {
-            if (quickSearchInp) quickSearchInp.value = '';
-            if (mainSearchInp) mainSearchInp.value = '';
-            if (quickClearBtn) quickClearBtn.classList.add('hidden');
+            syncSearchInputs('', null);
             const payload = serializeAll();
             payload.page = 1;
             fetchReport(payload);
         };
+
+        // Floating Mobile Search visibility via IntersectionObserver
+        const quickBarEl = document.getElementById('report-quick-bar');
+        const floatingDockEl = document.getElementById('mobile-floating-search-dock');
+        if (quickBarEl && floatingDockEl) {
+            let quickBarVisible = false;
+            const updateFloatingDockVisibility = () => {
+                const isInputFocused = floatingSearchInp && document.activeElement === floatingSearchInp;
+                floatingDockEl.classList.toggle('hidden', quickBarVisible && !isInputFocused);
+            };
+            if ('IntersectionObserver' in window) {
+                const observer = new IntersectionObserver((entries) => {
+                    quickBarVisible = entries.some((entry) => entry.isIntersecting);
+                    updateFloatingDockVisibility();
+                }, { threshold: 0.1 });
+                observer.observe(quickBarEl);
+            } else {
+                floatingDockEl.classList.remove('hidden');
+            }
+            if (floatingSearchInp) {
+                floatingSearchInp.addEventListener('blur', () => {
+                    setTimeout(updateFloatingDockVisibility, 120);
+                });
+            }
+        }
 
         const initialParticipants = @json($participants);
         renderPagination(initialParticipants, serializeAll());
