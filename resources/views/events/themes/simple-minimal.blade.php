@@ -197,7 +197,16 @@
                             <div class="flex justify-between items-start">
                                 <div>
                                     <h4 class="font-bold text-lg">{{ $cat->name }}</h4>
-                                    <p class="text-xs text-gray-500 mt-1">Jarak: {{ $cat->distance_km }}KM</p>
+                                    <p class="text-xs text-gray-500 mt-1">
+                                        Jarak: {{ $cat->distance_km }}KM
+                                        @if($cat->min_age !== null && $cat->max_age !== null)
+                                            &middot; Usia {{ $cat->min_age }}-{{ $cat->max_age }} Thn
+                                        @elseif($cat->min_age !== null)
+                                            &middot; Min. {{ $cat->min_age }} Thn
+                                        @elseif($cat->max_age !== null)
+                                            &middot; Maks. {{ $cat->max_age }} Thn
+                                        @endif
+                                    </p>
                                 </div>
                                 <div class="text-right">
                                     @if($displayPrice !== $priceRegular && $priceRegular > 0)
@@ -316,7 +325,12 @@
                                             <label class="cursor-pointer relative">
                                                 <input type="radio" name="participants[0][category_id]" value="{{ $cat->id }}" class="peer sr-only category-radio" data-price="{{ $displayPrice }}" required>
                                                 <div class="p-3 border border-gray-200 rounded-lg peer-checked:border-black peer-checked:bg-gray-50 peer-checked:ring-1 peer-checked:ring-black transition flex justify-between items-center">
-                                                    <span class="text-sm font-medium">{{ $cat->name }}</span>
+                                                    <span class="text-sm font-medium">
+                                                        {{ $cat->name }}
+                                                        @if($cat->min_age !== null || $cat->max_age !== null)
+                                                            <span class="block text-[11px] font-normal text-gray-500">@if($cat->min_age !== null && $cat->max_age !== null)Usia {{ $cat->min_age }}-{{ $cat->max_age }} Thn @elseif($cat->min_age !== null)Min. {{ $cat->min_age }} Thn @else Maks. {{ $cat->max_age }} Thn @endif</span>
+                                                        @endif
+                                                    </span>
                                                     <span class="text-sm font-bold">
                                                         @if($displayPrice !== $priceRegular && $priceRegular > 0)
                                                             <span class="text-xs text-gray-400 line-through mr-1">Rp {{ number_format($priceRegular/1000, 0) }}k</span>
@@ -345,7 +359,14 @@
                                                 @foreach(['S','M','L','XL'] as $s) <option value="{{ $s }}">{{ $s }}</option> @endforeach
                                             </select>
                                         </div>
-                                        <input type="text" name="participants[0][id_card]" placeholder="No. KTP/SIM" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:bg-white transition" required>
+                                        @php
+                                            $smFormFields = $event->premium_amenities['form_fields'] ?? null;
+                                            $showIdCard = (is_array($smFormFields) && count($smFormFields) > 0) ? !empty($smFormFields['id_card']) : true;
+                                            $idCardRequired = $showIdCard && !empty($smFormFields['id_card_required']);
+                                        @endphp
+                                        @if($showIdCard)
+                                        <input type="text" name="participants[0][id_card]" placeholder="{{ $idCardRequired ? 'No. KTP/SIM' : 'No. KTP/SIM (Opsional)' }}" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:bg-white transition" {{ $idCardRequired ? 'required' : '' }}>
+                                        @endif
                                         <textarea name="participants[0][address]" placeholder="Alamat Peserta" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:bg-white transition" required maxlength="500" rows="3"></textarea>
                                         <input type="date" name="participants[0][date_of_birth]" placeholder="Tanggal Lahir" aria-label="Tanggal Lahir" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:bg-white transition" required>
                                         <input type="text" name="participants[0][emergency_contact_name]" placeholder="Nama Kontak Darurat" class="w-full bg-gray-50 border border-gray-200 rounded-lg px-4 py-3 text-sm focus:bg-white transition" required>
@@ -775,39 +796,6 @@
         if(form) {
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
-
-                // Validation: Unique Email Check
-                const emails = [];
-                const emailInputs = document.querySelectorAll('input[type="email"][name^="participants"]');
-                let hasDuplicate = false;
-                let firstDuplicateInput = null;
-
-                // Reset error styles
-                emailInputs.forEach(input => {
-                    input.classList.remove('border-red-500', 'ring-1', 'ring-red-500');
-                });
-
-                emailInputs.forEach(input => {
-                    const email = input.value.trim().toLowerCase();
-                    if (email) {
-                        if (emails.includes(email)) {
-                            hasDuplicate = true;
-                            input.classList.add('border-red-500', 'ring-1', 'ring-red-500');
-                            if (!firstDuplicateInput) firstDuplicateInput = input;
-                        } else {
-                            emails.push(email);
-                        }
-                    }
-                });
-
-                if (hasDuplicate) {
-                    alert('Mohon maaf, email setiap peserta harus berbeda (unik) dalam satu pendaftaran.');
-                    if (firstDuplicateInput) {
-                        firstDuplicateInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        firstDuplicateInput.focus();
-                    }
-                    return;
-                }
 
                 @if(env('RECAPTCHA_SITE_KEY_v3'))
                     if (typeof grecaptcha === 'undefined') {

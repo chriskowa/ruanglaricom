@@ -1217,13 +1217,14 @@
                 <div class="{{ count($categories) === 1 ? 'max-w-md mx-auto' : (count($categories) === 2 ? 'grid grid-cols-1 md:grid-cols-2 max-w-4xl mx-auto gap-6' : 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6') }}">
                     @foreach($categories as $cat)
                     @php
+                        $nowCategoryPrice = now();
                         $priceRegular = (int) ($cat->price_regular ?? 0);
                         $priceEarly = (int) ($cat->price_early ?? 0);
                         $priceLate = (int) ($cat->price_late ?? 0);
                         $displayPrice = $priceRegular;
-                        if ($priceEarly > 0) {
+                        if ($cat->early_bird_end_at && $nowCategoryPrice->lte($cat->early_bird_end_at) && $priceEarly > 0) {
                             $displayPrice = $priceEarly;
-                        } elseif ($priceLate > 0) {
+                        } elseif ($cat->late_bird_start_at && $nowCategoryPrice->gte($cat->late_bird_start_at) && $priceLate > 0) {
                             $displayPrice = $priceLate;
                         }
                     @endphp
@@ -1254,7 +1255,13 @@
                                 <div class="flex justify-between">
                                     <span>Cut Off Time (COT)</span>
                                     <span class="font-bold text-slate-900 font-mono">{{ $cat->cot_hours ?? '-' }} Jam</span>
-                                </div>                                                            
+                                </div>
+                                @if($cat->min_age !== null || $cat->max_age !== null)
+                                <div class="flex justify-between">
+                                    <span>Syarat Usia</span>
+                                    <span class="font-bold text-slate-900 font-mono">@if($cat->min_age !== null && $cat->max_age !== null){{ $cat->min_age }}-{{ $cat->max_age }} Thn @elseif($cat->min_age !== null)Min. {{ $cat->min_age }} Thn @else Maks. {{ $cat->max_age }} Thn @endif</span>
+                                </div>
+                                @endif
                             </div>
                         </div>
 
@@ -2170,24 +2177,25 @@
                                                     <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2.5">
                                                         @foreach($categories as $cat)
                                                         @php
+                                                            $nowRadioPrice = now();
                                                             $pRegular = (int) ($cat->price_regular ?? 0);
                                                             $pEarly = (int) ($cat->price_early ?? 0);
                                                             $pLate = (int) ($cat->price_late ?? 0);
                                                             $pDisplay = $pRegular;
-                                                            if ($pEarly > 0) {
+                                                            if ($cat->early_bird_end_at && $nowRadioPrice->lte($cat->early_bird_end_at) && $pEarly > 0) {
                                                                 $pDisplay = $pEarly;
-                                                            } elseif ($pLate > 0) {
+                                                            } elseif ($cat->late_bird_start_at && $nowRadioPrice->gte($cat->late_bird_start_at) && $pLate > 0) {
                                                                 $pDisplay = $pLate;
                                                             }
                                                         @endphp
                                                         <label class="cursor-pointer relative block">
-                                                            <input type="radio" name="participants[0][category_id]" value="{{ $cat->id }}" class="cat-radio peer sr-only" data-price="{{ $pDisplay }}" required {{ $loop->first ? 'checked' : '' }}>
+                                                            <input type="radio" name="participants[0][category_id]" value="{{ $cat->id }}" class="cat-radio peer sr-only" data-price="{{ $pDisplay }}" data-min-age="{{ $cat->min_age ?? '' }}" data-max-age="{{ $cat->max_age ?? '' }}" data-cat-name="{{ $cat->name }}" required {{ $loop->first ? 'checked' : '' }}>
                                                             <div class="p-3 bg-white border border-slate-300 rounded-md transition hover:border-slate-400">
                                                                 <div class="flex justify-between items-center">
                                                                     <span class="font-bold text-xs text-slate-900">{{ $cat->name }}</span>
                                                                     <span class="text-xs font-mono font-bold text-theme-primary cat-price">Rp {{ number_format($pDisplay/1000, 0) }}k</span>
                                                                 </div>
-                                                                <span class="text-[10px] text-slate-500 block mt-0.5">{{ $cat->distance_km ?? 0 }}K • COT {{ $cat->cot_hours ?? 0 }} Jam</span>
+                                                                <span class="text-[10px] text-slate-500 block mt-0.5">{{ $cat->distance_km ?? 0 }}K • COT {{ $cat->cot_hours ?? 0 }} Jam @if($cat->min_age !== null && $cat->max_age !== null)• Usia {{ $cat->min_age }}-{{ $cat->max_age }} Thn @elseif($cat->min_age !== null)• Min. {{ $cat->min_age }} Thn @elseif($cat->max_age !== null)• Maks. {{ $cat->max_age }} Thn @endif</span>
                                                             </div>
                                                         </label>
                                                         @endforeach
@@ -2222,12 +2230,18 @@
                                                     </div>
                                                 </div>
 
+                                                @php
+                                                    $showIdCard = !empty($formFields) ? !empty($formFields['id_card']) : true;
+                                                    $idCardRequired = $showIdCard && !empty($formFields['id_card_required']);
+                                                @endphp
                                                 <!-- NIK & Date of Birth -->
-                                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                <div class="grid grid-cols-1 {{ $showIdCard ? 'sm:grid-cols-2' : '' }} gap-3">
+                                                    @if($showIdCard)
                                                     <div>
-                                                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">No. Identitas (KTP / SIM)</label>
-                                                        <input type="text" name="participants[0][id_card]" required class="input-light w-full px-3 py-2 text-sm" placeholder="NIK / No KTP">
+                                                        <label class="block text-xs font-bold text-slate-700 uppercase mb-1">No. Identitas (KTP / SIM) {{ $idCardRequired ? '' : '(Opsional)' }}</label>
+                                                        <input type="text" name="participants[0][id_card]" {{ $idCardRequired ? 'required' : '' }} class="input-light w-full px-3 py-2 text-sm" placeholder="{{ $idCardRequired ? 'NIK / No KTP' : 'NIK / No KTP (Opsional)' }}">
                                                     </div>
+                                                    @endif
                                                     <div>
                                                         <label class="block text-xs font-bold text-slate-700 uppercase mb-1">Tanggal Lahir</label>
                                                         <input type="date" name="participants[0][date_of_birth]" required class="input-light w-full px-3 py-2 text-sm">
@@ -3691,10 +3705,6 @@
                             showFieldError(emailInput, 'Email peserta wajib diisi.', `${labelPrefix}Email peserta wajib diisi.`);
                         } else if (!emailRegex.test(val)) {
                             showFieldError(emailInput, 'Format email tidak valid.', `${labelPrefix}Format email tidak valid.`);
-                        } else if (participantEmails.includes(val)) {
-                            showFieldError(emailInput, `Email "${val}" sudah digunakan peserta lain. Email setiap peserta harus unik.`, `${labelPrefix}Email "${val}" sudah digunakan peserta lain.`);
-                        } else {
-                            participantEmails.push(val);
                         }
                     }
 
@@ -3738,6 +3748,25 @@
                             today.setHours(0, 0, 0, 0);
                             if (isNaN(dobDate.getTime()) || dobDate >= today) {
                                 showFieldError(dobInput, 'Tanggal lahir harus sebelum hari ini.', `${labelPrefix}Tanggal lahir harus sebelum hari ini.`);
+                            } else if (catChecked) {
+                                const minAgeAttr = catChecked.getAttribute('data-min-age');
+                                const maxAgeAttr = catChecked.getAttribute('data-max-age');
+                                const catNameAttr = catChecked.getAttribute('data-cat-name') || 'kategori ini';
+                                const minAge = minAgeAttr !== null && minAgeAttr !== '' ? parseInt(minAgeAttr, 10) : null;
+                                const maxAge = maxAgeAttr !== null && maxAgeAttr !== '' ? parseInt(maxAgeAttr, 10) : null;
+                                if (minAge !== null || maxAge !== null) {
+                                    const refStr = "{{ $event->start_at ? $event->start_at->format('Y-m-d') : now()->format('Y-m-d') }}";
+                                    const [by, bm, bd] = val.split('-').map(Number);
+                                    const [ry, rm, rd] = refStr.split('-').map(Number);
+                                    let age = ry - by;
+                                    if (rm < bm || (rm === bm && rd < bd)) age--;
+                                    if (age < 0) age = 0;
+                                    if (minAge !== null && age < minAge) {
+                                        showFieldError(dobInput, `Usia peserta (${age} tahun) kurang dari batas minimal ${catNameAttr} (${minAge} tahun).`, `${labelPrefix}Usia peserta (${age} tahun) kurang dari batas minimal ${catNameAttr} (${minAge} tahun).`);
+                                    } else if (maxAge !== null && age > maxAge) {
+                                        showFieldError(dobInput, `Usia peserta (${age} tahun) melebihi batas maksimal ${catNameAttr} (${maxAge} tahun).`, `${labelPrefix}Usia peserta (${age} tahun) melebihi batas maksimal ${catNameAttr} (${maxAge} tahun).`);
+                                    }
+                                }
                             }
                         }
                     }

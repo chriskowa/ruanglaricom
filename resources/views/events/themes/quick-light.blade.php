@@ -80,9 +80,11 @@
     $defaultJersey = collect($event->jersey_sizes ?? [])->filter()->first() ?? '';
     $formFields = $event->premium_amenities['form_fields'] ?? [];
     $showIdCard = !empty($formFields['id_card']);
+    $idCardRequired = !empty($formFields['id_card_required']);
     $showAddress = !empty($formFields['address']);
     $showEmergency = !empty($formFields['emergency_contact']);
-    $showDob = !empty($formFields['date_of_birth']);
+    $hasAgeLimits = $categories->contains(fn ($c) => $c->min_age !== null || $c->max_age !== null);
+    $showDob = !empty($formFields['date_of_birth']) || $hasAgeLimits;
     $showJersey = !empty($formFields['jersey_size']);
     $showTargetTime = !empty($formFields['target_time']);
     $showBloodType = !empty($formFields['blood_type']);
@@ -931,8 +933,11 @@
                                                                 <div class="choice-box flex items-center justify-between gap-3">
                                                                     <div class="min-w-0">
                                                                         <div class="text-xs font-bold text-slate-900 truncate">{{ $cat->name }}</div>
-                                                                        @if($cat->distance_km)
-                                                                            <div class="mt-0.5 text-[10px] font-bold text-slate-500">{{ number_format($cat->distance_km, 0, ',', '.') }}K</div>
+                                                                        @if($cat->distance_km || $cat->min_age !== null || $cat->max_age !== null)
+                                                                            <div class="mt-0.5 text-[10px] font-bold text-slate-500">
+                                                                                @if($cat->distance_km){{ number_format($cat->distance_km, 0, ',', '.') }}K @endif
+                                                                                @if($cat->min_age !== null && $cat->max_age !== null)&middot; Usia {{ $cat->min_age }}-{{ $cat->max_age }} Thn @elseif($cat->min_age !== null)&middot; Min. {{ $cat->min_age }} Thn @elseif($cat->max_age !== null)&middot; Maks. {{ $cat->max_age }} Thn @endif
+                                                                            </div>
                                                                         @endif
                                                                     </div>
                                                                     @if($displayPrice > 0)
@@ -992,8 +997,8 @@
 
                                             @if($showIdCard)
                                                 <div>
-                                                    <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">No. Identitas (KTP/SIM)</label>
-                                                    <input class="field mt-1" data-field="id_card" name="participants[0][id_card]" placeholder="Nomor KTP/SIM" required>
+                                                    <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">No. Identitas (KTP/SIM) {{ $idCardRequired ? '' : '(Opsional)' }}</label>
+                                                    <input class="field mt-1" data-field="id_card" name="participants[0][id_card]" placeholder="{{ $idCardRequired ? 'Nomor KTP/SIM' : 'Nomor KTP/SIM (Opsional)' }}" {{ $idCardRequired ? 'required' : '' }}>
                                                 </div>
                                             @else
                                                 <input type="hidden" data-hidden-auto="id_card" name="participants[0][id_card]">
@@ -1207,8 +1212,11 @@
                                                                 <div class="choice-box flex items-center justify-between gap-3">
                                                                     <div class="min-w-0">
                                                                         <div class="text-xs font-bold text-slate-900 truncate">{{ $cat->name }}</div>
-                                                                        @if($cat->distance_km)
-                                                                            <div class="mt-0.5 text-[10px] font-bold text-slate-500">{{ number_format($cat->distance_km, 0, ',', '.') }}K</div>
+                                                                        @if($cat->distance_km || $cat->min_age !== null || $cat->max_age !== null)
+                                                                            <div class="mt-0.5 text-[10px] font-bold text-slate-500">
+                                                                                @if($cat->distance_km){{ number_format($cat->distance_km, 0, ',', '.') }}K @endif
+                                                                                @if($cat->min_age !== null && $cat->max_age !== null)&middot; Usia {{ $cat->min_age }}-{{ $cat->max_age }} Thn @elseif($cat->min_age !== null)&middot; Min. {{ $cat->min_age }} Thn @elseif($cat->max_age !== null)&middot; Maks. {{ $cat->max_age }} Thn @endif
+                                                                            </div>
                                                                         @endif
                                                                     </div>
                                                                     @if($displayPrice > 0)
@@ -1267,8 +1275,8 @@
 
                                             @if($showIdCard)
                                                 <div>
-                                                    <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">No. Identitas (KTP/SIM)</label>
-                                                    <input class="field mt-1" data-field="id_card" placeholder="Nomor KTP/SIM" required>
+                                                    <label class="text-[11px] font-bold uppercase tracking-wider text-slate-600">No. Identitas (KTP/SIM) {{ $idCardRequired ? '' : '(Opsional)' }}</label>
+                                                    <input class="field mt-1" data-field="id_card" placeholder="{{ $idCardRequired ? 'Nomor KTP/SIM' : 'Nomor KTP/SIM (Opsional)' }}" {{ $idCardRequired ? 'required' : '' }}>
                                                 </div>
                                             @else
                                                 <input type="hidden" data-hidden-auto="id_card" value="">

@@ -60,13 +60,26 @@
         <p class="text-xs text-slate-400 mb-4">Pilih field data peserta yang ingin ditampilkan pada form pendaftaran. Field standar berlaku khusus tema Quick Light, sedangkan Nama di BIB, Hubungan Kontak Darurat, dan Riwayat Penyakit berlaku di semua tema:</p>
         
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-slate-900 border border-slate-800 p-4 rounded-lg">
+            <input type="hidden" name="premium_amenities[form_fields][_configured]" value="1">
             <label class="flex items-center gap-3 cursor-pointer group">
+                <input type="hidden" name="premium_amenities[form_fields][id_card]" value="0">
                 <input type="checkbox" name="premium_amenities[form_fields][id_card]" value="1" 
                     {{ old('premium_amenities.form_fields.id_card', ($event->premium_amenities['form_fields']['id_card'] ?? 0)) == 1 ? 'checked' : '' }}
                     class="rounded bg-slate-800 border-slate-700 text-yellow-500 focus:ring-yellow-500">
                 <div>
-                    <span class="text-sm font-semibold text-slate-200 group-hover:text-white transition-colors">ID Card (KTP/SIM)</span>
-                    <p class="text-[10px] text-slate-500">Meminta nomor kartu identitas peserta</p>
+                    <span class="text-sm font-semibold text-slate-200 group-hover:text-white transition-colors">Tampilkan ID Card (KTP/SIM)</span>
+                    <p class="text-[10px] text-slate-400">Hapus centang untuk menyembunyikan kolom KTP/SIM dari form pendaftaran</p>
+                </div>
+            </label>
+
+            <label class="flex items-center gap-3 cursor-pointer group">
+                <input type="hidden" name="premium_amenities[form_fields][id_card_required]" value="0">
+                <input type="checkbox" name="premium_amenities[form_fields][id_card_required]" value="1" 
+                    {{ old('premium_amenities.form_fields.id_card_required', ($event->premium_amenities['form_fields']['id_card_required'] ?? 0)) == 1 ? 'checked' : '' }}
+                    class="rounded bg-slate-800 border-slate-700 text-yellow-500 focus:ring-yellow-500">
+                <div>
+                    <span class="text-sm font-semibold text-slate-200 group-hover:text-white transition-colors">Wajibkan No. KTP/SIM (Required)</span>
+                    <p class="text-[10px] text-slate-400">Centang hanya jika peserta wajib mengisi KTP/SIM saat kolom ditampilkan</p>
                 </div>
             </label>
 

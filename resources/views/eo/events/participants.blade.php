@@ -1671,8 +1671,8 @@
                                 <input name="phone" value="{{ old('phone') }}" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:outline-none" placeholder="08xxxxxxxxxx">
                             </div>
                             <div>
-                                <label class="block text-xs font-medium text-slate-400 mb-1">ID Card</label>
-                                <input name="id_card" value="{{ old('id_card') }}" required class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:outline-none" placeholder="Nomor identitas">
+                                <label class="block text-xs font-medium text-slate-400 mb-1">ID Card (Opsional)</label>
+                                <input name="id_card" value="{{ old('id_card') }}" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:outline-none" placeholder="Nomor identitas (opsional)">
                             </div>
                             <div class="md:col-span-2">
                                 <label class="block text-xs font-medium text-slate-400 mb-1">Alamat</label>
@@ -4045,8 +4045,6 @@
         
         if (!formData.phone) errors.push('Nomor telepon wajib diisi');
         else if (formData.phone.length < 8) errors.push('Nomor telepon minimal 8 digit');
-
-        if (!formData.id_card) errors.push('ID Card wajib diisi');
         
         if (!formData.gender) errors.push('Jenis kelamin wajib dipilih');
         if (!formData.race_category_id) errors.push('Kategori lomba wajib dipilih');

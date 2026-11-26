@@ -56,6 +56,12 @@ class StoreRegistrationAction
                 if (isset($p['email'])) {
                     $p['email'] = trim((string) $p['email']);
                 }
+                if (array_key_exists('id_card', $p)) {
+                    $p['id_card'] = trim((string) $p['id_card']);
+                    if ($p['id_card'] === '') {
+                        $p['id_card'] = null;
+                    }
+                }
                 if (isset($p['phone'])) {
                     $p['phone'] = preg_replace('/[^0-9]/', '', (string) $p['phone']);
                 }
@@ -132,7 +138,7 @@ class StoreRegistrationAction
 
         $emergencyRequired = true;
         $addressRequired = true;
-        $idCardRequired = true;
+        $idCardRequired = is_array($formFields) && ! empty($formFields['id_card']) && ! empty($formFields['id_card_required']);
         $dobRequired = true;
         $jerseyRequired = true;
 
@@ -140,7 +146,7 @@ class StoreRegistrationAction
             $ff = is_array($formFields) ? $formFields : [];
             $emergencyRequired = ! empty($ff['emergency_contact']);
             $addressRequired = ! empty($ff['address']);
-            $idCardRequired = ! empty($ff['id_card']);
+            $idCardRequired = ! empty($ff['id_card']) && ! empty($ff['id_card_required']);
             $dobRequired = ! empty($ff['date_of_birth']);
             $jerseyRequired = ! empty($ff['jersey_size']);
         } elseif ($isLightClean && is_array($formFields)) {
@@ -165,7 +171,7 @@ class StoreRegistrationAction
             'participants.*.gender' => 'required|in:male,female',
             'participants.*.email' => 'required|email|max:255',
             'participants.*.phone' => 'required|string|min:10|max:15|regex:/^[0-9]+$/',
-            'participants.*.id_card' => $idCardRequired ? 'required|string|max:50|distinct' : 'nullable|string|max:50',
+            'participants.*.id_card' => $idCardRequired ? 'required|string|max:50' : 'nullable|string|max:50',
             'participants.*.address' => $addressRequired ? 'required|string|max:500' : 'nullable|string|max:500',
             'participants.*.category_id' => [
                 'required',
@@ -397,7 +403,7 @@ class StoreRegistrationAction
             'participants' => collect($validated['participants'])->map(function ($p) {
                 return [
                     'email' => strtolower($p['email']),
-                    'id_card' => $p['id_card'],
+                    'id_card' => $p['id_card'] ?? null,
                     'category_id' => $p['category_id'],
                 ];
             })->sortBy(fn ($p) => $p['email'].':'.$p['category_id'])->values()->toArray(),
@@ -434,32 +440,69 @@ class StoreRegistrationAction
         $categoryQuantities = [];
         $totalOriginal = 0;
         $now = now();
+        $ageReferenceDate = $event->start_at ? $event->start_at->copy()->startOfDay() : $now->copy()->startOfDay();
+        $seenIdCards = [];
 
         foreach ($validated['participants'] as $index => $participant) {
-            $activeParticipantExists = Participant::where('race_category_id', $participant['category_id'])
-                ->where('id_card', $participant['id_card'])
-                ->whereHas('transaction', function ($query) use ($event) {
-                    $query->whereIn('payment_status', ['paid', 'cod'])
-                        ->orWhere(function ($sub) {
-                            $sub->where('payment_gateway', 'free')
-                                ->where('payment_status', 'pending');
-                        });
-                    if ($event->hardcoded === 'latbarkamis') {
-                        if ($event->registration_open_at) {
-                            $query->where('created_at', '>=', $event->registration_open_at);
-                        }
-                        if ($event->registration_close_at) {
-                            $query->where('created_at', '<=', $event->registration_close_at);
-                        }
-                    }
-                })
-                ->where('status', '!=', 'cancelled')
-                ->exists();
+            $category = RaceCategory::find($participant['category_id']);
+            if ($category && ($category->min_age !== null || $category->max_age !== null)) {
+                if (empty($participant['date_of_birth'])) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        "participants.{$index}.date_of_birth" => ["Kategori {$category->name} memiliki batas usia, sehingga Tanggal Lahir wajib diisi."],
+                    ]);
+                }
 
-            if ($activeParticipantExists) {
-                throw \Illuminate\Validation\ValidationException::withMessages([
-                    "participants.{$index}.id_card" => ["Peserta dengan ID Card {$participant['id_card']} sudah terdaftar (status Pending atau Terkonfirmasi) di kategori ini."],
-                ]);
+                $dob = \Carbon\Carbon::parse($participant['date_of_birth'])->startOfDay();
+                $age = $dob->lte($ageReferenceDate) ? (int) $dob->diffInYears($ageReferenceDate) : 0;
+
+                if ($category->min_age !== null && $age < (int) $category->min_age) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        "participants.{$index}.date_of_birth" => ["Usia peserta ({$age} tahun) tidak memenuhi batas minimal kategori {$category->name} ({$category->min_age} tahun)."],
+                    ]);
+                }
+
+                if ($category->max_age !== null && $age > (int) $category->max_age) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        "participants.{$index}.date_of_birth" => ["Usia peserta ({$age} tahun) melebihi batas maksimal kategori {$category->name} ({$category->max_age} tahun)."],
+                    ]);
+                }
+            }
+
+            $normalizedIdCard = trim((string) ($participant['id_card'] ?? ''));
+            if ($normalizedIdCard !== '' && $normalizedIdCard !== '-') {
+                $idCardKey = strtolower($normalizedIdCard);
+                if (isset($seenIdCards[$idCardKey])) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        "participants.{$index}.id_card" => ["ID Card {$normalizedIdCard} duplikat dengan peserta lain dalam pendaftaran ini."],
+                    ]);
+                }
+                $seenIdCards[$idCardKey] = true;
+
+                $activeParticipantExists = Participant::where('race_category_id', $participant['category_id'])
+                    ->where('id_card', $normalizedIdCard)
+                    ->whereHas('transaction', function ($query) use ($event) {
+                        $query->whereIn('payment_status', ['paid', 'cod'])
+                            ->orWhere(function ($sub) {
+                                $sub->where('payment_gateway', 'free')
+                                    ->where('payment_status', 'pending');
+                            });
+                        if ($event->hardcoded === 'latbarkamis') {
+                            if ($event->registration_open_at) {
+                                $query->where('created_at', '>=', $event->registration_open_at);
+                            }
+                            if ($event->registration_close_at) {
+                                $query->where('created_at', '<=', $event->registration_close_at);
+                            }
+                        }
+                    })
+                    ->where('status', '!=', 'cancelled')
+                    ->exists();
+
+                if ($activeParticipantExists) {
+                    throw \Illuminate\Validation\ValidationException::withMessages([
+                        "participants.{$index}.id_card" => ["Peserta dengan ID Card {$normalizedIdCard} sudah terdaftar (status Pending atau Terkonfirmasi) di kategori ini."],
+                    ]);
+                }
             }
 
             $categoryId = $participant['category_id'];
@@ -675,8 +718,8 @@ class StoreRegistrationAction
                     ? $participantData['emergency_contact_number']
                     : ($participantData['phone'] ?? '-');
                 $idCard = ! empty($participantData['id_card'])
-                    ? $participantData['id_card']
-                    : ('ID-'.time().'-'.$pIndex);
+                    ? trim((string) $participantData['id_card'])
+                    : '-';
                 $address = ! empty($participantData['address'])
                     ? $participantData['address']
                     : '-';

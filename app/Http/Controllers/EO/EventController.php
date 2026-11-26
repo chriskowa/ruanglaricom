@@ -137,6 +137,288 @@ class EventController extends Controller
     }
 
     /**
+     * Render full interactive demo page for any event registration theme using complete dummy data & local images.
+     */
+    public function themeDemo(string $template)
+    {
+        $allowedTemplates = [
+            'modern-dark',
+            'quick-light',
+            'light-clean',
+            'beach-theme',
+            'simple-minimal',
+            'professional-city-run',
+            'paolo-fest',
+            'paolo-fest-dark',
+            'golden-run',
+        ];
+
+        if (! in_array($template, $allowedTemplates, true)) {
+            abort(404);
+        }
+
+        $demoAssets = $this->ensureDemoAssets();
+        $isCoastal = $template === 'beach-theme';
+
+        $event = new Event();
+        $event->id = 0;
+        $event->name = $isCoastal ? 'Nusantara Coastal Run 2026' : 'Nusantara City Marathon 2026';
+        $event->slug = 'demo-' . $template;
+        $event->organizer_name = 'RuangLari Event Organizer';
+        $event->organizer_contact = '081234567890';
+        $event->short_description = $isCoastal
+            ? 'Lari pesisir pantai sepanjang rute sunrise terbaik dengan atmosfer liburan, cheering zone, dan podium kategori resmi.'
+            : 'Event lari jalan raya resmi dengan rute terukur, jersey eksklusif, medali finisher, dan sistem registrasi instan.';
+        $event->full_description = '<p><strong>' . e($event->name) . '</strong> menghadirkan pengalaman lomba lari yang terorganisir rapi mulai dari pengambilan race pack hingga garis finis.</p><p>Rute steril dilengkapi water station setiap 2,5 KM, tim medis profesional di beberapa titik, fotografer race resmi, dan hiburan panggung di area race village.</p>';
+        $event->terms_and_conditions = "<ul><li>Peserta wajib dalam kondisi sehat jasmani dan rohani pada hari perlombaan.</li><li>Nomor BIB wajib terpasang jelas di bagian dada selama lomba berlangsung.</li><li>Keputusan juri dan panitia bersifat mutlak sesuai regulasi perlombaan.</li></ul>";
+        $event->start_at = now()->addDays(45)->setTime(5, 30, 0);
+        $event->end_at = now()->addDays(45)->setTime(11, 0, 0);
+        $event->registration_open_at = now()->subDays(5);
+        $event->registration_close_at = now()->addDays(35);
+        $event->location_name = $isCoastal ? 'Pantai Sanur, Bali' : 'Kawasan Silang Monas, Jakarta Pusat';
+        $event->location_address = $isCoastal ? 'Jl. Hang Tuah, Sanur Kaja, Denpasar Selatan, Bali' : 'Jl. Medan Merdeka Utara, Gambir, Jakarta Pusat';
+        $event->location_lat = $isCoastal ? -8.6901 : -6.1754;
+        $event->location_lng = $isCoastal ? 115.2615 : 106.8272;
+        $event->rpc_location_name = $isCoastal ? 'Bali Beach Convention Hall' : 'FX Sudirman Atrium Lt. 3';
+        $event->rpc_location_address = $isCoastal ? 'Jl. Bypass Ngurah Rai No. 88, Sanur' : 'Jl. Jenderal Sudirman, Pintu Satu Senayan, Jakarta';
+        $event->hero_image = $demoAssets['hero_primary'];
+        $event->hero_images = $demoAssets['hero_slider'];
+        $event->logo_image = $demoAssets['logo'];
+        $event->jersey_image = $demoAssets['jersey'];
+        $event->medal_image = $demoAssets['medal'];
+        $event->gallery = $demoAssets['gallery'];
+        $event->sponsors = [
+            $demoAssets['logo'],
+            $demoAssets['gallery'][0] ?? $demoAssets['logo'],
+        ];
+        $event->template = $template;
+        $event->event_kind = 'managed';
+        $event->status = 'published';
+        $event->is_active = true;
+        $event->platform_fee = 5000;
+        $event->jersey_sizes = ['XS', 'S', 'M', 'L', 'XL', '2XL'];
+        $event->theme_colors = [
+            'primary' => match ($template) {
+                'beach-theme' => '#0f766e',
+                'golden-run' => '#eab308',
+                'quick-light' => '#f97316',
+                'professional-city-run' => '#0f172a',
+                'paolo-fest', 'paolo-fest-dark' => '#2563eb',
+                default => '#ccff00',
+            },
+        ];
+        $event->payment_config = [
+            'allowed_methods' => ['midtrans', 'manual_transfer'],
+            'manual_bank' => [
+                'bank_name' => 'BCA',
+                'account_number' => '1234567890',
+                'account_name' => 'PT Ruang Lari Indonesia',
+            ],
+        ];
+        $event->facilities = [
+            ['name' => 'Official Race Jersey', 'description' => 'Bahan dry-fit breathable ringan untuk performa maksimal.'],
+            ['name' => 'Finisher Medal', 'description' => 'Medali logam eksklusif bagi seluruh pelari sebelum COT.'],
+            ['name' => 'Hydration & Medic', 'description' => 'Water station isotonik setiap 2,5 KM dan ambulans standby.'],
+            ['name' => 'Timing & E-Certificate', 'description' => 'Catatan waktu resmi dan sertifikat digital pasca-lomba.'],
+        ];
+        $event->addons = [
+            ['name' => 'Shuttle Bus Area Start', 'price' => 35000, 'quota' => 200],
+            ['name' => 'Paket Foto Race HD', 'price' => 50000, 'quota' => null],
+        ];
+        $event->premium_amenities = [
+            'jersey' => [
+                'enabled' => true,
+                'description' => 'Jersey resmi edisi 2026 berbahan micro-mesh cepat kering dengan potongan ergonomis.',
+            ],
+            'medal' => [
+                'enabled' => true,
+                'description' => 'Medali finisher die-cast berlapis emas matte dengan pita tenun resmi.',
+            ],
+            'benefits' => [
+                'enabled' => true,
+                'items' => [
+                    ['title' => 'Official Jersey & BIB', 'description' => 'Termasuk dalam paket lomba seluruh kategori.'],
+                    ['title' => 'Finisher Medal', 'description' => 'Diberikan langsung di area finis sebelum batas Cut Off Time.'],
+                    ['title' => 'Refreshment & Buah Segar', 'description' => 'Air mineral, minuman isotonik, dan buah segar di race village.'],
+                    ['title' => 'Dokumentasi Race', 'description' => 'Foto aksi peserta di beberapa titik ikonik sepanjang rute.'],
+                ],
+            ],
+            'rundown' => [
+                'enabled' => true,
+                'items' => [
+                    ['time' => '04:30 WIB', 'title' => 'Pembukaan Race Village & Drop Bag', 'description' => 'Penitipan barang dan area pemanasan dibuka.'],
+                    ['time' => '05:15 WIB', 'title' => 'Flag Off Half Marathon 21K', 'description' => 'Pelepasan kategori 21K dari garis start utama.'],
+                    ['time' => '05:45 WIB', 'title' => 'Flag Off 10K & 5K Fun Run', 'description' => 'Pelepasan berurutan gelombang 10K dan 5K.'],
+                    ['time' => '08:30 WIB', 'title' => 'Penyerahan Podium & Hiburan', 'description' => 'Pengumuman juara podium tiap kategori dan doorprize.'],
+                ],
+            ],
+            'faq' => [
+                'enabled' => true,
+                'items' => [
+                    ['question' => 'Apakah bisa mendaftar tanpa nomor KTP?', 'answer' => 'Bisa. Kolom KTP bersifat opsional sesuai pengaturan penyelenggara.'],
+                    ['question' => 'Apakah peserta boleh mewakilkan pengambilan Race Pack?', 'answer' => 'Boleh dengan membawa surat kuasa bermaterai dan salinan identitas pendaftar.'],
+                    ['question' => 'Bagaimana ketentuan batas usia kategori?', 'answer' => 'Usia dihitung pada tanggal pelaksanaan event sesuai data tanggal lahir.'],
+                ],
+            ],
+            'rpc' => [
+                'enabled' => true,
+                'schedule' => 'Jumat - Sabtu, 10:00 - 20:00 WIB',
+                'notes' => 'Tunjukkan QR e-Tiket dari email konfirmasi saat pengambilan race pack.',
+            ],
+            'venue' => [
+                'enabled' => true,
+                'parking_info' => 'Tersedia area parkir resmi roda 2 dan roda 4 di sektor selatan race village mulai pukul 03:30 WIB.',
+            ],
+            'what_to_bring' => [
+                'enabled' => true,
+                'items' => [
+                    'e-Tiket QR Code pada ponsel',
+                    'Sepatu dan pakaian lari yang nyaman',
+                    'Nomor BIB terpasang rapi di dada',
+                ],
+            ],
+            'form_fields' => [
+                '_configured' => '1',
+                'id_card' => '1',
+                'address' => '1',
+                'date_of_birth' => '1',
+                'emergency_contact' => '1',
+                'jersey_size' => '1',
+                'target_time' => '1',
+                'blood_type' => '1',
+                'bib_name' => '1',
+            ],
+        ];
+
+        $categories = collect([
+            new \App\Models\RaceCategory([
+                'id' => 101,
+                'event_id' => 0,
+                'name' => '5K Fun Run',
+                'code' => '5K',
+                'distance_km' => 5,
+                'quota' => 1000,
+                'min_age' => 12,
+                'max_age' => 65,
+                'cutoff_minutes' => 90,
+                'price_early' => 150000,
+                'price_regular' => 195000,
+                'early_bird_end_at' => now()->addDays(15),
+                'start_time' => '05:50:00',
+                'is_active' => true,
+                'prizes' => [
+                    1 => '2500000',
+                    2 => '1500000',
+                    3 => '1000000',
+                ],
+            ]),
+            new \App\Models\RaceCategory([
+                'id' => 102,
+                'event_id' => 0,
+                'name' => '10K Competitive',
+                'code' => '10K',
+                'distance_km' => 10,
+                'quota' => 750,
+                'min_age' => 15,
+                'max_age' => 60,
+                'cutoff_minutes' => 150,
+                'price_early' => 250000,
+                'price_regular' => 310000,
+                'early_bird_end_at' => now()->addDays(15),
+                'start_time' => '05:45:00',
+                'is_active' => true,
+                'prizes' => [
+                    1 => '5000000',
+                    2 => '3500000',
+                    3 => '2000000',
+                ],
+            ]),
+            new \App\Models\RaceCategory([
+                'id' => 103,
+                'event_id' => 0,
+                'name' => 'Half Marathon 21K',
+                'code' => '21K',
+                'distance_km' => 21.1,
+                'quota' => 500,
+                'min_age' => 17,
+                'max_age' => null,
+                'cutoff_minutes' => 240,
+                'price_early' => 425000,
+                'price_regular' => 495000,
+                'early_bird_end_at' => now()->addDays(15),
+                'start_time' => '05:15:00',
+                'is_active' => true,
+                'prizes' => [
+                    1 => '10000000',
+                    2 => '7000000',
+                    3 => '4500000',
+                ],
+            ]),
+        ])->each(function ($cat) {
+            $cat->setRelation('masterGpx', null);
+        });
+
+        $event->setRelation('categories', $categories);
+        $event->setRelation('jerseyStock', null);
+
+        $seo = [
+            'title' => 'Demo Tema: ' . $event->name,
+            'description' => $event->short_description,
+            'keywords' => 'demo tema ruanglari, ' . $template,
+            'url' => url()->current(),
+            'image' => asset('storage/' . $demoAssets['hero_primary']),
+        ];
+
+        $hasPaidParticipants = false;
+        $successTransaction = null;
+
+        if (! view()->shared('errors')) {
+            view()->share('errors', session('errors', new \Illuminate\Support\ViewErrorBag()));
+        }
+
+        return response()->view('events.show', compact('event', 'categories', 'seo', 'hasPaidParticipants', 'successTransaction'));
+    }
+
+    private function ensureDemoAssets(): array
+    {
+        $map = [
+            'hero_primary' => ['images/hero/marathon-hero-cinematic.jpg', 'demo-themes/hero-marathon.jpg'],
+            'hero_sunrise' => ['images/hero/indonesian-runner-sunrise.jpg', 'demo-themes/hero-sunrise.jpg'],
+            'gallery_1' => ['images/hero/runner-hero.jpg', 'demo-themes/gallery-1.jpg'],
+            'gallery_2' => ['images/hero/vdot-runner-training.jpg', 'demo-themes/gallery-2.jpg'],
+            'gallery_3' => ['images/hero/jadwal-lari.webp', 'demo-themes/gallery-3.webp'],
+            'logo' => ['images/ruanglari_green.png', 'demo-themes/logo-event.png'],
+            'jersey' => ['images/demo/demo-jersey.jpg', 'demo-themes/demo-jersey.jpg'],
+            'medal' => ['images/demo/demo-medal.svg', 'demo-themes/demo-medal.svg'],
+        ];
+
+        $disk = Storage::disk('public');
+        foreach ($map as [$src, $dest]) {
+            if (! $disk->exists($dest) && file_exists(public_path($src))) {
+                $disk->put($dest, file_get_contents(public_path($src)));
+            }
+        }
+
+        return [
+            'hero_primary' => $map['hero_primary'][1],
+            'hero_slider' => [
+                $map['hero_primary'][1],
+                $map['hero_sunrise'][1],
+                $map['gallery_1'][1],
+            ],
+            'logo' => $map['logo'][1],
+            'jersey' => $map['jersey'][1],
+            'medal' => $map['medal'][1],
+            'gallery' => [
+                $map['hero_sunrise'][1],
+                $map['gallery_1'][1],
+                $map['gallery_2'][1],
+                $map['gallery_3'][1],
+            ],
+        ];
+    }
+
+    /**
      * Upload media via Dropzone
      */
     public function uploadMedia(Request $request)
@@ -241,8 +523,23 @@ class EventController extends Controller
             'categories.*.distance_km' => 'nullable|numeric|min:0',
             'categories.*.code' => 'nullable|string|max:50',
             'categories.*.quota' => 'nullable|integer|min:0',
-            'categories.*.min_age' => 'nullable|integer|min:0',
-            'categories.*.max_age' => 'nullable|integer|min:0',
+            'categories.*.min_age' => 'nullable|integer|min:0|max:120',
+            'categories.*.max_age' => [
+                'nullable',
+                'integer',
+                'min:0',
+                'max:120',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($value === null || $value === '') {
+                        return;
+                    }
+                    $index = explode('.', $attribute)[1] ?? null;
+                    $minAge = $index !== null ? $request->input("categories.{$index}.min_age") : null;
+                    if ($minAge !== null && $minAge !== '' && (int) $value < (int) $minAge) {
+                        $fail('Usia maksimal kategori tidak boleh lebih kecil dari usia minimal.');
+                    }
+                },
+            ],
             'categories.*.cutoff_minutes' => 'nullable|integer|min:0',
             'categories.*.price_early' => 'nullable|integer|min:0',
             'categories.*.price_regular' => 'nullable|integer|min:0',
@@ -673,8 +970,23 @@ class EventController extends Controller
             'categories.*.distance_km' => 'nullable|numeric|min:0',
             'categories.*.code' => 'nullable|string|max:50',
             'categories.*.quota' => 'nullable|integer|min:0',
-            'categories.*.min_age' => 'nullable|integer|min:0',
-            'categories.*.max_age' => 'nullable|integer|min:0',
+            'categories.*.min_age' => 'nullable|integer|min:0|max:120',
+            'categories.*.max_age' => [
+                'nullable',
+                'integer',
+                'min:0',
+                'max:120',
+                function ($attribute, $value, $fail) use ($request) {
+                    if ($value === null || $value === '') {
+                        return;
+                    }
+                    $index = explode('.', $attribute)[1] ?? null;
+                    $minAge = $index !== null ? $request->input("categories.{$index}.min_age") : null;
+                    if ($minAge !== null && $minAge !== '' && (int) $value < (int) $minAge) {
+                        $fail('Usia maksimal kategori tidak boleh lebih kecil dari usia minimal.');
+                    }
+                },
+            ],
             'categories.*.cutoff_minutes' => 'nullable|integer|min:0',
             'categories.*.price_early' => 'nullable|integer|min:0',
             'categories.*.price_regular' => 'nullable|integer|min:0',
@@ -1825,7 +2137,7 @@ class EventController extends Controller
             'gender' => 'nullable|in:male,female',
             'email' => 'required|email|max:255',
             'phone' => 'required|string|min:10|max:15|regex:/^[0-9]+$/',
-            'id_card' => 'required|string|max:50',
+            'id_card' => 'nullable|string|max:50',
             'address' => 'required|string|max:500',
             'category_id' => [
                 'required',
@@ -2002,7 +2314,7 @@ class EventController extends Controller
             'bib_name' => 'nullable|string|max:30',
             'email' => 'required|email|max:255',
             'phone' => 'required|string|min:8|max:20',
-            'id_card' => 'required|string|max:50',
+            'id_card' => 'nullable|string|max:50',
             'emergency_contact_name' => 'nullable|string|max:255',
             'emergency_contact_number' => 'nullable|string|max:20',
             'emergency_contact_relation' => 'nullable|string|max:50',
@@ -2108,6 +2420,7 @@ class EventController extends Controller
         }
 
         $participantData = $validated;
+        $participantData['id_card'] = ! empty($participantData['id_card']) ? trim((string) $participantData['id_card']) : '-';
         unset($participantData['coupon_id'], $participantData['pic_name'], $participantData['pic_email'], $participantData['pic_phone']);
         if (array_key_exists('addons', $participantData)) {
             $eventAddonsByName = collect($event->addons ?? [])->keyBy('name');

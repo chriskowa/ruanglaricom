@@ -137,7 +137,7 @@ class StoreManualParticipantAction
                     'gender' => $validated['gender'] ?? null,
                     'phone' => $validated['phone'],
                     'email' => $email,
-                    'id_card' => $validated['id_card'],
+                    'id_card' => ! empty($validated['id_card']) ? trim((string) $validated['id_card']) : '-',
                     'address' => $validated['address'],
                     'emergency_contact_name' => $validated['emergency_contact_name'] ?? null,
                     'emergency_contact_number' => $validated['emergency_contact_number'] ?? null,

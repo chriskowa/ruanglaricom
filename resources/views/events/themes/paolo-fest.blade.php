@@ -980,9 +980,16 @@
                         </div>
 
                         <h3 class="text-3xl font-bold text-slate-900 mb-2">{{ $cat->name }} Umum/Master</h3>
-                        <p class="text-slate-500 text-sm mb-8 flex items-center gap-2">
-                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            Cut Off Time: <strong class="text-slate-900">{{ $cat->cutoff_minutes ? round($cat->cutoff_minutes/60, 1) : '-' }} Jam</strong>
+                        <p class="text-slate-500 text-sm mb-8 flex flex-wrap items-center gap-x-4 gap-y-1">
+                            <span class="inline-flex items-center gap-2">
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                Cut Off Time: <strong class="text-slate-900">{{ $cat->cutoff_minutes ? round($cat->cutoff_minutes/60, 1) : '-' }} Jam</strong>
+                            </span>
+                            @if($cat->min_age !== null || $cat->max_age !== null)
+                                <span class="text-slate-600">
+                                    Syarat Usia: <strong class="text-slate-900">@if($cat->min_age !== null && $cat->max_age !== null){{ $cat->min_age }}-{{ $cat->max_age }} Thn @elseif($cat->min_age !== null)Min. {{ $cat->min_age }} Thn @else Maks. {{ $cat->max_age }} Thn @endif</strong>
+                                </span>
+                            @endif
                         </p>
 
                         <ul class="space-y-4 mb-8">
@@ -1638,110 +1645,7 @@
         </div>
     </section>
 
-    <section id="prizes" class="py-24 bg-white">
-        <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-12 reveal">
-                <h2 class="text-3xl md:text-4xl font-extrabold text-slate-900">Hadiah Pemenang</h2>
-                <p class="mt-4 text-slate-600">Total hadiah puluhan juta rupiah menanti para juara.</p>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 reveal delay-100">
-                <!-- Category 1 --> 
-                <div class="bg-slate-50 rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                    <h3 class="text-xl font-bold text-slate-900 mb-6 text-center border-b border-slate-200 pb-4">
-                        KATEGORI 5K UMUM <br>
-                        <span class="text-brand-600 text-base font-medium">(PRIA & WANITA)</span>
-                    </h3>
-                    
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead>
-                                <tr class="text-left">
-                                    <th class="pb-3 text-sm font-semibold text-slate-500 uppercase tracking-wider">Peringkat</th>
-                                    <th class="pb-3 text-sm font-semibold text-slate-500 uppercase tracking-wider text-right">Hadiah</th>
-                                </tr>
-                            </thead>
-                            <tbody class="text-sm">
-                                <tr class="border-b border-slate-200/60">
-                                    <td class="py-3 font-bold text-slate-900">Juara 1</td>
-                                    <td class="py-3 font-bold text-brand-600 text-right">Rp 2.000.000</td>
-                                </tr>
-                                <tr class="border-b border-slate-200/60">
-                                    <td class="py-3 font-bold text-slate-900">Juara 2</td>
-                                    <td class="py-3 font-bold text-brand-600 text-right">Rp 1.750.000</td>
-                                </tr>
-                                <tr class="border-b border-slate-200/60">
-                                    <td class="py-3 font-bold text-slate-900">Juara 3</td>
-                                    <td class="py-3 font-bold text-brand-600 text-right">Rp 1.500.000</td>
-                                </tr>
-                                <tr class="border-b border-slate-200/60">
-                                    <td class="py-3 font-medium text-slate-700">Peringkat 4</td>
-                                    <td class="py-3 font-medium text-slate-700 text-right">Rp 1.250.000</td>
-                                </tr>
-                                <tr class="border-b border-slate-200/60">
-                                    <td class="py-3 font-medium text-slate-700">Peringkat 5</td>
-                                    <td class="py-3 font-medium text-slate-700 text-right">Rp 1.000.000</td>
-                                </tr>
-                                <tr class="border-b border-slate-200/60">
-                                    <td class="py-3 font-medium text-slate-700">Peringkat 6</td>
-                                    <td class="py-3 font-medium text-slate-700 text-right">Rp 500.000</td>
-                                </tr>
-                                <tr class="border-b border-slate-200/60">
-                                    <td class="py-3 font-medium text-slate-700">Peringkat 7</td>
-                                    <td class="py-3 font-medium text-slate-700 text-right">Rp 500.000</td>
-                                </tr>
-                                <tr>
-                                    <td class="py-3 font-medium text-slate-700">Peringkat 8</td>
-                                    <td class="py-3 font-medium text-slate-700 text-right">Rp 500.000</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-                <!-- Category 2 -->
-                <div class="bg-slate-50 rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-md transition-shadow">
-                    <h3 class="text-xl font-bold text-slate-900 mb-6 text-center border-b border-slate-200 pb-4">
-                        KATEGORI 5K MASTER >45 TH <br>
-                        <span class="text-brand-600 text-base font-medium">(PRIA & WANITA)</span>
-                    </h3>
-                    
-                    <div class="overflow-x-auto">
-                        <table class="w-full">
-                            <thead>
-                                <tr class="text-left">
-                                    <th class="pb-3 text-sm font-semibold text-slate-500 uppercase tracking-wider">Peringkat</th>
-                                    <th class="pb-3 text-sm font-semibold text-slate-500 uppercase tracking-wider text-right">Hadiah</th>
-                                </tr>
-                            </thead>
-                            <tbody class="text-sm">
-                                <tr class="border-b border-slate-200/60">
-                                    <td class="py-3 font-bold text-slate-900">Juara 1</td>
-                                    <td class="py-3 font-bold text-brand-600 text-right">Rp 1.250.000</td>
-                                </tr>
-                                <tr class="border-b border-slate-200/60">
-                                    <td class="py-3 font-bold text-slate-900">Juara 2</td>
-                                    <td class="py-3 font-bold text-brand-600 text-right">Rp 1.000.000</td>
-                                </tr>
-                                <tr class="border-b border-slate-200/60">
-                                    <td class="py-3 font-bold text-slate-900">Juara 3</td>
-                                    <td class="py-3 font-bold text-brand-600 text-right">Rp 750.000</td>
-                                </tr>
-                                <tr class="border-b border-slate-200/60">
-                                    <td class="py-3 font-medium text-slate-700">Peringkat 4</td>
-                                    <td class="py-3 font-medium text-slate-700 text-right">Rp 500.000</td>
-                                </tr>
-                                <tr>
-                                    <td class="py-3 font-medium text-slate-700">Peringkat 5</td>
-                                    <td class="py-3 font-medium text-slate-700 text-right">Rp 500.000</td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </section>
+    @include('events.partials.prizes-section', ['categories' => $categories, 'isDark' => false, 'variant' => 'paolo-fest'])
 
     <!-- Participants Table Section -->
     @if(($hasPaidParticipants ?? false) && $event->show_participant_list)
@@ -1929,7 +1833,12 @@
                                                     <input type="radio" name="participants[0][category_id]" value="{{ $cat->id }}" class="peer sr-only cat-radio" data-price="{{ $displayPrice }}" required {{ $loop->first ? 'checked' : '' }}>
                                                     <div class="p-3 bg-white border border-slate-300 rounded-xl peer-checked:border-brand-600 peer-checked:bg-brand-50 peer-checked:ring-1 peer-checked:ring-brand-600 transition hover:border-brand-400">
                                                         <div class="flex justify-between items-center">
-                                                            <span class="font-bold text-slate-900 text-sm">{{ $cat->name }} Umum/Master</span>
+                                                            <span class="font-bold text-slate-900 text-sm">
+                                                                {{ $cat->name }} Umum/Master
+                                                                @if($cat->min_age !== null || $cat->max_age !== null)
+                                                                    <span class="block text-[10px] font-normal text-slate-500">@if($cat->min_age !== null && $cat->max_age !== null)Usia {{ $cat->min_age }}-{{ $cat->max_age }} Thn @elseif($cat->min_age !== null)Min. {{ $cat->min_age }} Thn @else Maks. {{ $cat->max_age }} Thn @endif</span>
+                                                                @endif
+                                                            </span>
                                                             <span class="text-xs font-bold text-brand-600">
                                                                 @if($displayPrice !== $priceRegular && $priceRegular > 0)
                                                                     <span class="text-slate-400 line-through mr-1">Rp {{ number_format($priceRegular/1000,0) }}k</span>
@@ -1955,18 +1864,25 @@
                                             <input type="email" name="participants[0][email]" placeholder="Email Peserta" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>
                                             <input type="text" name="participants[0][phone]" placeholder="No. HP Peserta" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required minlength="10" maxlength="15" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                         </div>
+                                        @php
+                                            $pfFormFields = $event->premium_amenities['form_fields'] ?? null;
+                                            $showIdCard = (is_array($pfFormFields) && count($pfFormFields) > 0) ? !empty($pfFormFields['id_card']) : true;
+                                            $idCardRequired = $showIdCard && !empty($pfFormFields['id_card_required']);
+                                        @endphp
+                                        @if($showIdCard)
                                         <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
                                             <div class="space-y-2">
                                                 <div class="flex items-center justify-between">
-                                                    <label class="text-sm font-semibold text-slate-700">No. ID (KTP/SIM)</label>
+                                                    <label class="text-sm font-semibold text-slate-700">No. ID (KTP/SIM) {{ $idCardRequired ? '*' : '(Opsional)' }}</label>
                                                     <button type="button" class="scan-ktp-btn text-[10px] font-bold text-brand-600 border border-brand-600 px-3 py-1.5 rounded-full hover:bg-brand-50 transition">
                                                         Scan KTP
                                                     </button>
                                                 </div>
-                                                <input type="text" name="participants[0][id_card]" placeholder="No. ID (KTP/SIM)" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required>
+                                                <input type="text" name="participants[0][id_card]" placeholder="{{ $idCardRequired ? 'No. ID (KTP/SIM)' : 'No. ID (KTP/SIM) - Opsional' }}" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" {{ $idCardRequired ? 'required' : '' }}>
                                                 <p class="text-[11px] text-slate-500">Gunakan foto jelas agar nama, NIK, tanggal lahir, dan alamat terisi otomatis.</p>
                                             </div>
                                         </div>
+                                        @endif
                                         <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
                                             <textarea name="participants[0][address]" placeholder="Alamat Peserta" class="w-full bg-white border border-slate-300 rounded-xl px-4 py-3 focus:ring-2 focus:ring-brand-600 outline-none" required maxlength="500" rows="3"></textarea>
                                         </div>
@@ -4572,23 +4488,9 @@
                     email: {
                         required: true,
                         pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-                        custom: (value) => {
-                            const form = document.getElementById('registrationForm');
-                            if (!form) return true;
-                            const inputs = form.querySelectorAll('input[type="email"][name^="participants"]');
-                            let count = 0;
-                            const currentValue = value.trim().toLowerCase();
-                            inputs.forEach(input => {
-                                if (input.value.trim().toLowerCase() === currentValue) {
-                                    count++;
-                                }
-                            });
-                            return count <= 1;
-                        },
                         message: {
                             required: "Email wajib diisi",
-                            pattern: "Format email tidak valid (contoh: nama@domain.com)",
-                            custom: "Mohon maaf, email setiap peserta harus berbeda (unik) dalam satu pendaftaran."
+                            pattern: "Format email tidak valid (contoh: nama@domain.com)"
                         }
                     },
                     phone: {
@@ -4600,7 +4502,7 @@
                         }
                     },
                     id_card: {
-                        required: true,
+                        required: {{ !empty($event->premium_amenities['form_fields']['id_card_required']) ? 'true' : 'false' }},
                         pattern: /^[0-9]{8,16}$/,
                         minLength: 8,
                         custom: (value) => {

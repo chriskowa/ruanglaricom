@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400" role="img" aria-label="Finisher Medal Demo">
+  <rect width="400" height="400" fill="#0f172a"/>
+  <!-- Ribbon -->
+  <polygon points="135,20 185,20 212,175 168,175" fill="#ea580c"/>
+  <polygon points="215,20 265,20 232,175 188,175" fill="#c2410c"/>
+  <polygon points="175,20 225,20 208,175 192,175" fill="#facc15"/>
+  <!-- Clasp Ring -->
+  <rect x="176" y="168" width="48" height="16" rx="4" fill="#94a3b8"/>
+  <circle cx="200" cy="186" r="14" fill="none" stroke="#eab308" stroke-width="6"/>
+  <!-- Outer Medal -->
+  <circle cx="200" cy="272" r="94" fill="#1e293b" stroke="#eab308" stroke-width="10"/>
+  <circle cx="200" cy="272" r="78" fill="#0f172a" stroke="#facc15" stroke-width="3"/>
+  <!-- Inner Emblem -->
+  <polygon points="200,214 250,243 250,301 200,330 150,301 150,243" fill="#1e293b" stroke="#f59e0b" stroke-width="3"/>
+  <path d="M174 282 L198 250 L212 266 L228 244 L236 282 Z" fill="#facc15"/>
+  <circle cx="212" cy="238" r="8" fill="#ea580c"/>
+  <text x="200" y="312" text-anchor="middle" fill="#f8fafc" font-family="sans-serif" font-size="14" font-weight="800" letter-spacing="2">FINISHER</text>
+</svg>

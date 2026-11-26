@@ -288,196 +288,7 @@
                         </div>
                     </div>
 
-                    <div class="md:col-span-2">
-                        <label class="block text-sm font-medium text-slate-300 mb-2">Event Template</label>
-                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                            <label class="relative cursor-pointer group">
-                                <input type="radio" name="template" value="modern-dark" class="peer sr-only" {{ old('template', $event->template) == 'modern-dark' ? 'checked' : '' }}>
-                                <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800 transition-all hover:border-slate-500 h-full flex flex-col">
-                                    <div class="bg-slate-800 h-24 rounded-lg mb-3 border border-slate-700 flex items-center justify-center overflow-hidden">
-                                        <div class="w-full h-full bg-gradient-to-br from-slate-900 via-slate-800 to-black relative">
-                                            <div class="absolute top-2 left-2 w-8 h-2 bg-yellow-400/50 rounded-sm"></div>
-                                            <div class="absolute top-6 left-2 w-16 h-2 bg-slate-700 rounded-sm"></div>
-                                            <div class="absolute bottom-2 right-2 w-6 h-6 rounded-full bg-yellow-400/20 border border-yellow-400"></div>
-                                        </div>
-                                    </div>
-                                    <h4 class="font-bold text-white mb-1">Modern Dark</h4>
-                                    <p class="text-xs text-slate-400">Desain gelap, elegan, dengan aksen neon. Cocok untuk event malam atau premium.</p>
-                                </div>
-                                <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
-                                    <div class="bg-yellow-400 rounded-full p-1">
-                                        <svg class="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                                    </div>
-                                </div>
-                            </label>
-
-                            <label class="relative cursor-pointer group">
-                                <input type="radio" name="template" value="light-clean" class="peer sr-only" {{ old('template', $event->template) == 'light-clean' ? 'checked' : '' }}>
-                                <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800 transition-all hover:border-slate-500 h-full flex flex-col">
-                                    <div class="bg-slate-200 h-24 rounded-lg mb-3 border border-slate-300 flex items-center justify-center overflow-hidden">
-                                        <div class="w-full h-full bg-gradient-to-br from-white via-slate-50 to-slate-100 relative">
-                                            <div class="absolute top-2 left-2 w-8 h-2 bg-blue-500/50 rounded-sm"></div>
-                                            <div class="absolute top-6 left-2 w-16 h-2 bg-slate-300 rounded-sm"></div>
-                                            <div class="absolute bottom-2 right-2 w-6 h-6 rounded-full bg-blue-500/20 border border-blue-500"></div>
-                                        </div>
-                                    </div>
-                                    <h4 class="font-bold text-white mb-1">Light Clean</h4>
-                                    <p class="text-xs text-slate-400">Tampilan terang, bersih, dan profesional. Cocok untuk fun run atau event siang hari.</p>
-                                </div>
-                                <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
-                                    <div class="bg-yellow-400 rounded-full p-1">
-                                        <svg class="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                                    </div>
-                                </div>
-                            </label>
-
-                            <label class="relative cursor-pointer group">
-                                <input type="radio" name="template" value="beach-theme" class="peer sr-only" {{ old('template', $event->template) == 'beach-theme' ? 'checked' : '' }}>
-                                <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800 transition-all hover:border-slate-500 h-full flex flex-col">
-                                    <div class="bg-slate-800 h-24 rounded-lg mb-3 border border-slate-700 flex items-center justify-center overflow-hidden">
-                                        <div class="w-full h-full relative flex flex-col items-center justify-center overflow-hidden" style="background-color: #f6f3eb;">
-                                            <div class="absolute inset-0 bg-gradient-to-b from-teal-950/80 via-teal-900/50 to-transparent"></div>
-                                            <div class="absolute bottom-0 w-full h-5 bg-amber-200"></div>
-                                            <div class="absolute bottom-4 w-full h-2 bg-emerald-200/80"></div>
-                                            <div class="relative z-10 text-center px-2">
-                                                <span class="text-[9px] font-bold text-amber-100 uppercase tracking-widest block">Coastal & Beach</span>
-                                                <span class="text-xs font-extrabold text-white">Beach Theme</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <h4 class="font-bold text-white mb-1">Beach Theme</h4>
-                                    <p class="text-xs text-slate-400">Nuansa pantai dan pesisir dengan estetika coastal run, hero visual sinematik, dan palet hangat.</p>
-                                </div>
-                                <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
-                                    <div class="bg-yellow-400 rounded-full p-1">
-                                        <svg class="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                                    </div>
-                                </div>
-                            </label>
-
-                            <label class="relative cursor-pointer group">
-                                <input type="radio" name="template" value="simple-minimal" class="peer sr-only" {{ old('template', $event->template) == 'simple-minimal' ? 'checked' : '' }}>
-                                <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800 transition-all hover:border-slate-500 h-full flex flex-col">
-                                    <div class="bg-slate-800 h-24 rounded-lg mb-3 border border-slate-700 flex items-center justify-center overflow-hidden">
-                                        <div class="w-full h-full bg-slate-900 relative flex flex-col items-center justify-center gap-2">
-                                            <div class="w-12 h-2 bg-slate-700 rounded-sm"></div>
-                                            <div class="w-20 h-2 bg-slate-700 rounded-sm"></div>
-                                            <div class="w-16 h-2 bg-slate-700 rounded-sm"></div>
-                                        </div>
-                                    </div>
-                                    <h4 class="font-bold text-white mb-1">Simple Minimal</h4>
-                                    <p class="text-xs text-slate-400">Fokus pada konten, tanpa banyak ornamen. Ringan dan cepat dimuat.</p>
-                                </div>
-                                <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
-                                    <div class="bg-yellow-400 rounded-full p-1">
-                                        <svg class="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                                    </div>
-                                </div>
-                            </label>
-
-                            <label class="relative cursor-pointer group">
-                                <input type="radio" name="template" value="professional-city-run" class="peer sr-only" {{ old('template', $event->template) == 'professional-city-run' ? 'checked' : '' }}>
-                                <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800 transition-all hover:border-slate-500 h-full flex flex-col">
-                                    <div class="bg-slate-800 h-24 rounded-lg mb-3 border border-slate-700 flex items-center justify-center overflow-hidden">
-                                        <div class="w-full h-full bg-slate-50 relative flex flex-col items-center justify-center">
-                                            <div class="absolute top-0 w-full h-8 bg-blue-600"></div>
-                                            <div class="w-16 h-2 bg-slate-300 rounded-sm mt-4"></div>
-                                            <div class="w-12 h-2 bg-slate-300 rounded-sm mt-1"></div>
-                                        </div>
-                                    </div>
-                                    <h4 class="font-bold text-white mb-1">Professional City</h4>
-                                    <p class="text-xs text-slate-400">Tampilan profesional untuk city run dan marathon besar.</p>
-                                </div>
-                                <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
-                                    <div class="bg-yellow-400 rounded-full p-1">
-                                        <svg class="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                                    </div>
-                                </div>
-                            </label>
-
-                            <label class="relative cursor-pointer group">
-                                <input type="radio" name="template" value="paolo-fest" class="peer sr-only" {{ old('template', $event->template) === 'paolo-fest' ? 'checked' : '' }}>
-                                <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800 transition-all hover:border-slate-500 h-full flex flex-col">
-                                    <div class="bg-slate-800 h-24 rounded-lg mb-3 border border-slate-700 flex items-center justify-center overflow-hidden">
-                                        <div class="w-full h-full bg-blue-600 relative flex flex-col items-center justify-center">
-                                            <div class="absolute inset-0 bg-gradient-to-tr from-blue-700 to-orange-500 opacity-50"></div>
-                                            <div class="w-16 h-16 bg-white/20 backdrop-blur-sm rounded-full flex items-center justify-center">
-                                                <div class="w-8 h-8 bg-white rounded-full"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <h4 class="font-bold text-white mb-1">Paolo Fest</h4>
-                                    <p class="text-xs text-slate-400">Desain festif, cerah, dan modern. Cocok untuk event komunitas dan festival lari.</p>
-                                </div>
-                                <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
-                                    <div class="bg-yellow-400 rounded-full p-1">
-                                        <svg class="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                                    </div>
-                                </div>
-                            </label>
-
-                            <label class="relative cursor-pointer group">
-                                <input type="radio" name="template" value="paolo-fest-dark" class="peer sr-only" {{ old('template', $event->template) === 'paolo-fest-dark' ? 'checked' : '' }}>
-                                <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800 transition-all hover:border-slate-500 h-full flex flex-col">
-                                    <div class="bg-slate-800 h-24 rounded-lg mb-3 border border-slate-700 flex items-center justify-center overflow-hidden">
-                                        <div class="w-full h-full bg-gradient-to-br from-slate-950 via-blue-950 to-black relative flex flex-col items-center justify-center">
-                                            <div class="absolute inset-0 bg-gradient-to-tr from-blue-600/30 via-slate-900/0 to-fuchsia-500/20"></div>
-                                            <div class="w-16 h-16 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-blue-400/30">
-                                                <div class="w-8 h-8 bg-blue-400/70 rounded-full"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <h4 class="font-bold text-white mb-1">Paolo Fest Dark</h4>
-                                    <p class="text-xs text-slate-400">Versi gelap dengan aksen neon. Cocok untuk tampilan malam/premium.</p>
-                                </div>
-                                <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
-                                    <div class="bg-yellow-400 rounded-full p-1">
-                                        <svg class="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                                    </div>
-                                </div>
-                            </label>
-
-                            <label class="relative cursor-pointer group">
-                                <input type="radio" name="template" value="golden-run" class="peer sr-only" {{ old('template', $event->template) === 'golden-run' ? 'checked' : '' }}>
-                                <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800 transition-all hover:border-slate-500 h-full flex flex-col">
-                                    <div class="bg-slate-800 h-24 rounded-lg mb-3 border border-slate-700 flex items-center justify-center overflow-hidden">
-                                        <div class="w-full h-full bg-zinc-950 relative flex flex-col items-center justify-center">
-                                            <div class="absolute inset-0 bg-gradient-to-br from-yellow-600/20 via-transparent to-yellow-900/20"></div>
-                                            <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-yellow-400 via-yellow-200 to-yellow-500"></div>
-                                            <div class="absolute bottom-0 right-0 w-full h-1 bg-gradient-to-r from-yellow-500 via-yellow-200 to-yellow-400"></div>
-                                            <div class="w-12 h-12 rounded-full border border-yellow-500/50 flex items-center justify-center relative z-10">
-                                                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-yellow-400 to-yellow-600"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <h4 class="font-bold text-white mb-1">Golden Run</h4>
-                                    <p class="text-xs text-slate-400">Tema eksklusif dengan nuansa emas dan hitam. Mewah dan elegan.</p>
-                                </div>
-                                <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
-                                    <div class="bg-yellow-400 rounded-full p-1">
-                                        <svg class="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                                    </div>
-                                </div>
-                            </label>
-
-                            <label class="relative cursor-pointer group">
-                                <input type="radio" name="template" value="quick-light" class="peer sr-only" {{ old('template', $event->template) === 'quick-light' ? 'checked' : '' }}>
-                                <div class="bg-slate-900 border-2 border-slate-700 rounded-xl p-4 peer-checked:border-yellow-400 peer-checked:bg-slate-800 transition-all hover:border-slate-500 h-full flex flex-col">
-                                    <div class="bg-white h-24 rounded-lg mb-3 border border-slate-200 flex items-center justify-center overflow-hidden">
-                                        <div class="w-full h-full bg-gradient-to-tr from-sky-200 to-emerald-200"></div>
-                                    </div>
-                                    <h4 class="font-bold text-white mb-1">Quick Light</h4>
-                                    <p class="text-xs text-slate-400">Form pendaftaran ringkas, modern clean, cepat.</p>
-                                </div>
-                                <div class="absolute top-2 right-2 opacity-0 peer-checked:opacity-100 transition-opacity">
-                                    <div class="bg-yellow-400 rounded-full p-1">
-                                        <svg class="w-3 h-3 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg>
-                                    </div>
-                                </div>
-                            </label>
-                        </div>
-                        @error('template') <p class="text-red-400 text-xs mt-1">{{ $message }}</p> @enderror
-                    </div>
+                    @include('eo.events.partials.theme-picker', ['selectedTemplate' => old('template', $event->template ?? 'modern-dark')])
 
                     <!-- Theme Color Customization -->
                     <div class="md:col-span-2 space-y-3 pt-4 border-t border-slate-700/60">
@@ -1231,6 +1042,17 @@
             </div>
         </div>
 
+        <div class="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Min Age (Thn, Opt)</label>
+                <input type="number" min="0" max="120" class="cat-min-age w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400" placeholder="Contoh: 17">
+            </div>
+            <div>
+                <label class="block text-xs font-medium text-slate-400 mb-1">Max Age (Thn, Opt)</label>
+                <input type="number" min="0" max="120" class="cat-max-age w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-white text-sm focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400" placeholder="Contoh: 60">
+            </div>
+        </div>
+
         <div class="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
                 <label class="block text-xs font-medium text-slate-400 mb-1">Early Price (IDR)</label>
@@ -1714,6 +1536,8 @@
             'cat-name': 'name',
             'cat-distance': 'distance_km',
             'cat-quota': 'quota',
+            'cat-min-age': 'min_age',
+            'cat-max-age': 'max_age',
             'cat-price-early': 'price_early',
             'cat-price': 'price_regular',
             'cat-price-late': 'price_late',

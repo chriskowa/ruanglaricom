@@ -546,9 +546,16 @@
                         </div>
 
                         <h3 class="text-3xl font-bold text-white mb-2">{{ $cat->name }}</h3>
-                        <p class="text-slate-400 text-sm mb-8 flex items-center gap-2">
-                            <svg class="w-4 h-4 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            Cut Off Time: <strong class="text-white">{{ $cat->cot_hours ?? '-' }} Jam</strong>
+                        <p class="text-slate-400 text-sm mb-8 flex flex-wrap items-center gap-x-4 gap-y-1">
+                            <span class="inline-flex items-center gap-2">
+                                <svg class="w-4 h-4 text-brand-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                Cut Off Time: <strong class="text-white">{{ $cat->cot_hours ?? '-' }} Jam</strong>
+                            </span>
+                            @if($cat->min_age !== null || $cat->max_age !== null)
+                                <span class="text-slate-300">
+                                    Syarat Usia: <strong class="text-white">@if($cat->min_age !== null && $cat->max_age !== null){{ $cat->min_age }}-{{ $cat->max_age }} Thn @elseif($cat->min_age !== null)Min. {{ $cat->min_age }} Thn @else Maks. {{ $cat->max_age }} Thn @endif</strong>
+                                </span>
+                            @endif
                         </p>
 
                         <ul class="space-y-4 mb-8">
@@ -967,7 +974,12 @@
                                                     <input type="radio" name="participants[0][category_id]" value="{{ $cat->id }}" class="peer sr-only cat-radio" data-price="{{ $displayPrice }}" required>
                                                     <div class="p-3 bg-slate-800 border border-slate-600 rounded-xl peer-checked:border-neon-blue peer-checked:bg-brand-900/30 peer-checked:ring-1 peer-checked:ring-neon-blue transition hover:border-brand-500">
                                                         <div class="flex justify-between items-center">
-                                                            <span class="font-bold text-white text-sm">{{ $cat->name }}</span>
+                                                            <span class="font-bold text-white text-sm">
+                                                                {{ $cat->name }}
+                                                                @if($cat->min_age !== null || $cat->max_age !== null)
+                                                                    <span class="block text-[10px] font-normal text-slate-400">@if($cat->min_age !== null && $cat->max_age !== null)Usia {{ $cat->min_age }}-{{ $cat->max_age }} Thn @elseif($cat->min_age !== null)Min. {{ $cat->min_age }} Thn @else Maks. {{ $cat->max_age }} Thn @endif</span>
+                                                                @endif
+                                                            </span>
                                                             <span class="text-xs font-bold text-neon-light">
                                                                 @if($displayPrice !== $priceRegular && $priceRegular > 0)
                                                                     <span class="text-slate-500 line-through mr-1">Rp {{ number_format($priceRegular/1000,0) }}k</span>
@@ -993,8 +1005,15 @@
                                             <input type="email" name="participants[0][email]" placeholder="Email Peserta" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-4 focus:ring-2 focus:ring-neon-blue outline-none text-white placeholder-slate-500" required>
                                             <input type="text" name="participants[0][phone]" placeholder="No. HP Peserta" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-4 focus:ring-2 focus:ring-neon-blue outline-none text-white placeholder-slate-500" required minlength="10" maxlength="15" inputmode="numeric" oninput="this.value = this.value.replace(/[^0-9]/g, '')">
                                         </div>
-                                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        <input type="text" name="participants[0][id_card]" placeholder="No. ID (KTP/SIM)" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-4 focus:ring-2 focus:ring-neon-blue outline-none text-white placeholder-slate-500" required>
+                                        @php
+                                            $pfdFormFields = $event->premium_amenities['form_fields'] ?? null;
+                                            $showIdCard = (is_array($pfdFormFields) && count($pfdFormFields) > 0) ? !empty($pfdFormFields['id_card']) : true;
+                                            $idCardRequired = $showIdCard && !empty($pfdFormFields['id_card_required']);
+                                        @endphp
+                                        <div class="grid grid-cols-1 {{ $showIdCard ? 'md:grid-cols-2' : '' }} gap-4">
+                                        @if($showIdCard)
+                                        <input type="text" name="participants[0][id_card]" placeholder="{{ $idCardRequired ? 'No. ID (KTP/SIM)' : 'No. ID (KTP/SIM) - Opsional' }}" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-4 focus:ring-2 focus:ring-neon-blue outline-none text-white placeholder-slate-500" {{ $idCardRequired ? 'required' : '' }}>
+                                        @endif
                                         <select name="participants[0][jersey_size]" class="w-full bg-slate-800 border border-slate-600 rounded-xl px-4 py-4 focus:ring-2 focus:ring-neon-blue outline-none text-white" required>
                                             <option value="" class="bg-slate-800">Ukuran Jersey</option>
                                             @foreach(['XS','S','M','L','XL','XXL'] as $size) <option value="{{ $size }}" class="bg-slate-800">{{ $size }}</option> @endforeach
@@ -1423,39 +1442,6 @@
             // 5. Submit Handler (AJAX)
             form.addEventListener('submit', (e) => {
                 e.preventDefault();
-
-                // Validation: Unique Email Check
-                const emails = [];
-                const emailInputs = document.querySelectorAll('input[type="email"][name^="participants"]');
-                let hasDuplicate = false;
-                let firstDuplicateInput = null;
-
-                // Reset error styles
-                emailInputs.forEach(input => {
-                    input.classList.remove('border-red-500', 'ring-1', 'ring-red-500');
-                });
-
-                emailInputs.forEach(input => {
-                    const email = input.value.trim().toLowerCase();
-                    if (email) {
-                        if (emails.includes(email)) {
-                            hasDuplicate = true;
-                            input.classList.add('border-red-500', 'ring-1', 'ring-red-500');
-                            if (!firstDuplicateInput) firstDuplicateInput = input;
-                        } else {
-                            emails.push(email);
-                        }
-                    }
-                });
-
-                if (hasDuplicate) {
-                    alert('Mohon maaf, email setiap peserta harus berbeda (unik) dalam satu pendaftaran.');
-                    if (firstDuplicateInput) {
-                        firstDuplicateInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                        firstDuplicateInput.focus();
-                    }
-                    return;
-                }
                 
                 function processSubmission() {
                     const btn = document.getElementById('submitBtn');

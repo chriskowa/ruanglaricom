@@ -115,7 +115,7 @@
                         $showJersey = $hasFormFields ? (!empty($formFields['jersey_size']) && ($event->ticket_email_show_jersey ?? true)) : ($event->ticket_email_show_jersey ?? true);
                     @endphp
 
-                    @if(!empty($formFields['id_card']) && !empty($participant->id_card))
+                    @if(!empty($formFields['id_card']) && !empty($participant->id_card) && $participant->id_card !== '-')
                     <tr>
                         <td class="ticket-label">No. Identitas (KTP/SIM)</td>
                         <td class="ticket-value">{{ $participant->id_card }}</td>

@@ -405,10 +405,18 @@
                                             <dd class="text-slate-900 font-mono-num font-semibold">{{ $cat->cot_hours }} Jam</dd>
                                         </div>
                                     @endif
-                                    @if($cat->min_age)
+                                    @if($cat->min_age !== null || $cat->max_age !== null)
                                         <div class="flex justify-between">
-                                            <dt class="text-slate-600">Usia Minimum</dt>
-                                            <dd class="text-slate-900 font-mono-num font-semibold">{{ $cat->min_age }} Tahun</dd>
+                                            <dt class="text-slate-600">Syarat Usia</dt>
+                                            <dd class="text-slate-900 font-mono-num font-semibold">
+                                                @if($cat->min_age !== null && $cat->max_age !== null)
+                                                    {{ $cat->min_age }} - {{ $cat->max_age }} Tahun
+                                                @elseif($cat->min_age !== null)
+                                                    Min. {{ $cat->min_age }} Tahun
+                                                @else
+                                                    Maks. {{ $cat->max_age }} Tahun
+                                                @endif
+                                            </dd>
                                         </div>
                                     @endif
                                     @if($cat->quota)
@@ -612,7 +620,7 @@
                                                         $activePrice = $earlyValid ? (int) $cat->price_early : ($pReg > 0 ? $pReg : $pLate);
                                                     @endphp
                                                     <label class="relative block">
-                                                        <input type="radio" name="participants[0][category_id]" value="{{ $cat->id }}" class="peer sr-only cat-radio brand-border-checked" data-price="{{ $activePrice }}" required>
+                                                        <input type="radio" name="participants[0][category_id]" value="{{ $cat->id }}" class="peer sr-only cat-radio brand-border-checked" data-price="{{ $activePrice }}" data-min-age="{{ $cat->min_age ?? '' }}" data-max-age="{{ $cat->max_age ?? '' }}" data-cat-name="{{ $cat->name }}" required>
                                                         <div class="cat-card p-3.5 bg-white border border-slate-300 rounded-md hover:border-slate-500 transition duration-150">
                                                             <div class="flex items-center justify-between gap-2">
                                                                 <span class="font-bold text-sm text-slate-900">{{ $cat->name }}</span>
@@ -623,6 +631,7 @@
                                                             <p class="text-xs text-slate-600 mt-1">
                                                                 @if($cat->distance_km){{ $cat->distance_km }} KM @endif
                                                                 @if($cat->quota)&middot; {{ $cat->quota }} Slot @endif
+                                                                @if($cat->min_age !== null && $cat->max_age !== null) &middot; Usia {{ $cat->min_age }}-{{ $cat->max_age }} Thn @elseif($cat->min_age !== null) &middot; Min. {{ $cat->min_age }} Thn @elseif($cat->max_age !== null) &middot; Maks. {{ $cat->max_age }} Thn @endif
                                                                 @if($earlyValid && $pReg > $activePrice)
                                                                     <span class="line-through text-slate-400 ml-1">Rp {{ number_format($pReg, 0, ',', '.') }}</span>
                                                                 @endif
@@ -663,10 +672,17 @@
                                                 <input type="tel" data-field="phone" name="participants[0][phone]" required minlength="10" maxlength="15" inputmode="numeric" oninput="this.value=this.value.replace(/[^0-9]/g,'')" class="w-full bg-white border border-slate-300 rounded-md px-3.5 py-2.5 text-sm text-slate-900 font-mono-num placeholder-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900" placeholder="081234567890">
                                             </div>
 
+                                            @php
+                                                $pcrFormFields = $pa['form_fields'] ?? null;
+                                                $showIdCard = (is_array($pcrFormFields) && count($pcrFormFields) > 0) ? !empty($pcrFormFields['id_card']) : true;
+                                                $idCardRequired = $showIdCard && !empty($pcrFormFields['id_card_required']);
+                                            @endphp
+                                            @if($showIdCard)
                                             <div>
-                                                <label class="block text-xs font-semibold text-slate-700 mb-1.5">No. Identitas (KTP/SIM/Paspor) <span class="text-rose-600">*</span></label>
-                                                <input type="text" data-field="id_card" name="participants[0][id_card]" required maxlength="50" class="w-full bg-white border border-slate-300 rounded-md px-3.5 py-2.5 text-sm text-slate-900 font-mono-num placeholder-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900" placeholder="Nomor identitas resmi">
+                                                <label class="block text-xs font-semibold text-slate-700 mb-1.5">No. Identitas (KTP/SIM/Paspor) @if($idCardRequired)<span class="text-rose-600">*</span>@else<span class="text-slate-500">(Opsional)</span>@endif</label>
+                                                <input type="text" data-field="id_card" name="participants[0][id_card]" {{ $idCardRequired ? 'required' : '' }} maxlength="50" class="w-full bg-white border border-slate-300 rounded-md px-3.5 py-2.5 text-sm text-slate-900 font-mono-num placeholder-slate-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900" placeholder="{{ $idCardRequired ? 'Nomor identitas resmi' : 'Nomor identitas (opsional)' }}">
                                             </div>
+                                            @endif
 
                                             <div class="sm:col-span-2">
                                                 <label class="block text-xs font-semibold text-slate-700 mb-1.5">Alamat Lengkap <span class="text-rose-600">*</span></label>
@@ -1356,26 +1372,36 @@
                         }
                     });
 
-                    // Unique participant emails
-                    const seenEmails = new Set();
-                    let duplicateEmail = false;
-                    form.querySelectorAll('[data-field="email"]').forEach(el => {
-                        const val = el.value.trim().toLowerCase();
-                        if (val) {
-                            if (seenEmails.has(val)) {
-                                duplicateEmail = true;
-                                markInvalid(el);
-                            }
-                            seenEmails.add(val);
+                    let ageErrorMsg = '';
+                    const refStr = "{{ $event->start_at ? $event->start_at->format('Y-m-d') : now()->format('Y-m-d') }}";
+                    const [ry, rm, rd] = refStr.split('-').map(Number);
+                    wrapper?.querySelectorAll('.participant-item').forEach((item, idx) => {
+                        const radio = item.querySelector('.cat-radio:checked');
+                        const dobEl = item.querySelector('[data-field="date_of_birth"]');
+                        if (!radio || !dobEl || !dobEl.value) return;
+                        const minAgeAttr = radio.getAttribute('data-min-age');
+                        const maxAgeAttr = radio.getAttribute('data-max-age');
+                        const catNameAttr = radio.getAttribute('data-cat-name') || 'kategori ini';
+                        const minAge = minAgeAttr !== null && minAgeAttr !== '' ? parseInt(minAgeAttr, 10) : null;
+                        const maxAge = maxAgeAttr !== null && maxAgeAttr !== '' ? parseInt(maxAgeAttr, 10) : null;
+                        if (minAge === null && maxAge === null) return;
+                        const [by, bm, bd] = dobEl.value.split('-').map(Number);
+                        let age = ry - by;
+                        if (rm < bm || (rm === bm && rd < bd)) age--;
+                        if (age < 0) age = 0;
+                        if (minAge !== null && age < minAge) {
+                            markInvalid(dobEl);
+                            if (!ageErrorMsg) ageErrorMsg = `Peserta #${idx + 1}: Usia (${age} tahun) kurang dari batas minimal ${catNameAttr} (${minAge} tahun).`;
+                        } else if (maxAge !== null && age > maxAge) {
+                            markInvalid(dobEl);
+                            if (!ageErrorMsg) ageErrorMsg = `Peserta #${idx + 1}: Usia (${age} tahun) melebihi batas maksimal ${catNameAttr} (${maxAge} tahun).`;
                         }
                     });
 
                     if (firstInvalid) {
                         const msg = missingCat
                             ? 'Pilih kategori lomba untuk setiap peserta.'
-                            : (duplicateEmail
-                                ? 'Email setiap peserta harus berbeda dalam satu transaksi.'
-                                : 'Mohon lengkapi semua kolom wajib yang ditandai merah.');
+                            : (ageErrorMsg || 'Mohon lengkapi semua kolom wajib yang ditandai merah.');
                         showFormBanner('error', msg);
                         if (typeof firstInvalid.focus === 'function') firstInvalid.focus();
                         return;

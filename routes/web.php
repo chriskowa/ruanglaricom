@@ -1478,6 +1478,7 @@ Route::middleware('auth')->group(function () {
         // Event management
         Route::post('events/upload-media', [App\Http\Controllers\EO\EventController::class, 'uploadMedia'])->name('events.upload-media');
         Route::post('events/live-preview', [App\Http\Controllers\EO\EventController::class, 'livePreview'])->name('events.live-preview');
+        Route::get('events/theme-demo/{template}', [App\Http\Controllers\EO\EventController::class, 'themeDemo'])->name('events.theme-demo');
         Route::post('events/preview-email', [App\Http\Controllers\EO\EventController::class, 'previewEmail'])->name('events.preview-email-create');
         Route::get('events/{event}/preview', [App\Http\Controllers\EO\EventController::class, 'preview'])->name('events.preview');
         Route::post('events/{event}/duplicate', [App\Http\Controllers\EO\EventController::class, 'duplicate'])->name('events.duplicate');
