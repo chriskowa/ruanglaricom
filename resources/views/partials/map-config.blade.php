@@ -1,13 +1,14 @@
 @php
     $rlMapCfg = \App\Models\AppSettings::mapConfig();
-@endphp
-<script>
-(function () {
-    const cfg = @json([
+    $rlMapClientCfg = [
         'provider' => $rlMapCfg['provider'],
         'osmStyle' => $rlMapCfg['osm_style'],
         'mapboxToken' => $rlMapCfg['mapbox_token'],
-    ]);
+    ];
+@endphp
+<script>
+(function () {
+    const cfg = @json($rlMapClientCfg);
 
     window.RL_MAP_CONFIG = cfg;
     window.RL_MAPBOX_TOKEN = cfg.mapboxToken || '';
