@@ -1005,6 +1005,17 @@
         line-height: 1 !important;
     }
     .mapboxgl-popup-close-button:hover { color: var(--ep-accent) !important; }
+    .leaflet-popup-content-wrapper {
+        background: #12161F !important;
+        color: #ffffff !important;
+        padding: 0 !important;
+        border-radius: 6px !important;
+        border: 1px solid rgba(255,255,255,0.12) !important;
+        box-shadow: 0 10px 28px rgba(0,0,0,0.85) !important;
+    }
+    .leaflet-popup-content { margin: 0 !important; width: auto !important; }
+    .leaflet-popup-tip { background: #12161F !important; }
+    .leaflet-container a.leaflet-popup-close-button { color: #ffffff !important; top: 4px !important; right: 4px !important; }
     .custom-event-pin { cursor: pointer; transition: transform 0.15s ease; }
     .custom-event-pin:hover { transform: scale(1.15); z-index: 10; }
 
@@ -1420,7 +1431,7 @@
                                     'streets' => 'Streets (Default)',
                                     'outdoors' => 'Outdoors Terrain',
                                     'dark' => 'Dark Tactical',
-                                    'satellite' => 'Satelit Mapbox',
+                                    'satellite' => 'Satelit',
                                 ] as $layerKey => $layerLabel)
                                     <button type="button"
                                             onclick="setEventsMapLayer('{{ $layerKey }}')"
@@ -1792,12 +1803,42 @@
 </div>
 
 @push('scripts')
+@include('partials.map-config')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const mapboxToken = '{{ config("services.mapbox.token") }}';
+    const mapboxToken = window.RL_MAPBOX_TOKEN || '';
+    const useLeafletOsm = !mapboxToken;
     let mapboxLoadPromise = null;
+    let leafletLoadPromise = null;
+
+    function loadLeafletAssets() {
+        if (typeof L !== 'undefined') {
+            return Promise.resolve();
+        }
+        if (leafletLoadPromise) return leafletLoadPromise;
+
+        leafletLoadPromise = new Promise(function (resolve, reject) {
+            if (!document.querySelector('link[href*="leaflet.css"]')) {
+                const link = document.createElement('link');
+                link.rel = 'stylesheet';
+                link.href = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+                document.head.appendChild(link);
+            }
+            const script = document.createElement('script');
+            script.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+            script.async = true;
+            script.onload = resolve;
+            script.onerror = reject;
+            document.head.appendChild(script);
+        });
+
+        return leafletLoadPromise;
+    }
 
     function loadMapboxAssets() {
+        if (useLeafletOsm) {
+            return loadLeafletAssets();
+        }
         if (typeof mapboxgl !== 'undefined') {
             if (mapboxToken) mapboxgl.accessToken = mapboxToken;
             return Promise.resolve();
@@ -1828,14 +1869,14 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ----------------------------------------------------
-    // 1. EXPLORER MAP ENGINE (MAPBOX GL)
-    // ----------------------------------------------------
-    // ----------------------------------------------------
-    // 1. EXPLORER MAP ENGINE (MAPBOX GL WITH CLUSTERING)
+    // 1. EXPLORER MAP ENGINE (OPENSTREETMAP / MAPBOX GL)
     // ----------------------------------------------------
     let initialEvents = @json($mapEvents ?? []);
     let currentMapEvents = Array.isArray(initialEvents) ? initialEvents : [];
     let eventsExplorerMap = null;
+    let leafletTileLayer = null;
+    let leafletMarkersLayer = null;
+    let leafletMarkersById = {};
     let userLocationMarker = null;
     let activePopup = null;
     let activeLayerKey = 'streets';
@@ -1854,9 +1895,56 @@ document.addEventListener('DOMContentLoaded', function () {
         satellite: 'mapbox://styles/mapbox/satellite-streets-v12'
     };
 
+    function renderLeafletExplorerMarkers() {
+        if (!eventsExplorerMap || !leafletMarkersLayer || typeof L === 'undefined') return;
+        leafletMarkersLayer.clearLayers();
+        leafletMarkersById = {};
+
+        const geojson = buildEventsGeoJson(currentMapEvents);
+        geojson.features.forEach(f => {
+            const props = f.properties;
+            const [lng, lat] = f.geometry.coordinates;
+            const marker = L.circleMarker([lat, lng], {
+                radius: props.is_featured ? 8 : 7,
+                color: props.is_featured ? '#07101c' : '#ccff00',
+                weight: 2,
+                fillColor: props.is_featured ? '#ccff00' : '#0b1522',
+                fillOpacity: 1
+            });
+            let distances = [];
+            try { distances = typeof props.distances === 'string' ? JSON.parse(props.distances) : []; } catch (e) {}
+            marker.bindPopup(buildEventPopupHtml({
+                id: props.id,
+                name: props.name,
+                url: props.url,
+                hero_image: props.hero_image,
+                start_at: props.start_at,
+                city: props.city,
+                location_name: props.location_name,
+                race_type: props.race_type,
+                distances: distances,
+                is_featured: props.is_featured
+            }), { maxWidth: 270 });
+            marker.addTo(leafletMarkersLayer);
+            leafletMarkersById[String(props.id)] = marker;
+        });
+    }
+
     function initEventsExplorerMap() {
         const mapContainer = document.getElementById('events-explorer-map');
-        if (!mapContainer || eventsExplorerMap || typeof mapboxgl === 'undefined' || !mapboxToken) return;
+        if (!mapContainer || eventsExplorerMap) return;
+
+        if (useLeafletOsm) {
+            if (typeof L === 'undefined') return;
+            eventsExplorerMap = L.map('events-explorer-map', { zoomControl: true }).setView([-2.5489, 118.0149], 5);
+            leafletTileLayer = window.rlCreateTileLayer(activeLayerKey === 'streets' ? 'street' : activeLayerKey).addTo(eventsExplorerMap);
+            leafletMarkersLayer = L.layerGroup().addTo(eventsExplorerMap);
+            renderLeafletExplorerMarkers();
+            fitMapToBounds();
+            return;
+        }
+
+        if (typeof mapboxgl === 'undefined' || !mapboxToken) return;
 
         const defaultCenter = [118.0149, -2.5489]; // [lng, lat] Indonesia Center
         const defaultZoom = 4.2;
@@ -2190,6 +2278,14 @@ document.addEventListener('DOMContentLoaded', function () {
         const geojson = buildEventsGeoJson(currentMapEvents);
         if (!geojson.features.length) return;
 
+        if (useLeafletOsm && typeof L !== 'undefined') {
+            try {
+                const latLngs = geojson.features.map(f => [f.geometry.coordinates[1], f.geometry.coordinates[0]]);
+                eventsExplorerMap.fitBounds(L.latLngBounds(latLngs), { padding: [40, 40], maxZoom: 12 });
+            } catch (err) {}
+            return;
+        }
+
         try {
             const bounds = new mapboxgl.LngLatBounds();
             geojson.features.forEach(f => bounds.extend(f.geometry.coordinates));
@@ -2199,6 +2295,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function updateMapData(shouldFitBounds = false) {
         if (!eventsExplorerMap) return;
+
+        if (useLeafletOsm) {
+            renderLeafletExplorerMarkers();
+            if (shouldFitBounds) {
+                fitMapToBounds();
+            }
+            return;
+        }
 
         const geojsonData = buildEventsGeoJson(currentMapEvents);
         const source = eventsExplorerMap.getSource(CLUSTER_SOURCE_ID);
@@ -2261,6 +2365,20 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         if (eventsExplorerMap) {
+            if (useLeafletOsm) {
+                eventsExplorerMap.setView([lat, lng], 14, { animate: true });
+                const marker = leafletMarkersById[String(event.id)];
+                if (marker) {
+                    marker.openPopup();
+                } else if (typeof L !== 'undefined') {
+                    L.popup({ maxWidth: 270 })
+                        .setLatLng([lat, lng])
+                        .setContent(buildEventPopupHtml(event))
+                        .openOn(eventsExplorerMap);
+                }
+                return;
+            }
+
             // ZOOM MAP CENTER TO DETAIL EVENT
             eventsExplorerMap.flyTo({
                 center: [lng, lat],
@@ -2288,17 +2406,23 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 
     window.setEventsMapLayer = function (layerKey) {
-        if (!mapStyles[layerKey] || !eventsExplorerMap) return;
+        if (!eventsExplorerMap) return;
         activeLayerKey = layerKey;
 
-        eventsExplorerMap.setStyle(mapStyles[layerKey]);
-        eventsExplorerMap.once('style.load', function () {
-            setupMapClusterLayers();
-        });
+        if (useLeafletOsm) {
+            if (leafletTileLayer) eventsExplorerMap.removeLayer(leafletTileLayer);
+            leafletTileLayer = window.rlCreateTileLayer(layerKey === 'streets' ? 'street' : layerKey).addTo(eventsExplorerMap);
+        } else {
+            if (!mapStyles[layerKey]) return;
+            eventsExplorerMap.setStyle(mapStyles[layerKey]);
+            eventsExplorerMap.once('style.load', function () {
+                setupMapClusterLayers();
+            });
+        }
 
         const label = document.getElementById('label-events-active-layer');
         if (label) {
-            const labels = { streets: 'Streets', outdoors: 'Outdoors Terrain', dark: 'Dark Tactical', satellite: 'Satelit Mapbox' };
+            const labels = { streets: 'Streets', outdoors: 'Outdoors Terrain', dark: 'Dark Tactical', satellite: 'Satelit' };
             label.textContent = labels[layerKey] || layerKey;
         }
 
@@ -2366,20 +2490,32 @@ document.addEventListener('DOMContentLoaded', function () {
                     const lat = pos.coords.latitude;
                     const lng = pos.coords.longitude;
                     if (eventsExplorerMap) {
-                        eventsExplorerMap.flyTo({ center: [lng, lat], zoom: 12 });
-                        if (userLocationMarker) userLocationMarker.remove();
+                        if (useLeafletOsm && typeof L !== 'undefined') {
+                            eventsExplorerMap.setView([lat, lng], 12, { animate: true });
+                            if (userLocationMarker) eventsExplorerMap.removeLayer(userLocationMarker);
+                            userLocationMarker = L.circleMarker([lat, lng], {
+                                radius: 8,
+                                color: '#ffffff',
+                                weight: 3,
+                                fillColor: '#3b82f6',
+                                fillOpacity: 1
+                            }).addTo(eventsExplorerMap);
+                        } else {
+                            eventsExplorerMap.flyTo({ center: [lng, lat], zoom: 12 });
+                            if (userLocationMarker) userLocationMarker.remove();
 
-                        const el = document.createElement('div');
-                        el.style.width = '16px';
-                        el.style.height = '16px';
-                        el.style.borderRadius = '9999px';
-                        el.style.background = '#3b82f6';
-                        el.style.border = '3px solid #fff';
-                        el.style.boxShadow = '0 0 10px rgba(59,130,246,0.8)';
+                            const el = document.createElement('div');
+                            el.style.width = '16px';
+                            el.style.height = '16px';
+                            el.style.borderRadius = '9999px';
+                            el.style.background = '#3b82f6';
+                            el.style.border = '3px solid #fff';
+                            el.style.boxShadow = '0 0 10px rgba(59,130,246,0.8)';
 
-                        userLocationMarker = new mapboxgl.Marker({ element: el })
-                            .setLngLat([lng, lat])
-                            .addTo(eventsExplorerMap);
+                            userLocationMarker = new mapboxgl.Marker({ element: el })
+                                .setLngLat([lng, lat])
+                                .addTo(eventsExplorerMap);
+                        }
                     }
                 },
                 function () {
@@ -2405,7 +2541,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (labelMinimize) labelMinimize.textContent = 'Sembunyikan';
                 if (iconMinimize) iconMinimize.className = 'fas fa-chevron-up text-[8px]';
                 setTimeout(() => {
-                    if (eventsExplorerMap) eventsExplorerMap.resize();
+                    if (eventsExplorerMap) {
+                        if (typeof eventsExplorerMap.invalidateSize === 'function') eventsExplorerMap.invalidateSize();
+                        else if (typeof eventsExplorerMap.resize === 'function') eventsExplorerMap.resize();
+                    }
                 }, 150);
             } else {
                 mapCollapseWrap.classList.add('hidden');
@@ -2431,7 +2570,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 loadMapboxAssets().then(function () {
                     initEventsExplorerMap();
                     if (eventsExplorerMap) {
-                        setTimeout(function () { eventsExplorerMap.resize(); }, 80);
+                        setTimeout(function () {
+                            if (typeof eventsExplorerMap.invalidateSize === 'function') eventsExplorerMap.invalidateSize();
+                            else if (typeof eventsExplorerMap.resize === 'function') eventsExplorerMap.resize();
+                        }, 80);
                     }
                 });
             }
@@ -2656,15 +2798,34 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function initSubmitModalMap() {
         const container = document.getElementById('event-map');
-        if (!container || typeof mapboxgl === 'undefined' || !mapboxToken) return;
+        if (!container) return;
 
         if (modalMap) {
-            modalMap.resize();
+            if (typeof modalMap.invalidateSize === 'function') modalMap.invalidateSize();
+            else if (typeof modalMap.resize === 'function') modalMap.resize();
             return;
         }
 
         const defaultLat = -6.2088;
         const defaultLng = 106.8456; // Jakarta
+
+        if (useLeafletOsm) {
+            if (typeof L === 'undefined') return;
+            modalMap = L.map('event-map', { zoomControl: true }).setView([defaultLat, defaultLng], 13);
+            window.rlCreateTileLayer('street').addTo(modalMap);
+            modalMarker = L.marker([defaultLat, defaultLng], { draggable: true }).addTo(modalMap);
+            modalMarker.on('dragend', function () {
+                const pos = modalMarker.getLatLng();
+                reverseGeocode(pos.lat, pos.lng);
+            });
+            modalMap.on('click', function (e) {
+                modalMarker.setLatLng(e.latlng);
+                reverseGeocode(e.latlng.lat, e.latlng.lng);
+            });
+            return;
+        }
+
+        if (typeof mapboxgl === 'undefined' || !mapboxToken) return;
 
         modalMap = new mapboxgl.Map({
             container: 'event-map',
@@ -2722,8 +2883,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 const lat = pos.coords.latitude;
                 const lng = pos.coords.longitude;
                 if (modalMap) {
-                    modalMap.flyTo({ center: [lng, lat], zoom: 15 });
-                    if (modalMarker) modalMarker.setLngLat([lng, lat]);
+                    if (useLeafletOsm) {
+                        modalMap.setView([lat, lng], 15);
+                        if (modalMarker) modalMarker.setLatLng([lat, lng]);
+                    } else {
+                        modalMap.flyTo({ center: [lng, lat], zoom: 15 });
+                        if (modalMarker) modalMarker.setLngLat([lng, lat]);
+                    }
                     reverseGeocode(lat, lng);
                 }
             });
@@ -2772,8 +2938,13 @@ document.addEventListener('DOMContentLoaded', function () {
                 const name = item.getAttribute('data-name');
 
                 if (modalMap) {
-                    modalMap.flyTo({ center: [lng, lat], zoom: 15 });
-                    if (modalMarker) modalMarker.setLngLat([lng, lat]);
+                    if (useLeafletOsm) {
+                        modalMap.setView([lat, lng], 15);
+                        if (modalMarker) modalMarker.setLatLng([lat, lng]);
+                    } else {
+                        modalMap.flyTo({ center: [lng, lat], zoom: 15 });
+                        if (modalMarker) modalMarker.setLngLat([lng, lat]);
+                    }
                 }
                 const locInput = document.getElementById('submit_event_location');
                 if (locInput && !locInput.value) locInput.value = name.split(',')[0];
@@ -2889,7 +3060,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const formData = new FormData(submitForm);
 
             if (modalMarker) {
-                const pos = modalMarker.getLngLat();
+                const pos = typeof modalMarker.getLngLat === 'function' ? modalMarker.getLngLat() : modalMarker.getLatLng();
                 formData.append('latitude', pos.lat);
                 formData.append('longitude', pos.lng);
             }

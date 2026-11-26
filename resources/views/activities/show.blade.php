@@ -237,6 +237,7 @@
 
 @push('scripts')
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    @include('partials.map-config')
     <script>
         const activityCoords = {!! $coordsJson !!};
         const totalDistance = {{ (float)($activity->distance_km ?? 0) }};
@@ -247,28 +248,13 @@
         });
 
         function initActivityMap() {
-            const mapboxToken = "{{ config('services.mapbox.token') }}";
-
             const map = L.map('activity-map', {
                 zoomControl: true,
                 scrollWheelZoom: false,
                 dragging: true,
             }).setView([-6.2088, 106.8456], 13);
 
-            if (mapboxToken) {
-                L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/tiles/{z}/{x}/{y}?access_token=' + mapboxToken, {
-                    tileSize: 512,
-                    zoomOffset: -1,
-                    maxZoom: 19,
-                    attribution: '&copy; Mapbox &copy; OpenStreetMap'
-                }).addTo(map);
-            } else {
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                    maxZoom: 20,
-                    subdomains: ['a', 'b', 'c', 'd'],
-                    attribution: '&copy; CARTO &copy; OpenStreetMap'
-                }).addTo(map);
-            }
+            window.rlCreateTileLayer('street').addTo(map);
 
             if (Array.isArray(activityCoords) && activityCoords.length > 0) {
                 const latlngs = [];

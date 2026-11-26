@@ -807,6 +807,7 @@
 
 @push('scripts')
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    @include('partials.map-config')
     <script>
         const rawRouteCoords = {!! $coordsJson !!};
         const totalRouteDistance = {{ $distKm > 0 ? $distKm : 10.0 }};
@@ -867,17 +868,10 @@
         function initMap() {
             kmMarkersLayer = L.layerGroup();
 
-            const mapboxToken = "{{ config('services.mapbox.token') }}";
             baseTileLayers = {
-                dark: mapboxToken
-                    ? L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/navigation-night-v1/tiles/{z}/{x}/{y}?access_token=' + mapboxToken, { tileSize: 512, zoomOffset: -1, maxZoom: 19, attribution: '&copy; Mapbox' })
-                    : L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: '&copy; Esri' }),
-                street: mapboxToken
-                    ? L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/tiles/{z}/{x}/{y}?access_token=' + mapboxToken, { tileSize: 512, zoomOffset: -1, maxZoom: 19, attribution: '&copy; Mapbox &copy; OpenStreetMap' })
-                    : L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 20, subdomains: ['a', 'b', 'c', 'd'], attribution: '&copy; CARTO &copy; OpenStreetMap' }),
-                satellite: mapboxToken
-                    ? L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/satellite-streets-v12/tiles/{z}/{x}/{y}?access_token=' + mapboxToken, { tileSize: 512, zoomOffset: -1, maxZoom: 19, attribution: '&copy; Mapbox' })
-                    : L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19, attribution: '&copy; Esri' })
+                dark: window.rlCreateTileLayer('dark'),
+                street: window.rlCreateTileLayer('street'),
+                satellite: window.rlCreateTileLayer('satellite')
             };
 
             map = L.map('gpx-detail-map', {
@@ -1845,7 +1839,7 @@
 
             const profile = osrmToStartMode === 'driving' ? 'driving' : 'foot';
             const coords = `${uLng.toFixed(6)},${uLat.toFixed(6)};${sLng.toFixed(6)},${sLat.toFixed(6)}`;
-            const mapboxToken = "{{ config('services.mapbox.token') }}";
+            const mapboxToken = window.RL_MAPBOX_TOKEN || '';
 
             try {
                 let routeData = null;
@@ -1990,27 +1984,13 @@
         }
 
         function initNavMap() {
-            const mapboxToken = "{{ config('services.mapbox.token') }}";
             navMap = L.map('nav-fullscreen-map', {
                 zoomControl: false,
                 scrollWheelZoom: true,
                 dragging: true,
             }).setView([-6.2088, 106.8456], 15);
 
-            if (mapboxToken) {
-                L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/tiles/{z}/{x}/{y}?access_token=' + mapboxToken, {
-                    tileSize: 512,
-                    zoomOffset: -1,
-                    maxZoom: 19,
-                    attribution: '&copy; Mapbox &copy; OpenStreetMap'
-                }).addTo(navMap);
-            } else {
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                    maxZoom: 20,
-                    subdomains: ['a', 'b', 'c', 'd'],
-                    attribution: '&copy; CARTO &copy; OpenStreetMap'
-                }).addTo(navMap);
-            }
+            window.rlCreateTileLayer('street').addTo(navMap);
 
             if (routePoints.length > 0) {
                 const latlngs = routePoints.map(p => [p.lat, p.lng]);
@@ -2431,7 +2411,6 @@
 
                 const zoomLevels = [13, 14, 15];
                 const tileSet = new Set();
-                const mapboxToken = "{{ config('services.mapbox.token') }}";
 
                 const step = Math.max(1, Math.floor(routePoints.length / 50));
                 const sampled = [];
@@ -2460,13 +2439,7 @@
 
                 for (let i = 0; i < tileList.length; i++) {
                     const [z, x, y] = tileList[i].split('/');
-                    let tileUrl = '';
-                    if (mapboxToken) {
-                        tileUrl = `https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/tiles/${z}/${x}/${y}?access_token=${mapboxToken}`;
-                    } else {
-                        const sub = ['a', 'b', 'c', 'd'][Math.abs(parseInt(x) + parseInt(y)) % 4];
-                        tileUrl = `https://${sub}.basemaps.cartocdn.com/rastertiles/voyager/${z}/${x}/${y}.png`;
-                    }
+                    const tileUrl = window.rlResolveTileUrl(z, x, y, 'street');
 
                     try {
                         const res = await fetch(tileUrl, { mode: 'cors' });

@@ -6,6 +6,7 @@ import 'mapbox-gl/dist/mapbox-gl.css';
 import axios from 'axios';
 import RunThreadChat from './RunThreadChat.vue';
 import RunnerMiniProfile from './RunnerMiniProfile.vue';
+import { ensureLeafletLoaded, getOsmTileConfig } from '../../utils/osmMap';
 
 const props = defineProps({
     thread: {
@@ -27,6 +28,10 @@ const props = defineProps({
     mapboxToken: {
         type: String,
         default: ''
+    },
+    mapOsmStyle: {
+        type: String,
+        default: 'osm'
     }
 });
 
@@ -62,34 +67,49 @@ const renderGpxMap = async () => {
     }
 
     const token = props.mapboxToken || '';
-    mapboxgl.accessToken = token;
-
-    const style = props.theme === 'light' 
-        ? 'mapbox://styles/mapbox/streets-v12' 
-        : 'mapbox://styles/mapbox/dark-v11';
-
     const initialLng = parseFloat(props.thread.start_longitude) || 106.8272;
     const initialLat = parseFloat(props.thread.start_latitude) || -6.1754;
+    const useLeaflet = !token;
 
-    try {
-        gpxMap.value = new mapboxgl.Map({
-            container: containerId,
-            style: style,
-            center: [initialLng, initialLat],
-            zoom: 13,
-            interactive: true
-        });
+    if (useLeaflet) {
+        try {
+            const L = await ensureLeafletLoaded();
+            const leafMap = L.map(containerId, { zoomControl: true }).setView([initialLat, initialLng], 13);
+            const tileCfg = getOsmTileConfig(props.theme, props.mapOsmStyle);
+            L.tileLayer(tileCfg.url, tileCfg.options).addTo(leafMap);
+            gpxMap.value = leafMap;
+            setTimeout(() => { if (gpxMap.value && typeof gpxMap.value.invalidateSize === 'function') gpxMap.value.invalidateSize(); }, 250);
+        } catch (e) {
+            console.error("Failed to initialize OpenStreetMap Leaflet:", e);
+            return;
+        }
+    } else {
+        mapboxgl.accessToken = token;
 
-        gpxMap.value.addControl(new mapboxgl.NavigationControl(), 'top-right');
+        const style = props.theme === 'light' 
+            ? 'mapbox://styles/mapbox/streets-v12' 
+            : 'mapbox://styles/mapbox/dark-v11';
 
-        setTimeout(() => {
-            if (gpxMap.value) {
-                gpxMap.value.resize();
-            }
-        }, 250);
-    } catch (e) {
-        console.error("Failed to initialize Mapbox:", e);
-        return;
+        try {
+            gpxMap.value = new mapboxgl.Map({
+                container: containerId,
+                style: style,
+                center: [initialLng, initialLat],
+                zoom: 13,
+                interactive: true
+            });
+
+            gpxMap.value.addControl(new mapboxgl.NavigationControl(), 'top-right');
+
+            setTimeout(() => {
+                if (gpxMap.value) {
+                    gpxMap.value.resize();
+                }
+            }, 250);
+        } catch (e) {
+            console.error("Failed to initialize Mapbox:", e);
+            return;
+        }
     }
 
     try {
@@ -111,53 +131,67 @@ const renderGpxMap = async () => {
         }
         
         if (coordinates.length > 0 && gpxMap.value) {
-            gpxMap.value.on('load', () => {
-                if(!gpxMap.value) return;
-                gpxMap.value.addSource('gpx-source', {
-                    type: 'geojson',
-                    data: {
-                        type: 'Feature',
-                        properties: {},
-                        geometry: {
-                            type: 'LineString',
-                            coordinates: coordinates
+            if (useLeaflet && window.L) {
+                const L = window.L;
+                const latLngs = coordinates.map(c => [c[1], c[0]]);
+                const poly = L.polyline(latLngs, {
+                    color: props.theme === 'dark' ? '#ccff00' : '#2563eb',
+                    weight: 4,
+                    lineCap: 'round',
+                    lineJoin: 'round'
+                }).addTo(gpxMap.value);
+                L.circleMarker(latLngs[0], { radius: 6, color: '#ffffff', weight: 2, fillColor: '#10b981', fillOpacity: 1 }).addTo(gpxMap.value);
+                L.circleMarker(latLngs[latLngs.length - 1], { radius: 6, color: '#ffffff', weight: 2, fillColor: '#ef4444', fillOpacity: 1 }).addTo(gpxMap.value);
+                gpxMap.value.fitBounds(poly.getBounds(), { padding: [32, 32] });
+            } else {
+                gpxMap.value.on('load', () => {
+                    if(!gpxMap.value) return;
+                    gpxMap.value.addSource('gpx-source', {
+                        type: 'geojson',
+                        data: {
+                            type: 'Feature',
+                            properties: {},
+                            geometry: {
+                                type: 'LineString',
+                                coordinates: coordinates
+                            }
                         }
-                    }
-                });
-                
-                gpxMap.value.addLayer({
-                    id: 'gpx-route',
-                    type: 'line',
-                    source: 'gpx-source',
-                    layout: {
-                        'line-join': 'round',
-                        'line-cap': 'round'
-                    },
-                    paint: {
-                        'line-color': props.theme === 'dark' ? '#ccff00' : '#2563eb',
-                        'line-width': 4
-                    }
-                });
+                    });
+                    
+                    gpxMap.value.addLayer({
+                        id: 'gpx-route',
+                        type: 'line',
+                        source: 'gpx-source',
+                        layout: {
+                            'line-join': 'round',
+                            'line-cap': 'round'
+                        },
+                        paint: {
+                            'line-color': props.theme === 'dark' ? '#ccff00' : '#2563eb',
+                            'line-width': 4
+                        }
+                    });
 
-                // Add start marker
-                new mapboxgl.Marker({ color: '#10b981' }) // green for start
-                    .setLngLat(coordinates[0])
-                    .addTo(gpxMap.value);
+                    // Add start marker
+                    new mapboxgl.Marker({ color: '#10b981' }) // green for start
+                        .setLngLat(coordinates[0])
+                        .addTo(gpxMap.value);
 
-                // Add end marker
-                new mapboxgl.Marker({ color: '#ef4444' }) // red for end
-                    .setLngLat(coordinates[coordinates.length - 1])
-                    .addTo(gpxMap.value);
+                    // Add end marker
+                    new mapboxgl.Marker({ color: '#ef4444' }) // red for end
+                        .setLngLat(coordinates[coordinates.length - 1])
+                        .addTo(gpxMap.value);
 
-                const bounds = coordinates.reduce((bounds, coord) => {
-                    return bounds.extend(coord);
-                }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
-                
-                gpxMap.value.fitBounds(bounds, {
-                    padding: 40,
-                    duration: 1000
+                    const bounds = coordinates.reduce((bounds, coord) => {
+                        return bounds.extend(coord);
+                    }, new mapboxgl.LngLatBounds(coordinates[0], coordinates[0]));
+                    
+                    gpxMap.value.fitBounds(bounds, {
+                        padding: 40,
+                        duration: 1000
+                    });
                 });
-            });
+            }
         }
     } catch (err) {
         console.error('Failed to render GPX in bottom sheet:', err);
@@ -172,12 +206,17 @@ watch(activeTab, (newTab) => {
         // ... (removed map.value.resize() since there is no map.value)
     }
     if (newTab === 'gpx') {
+        const resizeGpx = () => {
+            if (!gpxMap.value) return false;
+            if (typeof gpxMap.value.invalidateSize === 'function') gpxMap.value.invalidateSize();
+            else if (typeof gpxMap.value.resize === 'function') gpxMap.value.resize();
+            return true;
+        };
         setTimeout(() => {
-            if (gpxMap.value) gpxMap.value.resize();
-            else renderGpxMap();
+            if (!resizeGpx()) renderGpxMap();
         }, 150);
         setTimeout(() => {
-            if (gpxMap.value) gpxMap.value.resize();
+            resizeGpx();
         }, 500);
     }
 });

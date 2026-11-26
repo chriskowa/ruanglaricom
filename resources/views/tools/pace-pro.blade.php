@@ -255,11 +255,9 @@
 @endsection
 
 @push('scripts')
-    <script>
-        window.RL_MAPBOX_TOKEN = "{{ config('services.mapbox.token') }}";
-    </script>
     <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    @include('partials.map-config')
     <script>
         window.RL_PACEPRO_GPX_LIBRARY = @json($gpxFiles);
     </script>
@@ -809,39 +807,13 @@
 
                 map = L.map('pp-map').setView([-6.2088, 106.8456], 13);
 
-                var mapboxToken = window.RL_MAPBOX_TOKEN;
-                var getTileUrl = function(light) {
-                    if (mapboxToken) {
-                        return light 
-                            ? 'https://api.mapbox.com/styles/v1/mapbox/streets-v12/tiles/{z}/{x}/{y}?access_token=' + mapboxToken
-                            : 'https://api.mapbox.com/styles/v1/mapbox/navigation-night-v1/tiles/{z}/{x}/{y}?access_token=' + mapboxToken;
-                    }
-                    return light 
-                        ? 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png' 
-                        : 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}';
-                };
-
-                var getTileOpts = function(light) {
-                    var opts = {
-                        maxZoom: 19,
-                        attribution: mapboxToken ? '&copy; Mapbox &copy; OpenStreetMap' : '&copy; OpenStreetMap',
-                    };
-                    if (mapboxToken) {
-                        opts.tileSize = 512;
-                        opts.zoomOffset = -1;
-                    } else {
-                        opts.subdomains = 'abcd';
-                    }
-                    return opts;
-                };
-                
-                var tileLayer = L.tileLayer(getTileUrl(isLight), getTileOpts(isLight)).addTo(map);
+                var tileLayer = window.rlCreateTileLayer(isLight ? 'street' : 'dark').addTo(map);
 
                 if (els.mapStyleDark && els.mapStyleLight) {
                     var handleStyleChange = function(light) {
                         setMapStyle(light);
                         if (tileLayer) map.removeLayer(tileLayer);
-                        tileLayer = L.tileLayer(getTileUrl(light), getTileOpts(light)).addTo(map);
+                        tileLayer = window.rlCreateTileLayer(light ? 'street' : 'dark').addTo(map);
 
                         if (polyline) {
                             polyline.setStyle({ color: light ? '#E60000' : '#CCFF00' });

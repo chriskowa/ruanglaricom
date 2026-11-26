@@ -39,8 +39,12 @@ class RunConnectController extends Controller
             }
         }
 
+        $mapConfig = \App\Models\AppSettings::mapConfig();
+
         return Inertia::render('RunConnect', [
-            'mapboxToken' => config('services.mapbox.token'),
+            'mapboxToken' => $mapConfig['mapbox_token'],
+            'mapProvider' => $mapConfig['provider'],
+            'mapOsmStyle' => $mapConfig['osm_style'],
             'recaptchaSiteKey' => config('services.recaptcha.site_key') ?: (env('RECAPTCHA_SITE_KEY_v3') ?: env('RECAPTCHA_SITE_KEY')),
             'auth' => [
                 'user' => Auth::user(),

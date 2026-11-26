@@ -260,16 +260,16 @@
                 <div class="flex items-center gap-2" onclick="event.stopPropagation()">
                     <!-- Map Style Switcher (Jalan / Satelit / Topografi / Dark) -->
                     <div class="flex items-center bg-slate-950 p-0.5 rounded-md border border-slate-800 text-xs">
-                        <button type="button" onclick="switchExplorerMapStyle('streets')" id="btn-map-style-streets" class="px-2 py-1 rounded font-medium transition bg-slate-800 text-white" title="Mapbox Streets (Jalan)">
+                        <button type="button" onclick="switchExplorerMapStyle('streets')" id="btn-map-style-streets" class="px-2 py-1 rounded font-medium transition bg-slate-800 text-white" title="Peta Jalan (OpenStreetMap / Default)">
                             Jalan
                         </button>
-                        <button type="button" onclick="switchExplorerMapStyle('satellite')" id="btn-map-style-satellite" class="px-2 py-1 rounded font-medium transition text-slate-400 hover:text-white" title="Mapbox Satellite Imagery">
+                        <button type="button" onclick="switchExplorerMapStyle('satellite')" id="btn-map-style-satellite" class="px-2 py-1 rounded font-medium transition text-slate-400 hover:text-white" title="Peta Satelit">
                             Satelit
                         </button>
-                        <button type="button" onclick="switchExplorerMapStyle('outdoors')" id="btn-map-style-outdoors" class="px-2 py-1 rounded font-medium transition text-slate-400 hover:text-white" title="Mapbox Topografi / Outdoors">
+                        <button type="button" onclick="switchExplorerMapStyle('outdoors')" id="btn-map-style-outdoors" class="px-2 py-1 rounded font-medium transition text-slate-400 hover:text-white" title="Peta Rute / Topografi">
                             Topografi
                         </button>
-                        <button type="button" onclick="switchExplorerMapStyle('dark')" id="btn-map-style-dark" class="px-2 py-1 rounded font-medium transition text-slate-400 hover:text-white" title="Mapbox Dark Mode">
+                        <button type="button" onclick="switchExplorerMapStyle('dark')" id="btn-map-style-dark" class="px-2 py-1 rounded font-medium transition text-slate-400 hover:text-white" title="Mode Gelap">
                             Dark
                         </button>
                     </div>
@@ -644,6 +644,7 @@
 @push('scripts')
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+    @include('partials.map-config')
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Toast notification helper
@@ -723,39 +724,21 @@
             }
 
             // ==========================================
-            // MAPBOX TILES & LEAFLET EXPLORER MAP
+            // EXPLORER MAP TILE LAYERS (ADMIN CONFIG)
             // ==========================================
             const mapContainer = document.getElementById('gpx-explorer-map');
             let explorerMap = null;
             let explorerClusterGroup = null;
             const allInitialMapRoutes = @json($mapRoutes ?? []);
-            const mapboxToken = "{{ config('services.mapbox.token') }}";
 
             let currentTileLayer = null;
             let currentMapStyle = 'streets';
 
             function getMapTileLayer(style) {
-                if (mapboxToken) {
-                    let mapboxStyleId = 'mapbox/dark-v11';
-                    if (style === 'satellite') mapboxStyleId = 'mapbox/satellite-streets-v12';
-                    else if (style === 'outdoors') mapboxStyleId = 'mapbox/outdoors-v12';
-                    else if (style === 'streets') mapboxStyleId = 'mapbox/streets-v12';
-
-                    return L.tileLayer(`https://api.mapbox.com/styles/v1/${mapboxStyleId}/tiles/{z}/{x}/{y}?access_token=${mapboxToken}`, {
-                        tileSize: 512,
-                        zoomOffset: -1,
-                        maxZoom: 19,
-                        attribution: '&copy; Mapbox'
-                    });
-                } else {
-                    if (style === 'satellite') {
-                        return L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', { maxZoom: 19 });
-                    } else if (style === 'outdoors' || style === 'streets') {
-                        return L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', { maxZoom: 20, subdomains: ['a', 'b', 'c', 'd'] });
-                    } else {
-                        return L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/dark_all/{z}/{x}/{y}{r}.png', { maxZoom: 20, subdomains: ['a', 'b', 'c', 'd'] });
-                    }
+                if (style === 'streets') {
+                    return window.rlCreateTileLayer('street');
                 }
+                return window.rlCreateTileLayer(style);
             }
 
             window.switchExplorerMapStyle = function(style) {

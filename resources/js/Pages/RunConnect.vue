@@ -23,6 +23,14 @@ const props = defineProps({
         type: String,
         default: ''
     },
+    mapProvider: {
+        type: String,
+        default: 'openstreetmap'
+    },
+    mapOsmStyle: {
+        type: String,
+        default: 'osm'
+    },
     recaptchaSiteKey: {
         type: String,
         default: ''
@@ -932,6 +940,7 @@ onUnmounted(() => {
                         >
                              <RunConnectMap 
                                  :mapbox-token="mapboxToken"
+                                 :map-osm-style="mapOsmStyle"
                                  :user-location="userLocation"
                                  :threads="threads"
                                  :theme="theme"
@@ -1017,6 +1026,7 @@ onUnmounted(() => {
                 :is-joining="isJoining"
                 :theme="theme"
                 :mapbox-token="mapboxToken"
+                :map-osm-style="mapOsmStyle"
                 @close="selectedThread = null"
                 @join="handleJoinThread"
                 @leave="handleLeaveThread"
@@ -1033,6 +1043,7 @@ onUnmounted(() => {
                 :user-location="userLocation"
                 :theme="theme"
                 :mapbox-token="mapboxToken"
+                :map-osm-style="mapOsmStyle"
                 :edit-thread="editingThread"
                 @close="isCreateOpen = false; editingThread = null"
                 @created="handleThreadCreated"

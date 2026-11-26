@@ -72,6 +72,11 @@
             class="px-6 py-3 border-b-2 font-bold text-sm tracking-wide transition-colors">
             WHATSAPP GATEWAY
         </button>
+        <button @click="activeTab = 'maps'" 
+            :class="activeTab === 'maps' ? 'border-primary text-primary' : 'border-transparent text-slate-400 hover:text-slate-200 hover:border-slate-700'"
+            class="px-6 py-3 border-b-2 font-bold text-sm tracking-wide transition-colors">
+            MAPS & RUTE
+        </button>
     </div>
 
     <!-- Content -->
@@ -457,6 +462,55 @@
                             <p>• <strong>Kategori Khas</strong>: Sistem akan memprioritaskan gateway sesuai kategori (misal: OTP memakai gateway OTP). Jika ada beberapa gateway untuk kategori yang sama, sistem melakukan <em>Load Balancing (Rotasi Bergantian)</em> secara otomatis.</p>
                             <p>• <strong>Failover Otomatis</strong>: Jika satu gateway gagal/koneksi terputus, sistem akan otomatis menguji pengiriman dengan gateway aktif lainnya.</p>
                         </div>
+                    </div>
+                </div>
+
+                <!-- Maps & Routing Tab -->
+                <div x-show="activeTab === 'maps'" class="space-y-6" x-data="{ mapProvider: '{{ $settings['map_provider'] ?? 'openstreetmap' }}' }">
+                    <div class="flex items-center gap-3 mb-6 border-b border-slate-800 pb-4">
+                        <h2 class="text-xl font-bold text-white" style="font-family: 'Inter Tight', 'Sora', sans-serif; letter-spacing: -0.03em;">Pengaturan Peta &amp; Navigasi Rute</h2>
+                    </div>
+
+                    <div class="grid md:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label for="map_provider" class="block text-sm font-semibold text-slate-200">Provider Peta Utama</label>
+                            <select id="map_provider" name="map_provider" x-model="mapProvider"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-md px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-primary">
+                                <option value="openstreetmap">OpenStreetMap (Gratis, Tanpa Kuota Token)</option>
+                                <option value="mapbox">Mapbox (Menggunakan Access Token)</option>
+                            </select>
+                            <p class="text-xs text-slate-300">Jika memilih OpenStreetMap, seluruh peta memakai tile OSM/CARTO/Esri serta routing OSRM dan pencarian Nominatim.</p>
+                        </div>
+
+                        <div class="space-y-2">
+                            <label for="map_osm_style" class="block text-sm font-semibold text-slate-200">Gaya Peta OpenStreetMap Default</label>
+                            <select id="map_osm_style" name="map_osm_style"
+                                class="w-full bg-slate-950 border border-slate-700 rounded-md px-3.5 py-2.5 text-sm text-white focus:outline-none focus:border-primary">
+                                <option value="osm" @selected(($settings['map_osm_style'] ?? 'osm') === 'osm')>OpenStreetMap Standard (tile.openstreetmap.org)</option>
+                                <option value="carto_voyager" @selected(($settings['map_osm_style'] ?? 'osm') === 'carto_voyager')>CARTO Voyager (Bersih &amp; Cepat)</option>
+                                <option value="carto_dark" @selected(($settings['map_osm_style'] ?? 'osm') === 'carto_dark')>CARTO Dark (Mode Gelap)</option>
+                            </select>
+                            <p class="text-xs text-slate-300">Berlaku sebagai layer utama pada mode OpenStreetMap di seluruh halaman.</p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2 pt-4 border-t border-slate-800">
+                        <label for="mapbox_token" class="block text-sm font-semibold text-slate-200">Mapbox Access Token (Opsional)</label>
+                        <input id="mapbox_token" type="text" name="mapbox_token" value="{{ $settings['mapbox_token'] ?? '' }}"
+                            placeholder="pk.eyJ1Ijoi..."
+                            class="w-full bg-slate-950 border border-slate-700 rounded-md px-3.5 py-2.5 text-sm font-mono text-white placeholder-slate-400 focus:outline-none focus:border-primary">
+                        <p class="text-xs text-slate-300">
+                            @if(!empty($settings['env_mapbox_configured']))
+                                Fallback token dari konfigurasi server (`.env`) tersedia dan akan dipakai hanya jika Provider Peta disetel ke Mapbox serta kolom ini dikosongkan.
+                            @else
+                                Tidak ada token di `.env`. Isi kolom ini jika ingin beralih kembali ke Mapbox di masa mendatang.
+                            @endif
+                        </p>
+                    </div>
+
+                    <div class="p-4 bg-slate-950 rounded-lg border border-slate-800 text-slate-200 text-xs leading-relaxed space-y-1.5">
+                        <span class="font-semibold text-white block">Halaman yang Mengikuti Pengaturan Ini:</span>
+                        <p class="text-slate-300">Buat Rute Lari, Database GPX (Explorer &amp; Detail), Pace Pro, Peta Aktivitas, Prediksi Event, Live Run, Explorer Kalender Event, dan Run Connect.</p>
                     </div>
                 </div>
 

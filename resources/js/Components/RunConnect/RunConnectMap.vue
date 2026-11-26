@@ -2,11 +2,16 @@
 import { ref, onMounted, onUnmounted, watch } from 'vue';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { ensureLeafletLoaded, getOsmTileConfig, searchNominatim } from '../../utils/osmMap';
 
 const props = defineProps({
     mapboxToken: {
         type: String,
         default: ''
+    },
+    mapOsmStyle: {
+        type: String,
+        default: 'osm'
     },
     userLocation: {
         type: Object,
@@ -52,9 +57,12 @@ const onSearchInput = () => {
 
     debounceTimeout = setTimeout(async () => {
         const token = props.mapboxToken || defaultToken;
-        if (!token) return;
-
         try {
+            if (!token) {
+                suggestions.value = await searchNominatim(searchQuery.value);
+                showSuggestions.value = suggestions.value.length > 0;
+                return;
+            }
             const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery.value)}.json?access_token=${token}&autocomplete=true&limit=5&country=id`;
             const response = await fetch(url);
             if (!response.ok) throw new Error('Geocoding request failed');
@@ -80,12 +88,16 @@ const selectSuggestion = (place) => {
     searchQuery.value = place.text;
     showSuggestions.value = false;
 
-    // Fly to position
-    map.value.flyTo({
-        center: [lng, lat],
-        zoom: 14,
-        essential: true
-    });
+    if (!props.mapboxToken && window.L) {
+        map.value.setView([lat, lng], 14, { animate: true });
+    } else {
+        // Fly to position
+        map.value.flyTo({
+            center: [lng, lat],
+            zoom: 14,
+            essential: true
+        });
+    }
 
     // Emit map-moved to trigger thread loading
     emit('map-moved', {
@@ -123,19 +135,36 @@ const getAvatarUrl = (user) => {
     return 'https://avatar.iran.liara.run/public/boy?username=' + encodeURIComponent(user.name);
 };
 
-const initMap = () => {
+let leafletBaseLayer = null;
+
+const initMap = async () => {
     if (!mapContainer.value) return;
 
     const token = props.mapboxToken || defaultToken;
+    const center = props.userLocation 
+        ? [props.userLocation.lng, props.userLocation.lat] 
+        : [106.8272, -6.1754];
+
+    if (!token) {
+        const L = await ensureLeafletLoaded();
+        if (!mapContainer.value || map.value) return;
+        const leafMap = L.map(mapContainer.value, { zoomControl: true, attributionControl: true })
+            .setView([center[1], center[0]], 13);
+        const tileCfg = getOsmTileConfig(props.theme, props.mapOsmStyle);
+        leafletBaseLayer = L.tileLayer(tileCfg.url, tileCfg.options).addTo(leafMap);
+        map.value = leafMap;
+        updateUserMarker();
+        updateThreadMarkers();
+        leafMap.on('dragend', handleMapMoved);
+        leafMap.on('zoomend', handleMapMoved);
+        return;
+    }
+
     mapboxgl.accessToken = token;
 
     const style = props.theme === 'light' 
         ? 'mapbox://styles/mapbox/streets-v12' 
         : 'mapbox://styles/mapbox/dark-v11';
-
-    const center = props.userLocation 
-        ? [props.userLocation.lng, props.userLocation.lat] 
-        : [106.8272, -6.1754];
 
     map.value = new mapboxgl.Map({
         container: mapContainer.value,
@@ -234,6 +263,17 @@ const updateUserMarker = () => {
     const el = document.createElement('div');
     el.className = 'user-pulse-marker';
 
+    if (!props.mapboxToken && window.L) {
+        const icon = window.L.divIcon({
+            html: '<div class="user-pulse-marker"></div>',
+            className: '',
+            iconSize: [18, 18],
+            iconAnchor: [9, 9]
+        });
+        userMarker = window.L.marker([loc.lat, loc.lng], { icon }).addTo(map.value);
+        return;
+    }
+
     userMarker = new mapboxgl.Marker(el)
         .setLngLat([loc.lng, loc.lat])
         .addTo(map.value);
@@ -246,16 +286,39 @@ const updateThreadMarkers = () => {
     markers.value.forEach(m => m.remove());
     markers.value = [];
 
+    const isLeaflet = !props.mapboxToken && Boolean(window.L);
+
     // Add new custom card markers
     props.threads.forEach(thread => {
-        const el = document.createElement('div');
-        el.className = 'custom-run-marker';
-        
         const avatarUrl = getAvatarUrl(thread.creator);
         const distanceStr = Number(thread.run_distance_km).toFixed(1);
         const typeStr = thread.type.split(' ')[0]; // Take first word e.g. "Casual"
+        let badgeColor = thread.status === 'full' ? '#ef4444' : (props.theme === 'light' ? '#c11e09' : '#ccff00');
 
-        // Inject card structure into marker
+        const popupHtml = `
+            <div class="p-2 text-xs font-sans bg-slate-900 text-white rounded-lg">
+                <p class="font-bold border-b border-slate-800 pb-1 mb-1">${thread.title}</p>
+                <p class="text-[10px] text-slate-400">Host: ${thread.creator.name}</p>
+                <p class="text-[9px] text-neon mt-1">Klik untuk detail</p>
+            </div>
+        `;
+
+        if (isLeaflet) {
+            const icon = window.L.divIcon({
+                html: `<div class="custom-run-marker" style="border-color:${badgeColor}"><img src="${avatarUrl}" class="marker-avatar" /><div class="marker-content"><span class="marker-distance">${distanceStr}K</span><span class="marker-type">${typeStr}</span></div></div>`,
+                className: '',
+                iconSize: null
+            });
+            const marker = window.L.marker([thread.start_latitude, thread.start_longitude], { icon })
+                .bindPopup(popupHtml)
+                .addTo(map.value);
+            marker.on('click', () => emit('select-thread', thread));
+            markers.value.push(marker);
+            return;
+        }
+
+        const el = document.createElement('div');
+        el.className = 'custom-run-marker';
         el.innerHTML = `
             <img src="${avatarUrl}" class="marker-avatar" />
             <div class="marker-content">
@@ -263,19 +326,9 @@ const updateThreadMarkers = () => {
                 <span class="marker-type">${typeStr}</span>
             </div>
         `;
-
-        // Apply dynamic theme borders
-        let badgeColor = thread.status === 'full' ? '#ef4444' : (props.theme === 'light' ? '#c11e09' : '#ccff00');
         el.style.borderColor = badgeColor;
 
-        const popup = new mapboxgl.Popup({ offset: 15, closeButton: false })
-            .setHTML(`
-                <div class="p-2 text-xs font-sans bg-slate-900 text-white rounded-lg">
-                    <p class="font-bold border-b border-slate-800 pb-1 mb-1">${thread.title}</p>
-                    <p class="text-[10px] text-slate-400">Host: ${thread.creator.name}</p>
-                    <p class="text-[9px] text-neon mt-1">Klik untuk detail</p>
-                </div>
-            `);
+        const popup = new mapboxgl.Popup({ offset: 15, closeButton: false }).setHTML(popupHtml);
 
         const marker = new mapboxgl.Marker(el)
             .setLngLat([thread.start_longitude, thread.start_latitude])
@@ -298,11 +351,15 @@ watch(() => props.userLocation, (newLoc) => {
         if (!newLoc.isApprox) {
             // Only flyTo and set real location when it's an external update
             realUserLocation.value = { lat: newLoc.lat, lng: newLoc.lng };
-            map.value.flyTo({
-                center: [newLoc.lng, newLoc.lat],
-                essential: true,
-                zoom: 13
-            });
+            if (!props.mapboxToken && window.L) {
+                map.value.setView([newLoc.lat, newLoc.lng], 13, { animate: true });
+            } else {
+                map.value.flyTo({
+                    center: [newLoc.lng, newLoc.lat],
+                    essential: true,
+                    zoom: 13
+                });
+            }
         }
         updateUserMarker();
     }
@@ -314,6 +371,13 @@ watch(() => props.threads, () => {
 
 watch(() => props.theme, (newTheme) => {
     if (map.value) {
+        if (!props.mapboxToken && window.L) {
+            if (leafletBaseLayer) map.value.removeLayer(leafletBaseLayer);
+            const tileCfg = getOsmTileConfig(newTheme, props.mapOsmStyle);
+            leafletBaseLayer = window.L.tileLayer(tileCfg.url, tileCfg.options).addTo(map.value);
+            return;
+        }
+
         const style = newTheme === 'light' 
             ? 'mapbox://styles/mapbox/streets-v12' 
             : 'mapbox://styles/mapbox/dark-v11';

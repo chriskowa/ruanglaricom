@@ -46,6 +46,12 @@ class IntegrationSettingsController extends Controller
             'whatsapp_app_key' => AppSettings::get('whatsapp_app_key'),
             'whatsapp_auth_key' => AppSettings::get('whatsapp_auth_key'),
             'whatsapp_gateways' => json_decode(AppSettings::get('whatsapp_gateways', '[]'), true) ?: [],
+
+            // Maps & Routing
+            'map_provider' => AppSettings::get('map_provider', 'openstreetmap'),
+            'map_osm_style' => AppSettings::get('map_osm_style', 'osm'),
+            'mapbox_token' => AppSettings::get('mapbox_token', ''),
+            'env_mapbox_configured' => !empty(config('services.mapbox.token')),
         ];
 
         return view('admin.settings.integrations', compact('settings'));
@@ -89,10 +95,15 @@ class IntegrationSettingsController extends Controller
             'whatsapp_app_key' => 'nullable|string',
             'whatsapp_auth_key' => 'nullable|string',
             'whatsapp_gateways' => 'nullable|string',
+
+            // Maps & Routing
+            'map_provider' => 'nullable|in:openstreetmap,mapbox',
+            'map_osm_style' => 'nullable|in:osm,carto_voyager,carto_dark',
+            'mapbox_token' => 'nullable|string|max:500',
         ]);
 
         foreach ($data as $key => $value) {
-            AppSettings::set($key, $value);
+            AppSettings::set($key, $value ?? '');
         }
 
         return back()->with('success', 'Settings updated successfully.');

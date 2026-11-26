@@ -261,6 +261,7 @@
 
 @push('scripts')
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    @include('partials.map-config')
     <script>
         let runMap = null;
         let runPolyline = null;
@@ -291,28 +292,13 @@
         });
 
         function initFreeRunMap() {
-            const mapboxToken = "{{ config('services.mapbox.token') }}";
-
             runMap = L.map('free-run-map', {
                 zoomControl: false,
                 scrollWheelZoom: true,
                 dragging: true,
             }).setView([-6.2088, 106.8456], 16);
 
-            if (mapboxToken) {
-                L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/tiles/{z}/{x}/{y}?access_token=' + mapboxToken, {
-                    tileSize: 512,
-                    zoomOffset: -1,
-                    maxZoom: 19,
-                    attribution: '&copy; Mapbox &copy; OpenStreetMap'
-                }).addTo(runMap);
-            } else {
-                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                    maxZoom: 20,
-                    subdomains: ['a', 'b', 'c', 'd'],
-                    attribution: '&copy; CARTO &copy; OpenStreetMap'
-                }).addTo(runMap);
-            }
+            window.rlCreateTileLayer('street').addTo(runMap);
 
             // Breadcrumb Polyline (#FC4C02)
             runPolyline = L.polyline([], {

@@ -1377,8 +1377,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    @include('partials.map-config')
     <script>
-        window.RL_MAPBOX_TOKEN = "{{ config('services.mapbox.token') }}";
         @if(isset($initialGpx) && $initialGpx)
             window.INITIAL_GPX_DATA = {
                 id: {{ $initialGpx->id }},
@@ -1709,44 +1709,9 @@
 
             // Initial route detection flag
 
-            var mapboxToken = window.RL_MAPBOX_TOKEN;
-            
-            var getMapboxUrl = function(style) {
-                return 'https://api.mapbox.com/styles/v1/mapbox/' + style + '/tiles/{z}/{x}/{y}?access_token=' + mapboxToken;
-            };
-
-            var getMapboxOpts = function() {
-                return {
-                    maxZoom: 19,
-                    tileSize: 512,
-                    zoomOffset: -1,
-                    attribution: '&copy; <a href="https://www.mapbox.com/about/maps/">Mapbox</a> &copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-                };
-            };
-
-            var baseLayers = {};
-            
-            if (mapboxToken) {
-                var outdoors = L.tileLayer(getMapboxUrl('outdoors-v12'), getMapboxOpts());
-                var satellite = L.tileLayer(getMapboxUrl('satellite-streets-v12'), getMapboxOpts());
-                var dark = L.tileLayer(getMapboxUrl('navigation-night-v1'), getMapboxOpts());
-
-                baseLayers = {
-                    "Peta Lari (Outdoors)": outdoors,
-                    "Satelit": satellite,
-                    "Mode Gelap": dark
-                };
-
-                outdoors.addTo(map);
-            } else {
-                var osm = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                    maxZoom: 20,
-                    subdomains: ['a', 'b', 'c', 'd'],
-                    attribution: '&copy; OpenStreetMap &copy; CARTO',
-                });
-                baseLayers = { "Peta Lari (CARTO)": osm };
-                osm.addTo(map);
-            }
+            var layerConfig = window.rlGetBaseLayers();
+            var baseLayers = layerConfig.layers;
+            layerConfig.defaultLayer.addTo(map);
 
             if (Object.keys(baseLayers).length > 1) {
                 L.control.layers(baseLayers, null, { position: 'bottomright' }).addTo(map);
@@ -6233,10 +6198,10 @@
                             class="w-full bg-slate-950/70 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white file:mr-3 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700 transition cursor-pointer">
                     </div>
 
-                    <!-- Live Mapbox Light Preview Container -->
+                    <!-- Live Map Preview Container -->
                     <div id="modal-gpx-preview-container" class="hidden space-y-2">
                         <div class="flex items-center justify-between text-xs font-bold text-slate-400">
-                            <span>Preview Map Rute (Mapbox Light)</span>
+                            <span>Preview Map Rute</span>
                             <span id="modal-gpx-point-count" class="text-[10px] bg-slate-800 px-2 py-0.5 rounded text-slate-300">0 pts</span>
                         </div>
 
@@ -6455,20 +6420,8 @@
                                 zoomControl: false,
                                 attributionControl: false
                             });
-                            
-                            if (window.RL_MAPBOX_TOKEN) {
-                                L.tileLayer('https://api.mapbox.com/styles/v1/mapbox/outdoors-v12/tiles/{z}/{x}/{y}?access_token=' + window.RL_MAPBOX_TOKEN, {
-                                    tileSize: 512,
-                                    zoomOffset: -1,
-                                    maxZoom: 19,
-                                    attribution: '&copy; Mapbox'
-                                }).addTo(previewMap);
-                            } else {
-                                L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                                    maxZoom: 20,
-                                    subdomains: ['a', 'b', 'c', 'd']
-                                }).addTo(previewMap);
-                            }
+
+                            window.rlCreateTileLayer('street').addTo(previewMap);
                         }
 
                         if (previewPolyline) {

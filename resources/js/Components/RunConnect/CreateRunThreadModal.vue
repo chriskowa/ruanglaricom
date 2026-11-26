@@ -3,6 +3,7 @@ import { ref, reactive, computed, watch, nextTick } from 'vue';
 import axios from 'axios';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
+import { ensureLeafletLoaded, getOsmTileConfig, searchNominatim } from '../../utils/osmMap';
 
 const props = defineProps({
     isOpen: {
@@ -20,6 +21,10 @@ const props = defineProps({
     mapboxToken: {
         type: String,
         default: ''
+    },
+    mapOsmStyle: {
+        type: String,
+        default: 'osm'
     },
     editThread: {
         type: Object,
@@ -149,18 +154,46 @@ watch(step, (newStep) => {
     }
 });
 
-const initMiniMap = () => {
+const initMiniMap = async () => {
     if (!miniMapContainer.value) return;
 
     const token = props.mapboxToken || '';
+    const initialLat = parseFloat(form.start_latitude) || (props.userLocation ? props.userLocation.lat : -6.1754);
+    const initialLng = parseFloat(form.start_longitude) || (props.userLocation ? props.userLocation.lng : 106.8272);
+
+    if (!form.start_latitude) form.start_latitude = parseFloat(initialLat.toFixed(6));
+    if (!form.start_longitude) form.start_longitude = parseFloat(initialLng.toFixed(6));
+
+    if (!token) {
+        const L = await ensureLeafletLoaded();
+        if (!miniMapContainer.value || miniMap.value) return;
+        const leafMap = L.map(miniMapContainer.value, { zoomControl: true }).setView([initialLat, initialLng], 14);
+        const tileCfg = getOsmTileConfig(props.theme, props.mapOsmStyle);
+        L.tileLayer(tileCfg.url, tileCfg.options).addTo(leafMap);
+        const leafMarker = L.marker([initialLat, initialLng], { draggable: true }).addTo(leafMap);
+        leafMarker.on('dragend', () => {
+            const pos = leafMarker.getLatLng();
+            form.start_latitude = parseFloat(pos.lat.toFixed(6));
+            form.start_longitude = parseFloat(pos.lng.toFixed(6));
+        });
+        leafMap.on('click', (e) => {
+            leafMarker.setLatLng(e.latlng);
+            form.start_latitude = parseFloat(e.latlng.lat.toFixed(6));
+            form.start_longitude = parseFloat(e.latlng.lng.toFixed(6));
+        });
+        miniMap.value = leafMap;
+        miniMarker.value = leafMarker;
+        setTimeout(() => {
+            if (miniMap.value && typeof miniMap.value.invalidateSize === 'function') miniMap.value.invalidateSize();
+        }, 150);
+        return;
+    }
+
     mapboxgl.accessToken = token;
 
     const style = props.theme === 'light' 
         ? 'mapbox://styles/mapbox/streets-v12' 
         : 'mapbox://styles/mapbox/dark-v11';
-
-    const initialLat = parseFloat(form.start_latitude) || (props.userLocation ? props.userLocation.lat : -6.1754);
-    const initialLng = parseFloat(form.start_longitude) || (props.userLocation ? props.userLocation.lng : 106.8272);
 
     miniMap.value = new mapboxgl.Map({
         container: miniMapContainer.value,
@@ -177,10 +210,6 @@ const initMiniMap = () => {
     })
     .setLngLat([initialLng, initialLat])
     .addTo(miniMap.value);
-
-    // Set initial form values if they were empty
-    if (!form.start_latitude) form.start_latitude = parseFloat(initialLat.toFixed(6));
-    if (!form.start_longitude) form.start_longitude = parseFloat(initialLng.toFixed(6));
 
     miniMarker.value.on('dragend', () => {
         const lngLat = miniMarker.value.getLngLat();
@@ -206,8 +235,13 @@ const updateMarkerFromInputs = () => {
     const lat = parseFloat(form.start_latitude);
     const lng = parseFloat(form.start_longitude);
     if (!isNaN(lat) && !isNaN(lng) && miniMarker.value && miniMap.value) {
-        miniMarker.value.setLngLat([lng, lat]);
-        miniMap.value.setCenter([lng, lat]);
+        if (!props.mapboxToken && window.L) {
+            miniMarker.value.setLatLng([lat, lng]);
+            miniMap.value.setView([lat, lng], miniMap.value.getZoom());
+        } else {
+            miniMarker.value.setLngLat([lng, lat]);
+            miniMap.value.setCenter([lng, lat]);
+        }
     }
 };
 
@@ -226,9 +260,12 @@ const onSearchInput = () => {
 
     debounceTimeout = setTimeout(async () => {
         const token = props.mapboxToken || '';
-        if (!token) return;
-
         try {
+            if (!token) {
+                suggestions.value = await searchNominatim(searchQuery.value);
+                showSuggestions.value = suggestions.value.length > 0;
+                return;
+            }
             const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(searchQuery.value)}.json?access_token=${token}&autocomplete=true&limit=5&country=id`;
             const response = await fetch(url);
             if (!response.ok) throw new Error('Geocoding request failed');
@@ -249,15 +286,19 @@ const selectSuggestion = (place) => {
     form.start_location_name = place.text;
     showSuggestions.value = false;
 
-    // Fly to position
-    miniMap.value.flyTo({
-        center: [lng, lat],
-        zoom: 15,
-        essential: true
-    });
-    
-    if (miniMarker.value) {
-        miniMarker.value.setLngLat([lng, lat]);
+    if (!props.mapboxToken && window.L) {
+        miniMap.value.setView([lat, lng], 15, { animate: true });
+        if (miniMarker.value) miniMarker.value.setLatLng([lat, lng]);
+    } else {
+        // Fly to position
+        miniMap.value.flyTo({
+            center: [lng, lat],
+            zoom: 15,
+            essential: true
+        });
+        if (miniMarker.value) {
+            miniMarker.value.setLngLat([lng, lat]);
+        }
     }
     
     form.start_latitude = parseFloat(lat.toFixed(6));
@@ -277,11 +318,16 @@ const useCurrentLocation = () => {
         form.start_location_name = form.start_location_name || 'Lokasi Terdekat Anda';
         
         if (miniMap.value && miniMarker.value) {
-            miniMap.value.flyTo({
-                center: [props.userLocation.lng, props.userLocation.lat],
-                zoom: 15
-            });
-            miniMarker.value.setLngLat([props.userLocation.lng, props.userLocation.lat]);
+            if (!props.mapboxToken && window.L) {
+                miniMap.value.setView([props.userLocation.lat, props.userLocation.lng], 15);
+                miniMarker.value.setLatLng([props.userLocation.lat, props.userLocation.lng]);
+            } else {
+                miniMap.value.flyTo({
+                    center: [props.userLocation.lng, props.userLocation.lat],
+                    zoom: 15
+                });
+                miniMarker.value.setLngLat([props.userLocation.lng, props.userLocation.lat]);
+            }
         }
     } else {
         alert("Lokasi Anda tidak terdeteksi. Silakan aktifkan izin lokasi browser.");
