@@ -215,15 +215,61 @@ class ProcessPaidEventTransaction implements ShouldQueue
     }
 
     /**
+     * Determine whether this transaction represents real platform-collected funds
+     * that are eligible to be deposited into the EO wallet.
+     */
+    protected function isEligibleForWalletDeposit(): bool
+    {
+        if (($this->transaction->payment_status ?? null) !== 'paid') {
+            return false;
+        }
+
+        if ((float) ($this->transaction->final_amount ?? 0) <= 0) {
+            return false;
+        }
+
+        $gateway = strtolower(trim((string) ($this->transaction->payment_gateway ?? '')));
+
+        if ($gateway === 'midtrans') {
+            $mode = strtolower(trim((string) ($this->transaction->midtrans_mode ?? 'production')));
+            $orderId = trim((string) ($this->transaction->midtrans_order_id ?? ''));
+            $midtransStatus = strtolower(trim((string) ($this->transaction->midtrans_transaction_status ?? '')));
+
+            if ($mode === 'sandbox' || str_starts_with($orderId, 'EVENT-SBX-') || str_starts_with($orderId, 'TEST-')) {
+                return false;
+            }
+
+            if ($orderId === '') {
+                return false;
+            }
+
+            // Require verified Midtrans settlement/capture so manual status edits cannot mint wallet balance.
+            return in_array($midtransStatus, ['settlement', 'capture'], true);
+        }
+
+        if ($gateway === 'moota') {
+            return ! empty($this->transaction->moota_transaction_id)
+                || ! empty($this->transaction->payment_gateway_reference);
+        }
+
+        // Direct/offline gateways (manual, manual_csv, manual_transfer, cod, free, etc.) never credit platform wallet.
+        return false;
+    }
+
+    /**
      * Deposit organizer amount to EO wallet and platform fee to platform wallet idempotently.
      */
     protected function depositToEOWallet(): void
     {
-        // Direct transfer to EO's account, COD, or free transactions (100% coupon) do not deposit to platform wallet.
-        if (in_array($this->transaction->payment_gateway, ['manual_transfer', 'cod', 'free'], true) || (float) $this->transaction->final_amount <= 0) {
-            Log::info('ProcessPaidEventTransaction: Skipped EO wallet deposit for direct transfer / COD / free transaction', [
+        if (! $this->isEligibleForWalletDeposit()) {
+            Log::info('ProcessPaidEventTransaction: Skipped EO wallet deposit (non-gateway, sandbox, free, or unverified settlement)', [
                 'transaction_id' => $this->transaction->id,
                 'payment_gateway' => $this->transaction->payment_gateway,
+                'midtrans_mode' => $this->transaction->midtrans_mode,
+                'midtrans_transaction_status' => $this->transaction->midtrans_transaction_status,
+                'midtrans_order_id' => $this->transaction->midtrans_order_id,
+                'moota_transaction_id' => $this->transaction->moota_transaction_id,
+                'final_amount' => $this->transaction->final_amount,
             ]);
 
             return;

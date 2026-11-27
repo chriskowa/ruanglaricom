@@ -48,7 +48,7 @@ class DashboardController extends Controller
         // Calculate actual net earnings from paid event transactions (matches participants page Net Revenue)
         $totalEarnings = (float) Transaction::whereIn('event_id', $eventIds)
             ->where('payment_status', 'paid')
-            ->selectRaw('COALESCE(SUM(final_amount - COALESCE(admin_fee, 0)), 0) as net')
+            ->selectRaw('COALESCE(SUM(GREATEST(final_amount - COALESCE(admin_fee, 0), 0)), 0) as net')
             ->value('net');
 
         // Count confirmed/paid runners across this EO's events (matches Paid & Confirmed on participants page)

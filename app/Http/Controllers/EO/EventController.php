@@ -859,7 +859,7 @@ class EventController extends Controller
         })->count();
         $totalEarnings = (float) Transaction::where('event_id', $event->id)
             ->where('payment_status', 'paid')
-            ->selectRaw('COALESCE(SUM(final_amount - COALESCE(admin_fee, 0)), 0) as net')
+            ->selectRaw('COALESCE(SUM(GREATEST(final_amount - COALESCE(admin_fee, 0), 0)), 0) as net')
             ->value('net');
 
         return view('eo.events.show', compact('event', 'totalRegistered', 'totalPaid', 'totalEarnings'));
@@ -1681,15 +1681,16 @@ class EventController extends Controller
 
         $participants = $query->paginate($perPage)->withQueryString();
 
+        $financialBreakdown = $this->reportService->getFinancialBreakdown($event);
         $financials = [
-            'gross_revenue' => \App\Models\Transaction::where('event_id', $event->id)
-                ->where('payment_status', 'paid')
-                ->sum('final_amount'),
-            'platform_fee' => \App\Models\Transaction::where('event_id', $event->id)
-                ->where('payment_status', 'paid')
-                ->sum('admin_fee'),
+            'gross_revenue' => $financialBreakdown['summary']['gross_paid'],
+            'platform_fee' => $financialBreakdown['summary']['platform_fee_total'],
+            'net_revenue' => $financialBreakdown['summary']['total_net'],
+            'verified_wallet_net' => $financialBreakdown['summary']['verified_wallet_net'],
+            'midtrans_manual_net' => $financialBreakdown['summary']['midtrans_manual_net'],
+            'offline_net' => $financialBreakdown['summary']['offline_net'],
+            'coupon_discount_total' => $financialBreakdown['summary']['coupon_discount_total'],
         ];
-        $financials['net_revenue'] = $financials['gross_revenue'] - $financials['platform_fee'];
 
         if (request()->ajax() || request()->wantsJson()) {
             // Handle Report AJAX
@@ -1844,7 +1845,7 @@ class EventController extends Controller
             ->orderBy('code')
             ->get();
 
-        return view('eo.events.participants', compact('event', 'participants', 'financials', 'eventReport', 'reportLink', 'nextBibNumber', 'coupons', 'eventDetailAnalytics'));
+        return view('eo.events.participants', compact('event', 'participants', 'financials', 'financialBreakdown', 'eventReport', 'reportLink', 'nextBibNumber', 'coupons', 'eventDetailAnalytics'));
     }
 
     private function buildReportLink(Event $event): string
