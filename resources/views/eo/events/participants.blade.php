@@ -6103,6 +6103,46 @@
     window.bibOverrides = {};
     window.activeParticipantIndex = 0;
 
+    function getBibOverridesStorageKey() {
+        return `bib_overrides_event_${eventId}`;
+    }
+
+    function cloneBibOverrides(source) {
+        if (!source || typeof source !== 'object' || Array.isArray(source)) {
+            return {};
+        }
+        const cleaned = {};
+        Object.entries(source).forEach(([participantId, fields]) => {
+            if (fields && typeof fields === 'object' && !Array.isArray(fields) && Object.keys(fields).length > 0) {
+                cleaned[String(participantId)] = { ...fields };
+            }
+        });
+        return cleaned;
+    }
+
+    function saveBibOverridesToStorage() {
+        try {
+            const payload = cloneBibOverrides(window.bibOverrides);
+            window.bibOverrides = payload;
+            localStorage.setItem(getBibOverridesStorageKey(), JSON.stringify(payload));
+        } catch (e) {
+            console.warn('Gagal menyimpan override data cetak BIB ke penyimpanan lokal:', e);
+        }
+    }
+
+    function loadBibOverridesFromStorage() {
+        try {
+            const raw = localStorage.getItem(getBibOverridesStorageKey());
+            if (raw === null) return null;
+            return cloneBibOverrides(JSON.parse(raw));
+        } catch (e) {
+            console.warn('Gagal membaca override data cetak BIB dari penyimpanan lokal:', e);
+            return null;
+        }
+    }
+
+    window.bibOverrides = loadBibOverridesFromStorage() || {};
+
     window.loadBibParticipant = function(index) {
         if (!window.currentParticipantsList || window.currentParticipantsList.length === 0) {
             const infoEl = document.getElementById('bibParticipantInfo');
@@ -6180,6 +6220,7 @@
             window.bibOverrides[p.id] = {};
         }
         window.bibOverrides[p.id][field] = value;
+        saveBibOverridesToStorage();
 
         const overrideBadge = document.getElementById('bibOverrideActiveBadge');
         if (overrideBadge) {
@@ -6215,6 +6256,7 @@
         
         if (window.bibOverrides[p.id]) {
             delete window.bibOverrides[p.id];
+            saveBibOverridesToStorage();
         }
         
         window.loadBibParticipant(window.activeParticipantIndex);
@@ -6486,6 +6528,7 @@
             };
         });
 
+        const savedOverrides = cloneBibOverrides(window.bibOverrides);
         const preset = {
             take_last: document.getElementById('bibTakeLast').value,
             prefix: document.getElementById('bibPrefix').value,
@@ -6494,22 +6537,34 @@
             auto_format_name: document.getElementById('bibAutoFormatName')?.checked ?? false,
             canvas_width: bibCanvas.width || null,
             imposition: window.getBibImpositionConfig ? window.getBibImpositionConfig() : undefined,
-            texts: textElements
+            texts: textElements,
+            overrides: savedOverrides
         };
 
         if (bibImageBase64) {
             preset.image_base64 = bibImageBase64;
         }
 
+        saveBibOverridesToStorage();
+
+        const overrideCount = Object.keys(savedOverrides).length;
         try {
             localStorage.setItem(`bib_preset_event_${eventId}`, JSON.stringify(preset));
-            if (!quiet) alert('Desain berhasil disimpan!');
+            if (!quiet) {
+                alert(overrideCount > 0
+                    ? `Desain & edit data cetak (${overrideCount} peserta) berhasil disimpan!`
+                    : 'Desain berhasil disimpan!');
+            }
         } catch (e) {
             if (e.name === 'QuotaExceededError' || e.code === 22) {
                 try {
                     delete preset.image_base64;
                     localStorage.setItem(`bib_preset_event_${eventId}`, JSON.stringify(preset));
-                    if (!quiet) alert('Desain berhasil disimpan (tanpa gambar background karena ukuran gambar terlalu besar).');
+                    if (!quiet) {
+                        alert(overrideCount > 0
+                            ? `Desain & edit data cetak (${overrideCount} peserta) berhasil disimpan (tanpa gambar background karena ukuran gambar terlalu besar).`
+                            : 'Desain berhasil disimpan (tanpa gambar background karena ukuran gambar terlalu besar).');
+                    }
                 } catch (err) {
                     if (!quiet) alert('Gagal menyimpan desain: Penyimpanan lokal penuh.');
                 }
@@ -6529,6 +6584,17 @@
 
         try {
             const preset = JSON.parse(dataStr);
+
+            const storedOverrides = loadBibOverridesFromStorage();
+            if (!quiet && preset.overrides && typeof preset.overrides === 'object') {
+                window.bibOverrides = cloneBibOverrides(preset.overrides);
+                saveBibOverridesToStorage();
+            } else if (storedOverrides !== null) {
+                window.bibOverrides = storedOverrides;
+            } else if (preset.overrides && typeof preset.overrides === 'object') {
+                window.bibOverrides = cloneBibOverrides(preset.overrides);
+                saveBibOverridesToStorage();
+            }
 
             if (preset.take_last !== undefined) {
                 document.getElementById('bibTakeLast').value = preset.take_last;
@@ -6661,6 +6727,11 @@
                 if (!quiet) {
                     alert('Desain dimuat! Harap upload kembali gambar background jika diperlukan.');
                 }
+            }
+
+            const isCustomModeActive = document.getElementById('bibCustomRangeMode')?.checked;
+            if (!isCustomModeActive && Array.isArray(window.currentParticipantsList) && window.currentParticipantsList.length > 0) {
+                window.loadBibParticipant(window.activeParticipantIndex || 0);
             }
 
             bibCanvas.renderAll();
@@ -6831,7 +6902,8 @@
                     bibNum = bibNum.trim() === '' ? '-' : prefixVal + bibNum;
                 }
 
-                const fullBibNum = rawBibNum;
+                const originalBibNum = String(data.bib_number || '').trim();
+                const fullBibNum = originalBibNum !== '' ? originalBibNum : rawBibNum;
                 const combinedEmergency = `Emergency contact: ${emergency_contact_name} - ${emergency_contact_number}`;
 
                 return {
@@ -7297,6 +7369,11 @@
     };
 
     function openBibModal(targetParticipantId = null) {
+        const storedOverrides = loadBibOverridesFromStorage();
+        if (storedOverrides !== null) {
+            window.bibOverrides = storedOverrides;
+        }
+
         document.getElementById('bibModal').classList.remove('hidden');
         document.body.style.overflow = 'hidden';
         

@@ -3916,9 +3916,10 @@ class EventController extends Controller
                     }
 
                     $dynamicBib = trim((string) ($dynamicBib ?? '')) === '' ? '-' : trim((string) $dynamicBib);
+                    $originalBibNum = trim((string) ($p->bib_number ?? ''));
                     $fullBibNumber = $isCustomRange
                         ? (string) $dynamicBib
-                        : ($bibNum !== '' ? (string) $bibNum : (string) $dynamicBib);
+                        : ($originalBibNum !== '' ? (string) $originalBibNum : ($bibNum !== '' ? (string) $bibNum : (string) $dynamicBib));
 
                     $gender = isset($pOverride['gender']) ? $pOverride['gender'] : $p->gender;
                     $genderVal = '';
